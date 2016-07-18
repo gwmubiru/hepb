@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 import os
-from db_engines
+import db_engines
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -78,9 +78,9 @@ WSGI_APPLICATION = 'viral_load2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': db_engines.gears.get(os.environ.get('DB_ENGINE'),'django.db.backends.mysql'),
-        'NAME': os.environ.get('DB_NAME',''),
-        'USER': os.environ.get('DB_USER',''),
-        'PASSWORD': os.environ.get('DB_PASSWORD',''),
+        'NAME': os.environ.get('DB_NAME','vl2'),
+        'USER': os.environ.get('DB_USER','vl2'),
+        'PASSWORD': os.environ.get('DB_PASSWORD','vl2'),
         'HOST': os.environ.get('DB_HOST',''),
         'PORT': os.environ.get('DB_PORT',''),
     }
