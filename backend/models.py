@@ -71,7 +71,7 @@ class Hub(models.Model):
 
 
 #Hold data about Hub Riders (border borders) that transport samples/ results between hubs and facilities
-class HubRiders(models.Model):
+class HubRider(models.Model):
 	hub = models.ForeignKey(Hub, on_delete=models.CASCADE)
 	rider = models.CharField(max_length=64)
 	contact = models.CharField(max_length=64)
