@@ -98,6 +98,9 @@ class Sample(models.Model):
 	suspected_treatment_failure_last_value = models.CharField(max_length=64)
 	suspected_treatment_failure_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
 	verified = models.BooleanField(default=False)
+	in_worksheet = models.BooleanField(default=False)
+	printed = models.BooleanField(default=False)
+	dispatched = models.BooleanField(default=False)
 	created_by = models.ForeignKey(User, related_name='created_by')
 	updated_by = models.ForeignKey(User, related_name='updated_by')
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -125,3 +128,13 @@ class VerificationRejectionReason(models.Model):
 
 	class Meta:
 		db_table = 'vl_verification_rejection_reasons'
+
+
+class Envelope(models.Model):
+	envelope_number = models.CharField(max_length=10)
+	printed = models.BooleanField(default=False)
+	print_date = models.DateTimeField()
+	envelope_printed_by = models.ForeignKey(User, related_name='envelope_printed_by')
+	dispatched = models.BooleanField(default=False)
+	dispatch_date = models.DateTimeField()
+	envelope_dispatched_by = models.ForeignKey(User, related_name='envelope_dispatched_by')

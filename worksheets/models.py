@@ -23,16 +23,18 @@ class Worksheet(models.Model):
 	include_calibrators = models.BooleanField(default=False)
 	amplication_kit = models.CharField(max_length=64)
 	amplication_kit_expiry_date = models.DateField()
-	assay_date = models.DateField()
+	assay_date = models.DateTimeField()
 	generated_by = models.ForeignKey(User, related_name='generated_by')
 	worksheet_updated_by = models.ForeignKey(User, related_name='worksheet_updated_by')
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+	results_uploaded = models.BooleanField(default=False)
+	printed = models.BooleanField(default=False)
 
 	class Meta:
 		db_table = 'vl_worksheets'
 
-
+#Attaching samples to work sheet
 class WorksheetSample(models.Model):
 	worksheet = models.ForeignKey(Worksheet)
 	sample = models.ForeignKey(samples.Sample)

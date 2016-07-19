@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'backend.apps.BackendConfig',
     'samples.apps.SamplesConfig',
     'worksheets.apps.WorksheetsConfig',
+    'results.apps.ResultsConfig',
 ]
 
 MIDDLEWARE_CLASSES = [
