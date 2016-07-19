@@ -122,3 +122,6 @@ class Verification(models.Model):
 class VerificationRejectionReason(models.Model):
 	sample = models.ForeignKey(Sample)
 	rejection_reason = models.ForeignKey(backend.Appendix)
+
+	class Meta:
+		db_table = 'vl_verification_rejection_reasons'

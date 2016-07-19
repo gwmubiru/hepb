@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'backend.apps.BackendConfig',
     'samples.apps.SamplesConfig',
+    'worksheets.apps.WorksheetsConfig',
 ]
 
 MIDDLEWARE_CLASSES = [
