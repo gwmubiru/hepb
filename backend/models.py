@@ -114,7 +114,7 @@ class Facility(models.Model):
 	hub = models.ForeignKey(Hub, on_delete=models.CASCADE)
 	ips = models.ManyToManyField(Ip, through='IpFacilitySupport')
 	facility = models.CharField(max_length=128)
-	hub_facility = models.BooleanField(default=False)
+	hub_facility = models.BooleanField(default=False)#this field asks whether the facility is a hub
 	facility_contact = models.CharField(max_length=64)
 	facility_email = models.EmailField(max_length=128)
 	physical_address = models.CharField(max_length=128)
