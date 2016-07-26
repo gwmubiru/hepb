@@ -1,0 +1,29 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <title>VL 2</title>
+	    <link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>
+	    <link rel="stylesheet" href='{% static "home/vendor/jquery-ui/themes/base/jquery-ui.min.css" %}'>
+	    <link rel="stylesheet" href='{% static "home/css/app.css" %}'>
+	    {% block css %}
+		{% endblock %}
+
+	    <script type="text/javascript" src='{% static "home/vendor/jquery/dist/jquery.min.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/vendor/bootstrap/dist/js/bootstrap.min.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/vendor/jquery-ui/jquery-ui.min.js" %}'></script>
+
+	    {% block js %}
+		{% endblock %}
+
+	</head>
+	
+	<body>
+		<br>
+		<div class="container">
+		    {% block content %}
+		    {% endblock %}
+		</div>
+	</body>
+</html>

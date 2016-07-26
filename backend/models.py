@@ -14,12 +14,16 @@ class AppendixCategory(models.Model):
 		db_table = 'backend_appendix_categories'
 		verbose_name_plural = 'Appendix Categories'
 
+	def __str__(self): #return category as default
+		return self.category
+
 
 #Appendices are to hold basic back end data to be used on forms
 class Appendix(models.Model):
 	appendix_category = models.ForeignKey(AppendixCategory, on_delete=models.CASCADE)
 	code = models.CharField(max_length=32)
 	appendix = models.CharField(max_length=64)
+	tag = models.CharField(max_length=64, null=True)
 
 	def __str__(self): #return appendix as default
 		return self.appendix
@@ -75,7 +79,7 @@ class District(models.Model):
 
 #Hold data about hubs
 class Hub(models.Model):	
-	ip = models.ForeignKey(Ip, on_delete=models.CASCADE)
+	ip = models.ForeignKey(Ip)
 	hub = models.CharField(max_length=32, unique=True)
 	hub_email = models.EmailField(max_length=128)
 	coordinator_name = models.CharField(max_length=64)

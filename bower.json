@@ -1,0 +1,25 @@
+{
+  "name": "viral_load2",
+  "homepage": "https://github.com/CHAIUganda/viral_load2",
+  "authors": [
+    "Kitutu <pkitutu@gmail.com>"
+  ],
+  "description": "viral load version 2",
+  "main": "",
+  "keywords": [
+    "v2"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery-ui": "jqueryui#^1.12.0",
+    "select2": "^4.0.3"
+  }
+}

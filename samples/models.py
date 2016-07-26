@@ -24,6 +24,7 @@ class ClinicalRequestFormsDispatch(models.Model):
 class ClinicalRequestForm(models.Model):
 	form_number = models.CharField(max_length=128, unique=True)
 	dispatch = models.ForeignKey(ClinicalRequestFormsDispatch, on_delete=models.CASCADE)
+	received_back = models.BooleanField(default=False)
 
 	def __init__(self):
 		return self.form_number
