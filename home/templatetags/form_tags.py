@@ -5,7 +5,6 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 
-
 @register.simple_tag
 def input(name="", value="", more="{}"):
 	more = ast.literal_eval(more)
@@ -13,7 +12,7 @@ def input(name="", value="", more="{}"):
 	for k,v in more.items():
 		more_attrs += " %s='%s' " % (k, v)
 	
-	input_tag = "<input type='text' name='%s' value='%s' id='%s' %s class='form-control input-xs w-md' >" % (name, value, name, more_attrs)
+	input_tag = "<input type='text' name='%s' value='%s' id='%s' %s class='form-control input-xs w-md' required >" % (name, value, name, more_attrs)
 	return mark_safe(input_tag)
 
 
@@ -24,7 +23,7 @@ def select(name="", data="{}", selected_val="", more="{}"):
 	for k,v in more.items():
 		more_attrs += " %s='%s' " % (k, v)
 
-	select_tag = "<select name='%s' id='%s'  %s class='form-control input-xs w-md' >" % (name, name, more_attrs)
+	select_tag = "<select name='%s' id='%s'  %s class='form-control input-xs w-md' required>" % (name, name, more_attrs)
 
 	data = ast.literal_eval(data)
 	select_tag += "<option value=''></option>"

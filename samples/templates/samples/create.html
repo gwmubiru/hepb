@@ -12,11 +12,14 @@
 
 
 {% block content %}	
+	{% if error_message %} <div class="alert alert-danger" role="alert">{{ error_message }}</div> {% endif %}
+	{% if info_message %} <div class="alert alert-success" role="alert">{{ info_message }}</div> {% endif %}
+	{% if success_message %} <div class="alert alert-success" role="alert">{{ success_message }}</div> {% endif %}
 	<div class="panel panel-warning">
 		<div class="panel-heading"><b>Capture sample details</b></div>
 
 		<div class="panel-body">
-			{% if error_message %} <p><strong>{{ error_message }}</strong></p> {% endif %}
+			
 			<form action="{% url 'samples:save'  %}" method="post" role="form">
 				{% csrf_token %}
 
@@ -24,7 +27,7 @@
 					<div class="col-lg-6">
 
 						<div class="form-inline">
-							<label for="locator_envelope">Location/Rejection ID</label><br>
+							<label for="locator_envelope">Location/Rejection ID {% required_asta %}</label><br>
 							<span style='width:300px'>
 								{% select "locator_category" "{'V':'V', 'R':'R'}" "V" %}
 									
@@ -70,17 +73,17 @@
 					<div class="col-lg-6">
 						<div class="form-group">
 							<label for="collection_date">Collection Date</label>
-							{% input "collection_date" "" "{'class':'form-control input-sm w-md date-picker'}" %}
+							{% input "collection_date" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
 						</div>
 
 						<div class="form-group">
-							<label for="date_received">Date Received at CPHL</label>
+							<label for="date_received">Date Received at CPHL {% required_asta %}</label>
 							{% input "date_received" "" "{'class':'form-control input-sm w-md date-picker'}" %}
 						</div>
 					</div>
 					<div class="col-lg-6">
 						<div class="form-group">
-							<label for="sample_type">Sample Type</label>
+							<label for="sample_type">Sample Type {% required_asta %}</label>
 							{% select "sample_type" "{'P':'Plasma', 'D':'DBS', }" "V" "{'class':'form-control input-sm w-xs'}" %}
 						</div>
 					</div>
@@ -94,17 +97,17 @@
 					<div class="col-lg-6">
 
 						<div class="form-group">
-							<label for="art_number">ART Number</label>
+							<label for="art_number">ART Number {% required_asta %}</label>
 							{% input "art_number" %}
 						</div> 
 
 						<div class="form-group">
 							<label for="other_id">Other ID</label>
-							{% input "other_id" %}
+							{% input "other_id" "" "{'class':'form-control input-sm w-md optional'}" %}
 						</div> 
 
 						<div class="form-group">
-							<label for="gender">Gender</label>
+							<label for="gender">Gender {% required_asta %}</label>
 							{% select "gender" "{'M':'Male', 'F':'Female', 'X':'Missing Gender'}" "" "{'class':'form-control input-sm w-xs'}" %}
 						</div>
 					</div>
@@ -112,12 +115,12 @@
 
 						<div class="form-group">
 							<label for="dob">Date of Birth</label>
-							{% input "dob" "" "{'class':'form-control input-sm w-md date-picker'}" %}
+							{% input "dob" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
 						</div> 
 
 						<div class="form-group">
 							<label for="patient_phone">Patient Phone</label>
-							{% input "patient_phone" %}
+							{% input "patient_phone" "" "{'class':'form-control input-sm w-md optional'}" %}
 						</div> 
 					</div>
 				</div>
@@ -127,17 +130,19 @@
 				<div class="row">
 					<div class="col-lg-6">
 						<div class="form-group">
-							<label for="treatment_inlast_sixmonths">Has patient been on ART for the last 6 months</label>
+							<label for="treatment_inlast_sixmonths">
+								Has patient been on ART for the last 6 months {% required_asta %}
+							</label>
 							{% yesno_select "treatment_inlast_sixmonths" %}
 						</div>
 
 						<div class="form-group">
-							<label for="treatment_initiation_date">Treatment Initiation Date</label>
+							<label for="treatment_initiation_date">Treatment Initiation Date {% required_asta %}</label>
 							{% input "treatment_initiation_date" "" "{'class':'form-control input-sm w-md date-picker'}" %}
 						</div>
 
 						<div class="form-group">
-							<label for="current_regimen_id">Current Regimen</label> {% required_asta %}<br>
+							<label for="current_regimen_id">Current Regimen</label> {% required_asta %}
 							{{ regimens_dropdown | safe }}					
 						</div>
 
@@ -147,12 +152,12 @@
 						</div> 
 
 						<div class="form-group">
-							<label for="treatment_indication_id">Indication for Treatment Initiation</label> {% required_asta %}<br>
+							<label for="treatment_indication_id">Indication for Treatment Initiation</label> {% required_asta %}
 							{{ tx_indication_dropdown | safe }}					
 						</div>
 
 						<div class="form-group">
-							<label for="failure_reason_id">Failure Reason</label> {% required_asta %}<br>
+							<label for="failure_reason_id">Failure Reason</label> {% required_asta %}
 							{{ f_reason_dropdown | safe }}					
 						</div>
 
@@ -160,7 +165,7 @@
 					<div class="col-lg-6">
 
 						<div class="form-group">
-							<label for="viral_load_testing_id">Viral Load Testing</label> {% required_asta %}<br>
+							<label for="viral_load_testing_id">Viral Load Testing</label> {% required_asta %}
 							{{ vl_testing_dropdown | safe }}					
 						</div>
 
@@ -175,17 +180,17 @@
 						</div>
 
 						<div class="form-group">
-							<label for="active_tb_status">Active TB Status {% required_asta %}</label>
-							{% yesno_select "active_tb_status" %}
+							<label for="active_tb_status">Active TB Status</label>
+							{% yesno_select "active_tb_status" "" "{'class':'form-control input-xs w-xs optional'}" %}
 						</div>
 
 						<div class="form-group">
-							<label for="tb_treatment_phase_id">TB Treatment Phase</label> {% required_asta %}<br>
+							<label for="tb_treatment_phase_id">TB Treatment Phase</label>
 							{{ tb_tx_phase_dropdown | safe }}					
 						</div>
 
 						<div class="form-group">
-							<label for="arv_adherence_id">ARV Adherence</label> {% required_asta %}<br>
+							<label for="arv_adherence_id">ARV Adherence</label>
 							{{ adherence_dropdown | safe }}					
 						</div>		
 
@@ -203,23 +208,23 @@
 
 						<div class="form-group">
 							<label for="routine_monitoring_last_test_date">Last VL Date</label>
-							{% input "routine_monitoring_last_test_date" "" "{'class':'form-control input-sm w-md date-picker'}" %}
+							{% input "routine_monitoring_last_test_date" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
 						</div>
 
 						<div class="form-group">
 							<label for="routine_monitoring_last_value">Value</label>
-							{% input "routine_monitoring_last_value" %}
+							{% input "routine_monitoring_last_value" "" "{'class':'form-control input-sm w-md optional'}" %}
 						</div>
 
 						<div class="form-group">
 							<label for="routine_monitoring_last_sample_type">Sample Type</label>
-							{% select "routine_monitoring_last_sample_type" "{'P':'Plasma', 'D':'DBS', }" "V" "{'class':'form-control input-sm w-xs'}" %}
+							{% select "routine_monitoring_last_sample_type" "{'P':'Plasma', 'D':'DBS', }" "V" "{'class':'form-control input-sm w-xs optional'}" %}
 						</div>
 					</div>
 
 					<div class="col-lg-4">
 						<label>
-							<input type="radio" name="vl_tesing" value="routine" > 
+							<input type="radio" name="vl_tesing" value="repeat" > 
 							Repeat Viral Load Test after detectable 
 							viraemia and 6 months adherence counseling
 						</label>
@@ -227,36 +232,36 @@
 
 						<div class="form-group">
 							<label for="repeat_testing_last_test_date">Last VL Test Date</label>
-							{% input "repeat_testing_last_test_date" "" "{'class':'form-control input-sm w-md date-picker'}" %}
+							{% input "repeat_testing_last_test_date" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
 						</div>
 
 						<div class="form-group">
 							<label for="repeat_testing_last_value">Value</label>
-							{% input "repeat_testing_last_value" %}
+							{% input "repeat_testing_last_value" "" "{'class':'form-control input-sm w-md optional'}"  %}
 						</div>
 
 						<div class="form-group">
 							<label for="repeat_testing_last_sample_type">Sample Type</label>
-							{% select "repeat_testing_last_sample_type" "{'P':'Plasma', 'D':'DBS', }" "V" "{'class':'form-control input-sm w-xs'}" %}
+							{% select "repeat_testing_last_sample_type" "{'P':'Plasma', 'D':'DBS', }" "V" "{'class':'form-control input-sm w-xs optional'}" %}
 						</div>
 					</div>
 
 					<div class="col-lg-4">
-						<label><input type="radio" name="vl_tesing" value="routine" > Suspected Treatment Failure</label><br><br>
+						<label><input type="radio" name="vl_tesing" value="suspected" > Suspected Treatment Failure</label><br><br>
 
 						<div class="form-group">
 							<label for="suspected_treatment_failure_last_test_date">Last VL Date</label>
-							{% input "suspected_treatment_failure_last_test_date" "" "{'class':'form-control input-sm w-md date-picker'}" %}
+							{% input "suspected_treatment_failure_last_test_date" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
 						</div>
 
 						<div class="form-group">
 							<label for="suspected_treatment_failure_last_value">Value</label>
-							{% input "suspected_treatment_failure_last_value" %}
+							{% input "suspected_treatment_failure_last_value"  "" "{'class':'form-control input-sm w-md optional'}" %}
 						</div>
 
 						<div class="form-group">
 							<label for="suspected_treatment_failure_last_sample_type">Sample Type</label>
-							{% select "suspected_treatment_failure_last_sample_type" "{'P':'Plasma', 'D':'DBS', }" "V" "{'class':'form-control input-sm w-xs'}" %}
+							{% select "suspected_treatment_failure_last_sample_type" "{'P':'Plasma', 'D':'DBS', }" "V" "{'class':'form-control input-sm w-xs optional'}" %}
 						</div>
 					</div>
 
@@ -272,14 +277,17 @@
     	$( ".date-picker" ).datepicker({
       		changeMonth: true,
       		changeYear: true,
-      		dateFormat: "dd/mm/yy"
+      		dateFormat: "yy-mm-dd"
     	});
 
     	$("#facility_id").select2({	
     		placeholder: "Select facility", 
     		allowClear: true,
-    		width: "56%"
+    		width: "56%",
+    		tags: "true",
     	});
+
+    	$(".optional").removeAttr('required');
     	
   	});
 

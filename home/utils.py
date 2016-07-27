@@ -10,7 +10,7 @@ def select(name="", data={}, selected_val="", more={}):
 	for k,v in more.items():
 		more_attrs += " %s='%s' " % (k, v)
 
-	select_tag = "<select name='%s' id='%s' %s class='selectors form-control input-xs w-md' >" % (name, name, more_attrs)
+	select_tag = "<select name='%s' id='%s' %s class='form-control input-xs w-md' required>" % (name, name, more_attrs)
 	select_tag += "<option value=''></option>"
 
 	k_col = data.get('k_col','')

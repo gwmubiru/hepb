@@ -43,9 +43,9 @@ class Patient(models.Model):
 	)
 	unique_id = models.CharField(max_length=128, unique=True)
 	art_number = models.CharField(max_length=64)
-	other_id = models.CharField(max_length=64)
+	other_id = models.CharField(max_length=64, null=True)
 	gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-	dob = models.DateField()
+	dob = models.DateField(null=True)
 	created_by = models.ForeignKey(User)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -56,6 +56,9 @@ class Patient(models.Model):
 class PatientPhone(models.Model):
 	patient = models.ForeignKey(Patient)
 	phone = models.CharField(max_length=16)
+
+	class Meta:
+		db_table = 'vl_patient_phones'
 		
 
 class Sample(models.Model):
@@ -71,39 +74,43 @@ class Sample(models.Model):
 	facility = models.ForeignKey(backend.Facility)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen')
 	pregnant = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-	anc_number = models.CharField(max_length=64) #anc number for pregnant women
+	anc_number = models.CharField(max_length=64, null=True) #anc number for pregnant women
 	breast_feeding = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-	active_tb_status = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-	date_collected = models.DateField() #Date on which the sample was collected from the patient
-	date_received = models.DateField #Date received at CPHL
+	active_tb_status = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True)
+	date_collected = models.DateField(null=True) #Date on which the sample was collected from the patient
+	date_received = models.DateField() #Date received at CPHL
 	treatment_inlast_sixmonths = models.CharField(max_length=1, choices=YES_NO_CHOICES)
 	treatment_initiation_date = models.DateField()
 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
 	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing')
-	treatment_indication = models.ForeignKey(backend.Appendix, related_name='treatment_indication')
-	treatment_indication_other = models.CharField(max_length=64)
+	treatment_indication = models.ForeignKey(backend.Appendix, related_name='treatment_indication', null=True)
+	treatment_indication_other = models.CharField(max_length=64, null=True)
 	treatment_line = models.ForeignKey(backend.Appendix, related_name='treatment_line')
-	failure_reason = models.ForeignKey(backend.Appendix, related_name='failure_reason')
-	tb_treatment_phase = models.ForeignKey(backend.Appendix, related_name='tb_treatment_phase')
-	arv_adherence = models.ForeignKey(backend.Appendix, related_name='arv_adherence')
+	failure_reason = models.ForeignKey(backend.Appendix, related_name='failure_reason', null=True)
+	tb_treatment_phase = models.ForeignKey(backend.Appendix, related_name='tb_treatment_phase', null=True)
+	arv_adherence = models.ForeignKey(backend.Appendix, related_name='arv_adherence', null=True)
+	
 	routine_monitoring = models.BooleanField(default=False)
-	routine_monitoring_last_test_date = models.DateField(default=False)
-	routine_monitoring_last_value = models.CharField(max_length=64)
-	routine_monitoring_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
+	routine_monitoring_last_test_date = models.DateField(null=True)
+	routine_monitoring_last_value = models.CharField(max_length=64, null=True)
+	routine_monitoring_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True)
+	
 	repeat_testing = models.BooleanField(default=False)
-	repeat_testing_last_test_date = models.DateField(default=False)
-	repeat_testing_last_value = models.CharField(max_length=64)
-	repeat_testing_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
+	repeat_testing_last_test_date = models.DateField(null=True)
+	repeat_testing_last_value = models.CharField(max_length=64, null=True)
+	repeat_testing_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True)
+	
 	suspected_treatment_failure = models.BooleanField(default=False)
-	suspected_treatment_failure_last_test_date = models.DateField(default=False)
-	suspected_treatment_failure_last_value = models.CharField(max_length=64)
-	suspected_treatment_failure_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
+	suspected_treatment_failure_last_test_date = models.DateField(null=True)
+	suspected_treatment_failure_last_value = models.CharField(max_length=64, null=True)
+	suspected_treatment_failure_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True)
+	
 	verified = models.BooleanField(default=False)
 	in_worksheet = models.BooleanField(default=False)
 	printed = models.BooleanField(default=False)
 	dispatched = models.BooleanField(default=False)
 	created_by = models.ForeignKey(User, related_name='created_by')
-	updated_by = models.ForeignKey(User, related_name='updated_by')
+	updated_by = models.ForeignKey(User, related_name='updated_by', null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
@@ -134,8 +141,11 @@ class VerificationRejectionReason(models.Model):
 class Envelope(models.Model):
 	envelope_number = models.CharField(max_length=10)
 	printed = models.BooleanField(default=False)
-	print_date = models.DateTimeField()
-	envelope_printed_by = models.ForeignKey(User, related_name='envelope_printed_by')
+	print_date = models.DateTimeField(null=True)
+	envelope_printed_by = models.ForeignKey(User, related_name='envelope_printed_by', null=True)
 	dispatched = models.BooleanField(default=False)
-	dispatch_date = models.DateTimeField()
-	envelope_dispatched_by = models.ForeignKey(User, related_name='envelope_dispatched_by')
+	dispatch_date = models.DateTimeField(null=True)
+	envelope_dispatched_by = models.ForeignKey(User, related_name='envelope_dispatched_by', null=True)
+
+	class Meta:
+		db_table = 'vl_envelopes'
