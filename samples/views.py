@@ -30,7 +30,7 @@ def save(request):
 	p.art_number = r.get('art_number', '')
 	p.other_id = r.get('other_id', '')
 	p.gender = r.get('gender', '')
-	p.dob = r.get('dob', None)
+	p.dob = utils.getDate(r, 'dob')
 	p.created_by_id = 1
 	p.save()
 
@@ -55,10 +55,10 @@ def save(request):
 	s.anc_number = 'pool'
 	s.breast_feeding = r.get('breast_feeding', '')
 	s.active_tb_status = r.get('active_tb_status', '')
-	s.date_collected = r.get('date_collected', None)
-	s.date_received = r.get('date_received', None)
+	s.date_collected = utils.getDate(r, 'date_collected')
+	s.date_received = utils.getDate(r, 'date_received')
 	s.treatment_inlast_sixmonths = r.get('treatment_inlast_sixmonths', '')
-	s.treatment_initiation_date = r.get('treatment_initiation_date', None)
+	s.treatment_initiation_date = utils.getDate(r, 'treatment_initiation_date')
 	s.sample_type = r.get('sample_type', '')
 	s.viral_load_testing_id = r.get('viral_load_testing_id', 0)
 	s.treatment_indication_id = r.get('treatment_indication_id', 0)
@@ -72,17 +72,17 @@ def save(request):
 	vl_tesing = r.get('vl_tesing', '')
 
 	s.routine_monitoring = True if vl_tesing=='routine' else False
-	s.routine_monitoring_last_test_date = r.get('routine_monitoring_last_test_date', None)
+	s.routine_monitoring_last_test_date = utils.getDate(r, 'routine_monitoring_last_test_date')
 	s.routine_monitoring_last_value = r.get('routine_monitoring_last_value', '')
 	s.routine_monitoring_last_sample_type = r.get('routine_monitoring_last_sample_type', None)
 
 	s.repeat_testing = True if vl_tesing=='repeat' else False
-	s.repeat_testing_last_test_date = r.get('repeat_testing_last_test_date', None)
+	s.repeat_testing_last_test_date = utils.getDate(r, 'repeat_testing_last_test_date')
 	s.repeat_testing_last_value = r.get('repeat_testing_last_value', '')
 	s.repeat_testing_last_sample_type = r.get('repeat_testing_last_sample_type', None)
 
 	s.suspected_treatment_failure = True if vl_tesing=='suspected' else False
-	s.suspected_treatment_failure_last_test_date = r.get('suspected_treatment_failure_last_test_date', None)
+	s.suspected_treatment_failure_last_test_date = utils.getDate(r, 'suspected_treatment_failure_last_test_date')
 	s.suspected_treatment_failure_last_value = r.get('suspected_treatment_failure_last_value', '')
 	s.suspected_treatment_failure_last_sample_type = r.get('suspected_treatment_failure_last_sample_type', None)
 

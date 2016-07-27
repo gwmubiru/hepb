@@ -24,3 +24,9 @@ def select(name="", data={}, selected_val="", more={}):
 	
 	select_tag += "</select>"
 	return select_tag
+
+#r represents request.POST
+def getDate(r, date_field):
+	date_val = r.get(date_field, None)
+	if(date_val=='') return None
+	else return date_val
