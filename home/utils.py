@@ -1,3 +1,5 @@
+
+
 #These utils are to hold raw python functions that can be used in views mainly
 
 #automatically generate drop downs so that your template is a bit clean
@@ -26,7 +28,17 @@ def select(name="", data={}, selected_val="", more={}):
 	return select_tag
 
 #r represents request.POST
-def getDate(r, date_field):
+def get_date(r, date_field):
 	date_val = r.get(date_field, None)
-	if(date_val=='') return None
-	else return date_val
+	ret = None if(date_val=='') else date_val
+	return ret
+
+
+def local_date(date_val, format = "%d-%b-%Y"):
+	ret = ''
+	try:
+		ret = date_val.strftime(format)
+	except:
+		ret = ''
+
+	return ret;

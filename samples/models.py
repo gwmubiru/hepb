@@ -59,7 +59,23 @@ class PatientPhone(models.Model):
 
 	class Meta:
 		db_table = 'vl_patient_phones'
-		
+
+
+class Envelope(models.Model):
+	envelope_number = models.CharField(max_length=10)
+	printed = models.BooleanField(default=False)
+	print_date = models.DateTimeField(null=True)
+	envelope_printed_by = models.ForeignKey(User, related_name='envelope_printed_by', null=True)
+	dispatched = models.BooleanField(default=False)
+	dispatch_date = models.DateTimeField(null=True)
+	envelope_dispatched_by = models.ForeignKey(User, related_name='envelope_dispatched_by', null=True)
+
+	# def __init__(self):
+	# 	return self.envelope_number
+
+	class Meta:
+		db_table = 'vl_envelopes'
+
 
 class Sample(models.Model):
 	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No') )
@@ -67,7 +83,7 @@ class Sample(models.Model):
 	patient = models.ForeignKey(Patient)
 	patient_unique_id = models.CharField(max_length=128)
 	locator_category = models.CharField(max_length=1, choices=( ('V', 'V'), ('R', 'R') ))
-	locator_envelope = models.CharField(max_length=10)
+	envelope = models.ForeignKey(Envelope)
 	locator_position = models.CharField(max_length=3)
 	vl_sample_id = models.CharField(max_length=128)
 	form_number = models.CharField(max_length=64)
@@ -121,7 +137,7 @@ class Sample(models.Model):
 class Verification(models.Model):
 	sample = models.ForeignKey(Sample)
 	accepted = models.BooleanField(default=False)
-	rejection_reason = models.ForeignKey(backend.Appendix)
+	rejection_reason = models.ForeignKey(backend.Appendix, null=True)
 	comments = models.CharField(max_length=128)
 	verified_by = models.ForeignKey(User, related_name='verified_by')
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -132,20 +148,7 @@ class Verification(models.Model):
 		
 class VerificationRejectionReason(models.Model):
 	sample = models.ForeignKey(Sample)
-	rejection_reason = models.ForeignKey(backend.Appendix)
+	rejection_reason = models.ForeignKey(backend.Appendix, null=True)
 
 	class Meta:
 		db_table = 'vl_verification_rejection_reasons'
-
-
-class Envelope(models.Model):
-	envelope_number = models.CharField(max_length=10)
-	printed = models.BooleanField(default=False)
-	print_date = models.DateTimeField(null=True)
-	envelope_printed_by = models.ForeignKey(User, related_name='envelope_printed_by', null=True)
-	dispatched = models.BooleanField(default=False)
-	dispatch_date = models.DateTimeField(null=True)
-	envelope_dispatched_by = models.ForeignKey(User, related_name='envelope_dispatched_by', null=True)
-
-	class Meta:
-		db_table = 'vl_envelopes'

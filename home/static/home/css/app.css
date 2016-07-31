@@ -32,3 +32,24 @@ body{
 	font-size:24px;
 	vertical-align: bottom;
 }
+
+.sub-title{
+	color: #808080;
+	text-transform: uppercase;
+	font-weight: bold;
+}
+
+.page-title{
+	text-transform: uppercase;
+	font-weight: bolder;
+}
+
+.form-group > label,.form-inline > label{
+	font-weight: lighter;
+}
+
+.hi-lite{
+	color: #641E16;
+	font-size: 18px;
+	font-weight: bold;
+}

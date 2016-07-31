@@ -12,29 +12,31 @@
 
 
 {% block content %}	
-	{% if error_message %} <div class="alert alert-danger" role="alert">{{ error_message }}</div> {% endif %}
-	{% if info_message %} <div class="alert alert-success" role="alert">{{ info_message }}</div> {% endif %}
-	{% if success_message %} <div class="alert alert-success" role="alert">{{ success_message }}</div> {% endif %}
+	
 	<div class="panel panel-warning">
 		<div class="panel-heading"><b>Capture sample details</b></div>
+
+		{% if error_message %} <div class="alert alert-danger" role="alert">{{ error_message }}</div> {% endif %}
+		{% if info_message %} <div class="alert alert-success" role="alert">{{ info_message }}</div> {% endif %}
+		{% if success_message %} <div class="alert alert-success" role="alert">{{ success_message }}</div> {% endif %}
 
 		<div class="panel-body">
 			
 			<form action="{% url 'samples:save'  %}" method="post" role="form">
 				{% csrf_token %}
+				<span class='sub-title'>form/facility details</span>
 
 				<div class="row">
 					<div class="col-lg-6">
 
 						<div class="form-inline">
 							<label for="locator_envelope">Location/Rejection ID {% required_asta %}</label><br>
-							<span style='width:300px'>
-								{% select "locator_category" "{'V':'V', 'R':'R'}" "V" %}
-									
-								{% input "locator_envelope" %} 
-								<span class="vl-slash">/</span>	
-								{% input "locator_position" "" "{'style':'width:52px'}" %}
-							</span>
+						
+							{% select "locator_category" "{'V':'V', 'R':'R'}" "V" %}
+								
+							{% input "locator_envelope" %} 
+							<span class="vl-slash">/</span>	
+							{% input "locator_position" "" "{'style':'width:52px'}" %}
 							
 
 						</div><br>
@@ -65,10 +67,10 @@
 					</div>
 				</div>
 
-
-
-				<hr>
 				<!--  Sample Information -->
+				<br>
+				<span class='sub-title'>sample details</span>
+				
 				<div class="row">
 					<div class="col-lg-6">
 						<div class="form-group">
@@ -90,9 +92,10 @@
 
 				</div>				
 
-				<hr>
 
 				<!--  Patient Information -->
+				<br>
+				<span class='sub-title'>patient information</span>
 				<div class="row">
 					<div class="col-lg-6">
 
@@ -125,8 +128,9 @@
 					</div>
 				</div>
 
-				<hr>
 				<!-- Treatment Information -->
+				<br>
+				<span class='sub-title'>treatment information</span>
 				<div class="row">
 					<div class="col-lg-6">
 						<div class="form-group">
@@ -199,7 +203,8 @@
 
 				</div>
 
-				<hr>
+				<br>
+				<span class='sub-title'>indication for viral load testing</span>
 
 				<div class="row">
 

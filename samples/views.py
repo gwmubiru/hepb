@@ -1,8 +1,10 @@
-from django.shortcuts import render
+import json
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse
 #from django.views.generic import TemplateView
 
 from backend.models import Appendix,Facility
-from .models import Patient, Sample, PatientPhone, Envelope
+from .models import Patient, Sample, PatientPhone, Envelope, Verification
 from home import utils
 
 # Create your views here.
@@ -25,26 +27,28 @@ def create(request):
 
 def save(request):
 	r = request.POST
-	p = Patient()
-	p.unique_id = "%s-A-%s" %(r.get('facility_id', 0), r.get('art_number', ''))
-	p.art_number = r.get('art_number', '')
-	p.other_id = r.get('other_id', '')
-	p.gender = r.get('gender', '')
-	p.dob = utils.getDate(r, 'dob')
-	p.created_by_id = 1
-	p.save()
+	
+	unique_id = "%s-A-%s" %(r.get('facility_id', 0), r.get('art_number', ''))
+	p, pat_created = Patient.objects.get_or_create(
+		unique_id=unique_id,
+		art_number=r.get('art_number', ''),
+		other_id=r.get('other_id', ''),
+		gender=r.get('gender', ''),
+		dob=utils.get_date(r, 'dob'),
+		defaults={'created_by_id':1},
+		)
 
 	phone = r.get('patient_phone', None)
 	if(phone!=None):
-		pat_phone = PatientPhone(patient_id=p.id, phone=phone)
-		pat_phone.save()
+		pat_phone, pp_created = PatientPhone.objects.get_or_create(patient_id=p.id, phone=phone)
 
+	enve,env_created = Envelope.objects.get_or_create(envelope_number=r.get('locator_envelope', ''))
 
 	s = Sample()
 	s.patient_id = p.id
 	s.patient_unique_id = p.unique_id
 	s.locator_category = r.get('locator_category', '')
-	s.locator_envelope = r.get('locator_envelope', '')
+	s.envelope_id = enve.id
 	s.locator_position = r.get('locator_position', '')
 	s.vl_sample_id = "8"
 	s.form_number = r.get('form_number', '')
@@ -55,10 +59,10 @@ def save(request):
 	s.anc_number = 'pool'
 	s.breast_feeding = r.get('breast_feeding', '')
 	s.active_tb_status = r.get('active_tb_status', '')
-	s.date_collected = utils.getDate(r, 'date_collected')
-	s.date_received = utils.getDate(r, 'date_received')
+	s.date_collected = utils.get_date(r, 'date_collected')
+	s.date_received = utils.get_date(r, 'date_received')
 	s.treatment_inlast_sixmonths = r.get('treatment_inlast_sixmonths', '')
-	s.treatment_initiation_date = utils.getDate(r, 'treatment_initiation_date')
+	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
 	s.sample_type = r.get('sample_type', '')
 	s.viral_load_testing_id = r.get('viral_load_testing_id', 0)
 	s.treatment_indication_id = r.get('treatment_indication_id', 0)
@@ -72,25 +76,23 @@ def save(request):
 	vl_tesing = r.get('vl_tesing', '')
 
 	s.routine_monitoring = True if vl_tesing=='routine' else False
-	s.routine_monitoring_last_test_date = utils.getDate(r, 'routine_monitoring_last_test_date')
+	s.routine_monitoring_last_test_date = utils.get_date(r, 'routine_monitoring_last_test_date')
 	s.routine_monitoring_last_value = r.get('routine_monitoring_last_value', '')
 	s.routine_monitoring_last_sample_type = r.get('routine_monitoring_last_sample_type', None)
 
 	s.repeat_testing = True if vl_tesing=='repeat' else False
-	s.repeat_testing_last_test_date = utils.getDate(r, 'repeat_testing_last_test_date')
+	s.repeat_testing_last_test_date = utils.get_date(r, 'repeat_testing_last_test_date')
 	s.repeat_testing_last_value = r.get('repeat_testing_last_value', '')
 	s.repeat_testing_last_sample_type = r.get('repeat_testing_last_sample_type', None)
 
 	s.suspected_treatment_failure = True if vl_tesing=='suspected' else False
-	s.suspected_treatment_failure_last_test_date = utils.getDate(r, 'suspected_treatment_failure_last_test_date')
+	s.suspected_treatment_failure_last_test_date = utils.get_date(r, 'suspected_treatment_failure_last_test_date')
 	s.suspected_treatment_failure_last_value = r.get('suspected_treatment_failure_last_value', '')
 	s.suspected_treatment_failure_last_sample_type = r.get('suspected_treatment_failure_last_sample_type', None)
 
 	s.created_by_id = 1
 
-	s.save()
-
-	enve = Envelope.objects.get_or_create(envelope_number=s.locator_envelope)	
+	s.save()	
 
 	return render(request, 'samples/create.html', {'success_message':'Sample details successfully saved',})
 	
@@ -100,30 +102,84 @@ def appendix_select(name="", cat_id=0, clss='form-control input-xs w-md'):
 	more = {'class': clss}
 	return utils.select(name,{'k_col':'id', 'v_col':'appendix', 'items':apendices.filter(appendix_category_id=cat_id)},"",more)
 
+def verify(request, envelope_id):
+	facilities = Facility.objects.values('id', 'facility').order_by('facility')
+	context = {
+		'envelope_id': envelope_id,
+		"rejection_reasons": appendices_json(4),
+		"facility_dropdown": utils.select( "facility_id",
+										  {'k_col':'id', 'v_col':'facility', 'items':facilities },
+										  "",
+										  {'ng-model': 'v.facility_id'}),
+	}
+	return render(request, 'samples/verify.html', context)
 
-# patient = models.ForeignKey(Patient)
-# 	patient_unique_id = models.CharField(max_length=128)
-# 	locator_category = models.CharField(max_length=1, choices=( ('V', 'V'), ('R', 'R') ))
-# 	locator_envelope = models.CharField(max_length=10)
-# 	locator_position = models.CharField(max_length=3)
-# 	vl_sample_id = models.CharField(max_length=128)
-# 	form_number = models.CharField(max_length=64)
-# 	facility = models.ForeignKey(backend.Facility)
-# 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen')
-# 	pregnant = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-# 	anc_number = models.CharField(max_length=64) #anc number for pregnant women
-# 	breast_feeding = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-# 	active_tb_status = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-# 	date_collected = models.DateField() #Date on which the sample was collected from the patient
-# 	date_received = models.DateField #Date received at CPHL
-# 	treatment_inlast_sixmonths = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-# 	treatment_initiation_date = models.DateField()
-# 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
-# 	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing')
-# 	treatment_indication = models.ForeignKey(backend.Appendix, related_name='treatment_indication')
-# 	treatment_indication_other = models.CharField(max_length=64)
-# 	treatment_line = models.ForeignKey(backend.Appendix, related_name='treatment_line')
-# 	failure_reason = models.ForeignKey(backend.Appendix, related_name='failure_reason')
-# 	tb_treatment_phase = models.ForeignKey(backend.Appendix, related_name='tb_treatment_phase')
-# 	arv_adherence = models.ForeignKey(backend.Appendix, related_name='arv_adherence')
-# 	routine_monitoring = models.BooleanField(default=False)
+
+def verify_envelope(request, envelope_id):	
+	samples = Sample.objects.filter(envelope_id=envelope_id).order_by('locator_position')
+	ret=[]
+	for s in samples:
+		ret.append({
+				'patient_id': s.patient.id,
+				'sample_id': s.id,
+				'vl_sample_id': s.vl_sample_id,
+				'locator_category': s.locator_category,
+				'locator_position': s.locator_position,
+				'envelope_number': s.envelope.envelope_number,
+				'form_number': s.form_number,
+				'sample_type':s.sample_type,
+				'facility_id': s.facility_id,
+				'facility_name': s.facility.facility,
+				'district': s.facility.district.district,
+				'hub': s.facility.hub.hub,
+				'date_collected': utils.local_date(s.date_collected),
+				'art_number': s.patient.art_number,
+				'other_id': s.patient.other_id,
+				'gender': s.patient.gender,
+				'dob': utils.local_date(s.patient.dob),
+				'treatment_initiation_date': utils.local_date(s.treatment_initiation_date),
+				'sample_creator': s.created_by.username,
+				'created_at': utils.local_date(s.created_at),
+
+			})
+	return HttpResponse(json.dumps(ret))
+
+
+def save_verify(request):
+	r = request.GET;
+	p = Patient.objects.get(pk=r['patient_id'])
+	p.art_number = r.get('art_number', '')
+	p.other_id = r.get('other_id', '')
+	p.dob = utils.get_date(r, 'dob')
+	p.gender = r.get('gender', '')
+	p.save()
+
+	s = Sample.objects.get(pk=r['sample_id'])
+	s.facility_id = r.get('facility_id', 0)
+	s.date_collected = utils.get_date(r, 'date_collected')
+	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
+	s.locator_category = r.get('locator_category', '')
+	s.locator_position = r.get('locator_position', '')
+	s.verified = 1;
+	s.save()
+
+	v = Verification()
+	v.sample_id = r['sample_id']
+	v.accepted = r.get('accepted', '')
+
+	if(v.accepted==0):
+		v.rejection_reason_id = r.get('rejection_reason_id', 0)
+
+	v.verified_by_id = 1
+	v_saved = v.save()
+
+	return HttpResponse("saved")
+
+
+def appendices_json(cat_id):
+	appendices = Appendix.objects.values('id', 'appendix').filter(appendix_category_id=cat_id)
+	ret={}
+	for a in appendices:
+		ret[a['id']] = a['appendix']
+	return json.dumps(ret)
+		
