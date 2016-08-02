@@ -1,0 +1,28 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block content %}	
+
+<div class="page-title">List</div>
+
+<div class="panel panel-default">
+	<table class='table table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>
+				<th>Envelope Number</th>
+				<th>...</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for env in envelopes %}
+			<tr>
+				<td>{{ env.envelope_number }}</td>
+				<td><a href="{% url 'samples:verify' env.id %}">verify</a></td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+{% endblock %}

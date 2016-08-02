@@ -176,6 +176,18 @@ def save_verify(request):
 	return HttpResponse("saved")
 
 
+def verify_list(request):
+
+	search_val = request.GET.get('search_val', None)
+
+	if search_val is not None:
+		envelopes = Envelope.objects.filter(envelope_number__contains=search_val)
+	else:
+		envelopes = Envelope.objects.all()
+		
+
+	return render(request, "samples/verify_list.html", {'envelopes': envelopes})
+
 def appendices_json(cat_id):
 	appendices = Appendix.objects.values('id', 'appendix').filter(appendix_category_id=cat_id)
 	ret={}

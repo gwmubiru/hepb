@@ -1,27 +1,5 @@
-{% load staticfiles %}
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-	    <meta charset="UTF-8">
-	    <title>VL 2</title>
-	    <link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>
-	    <link rel="stylesheet" href='{% static "css/app.css" %}'>
+{% extends "home/layout.html" %}
 
-	    <script type="text/javascript" src='{% static "home/vendor/jquery/jquery.min.js" %}'></script>
-	    <script type="text/javascript" src='{% static "home/vendor/bootstrap/dist/js/bootstrap.min.js" %}'></script>
-	</head>
-	
-	<body>
-		xxxx :: yyyy :: zzzz
-
-
-		<div class="container">
-		    {% block content %}
-		    {% endblock content %}
-		</div>
-
-	</body>
-	{% block js %}
-	{% endblock js %}
-
-</html>
+{% block content %}
+xxxx :: yyyy :: zzzz
+{% endblock content %}

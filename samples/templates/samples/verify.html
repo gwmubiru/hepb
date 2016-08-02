@@ -15,10 +15,15 @@
 
 {% block content %}	
 <div ng-app="verify" ng-controller="VerifyController" ng-init="envelope_id={{ envelope_id }}">
+	<div class="page-title">Verify Sample</div>
+	<!-- <div class="alert alert-danger alert-dismissable" role="alert">
+		there is a problem with yo data
+		<button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+	</div> -->
 	<div class="panel panel-default">
-		<div class="panel-heading page-title">Verify Sample</div>
+		
 
-		<!-- <div class="alert alert-danger" role="alert"></div> -->
+		
 		{% if info_message %} <div class="alert alert-success" role="alert">{{ info_message }}</div> {% endif %}
 		{% if success_message %} <div class="alert alert-success" role="alert">{{ success_message }}</div> {% endif %}
 
