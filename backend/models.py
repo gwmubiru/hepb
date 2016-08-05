@@ -135,7 +135,7 @@ class Facility(models.Model):
 		db_table = 'backend_facilities'
 		verbose_name_plural = 'Facilities'
 
-
+		
 #Many to Many r/ship between facility and ips
 class IpFacilitySupport(models.Model):
 	ip = models.ForeignKey(Ip)

@@ -9,6 +9,9 @@ from home import utils
 
 # Create your views here.
 
+ENVS_LIMIT = 1000
+SAMPLES_LIMIT = 1000
+
 def create(request):
 	facilities = Facility.objects.values('id', 'facility').order_by('facility')
 	
@@ -96,7 +99,15 @@ def save(request):
 
 	return render(request, 'samples/create.html', {'success_message':'Sample details successfully saved',})
 	
+
+def show(request, sample_id):
+	return render(request, 'samples/show.html', {'sample': get_object_or_404(Sample, pk=sample_id)})
+
+
+def list(request):
+	return render(request, 'samples/list.html', {'samples': Sample.objects.all()[:SAMPLES_LIMIT]})
 	
+
 def appendix_select(name="", cat_id=0, clss='form-control input-xs w-md'):
 	apendices = Appendix.objects.values('id','appendix')
 	more = {'class': clss}
@@ -183,7 +194,7 @@ def verify_list(request):
 	if search_val is not None:
 		envelopes = Envelope.objects.filter(envelope_number__contains=search_val)
 	else:
-		envelopes = Envelope.objects.all()
+		envelopes = Envelope.objects.all()[:ENVS_LIMIT]
 		
 
 	return render(request, "samples/verify_list.html", {'envelopes': envelopes})

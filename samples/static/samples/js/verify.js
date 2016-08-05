@@ -28,16 +28,21 @@ ctrller.VerifyController = function($scope,$http){
 		//$http.get("/samples/save_verify?"+$scope.sample)
 
 		 $http({method:'GET',url:"/samples/save_verify",params:$scope.sample}).success(function(response) {
-			console.log(response);
+			//console.log(response);
 			if(response=="saved"){
-				alert("Saved successfully");
+				//alert("Saved successfully");
 				$scope.sample = $scope.vdata[$scope.nxt_sample];
 				$scope.nxt_sample += 1;
 			}else{
 				alert("verifying failed");
 				$scope.sample = $scope.vdata[($scope.nxt_sample-1)]
 			}
-			
+
+			$("#success").css("display","block");
+
+			setTimeout(function(){
+				$("#success").slideUp( "slow");
+			},1000);
 		});
 		return false;
 	}

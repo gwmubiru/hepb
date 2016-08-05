@@ -8,13 +8,16 @@
 
 {% block js %}
 	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
 {% endblock %}
 
 
 {% block content %}	
+<div class="page-title">capture sample details</div>
 	
-	<div class="panel panel-warning">
-		<div class="panel-heading"><b>Capture sample details</b></div>
+	<div class="panel panel-default">
+		<!-- <div class="panel-heading"><b>Capture sample details</b></div> -->
 
 		{% if error_message %} <div class="alert alert-danger" role="alert">{{ error_message }}</div> {% endif %}
 		{% if info_message %} <div class="alert alert-success" role="alert">{{ info_message }}</div> {% endif %}
@@ -34,7 +37,7 @@
 						
 							{% select "locator_category" "{'V':'V', 'R':'R'}" "V" %}
 								
-							{% input "locator_envelope" %} 
+							{% input "locator_envelope" "" "{'autofocus':'true'}"  %} 
 							<span class="vl-slash">/</span>	
 							{% input "locator_position" "" "{'style':'width:52px'}" %}
 							
@@ -73,14 +76,17 @@
 				
 				<div class="row">
 					<div class="col-lg-6">
-						<div class="form-group">
-							<label for="collection_date">Collection Date</label>
-							{% input "collection_date" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
+						<div class="form-inline">
+							<label for="collection_date">Collection Date</label><br>
+							<!-- <input type="text" id="collection_date" data-format="DD-MM-YYYY" data-template="D MMM YYYY" name="collection_date" value=""> -->
+							{% input "collection_date" "" "{'class':'date-picker'}" %}
+							
 						</div>
+						<br>
 
-						<div class="form-group">
-							<label for="date_received">Date Received at CPHL {% required_asta %}</label>
-							{% input "date_received" "" "{'class':'form-control input-sm w-md date-picker'}" %}
+						<div class="form-inline">
+							<label for="date_received">Date Received at CPHL {% required_asta %}</label><br>
+							{% input "date_received" "" "{'class':'date-picker'}" %}
 						</div>
 					</div>
 					<div class="col-lg-6">
@@ -90,7 +96,7 @@
 						</div>
 					</div>
 
-				</div>				
+				</div><br>				
 
 
 				<!--  Patient Information -->
@@ -116,10 +122,10 @@
 					</div>
 					<div class="col-lg-6"> 
 
-						<div class="form-group">
-							<label for="dob">Date of Birth</label>
-							{% input "dob" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
-						</div> 
+						<div class="form-inline">
+							<label for="dob">Date of Birth</label><br>
+							{% input "dob" "" "{'class':'date-picker'}" %}
+						</div><br> 
 
 						<div class="form-group">
 							<label for="patient_phone">Patient Phone</label>
@@ -140,10 +146,10 @@
 							{% yesno_select "treatment_inlast_sixmonths" %}
 						</div>
 
-						<div class="form-group">
-							<label for="treatment_initiation_date">Treatment Initiation Date {% required_asta %}</label>
-							{% input "treatment_initiation_date" "" "{'class':'form-control input-sm w-md date-picker'}" %}
-						</div>
+						<div class="form-inline">
+							<label for="treatment_initiation_date">Treatment Initiation Date {% required_asta %}</label><br>
+							{% input "treatment_initiation_date" "" "{'class':'date-picker'}" %}
+						</div><br>
 
 						<div class="form-group">
 							<label for="current_regimen_id">Current Regimen</label> {% required_asta %}
@@ -211,14 +217,14 @@
 					<div class="col-lg-4">
 						<label><input type="radio" name="vl_tesing" value="routine" > Routine Monitoring</label><br><br>
 
-						<div class="form-group">
-							<label for="routine_monitoring_last_test_date">Last VL Date</label>
-							{% input "routine_monitoring_last_test_date" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
-						</div>
+						<div class="form-inline">
+							<label for="routine_monitoring_last_test_date">Last VL Date</label><br>
+							{% input "routine_monitoring_last_test_date" "" "{'class':'date-picker'}" %}
+						</div><br>
 
 						<div class="form-group">
 							<label for="routine_monitoring_last_value">Value</label>
-							{% input "routine_monitoring_last_value" "" "{'class':'form-control input-sm w-md optional'}" %}
+							{% input "routine_monitoring_last_value" "" "{'class':'form-control input-sm w-sm optional'}" %}
 						</div>
 
 						<div class="form-group">
@@ -227,7 +233,7 @@
 						</div>
 					</div>
 
-					<div class="col-lg-4">
+					<div class="col-lg-5">
 						<label>
 							<input type="radio" name="vl_tesing" value="repeat" > 
 							Repeat Viral Load Test after detectable 
@@ -235,14 +241,14 @@
 						</label>
 						<br>
 
-						<div class="form-group">
-							<label for="repeat_testing_last_test_date">Last VL Test Date</label>
-							{% input "repeat_testing_last_test_date" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
-						</div>
+						<div class="form-inline">
+							<label for="repeat_testing_last_test_date">Last VL Test Date</label><br>
+							{% input "repeat_testing_last_test_date" "" "{'class':'date-picker'}" %}
+						</div><br>
 
 						<div class="form-group">
 							<label for="repeat_testing_last_value">Value</label>
-							{% input "repeat_testing_last_value" "" "{'class':'form-control input-sm w-md optional'}"  %}
+							{% input "repeat_testing_last_value" "" "{'class':'form-control input-sm w-sm optional'}"  %}
 						</div>
 
 						<div class="form-group">
@@ -251,17 +257,17 @@
 						</div>
 					</div>
 
-					<div class="col-lg-4">
+					<div class="col-lg-3">
 						<label><input type="radio" name="vl_tesing" value="suspected" > Suspected Treatment Failure</label><br><br>
 
-						<div class="form-group">
-							<label for="suspected_treatment_failure_last_test_date">Last VL Date</label>
-							{% input "suspected_treatment_failure_last_test_date" "" "{'class':'form-control input-sm w-md date-picker optional'}" %}
-						</div>
+						<div class="form-inline">
+							<label for="suspected_treatment_failure_last_test_date">Last VL Date</label><br>
+							{% input "suspected_treatment_failure_last_test_date" "" "{'class':'date-picker optional'}" %}
+						</div><br>
 
 						<div class="form-group">
 							<label for="suspected_treatment_failure_last_value">Value</label>
-							{% input "suspected_treatment_failure_last_value"  "" "{'class':'form-control input-sm w-md optional'}" %}
+							{% input "suspected_treatment_failure_last_value"  "" "{'class':'form-control input-sm w-sm optional'}" %}
 						</div>
 
 						<div class="form-group">
@@ -278,12 +284,13 @@
 	</div>
 
 <script type="text/javascript">
+	var date_now = new Date();
 	$( function() {
-    	$( ".date-picker" ).datepicker({
+    	/*$( ".date-picker" ).datepicker({
       		changeMonth: true,
       		changeYear: true,
       		dateFormat: "yy-mm-dd"
-    	});
+    	});*/
 
     	$("#facility_id").select2({	
     		placeholder: "Select facility", 
@@ -293,6 +300,20 @@
     	});
 
     	$(".optional").removeAttr('required');
+
+    	$(".date-picker").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm",
+    		minYear: 1990,
+    		maxYear: date_now.getFullYear(),
+    	});
+
+    	$("#facility_id").change(function(){
+    		setTimeout(function(){
+				$(".day").first().focus();
+			},100);    		
+    	});
     	
   	});
 

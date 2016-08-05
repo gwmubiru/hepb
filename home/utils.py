@@ -35,6 +35,7 @@ def get_date(r, date_field):
 
 
 def local_date(date_val, format = "%d-%b-%Y"):
+	format = "%Y-%m-%d"
 	ret = ''
 	try:
 		ret = date_val.strftime(format)
