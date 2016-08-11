@@ -10,6 +10,7 @@ import backend.models as backend
 #hold records of forms dispatched to facilities
 class ClinicalRequestFormsDispatch(models.Model):
 	facility = models.ForeignKey(backend.Facility, on_delete=models.CASCADE)
+	ref_number =  models.CharField(max_length=64, null=True)
 	dispatched_at = models.DateTimeField()
 	dispatched_by = models.ForeignKey(User)
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -23,12 +24,9 @@ class ClinicalRequestFormsDispatch(models.Model):
 #hold the form numbers
 class ClinicalRequestForm(models.Model):
 	form_number = models.CharField(max_length=128, unique=True)
-	dispatch = models.ForeignKey(ClinicalRequestFormsDispatch, on_delete=models.CASCADE)
+	dispatch = models.ForeignKey(ClinicalRequestFormsDispatch, on_delete=models.CASCADE, null=True)
 	received_back = models.BooleanField(default=False)
-
-	def __init__(self):
-		return self.form_number
-
+	
 	class Meta:
 		db_table = 'vl_forms'
 		verbose_name_plural = 'Forms'

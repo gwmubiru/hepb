@@ -28,9 +28,9 @@ class Command(BaseCommand):
 	def __get_samples(self):		
 
 		sql = """SELECT s.*, s.id AS sid, p.*, p.id AS pid 
-				 FROM vl_samples AS s
-				 LEFT JOIN vl_patients AS p ON s.patientID=p.id
-				 WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s"""
+				FROM vl_samples AS s
+				LEFT JOIN vl_patients AS p ON s.patientID=p.id
+				WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s"""
 
 		cursor = connections['old_db'].cursor()
 		cursor.execute(sql, [self.create_year, self.create_month])
