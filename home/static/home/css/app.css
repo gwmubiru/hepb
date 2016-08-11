@@ -1,0 +1,67 @@
+@font-face {
+    font-family: OpenSans;
+    src: url('fonts/fonts-open-sans/OpenSans-Regular.ttf');
+}
+
+body{
+	font-family: OpenSans;
+}
+
+.w-xs{
+	width: 90px
+}
+
+.w-sm{
+	width: 200px
+}
+
+.w-md{
+	width: 300px
+}
+
+.required_asta{
+	color: #d9534f;
+}
+
+.input-xs{
+	height: 30px;
+	font-size: 11px;
+}
+
+.vl-slash{
+	font-size:24px;
+	vertical-align: bottom;
+}
+
+.sub-title{
+	color: #808080;
+	text-transform: uppercase;
+	text-decoration: underline;
+}
+
+.page-title{
+	text-transform: uppercase;
+	font-weight: lighter;
+	font-size: 16px;
+	padding: 5px
+}
+
+.form-group > label,.form-inline > label{
+	font-weight: lighter;
+}
+
+.hi-lite{
+	color: #d9534f;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+.nav>li>a{
+	color: #d9534f;
+}
+
+.vl-alert{
+	width:300px;
+	text-align:center;
+	padding:5px
+}

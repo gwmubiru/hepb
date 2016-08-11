@@ -1,0 +1,44 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block content %}	
+
+<div class="page-title">Samples</div>
+
+<div class="panel panel-default">
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>
+				<th>Facility</th>
+				<th>District</th>
+				<th>Hub</th>
+				<th>Locator ID</th>
+				<th>ART Number</th>
+				<th>Date Collected</th>
+				<th>Date Received</th>
+				<th>...</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for sample in samples %}
+			<tr>
+				<td>{{ sample.facility }}</td>
+				<td>{{ sample.facility.district }}</td>
+				<td>{{ sample.facility.hub }}</td>
+				<td>
+					{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}
+				</td>
+				<td>{{ sample.patient.art_number }}</td>
+				<td>{{ sample.date_collected | date:"d M Y" }}</td>
+				<td>{{ sample.date_received | date:"d M Y" }}</td>
+
+
+				<td><a href="{% url 'samples:show' sample.id %}">show</a></td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+{% endblock %}
