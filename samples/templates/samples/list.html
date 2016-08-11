@@ -15,6 +15,8 @@
 				<th>Hub</th>
 				<th>Locator ID</th>
 				<th>ART Number</th>
+				<th>Date Collected</th>
+				<th>Date Received</th>
 				<th>...</th>
 			</tr>
 		</thead>
@@ -28,6 +30,8 @@
 					{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}
 				</td>
 				<td>{{ sample.patient.art_number }}</td>
+				<td>{{ sample.date_collected | date:"d M Y" }}</td>
+				<td>{{ sample.date_received | date:"d M Y" }}</td>
 
 
 				<td><a href="{% url 'samples:show' sample.id %}">show</a></td>

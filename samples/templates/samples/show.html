@@ -14,7 +14,7 @@
 
 
 {% block content %}	
-<div class="page-title">capture sample details</div>
+<div class="page-title">sample details</div>
 	
 	<div class="panel panel-default">
 		<!-- <div class="panel-heading"><b>Capture sample details</b></div> -->
@@ -35,18 +35,18 @@
 						<div class="form-inline">
 							<label for="locator_envelope">Location/Rejection ID {% required_asta %}</label><br>
 						
-							{% select "locator_category" "{'V':'V', 'R':'R'}" "V" %}
+							{% select "locator_category" "{'V':'V', 'R':'R'}" sample.locator_category %}
 								
-							{% input "locator_envelope" "" "{'autofocus':'true'}"  %} 
+							{% input "locator_envelope" sample.envelope.envelope_number  %} 
 							<span class="vl-slash">/</span>	
-							{% input "locator_position" "" "{'style':'width:52px'}" %}
+							{% input "locator_position" sample.locator_position "{'style':'width:52px'}" %}
 							
 
 						</div><br>
 
 						<div class="form-group">
 							<label for="form_number">Form Number</label> {% required_asta %}
-							{% input "form_number" %}
+							{% input "form_number" sample.form_number %}
 						</div>
 
 						<div class="form-group">
@@ -59,12 +59,12 @@
 
 						<div class="form-group">
 							<label for="district">District</label>
-							{% input "district"  "" "{'disabled':'true'}" %}
+							{% input "district"  sample.facility.district "{'disabled':'true'}" %}
 						</div>
 
 						<div class="form-group">
 							<label for="hub">Hub</label>
-							{% input "hub"  "" "{'disabled':'true'}" %}
+							{% input "hub"  sample.facility.hub "{'disabled':'true'}" %}
 						</div>
 
 					</div>
@@ -77,8 +77,10 @@
 				<div class="row">
 					<div class="col-lg-6">
 						<div class="form-inline">
-							<label for="date_collected	">Collection Date</label><br>
-							{% input "date_collected" "" "{'class':'date-picker'}" %}
+							<label for="collection_date">Collection Date</label><br>
+							<!-- <input type="text" id="collection_date" data-format="DD-MM-YYYY" data-template="D MMM YYYY" name="collection_date" value=""> -->
+							<input type="text" id="collection_date" class="date-picker" value="{{ sample.col}}">
+							{% input "collection_date" "" "{'class':'date-picker'}" %}
 							
 						</div>
 						<br>
@@ -313,6 +315,11 @@
 				$(".day").first().focus();
 			},100);    		
     	});
+
+    	$("input").attr("disabled","true");
+    	$("select").attr("disabled","true");
+    	$("radio").attr("disabled","true");
+
     	
   	});
 

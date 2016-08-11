@@ -43,3 +43,31 @@ def local_date(date_val, format = "%d-%b-%Y"):
 		ret = ''
 
 	return ret;
+
+def dictfetchall(cursor):
+	"Return all rows from a cursor as a dict"
+	columns = [col[0] for col in cursor.description]
+	return [
+		dict(zip(columns, row))
+		for row in cursor.fetchall()
+	]
+
+# def appendices_match():
+# 	""" vl_appendix_arvadherence                    |
+# 		| vl_appendix_failurereason                   |
+# 		| vl_appendix_regimen                         |
+# 		| vl_appendix_samplerejectionreason           |
+# 		| vl_appendix_sampletype                      |
+# 		| vl_appendix_tbtreatmentphase                |
+# 		| vl_appendix_treatmentinitiation             |
+# 		| vl_appendix_treatmentstatus                 |
+# 		| vl_appendix_viralloadtesting """
+# 	appendices = {
+# 				  'adherence': {1:1, 2:2, 3:3}, 
+# 				  'failure_reasons': {1:4, 2:5, 3:6, 4:7},
+# 				  'regimens':{
+# 				  			  1:8, 2:9, 3:10, 4:11, 5:12, 6:13, 7:14, 8:15, 9:16, 
+# 				  			  10:17, 11:18, 12:19, 13:20, 14:21, 15:22, 16:23, 17:24, 
+# 				  			  18:25, 19:26, 20:27, 21:28, 22:29, 30,31,32,33,34,
+# 				  			  }
+# 				  }

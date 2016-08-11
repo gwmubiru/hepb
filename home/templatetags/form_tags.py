@@ -34,12 +34,23 @@ def select(name="", data="{}", selected_val="", more="{}"):
 	select_tag += "</select>"
 	return mark_safe(select_tag)
 
+
 @register.simple_tag
 def yesno_select(name="", selected_val="", more="{'class':'form-control input-xs w-xs'}"):
 	return select(name, "{'Y':'Yes', 'N':'No', 'L':'Left Blank'}", selected_val, more)
 	
 
-
 @register.simple_tag
 def required_asta():
 	return mark_safe("<span class='required_asta'>*</span>")
+
+
+@register.simple_tag
+def format_date(date_val, format = "%Y-%m-%d"):
+	ret = ''
+	try:
+		ret = date_val.strftime(format)
+	except:
+		ret = ''
+
+	return ret;

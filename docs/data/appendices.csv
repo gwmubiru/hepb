@@ -13,28 +13,28 @@
 13,6,1h = TDF-FTC-EFV,3,1
 14,7,1i = ABC-3TC-EFV,3,1
 15,8,1j = ABC-3TC-NVP,3,1
-16,9,2b = TDF-3TC-LPV/r,3,2
-17,10,2c = TDF-FTC-LPV/r,3,2
-18,11,2e = AZT-3TC-LPV/r,3,2
-19,12,2f = TDF-FTC-ATV/r,3,2
-20,13,2g = TDF-3TC-ATV/r,3,2
-21,14,2h = AZT-3TC-ATV/r,3,2
-22,15,2i = ABC-3TC-LPV/r,3,2
-23,16,2j = ABC-3TC-ATV/r,3,2
-24,17,4a = d4T-3TC-NVP,3,1
-25,18,4b = d4T-3TC-EFV,3,1
-26,19,4c = AZT-3TC-NVP,3,1
-27,20,4d = AZT-3TC-EFV,3,1
-28,21,4e = ABC-3TC-NVP,3,1
-29,22,4f = ABC-3TC-EFV,3,1
-30,23,5d = TDF-3TC-LPV/r,3,2
-31,24,5e = TDF-FTC-LPV/r,3,2
-32,25,5g = AZT-ABC-LPV/r,3,2
-33,26,5i = AZT-3TC-ATV/r,3,2
-34,27,5j = ABC-3TC-LPV/r,3,2
-35,28,5k = ABC-3TC-ATV/r,3,2
-36,29,Left Blank,3,4
-37,68,Other Regimen,3,5
+16,11,2b = TDF-3TC-LPV/r,3,2
+17,12,2c = TDF-FTC-LPV/r,3,2
+18,13,2e = AZT-3TC-LPV/r,3,2
+19,14,2f = TDF-FTC-ATV/r,3,2
+20,15,2g = TDF-3TC-ATV/r,3,2
+21,16,2h = AZT-3TC-ATV/r,3,2
+22,17,2i = ABC-3TC-LPV/r,3,2
+23,18,2j = ABC-3TC-ATV/r,3,2
+24,19,4a = d4T-3TC-NVP,3,1
+25,20,4b = d4T-3TC-EFV,3,1
+26,21,4c = AZT-3TC-NVP,3,1
+27,22,4d = AZT-3TC-EFV,3,1
+28,23,4e = ABC-3TC-NVP,3,1
+29,24,4f = ABC-3TC-EFV,3,1
+30,25,5d = TDF-3TC-LPV/r,3,2
+31,26,5e = TDF-FTC-LPV/r,3,2
+32,27,5g = AZT-ABC-LPV/r,3,2
+33,28,5i = AZT-3TC-ATV/r,3,2
+34,29,5j = ABC-3TC-LPV/r,3,2
+35,30,5k = ABC-3TC-ATV/r,3,2
+36,31,Left Blank,3,4
+37,71,Other Regimen,3,5
 38,1,Specimen sent to CPHL Laboratory was  less than 0.75ml,4,2
 39,2,Specimen sent to CPHL was haemolysed,4,2
 40,3,Mismatching Specimen identifiers on request form and sample,4,2
@@ -88,8 +88,8 @@
 88,5,Other,6,
 89,1,First Line,7,
 90,2,Second Line,7,
-91,3,Left Blank,7,
-92,4,Other Regimen,7,
+91,4,Left Blank,7,
+92,5,Other Regimen,7,
 93,1,Routine Monitoring,8,
 94,2,Repeat Viral Load,8,
 95,3,Suspected Treatment Failure,8,

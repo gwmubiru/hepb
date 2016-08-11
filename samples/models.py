@@ -40,6 +40,7 @@ class Patient(models.Model):
 		('M', 'Male'),
 		('F', 'Female'),
 		('X', 'Missing Gender'),
+		('L', 'Left Blank'),
 	)
 	unique_id = models.CharField(max_length=128, unique=True)
 	art_number = models.CharField(max_length=64)
@@ -78,7 +79,7 @@ class Envelope(models.Model):
 
 
 class Sample(models.Model):
-	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No') )
+	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No'), ('L', 'Left Blank') )
 	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
 	patient = models.ForeignKey(Patient)
 	patient_unique_id = models.CharField(max_length=128)
