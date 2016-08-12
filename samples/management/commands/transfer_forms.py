@@ -17,7 +17,7 @@ class Command(BaseCommand):
 						dispatchDate, f.created, f.createdby
 				FROM vl_forms_clinicalrequest AS f
 				LEFT JOIN vl_forms_clinicalrequest_dispatch AS d ON f.refNumber=d.refNumber
-				"""
+				LIMIT 10000 """
 
 		cursor = connections['old_db'].cursor()
 		cursor.execute(sql)
@@ -26,11 +26,7 @@ class Command(BaseCommand):
 	def __save_forms(self):
 		for form in self.old_forms:
 			#print "%s %s" %(facility_id, form.get('formNumber'))
-			email = form.get('createdby')
-			c_user = email.partition('@')
-			username = c_user[0]
-			password =  "%s12345" %username
-			user = utils.get_or_create_user(username, email, password)
+			user = utils.get_or_create_user(r.get('createdby'))
 
 			did = form.get('did')
 

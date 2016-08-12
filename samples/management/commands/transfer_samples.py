@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connections
 from home import utils
-from samples.models import Patient, Sample, PatientPhone, Envelope
+from samples.models import Patient, Sample, PatientPhone, Envelope, Verification
 from backend.models import Appendix
 
 
@@ -27,9 +27,11 @@ class Command(BaseCommand):
 
 	def __get_samples(self):		
 
-		sql = """SELECT s.*, s.id AS sid, p.*, p.id AS pid 
+		sql = """SELECT s.*, s.id AS sid, p.*, p.id AS pid, s.createdby AS screatedby,
+						v.*, v.createdby AS verified_by, v.created AS vcreated, v.id AS vid 
 				FROM vl_samples AS s
 				LEFT JOIN vl_patients AS p ON s.patientID=p.id
+				LEFT JOIN vl_samples_verify AS v ON 
 				WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s"""
 
 		cursor = connections['old_db'].cursor()
@@ -56,6 +58,8 @@ class Command(BaseCommand):
 	def __save_samples(self):
 		for r in self.old_samples:
 			#print r.get('treatmentStatusID')
+			user = utils.get_or_create_user(r.get('screatedby'))
+
 			p, pat_created = Patient.objects.get_or_create(
 				id=r.get('pid'),
 				unique_id=r.get('uniqueID', ''),
@@ -63,7 +67,7 @@ class Command(BaseCommand):
 				other_id=r.get('otherID', ''),
 				gender=self.genders.get(r.get('gender', ''), None),
 				dob=utils.get_date(r, 'dateOfBirth'),
-				defaults={'created_by_id':1},
+				defaults={'created_by_id': user.id},
 				)
 
 			enve,env_created = Envelope.objects.get_or_create(envelope_number=r.get('lrEnvelopeNumber'))
@@ -112,8 +116,25 @@ class Command(BaseCommand):
 			s.suspected_treatment_failure_last_value = r.get('suspectedTreatmentFailureValue', '')
 			s.suspected_treatment_failure_last_sample_type = self.sample_types.get(r.get('suspectedTreatmentFailureSampleTypeID', 0), None)
 
-			s.created_by_id = 1
+			s.created_by_id = user.id
 
 			s.save()
 
+			if (vid!=None):
+				self.__save_verification(r)
+				
 			print "saved %d" %s.id
+
+
+	def __save_verification(self, r):
+		outcome = r.get('outcome')
+		user = utils.get_or_create_user(r.get('verified_by'))
+
+		v = Verification()
+		v.sample_id = s.id
+		v.comments = r.get('comments')
+		v.accepted = True if outcome=='Accepted' else False
+		v.created_at = r.get('vcreated')
+		v.rejection_reason_id = self.__appendix_id(r.get('outcomeReasonsID', 0), 4)
+		v.verified_by_id = user.id
+		v.save()

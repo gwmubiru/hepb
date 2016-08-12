@@ -54,10 +54,20 @@ def dictfetchall(cursor):
 	]
 
 
-def get_or_create_user(username, email, password, *args, **kwargs):
+def __get_or_create_user(username, email, password, *args, **kwargs):
 	try:
 		user = User.objects.create_user(username, email, password)
 	except IntegrityError:
 		user = User.objects.get(username=username, email=email)
 
+	return user
+
+
+def get_or_create_user(email):
+	email = r.get('screatedby')
+	email = email if email != '@guest' else 'guest@guest.guest'
+	c_user = email.partition('@')
+	username = c_user[0]
+	password =  "%s12345" %username
+	user = __get_or_create_user(username, email, password)
 	return user
