@@ -1,0 +1,96 @@
+1,1,Specimen sent to CPHL Laboratory was  less than 0.75ml,2,4
+2,2,Specimen sent to CPHL was haemolysed,2,4
+3,4,Mismatching Specimen identifiers on request form and sample,2,4
+4,5,Well labeled DBS card without any blood spots,1,4
+5,7,"Blood spots were collected onto a dirty/soiled DBS card,compromising the specimen integrity",1,4
+6,8,Sample not recieved at CPHL Lab(only the request form was recieved at the testing Lab),2,4
+7,9,All Dry Blood Spots on the card were less than the required size i.e not filling the perforated area,1,4
+8,10,DBS sample sent on wrong Card,1,4
+9,14,Patient has been on ARVs for less than 6 months(doesn't qualify for Viral Load testing as per Algorithm),2,4
+10,59,Dry Blood sample sent with less than 2 spots,1,4
+11,60,"DBS Sample older than 3 weeks,VL test can't be done on DBS older than 3 weeks.",1,4
+12,61,Mismatching ART number between sample and form,1,4
+13,62,Well labeled cryo viral container without any sample in it was sent to CPHL Lab,2,4
+14,63,Sample not recieved at CPHL Lab(only the request form was recieved at the testing Lab),1,4
+15,64,Patient has been on ARVs for less than 6 months(doesn't qualify for Viral Load testing as per Algorithm),1,4
+16,65,Patient had viral load results above 1000cp/ml in less than 6 months ago (Refer to testing Algorithm),1,4
+17,67,Patient has wrong date of treatment initiation i.e date earlier than ART role out,1,4
+18,68,Patient has wrong date of treatment initiation i.e date earlier than ART role out,2,4
+19,69,Patient's date of treatment initiation not included on the form thus failed to determine VL testing eligibility,1,4
+20,70,Patient's date of treatment initiation not included on the form thus failed to determine VL testing eligibility,2,4
+21,71,Sample was sent in wrong container thus compromising the sample integrity,2,4
+22,72,"Wrong sample type was sent to CPHL-Laboratories,Only Plasma and Dried Blood Spots(DBS) are required",1,4
+23,74,DBS sample was sent on non-perforated card(not able to get the right spot size during sample processing),1,4
+24,75,DBS sample was wet and or had moulds thus compromising with the sample integrity,1,4
+25,76,Sample was sent in a damaged container,2,4
+26,77,Patient has not yet been initiated on ART(doesn't qualify for Viral Load testing as per Algorithm),1,4
+27,78,Patient has not yet been initiated on ART(doesn't qualify for Viral Load testing as per Algorithm),2,4
+28,79,Patient's dispatch form sent without patient's identifications(ART number or Other number),1,4
+29,80,Patient's dispatch form sent without patient's identification(ART number or Other number),2,4
+30,81,Two forms were sent for the same sample(only dispatched results for one form),1,4
+31,82,Two forms were sent for the same sample(only dispatched results for one form),2,4
+32,83,Recieved an empty DBS card,1,4
+33,84,Sample was delivered under wrong storage container thus compromising the sample integrity,2,4
+34,85,DBS card with presence of serum rings i.e improper drying(affecting the specimen integrity),1,4
+35,86,DBS Card without ART and form number details(DBS card cannot be linked to request form),1,4
+36,87,Patient has wrong date of treatment initiation i.e date is beyond the current calender date.,2,4
+37,88,Patient has wrong date of treatment initiation i.e date is beyond the current calendar date,1,4
+38,89,Patient had viral load results less than 1000cp/ml or Not Detected in less than 12 months ago.Refer to testing algorithm.,1,4
+39,90,Plasma sample container without ART and form number details (sample cannot be linked to request form),2,4
+40,91,Patient had viral load results less than 1000cp/ml or Not Detected in less than 12 months ago.Refer to testing algorithm.,2,4
+41,93,"Wrong sample type sent to CPHL-Laboratories,Only Plasma and Dried Blood Spots(DBS) are required",2,4
+42,95,ART Number details are shared by different patients from the same facility.,2,4
+43,96,ART Number details are shared by different patients from the same facility.,1,4
+44,101,Patient had viral load results above 1000cp/ml in less than 6 months ago (Refer to testing Algorithm),2,4
+45,1,1c = AZT-3TC-NVP,1,3
+46,2,1d = AZT-3TC-EFV,1,3
+47,3,1e = TDF-3TC-NVP,1,3
+48,4,1f = TDF-3TC-EFV,1,3
+49,5,1g = TDF-FTC-NVP,1,3
+50,6,1h = TDF-FTC-EFV,1,3
+51,7,1i = ABC-3TC-EFV,1,3
+52,8,1j = ABC-3TC-NVP,1,3
+53,11,2b = TDF-3TC-LPV/r,2,3
+54,12,2c = TDF-FTC-LPV/r,2,3
+55,13,2e = AZT-3TC-LPV/r,2,3
+56,14,2f = TDF-FTC-ATV/r,2,3
+57,15,2g = TDF-3TC-ATV/r,2,3
+58,16,2h = AZT-3TC-ATV/r,2,3
+59,17,2i = ABC-3TC-LPV/r,2,3
+60,18,2j = ABC-3TC-ATV/r,2,3
+61,19,4a = d4T-3TC-NVP,1,3
+62,20,4b = d4T-3TC-EFV,1,3
+63,21,4c = AZT-3TC-NVP,1,3
+64,22,4d = AZT-3TC-EFV,1,3
+65,23,4e = ABC-3TC-NVP,1,3
+66,24,4f = ABC-3TC-EFV,1,3
+67,25,5d = TDF-3TC-LPV/r,2,3
+68,26,5e = TDF-FTC-LPV/r,2,3
+69,27,5g = AZT-ABC-LPV/r,2,3
+70,28,5i = AZT-3TC-ATV/r,2,3
+71,29,5j = ABC-3TC-LPV/r,2,3
+72,30,5k = ABC-3TC-ATV/r,2,3
+73,31,Left Blank,4,3
+74,71,Other Regimen,5,3
+75,1,Good > 95%,,1
+76,2,Fair 85 – 94%,,1
+77,3,< 85%,,1
+78,1,Virological,,2
+79,2,Clinical,,2
+80,3,Immunological,,2
+81,4,N/A,,2
+82,1,Initiation Phase,,5
+83,2,Continuation Phase,,5
+84,1,PMTCT/Option B+,,6
+85,2,child under 15,,6
+86,3,CD4<500,,6
+87,4,TB Infection,,6
+88,5,Other,,6
+89,1,First Line,,7
+90,2,Second Line,,7
+91,4,Left Blank,,7
+92,5,Other Regimen,,7
+93,1,Routine Monitoring,,8
+94,2,Repeat viral load,,8
+95,3,Suspected Treatment Falure,,8
+96,4,Left Blank,,8

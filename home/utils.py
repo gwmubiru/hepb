@@ -64,7 +64,6 @@ def __get_or_create_user(username, email, password, *args, **kwargs):
 
 
 def get_or_create_user(email):
-	email = r.get('screatedby')
 	email = email if email != '@guest' else 'guest@guest.guest'
 	c_user = email.partition('@')
 	username = c_user[0]

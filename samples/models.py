@@ -95,7 +95,7 @@ class Sample(models.Model):
 	date_collected = models.DateField(null=True) #Date on which the sample was collected from the patient
 	date_received = models.DateField() #Date received at CPHL
 	treatment_inlast_sixmonths = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-	treatment_initiation_date = models.DateField()
+	treatment_initiation_date = models.DateField(null=True)
 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
 	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing')
 	treatment_indication = models.ForeignKey(backend.Appendix, related_name='treatment_indication', null=True)

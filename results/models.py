@@ -27,8 +27,8 @@ class FinalResult(models.Model):
 		db_table = 'vl_final_results'
 
 
-#handle repeats of samples
-class Repeat(models.Model):
+#track 
+class SampleResults(models.Model):
 	sample = models.ForeignKey(samples.Sample)
 	repeat_test = models.BooleanField(default=False)
 	result1 = models.TextField()
@@ -40,7 +40,7 @@ class Repeat(models.Model):
 	updated_at = models.DateTimeField(auto_now=True)
 
 	class Meta:
-		db_table = 'vl_sample_repeats'
+		db_table = 'vl_sample_results'
 	
 
 #track sample sample printing and dispatch

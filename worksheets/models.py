@@ -7,11 +7,11 @@ import samples.models as samples
 
 # Create your models here.
 class Worksheet(models.Model):
-	MACHINE_TYPES = ( ('A', 'Abott'), ('R', 'Roche') )
+	MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche') )
 	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
 	worksheet_reference_number = models.CharField(max_length=128)
 	machine_type = models.CharField(max_length=1, choices=MACHINE_TYPES)
-	worksheet_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
+	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
 	sample_prep = models.CharField(max_length=64)
 	sample_prep_expiry_date = models.DateField()
 	bulk_lysis_buffer = models.CharField(max_length=64)
@@ -25,7 +25,7 @@ class Worksheet(models.Model):
 	amplication_kit_expiry_date = models.DateField()
 	assay_date = models.DateTimeField()
 	generated_by = models.ForeignKey(User, related_name='generated_by')
-	worksheet_updated_by = models.ForeignKey(User, related_name='worksheet_updated_by')
+	worksheet_updated_by = models.ForeignKey(User, related_name='worksheet_updated_by', null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	results_uploaded = models.BooleanField(default=False)
