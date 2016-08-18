@@ -70,3 +70,12 @@ def get_or_create_user(email):
 	password =  "%s12345" %username
 	user = __get_or_create_user(username, email, password)
 	return user
+
+
+def delete_item(d, key):
+	try:
+		del d[key]
+	except:
+		pass
+	
+	return d

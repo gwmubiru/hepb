@@ -94,10 +94,10 @@
                             <a href="#"><i class="fa fa-flask fa-fw"></i> Lab<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
-                                    <a href="#">Create Worksheet</a>
+                                    <a href="{% url 'worksheets:create'  %}">Create Worksheet</a>
                                 </li>
                                 <li>
-                                    <a href="#">List Worksheets</a>
+                                    <a href="{% url 'worksheets:list'  %}">List Worksheets</a>
                                 </li>
                             </ul>
                             
@@ -148,8 +148,7 @@
             <div class="container-fluid" >
             	<div class="row">
             		<div class="col-lg-11">
-            			{% block content %}
-
+                        {% block content %}
                         {% endblock %}
             		</div>
             		<div class="col-lg-1"></div>
@@ -175,6 +174,31 @@
     	 	return false;
     	 	//return window.location.assign(link+"?search_val="+search_val);
     	 });
+
+        //var ff = $(".bc");
+        //var vlbarcodes = $(".vlbarcodes");
+
+        //console.log("u have "+vlbarcodes.length)
+
+       /* $(".vlbarcodes").each(function (index){
+            var val = $(this).attr("value");
+            $(this).barcode(val, "code128")
+        })*/
+
+       /* for (var i = vlbarcodes.length - 1; i >= 0; i--) {
+            var bc=vlbarcodes[i];
+            console.log(bc.getAttribute("value"));
+            //bc.barcode(bc.value,"code128",{barWidth: 3,showHRI:true,})
+        };*/
+
+        /*for(var i in vlbarcodes){
+            console.log("insede")
+            var bc = vlbarcodes[i];
+            //bc.barcode(bc.attr("value"),"code128",{barWidth: 3,showHRI:true,})
+        }*/
+
+        
+         
     	
   	});
     </script>

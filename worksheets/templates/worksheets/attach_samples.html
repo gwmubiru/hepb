@@ -1,0 +1,35 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">capture worksheet</span>		
+	<div class="panel panel-default">
+		<div class="panel-body">
+			
+			<form action="{% url 'worksheets:attach_samples' worksheet_id %}" method="post" role="form">
+				{% csrf_token %}
+				<div class="row">
+				{% for sample in samples %}
+					<div class="col-md-1">
+						<div class="vlbarcodes" value="{{ sample.id }}"></div>
+					</div>
+				{% endfor %}
+				</div>
+				<input type="submit" value="save" class="btn btn-danger btn-submit ">
+				
+			</form>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(".vlbarcodes").each(function (index){
+            var val = $(this).attr("value");
+            $(this).barcode(val, "code128");
+        });
+
+	</script>
+{% endblock %}

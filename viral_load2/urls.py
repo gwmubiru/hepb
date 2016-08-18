@@ -24,5 +24,6 @@ urlpatterns = [
 	url(r'^login/', home_views.login_page, name='login_page'),
 	url(r'^login_attempt/', home_views.login_attempt, name='login_attempt'),
 	url(r'^admin/', admin.site.urls),
-	url(r'^samples/', include('samples.urls'))
+	url(r'^samples/', include('samples.urls')),
+	url(r'^worksheets/', include('worksheets.urls')),
 ]
