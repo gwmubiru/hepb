@@ -74,3 +74,20 @@ body{
 .btn-submit{
 	text-transform: uppercase;
 }
+
+.vlbarcodes-wrapper{
+	min-width: 180px;
+	text-align: center;
+	border: solid 1px #D5D8DC;
+	font-size: 10px;
+	padding: 5px;
+}
+
+.worksheet{
+	margin-left: 4px;
+	height: 600px;
+}
+
+.sm-label{
+	color: #808080;
+}

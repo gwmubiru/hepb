@@ -7,18 +7,29 @@
 {% endblock %}
 
 {% block content %}	
-	<span class="page-title">capture worksheet</span>		
+	<span class="page-title">attach samples</span>		
 	<div class="panel panel-default">
 		<div class="panel-body">
 			
 			<form action="{% url 'worksheets:attach_samples' worksheet_id %}" method="post" role="form">
 				{% csrf_token %}
-				<div class="row">
-				{% for sample in samples %}
-					<div class="col-md-1">
-						<div class="vlbarcodes" value="{{ sample.id }}"></div>
+				<div class="worksheet">
+					<div class="row ">
+						{% for sample in samples %}
+							<div class="col-md-1 vlbarcodes-wrapper">
+								{{ forloop.counter }}<br>
+								<span class='sm-label'>Patient ART #</span>: {{ sample.patient.art_number }}<br>
+								<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
+								<span class='sm-label'>Location ID</span>: {{ sample.locator_category }}{{ sample.envelope.envelope_number }}{{ sample.locator_position }}<br>
+								<span class='sm-label'>Form #</span>: {{ sample.form_number }}
+
+								<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>
+								<input type="checkbox" name="samples" class="sample" value="{{ sample.id }}">
+							</div>
+							{% if forloop.counter|divisibleby:6 %}</div><div class="row">{% endif %}
+							
+						{% endfor %}
 					</div>
-				{% endfor %}
 				</div>
 				<input type="submit" value="save" class="btn btn-danger btn-submit ">
 				
@@ -26,10 +37,15 @@
 		</div>
 	</div>
 	<script type="text/javascript">
+	 $(function() {
 		$(".vlbarcodes").each(function (index){
             var val = $(this).attr("value");
-            $(this).barcode(val, "code128");
+            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
         });
+
+
+        $(".sample").prop("checked", "true")
+      })
 
 	</script>
 {% endblock %}

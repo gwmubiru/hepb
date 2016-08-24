@@ -3,15 +3,15 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 
-import samples.models as samples
+from samples.models import Sample
 
 # Create your models here.
 class Worksheet(models.Model):
 	MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche') )
-	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
+	samples = models.ManyToManyField(Sample)
 	worksheet_reference_number = models.CharField(max_length=128)
 	machine_type = models.CharField(max_length=1, choices=MACHINE_TYPES)
-	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
+	sample_type = models.CharField(max_length=1, choices=Sample.SAMPLE_TYPES)
 	sample_prep = models.CharField(max_length=64)
 	sample_prep_expiry_date = models.DateField()
 	bulk_lysis_buffer = models.CharField(max_length=64, null=True)
@@ -34,12 +34,12 @@ class Worksheet(models.Model):
 	class Meta:
 		db_table = 'vl_worksheets'
 
-#Attaching samples to work sheet
-class WorksheetSample(models.Model):
-	worksheet = models.ForeignKey(Worksheet)
-	sample = models.ForeignKey(samples.Sample)
-	attached_by = models.ForeignKey(User, related_name='attached_by')
-	created_at = models.DateTimeField(auto_now_add=True)	
+# #Attaching samples to work sheet
+# class WorksheetSample(models.Model):
+# 	worksheet = models.ForeignKey(Worksheet)
+# 	sample = models.ForeignKey(Sample)
+# 	attached_by = models.ForeignKey(User, related_name='attached_by')
+# 	created_at = models.DateTimeField(auto_now_add=True)	
 
-	class Meta:
-		db_table = 'vl_worksheet_samples'	
+# 	class Meta:
+# 		db_table = 'vl_worksheet_samples'	

@@ -1,0 +1,34 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block content %}	
+
+<div class="page-title">Worksheets</div>
+
+<div class="panel panel-default">
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>
+				<th>Worksheet Ref Number</th>
+				<th>Machine Type</th>
+				<th>Sample Type</th>
+				<th>Date Created</th>				
+				<th>...</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for worksheet in worksheets %}
+			<tr>
+				<td>{{ worksheet.worksheet_reference_number }}</td>
+				<td>{{ worksheet.get_machine_type_display }}</td>
+				<td>{{ worksheet.get_sample_type_display }}</td>
+				<td>{{ worksheet.created_at | date:"d M Y" }}</td>
+				
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+{% endblock %}
