@@ -34,3 +34,8 @@ function setLikeRadio(item,clss){
     }
   }
 }
+
+
+function windPop(link) {
+  window.open(link,"zzz","width=1100,height=1000,menubar=no,resizable=yes,scrollbars=yes");
+ }

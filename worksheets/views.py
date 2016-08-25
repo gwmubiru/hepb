@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
+from easy_pdf.views import PDFTemplateView
+from django.views import generic
 
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet
@@ -7,6 +9,17 @@ from samples.models import Sample
 
 # Create your views here.
 
+class PDFView(PDFTemplateView):
+	model = Worksheet
+	template_name = "worksheets/pdf.html"
+	def get_context_data(self, **kwargs):
+		return super(PDFView, self).get_context_data(
+			pagesize="A4", 
+			title="Worksheet",
+			worksheet=Worksheet.objects.get(pk=self.kwargs['pk']),
+			 **kwargs)
+	
+	
 def create(request):
 	if request.method == 'POST':
 		form = WorksheetForm(request.POST)
@@ -20,10 +33,6 @@ def create(request):
 
 	return render(request, 'worksheets/create.html', {'form': form})
 
-def list(request):
-	worksheets = Worksheet.objects.all()
-	return render(request,'worksheets/list.html',{'worksheets':worksheets})
-
 def attach_samples(request, worksheet_id):
 	if request.method == 'POST':
 		# pass
@@ -35,8 +44,20 @@ def attach_samples(request, worksheet_id):
 			sample.in_worksheet = True
 			sample.save()
 			
-		return redirect('worksheets:create')
+		return redirect('worksheets:show',worksheet_id)
 	else:
 		#form = AttachSamplesForm()
-		samples = Sample.objects.filter(verified=True, in_worksheet=False).order_by('created_at')[:80]
+		samples = Sample.objects.filter(verified=True, in_worksheet=False).order_by('created_at')[:10]
 		return render(request, 'worksheets/attach_samples.html', {'samples':samples, 'worksheet_id': worksheet_id})
+
+def list(request):
+	worksheets = Worksheet.objects.all()
+	return render(request,'worksheets/list.html',{'worksheets':worksheets})
+
+def show(request, worksheet_id):
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
+	return render(request, 'worksheets/show.html', {'worksheet': worksheet})
+
+def vlprint(request, worksheet_id):
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
+	return render(request, 'worksheets/vlprint.html', {'worksheet': worksheet})

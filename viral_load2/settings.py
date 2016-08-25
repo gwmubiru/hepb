@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'worksheets.apps.WorksheetsConfig',
     'results.apps.ResultsConfig',
     'home.apps.HomeConfig',
+    'easy_pdf',
 ]
 
 MIDDLEWARE_CLASSES = [

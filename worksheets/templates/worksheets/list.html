@@ -24,6 +24,7 @@
 				<td>{{ worksheet.get_machine_type_display }}</td>
 				<td>{{ worksheet.get_sample_type_display }}</td>
 				<td>{{ worksheet.created_at | date:"d M Y" }}</td>
+				<td><a href="{% url 'worksheets:show' worksheet.id %}">view</a></td>
 				
 			</tr>
 		{% endfor %}

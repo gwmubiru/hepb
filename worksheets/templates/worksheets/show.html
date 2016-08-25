@@ -1,0 +1,51 @@
+{% extends "home/layout.html" %}
+{% load staticfiles %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">WORKSHEET</span>		
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="worksheet" id="content" >
+				<div class="row" >
+					<div class="col-md-4">Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></div>
+					<div class="col-md-4">Machine Type: <u>{{ worksheet.get_machine_type_display }}</u></div>
+					<div class="col-md-4">Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></div>
+				</div>
+				<br>
+				<div class="row ">
+					{% for sample in worksheet.samples.all %}
+						<div class="col-md-1 vlbarcodes-wrapper">
+							{{ forloop.counter }}<br>
+							<span class='sm-label'>Patient ART #</span>: {{ sample.patient.art_number }}<br>
+							<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
+							<span class='sm-label'>Location ID</span>: 
+							{{ sample.locator_category }}{{ sample.envelope.envelope_number }}{{ sample.locator_position }}<br>
+							<span class='sm-label'>Form #</span>: {{ sample.form_number }}
+
+							<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>
+						</div>
+						{% if forloop.counter|divisibleby:6 %}</div><div class="row">{% endif %}
+						
+					{% endfor %}
+				</div>
+			</div>
+			<br>
+			<a class="btn btn-danger" href="{% url 'worksheets:pdf' worksheet.id %}">Download as PDF</a>
+			<a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:vlprint' worksheet.id %}')">Print</a>
+		</div>
+	</div>
+	<script type="text/javascript">
+	 $(function() {
+		$(".vlbarcodes").each(function (index){
+            var val = $(this).attr("value");
+            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
+        });
+
+      })
+
+	</script>
+{% endblock %}

@@ -6,5 +6,9 @@ app_name = 'worksheets'
 urlpatterns  = [
 	url(r'^create/$', views.create, name='create'),
 	url(r'^attach_samples/(?P<worksheet_id>[0-9]+)/$', views.attach_samples, name='attach_samples'),
+	url(r'^show/(?P<worksheet_id>[0-9]+)/$', views.show, name='show'),
+	url(r'^vlprint/(?P<worksheet_id>[0-9]+)/$', views.vlprint, name='vlprint'),
 	url(r'^list/$', views.list, name='list'),
+	url(r'^pdf/(?P<pk>[0-9]+)/$', views.PDFView.as_view(), name='pdf'),
+	#url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
 ]
