@@ -14,7 +14,7 @@
 				<th>Machine Type</th>
 				<th>Sample Type</th>
 				<th>Date Created</th>				
-				<th>...</th>
+				<th />
 			</tr>
 		</thead>
 		<tbody>
@@ -24,7 +24,25 @@
 				<td>{{ worksheet.get_machine_type_display }}</td>
 				<td>{{ worksheet.get_sample_type_display }}</td>
 				<td>{{ worksheet.created_at | date:"d M Y" }}</td>
-				<td><a href="{% url 'worksheets:show' worksheet.id %}">view</a></td>
+
+				<td>
+					<div class="btn-group">
+						<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+							Options 
+							<span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu" role="menu">
+							<li><a href="{% url 'worksheets:show' worksheet.id %}">view</a></li>
+							<li><a href="javascript:windPop('{% url 'worksheets:vlprint' worksheet.id %}')">print</a></li>
+							<li><a href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">pdf</a></li>
+							<li><a href="#">edit</a></li>
+							<li><a href="#">upload results</a></li>
+
+							
+							
+						</ul>
+					</div>
+				</td>
 				
 			</tr>
 		{% endfor %}

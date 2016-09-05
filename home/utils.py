@@ -1,5 +1,13 @@
+import datetime
+from django.utils import timezone
+
 from django.db import IntegrityError
 from django.contrib.auth.models import User
+
+
+ATTRS = {'class':'form-control input-sm w-md', 'required':'true'}
+ATTRS2 = {'class':'form-control input-sm w-xs', 'required':'true'}
+ATTRS_DATE = {'class':'form-control input-sm w-sm date'}
 
 #These utils are to hold raw python functions that can be used in views mainly
 
@@ -79,3 +87,22 @@ def delete_item(d, key):
 		pass
 	
 	return d
+
+def now():
+	return timezone.now()
+
+def year(format=""):
+	if format == 'yyyy':
+		year = now().strftime('%Y')
+	elif format == 'yy':
+		year = now().strftime('%y')
+	else:
+		year = now().year
+	return year
+
+def month(format=""):
+	if format == 'mm':
+		month = now().strftime('%m')
+	else:
+		month = now().month
+	return month

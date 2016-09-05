@@ -26,25 +26,21 @@ class WorksheetForm(forms.ModelForm):
 			'assay_date',
 		)
 
-		attrs = {'class':'form-control input-sm w-md', 'required':'true'}
-		attrs2 = {'class':'form-control input-sm w-xs', 'required':'true'}
-		attrs_date = {'class':'form-control input-sm w-sm date'}
-
 		widgets = {
-			'worksheet_reference_number': forms.TextInput(attrs=attrs),
-			'machine_type': forms.Select(attrs=attrs2),
-			'sample_type': forms.Select(attrs=attrs2),
-			'sample_prep': forms.TextInput(attrs=attrs),
-			'sample_prep_expiry_date': forms.DateInput(attrs=attrs_date),
-			'bulk_lysis_buffer': forms.TextInput(attrs=attrs),
-			'bulk_lysis_buffer_expiry_date': forms.DateInput(attrs=attrs_date),
-			'control': forms.TextInput(attrs=attrs),
-			'control_expiry_date': forms.DateInput(attrs=attrs_date),
-			'calibrator': forms.TextInput(attrs=attrs),
-			'calibrator_expiry_date': forms.DateInput(attrs=attrs_date),
-			'amplication_kit': forms.TextInput(attrs=attrs),
-			'amplication_kit_expiry_date': forms.DateInput(attrs=attrs_date),
-			'assay_date': forms.DateInput(attrs=attrs_date),
+			'worksheet_reference_number': forms.TextInput(attrs=utils.ATTRS),
+			'machine_type': forms.Select(attrs=utils.ATTRS2),
+			'sample_type': forms.Select(attrs=utils.ATTRS2),
+			'sample_prep': forms.TextInput(attrs=utils.ATTRS),
+			'sample_prep_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
+			'bulk_lysis_buffer': forms.TextInput(attrs=utils.ATTRS),
+			'bulk_lysis_buffer_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
+			'control': forms.TextInput(attrs=utils.ATTRS),
+			'control_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
+			'calibrator': forms.TextInput(attrs=utils.ATTRS),
+			'calibrator_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
+			'amplication_kit': forms.TextInput(attrs=utils.ATTRS),
+			'amplication_kit_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
+			'assay_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 		}
 
 class AttachSamplesForm(forms.ModelForm):

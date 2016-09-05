@@ -2,23 +2,39 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from easy_pdf.views import PDFTemplateView
 from django.views import generic
+from django.template import Context
+from django.template.loader import get_template
+from xhtml2pdf import pisa 
 
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet
 from samples.models import Sample
 
+
 # Create your views here.
 
-class PDFView(PDFTemplateView):
-	model = Worksheet
-	template_name = "worksheets/pdf.html"
-	def get_context_data(self, **kwargs):
-		return super(PDFView, self).get_context_data(
-			pagesize="A4", 
-			title="Worksheet",
-			worksheet=Worksheet.objects.get(pk=self.kwargs['pk']),
-			 **kwargs)
-	
+# class PDFView(PDFTemplateView):
+# 	model = Worksheet
+# 	template_name = "worksheets/pdf.html"
+# 	def get_context_data(self, **kwargs):
+# 		return super(PDFView, self).get_context_data(
+# 			pagesize="A4", 
+# 			title="Worksheet",
+# 			worksheet=Worksheet.objects.get(pk=self.kwargs['pk']),
+# 			 **kwargs)
+
+def generate_pdf(request, worksheet_id):
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
+	template = get_template("worksheets/pdf.html")
+	html = template.render(Context({'worksheet': worksheet}))	
+	f = open('worksheet.pdf', "w+b")
+	pisa_status = pisa.CreatePDF(html.encode('utf-8'), dest=f, encoding='utf-8')
+
+	f.seek(0)
+	pdf = f.read()
+	f.close()
+	return HttpResponse(pdf, 'application/pdf')
+
 	
 def create(request):
 	if request.method == 'POST':

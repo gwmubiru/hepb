@@ -34,10 +34,10 @@
 				</div>
 			</div>
 			<br>
-			<a class="btn btn-danger" href="{% url 'worksheets:pdf' worksheet.id %}">Download as PDF</a>
+			<a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a>
 			<a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:vlprint' worksheet.id %}')">Print</a>
 		</div>
-	</div>
+	</div>javascript:windPop
 	<script type="text/javascript">
 	 $(function() {
 		$(".vlbarcodes").each(function (index){

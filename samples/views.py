@@ -5,7 +5,9 @@ from django.http import HttpResponse
 
 from backend.models import Appendix,Facility
 from .models import Patient, Sample, PatientPhone, Envelope, Verification
+from forms import *
 from home import utils
+from . import utils as sample_utils
 
 # Create your views here.
 
@@ -13,92 +15,62 @@ ENVS_LIMIT = 1000
 SAMPLES_LIMIT = 1000
 
 def create(request):
-	facilities = Facility.objects.values('id', 'facility').order_by('facility')
-	
-	context = {
-		"facilities": facilities,
-		"facility_dropdown": utils.select("facility_id",{'k_col':'id', 'v_col':'facility', 'items':facilities }),
-		"regimens_dropdown": appendix_select("current_regimen_id", 3),
-		"tx_indication_dropdown": appendix_select("treatment_indication_id", 6),
-		"f_reason_dropdown": appendix_select("failure_reason_id", 2),
-		"vl_testing_dropdown": appendix_select("viral_load_testing_id", 8),
-		"tb_tx_phase_dropdown": appendix_select("tb_treatment_phase_id", 5, "form-control input-xs w-md optional"),
-		"adherence_dropdown": appendix_select("arv_adherence_id", 1, "form-control input-xs w-md optional"),
+	if request.method == 'POST':
+		patient_form = PatientForm(request.POST)
+		phone_form = PatientPhoneForm(request.POST)
+		envelope_form = EnvelopeForm(request.POST)
+		sample_form = SampleForm(request.POST)
 
-	}
+		valid_patient = patient_form.is_valid()
+		valid_phone = phone_form.is_valid()
+		valid_envelope = envelope_form.is_valid()
+		valid_sample = sample_form.is_valid()
+
+		if valid_patient and valid_phone and valid_envelope and valid_sample:
+			unique_id = "%s-A-%s" %(patient.facility, patient.art_number)
+			patient_form.cleaned_data.update({'created_by': request.user})
+			patient, pat_created = Patient.objects.get_or_create(
+						unique_id=unique_id,
+						defaults=patient_form.cleaned_data
+						)
+
+			phone, phone_created = PatientPhone.objects.get_or_create(
+						patient=patient,
+						**phone_form.cleaned_data
+						)
+
+			envelope, env_created = Envelope.objects.get_or_create(
+						patient=patient,
+						**envelope_form.cleaned_data
+						)
+
+			sample = sample_form.save(commit=False)
+			sample.patient_unique_id = patient.unique_id
+			sample.envelope = envelope
+			sample.vl_sample_id = sample_utils.create_sample_id()
+			vl_testing = request.get('vl_testing', '')
+			sample.routine_monitoring = True if vl_testing=='routine' else False
+			sample.repeat_testing = True if vl_testing=='repeat' else False
+			sample.suspected_treatment_failure = True if vl_testing=='suspected' else False	
+			sample.created_by = request.user
+			sample.save()
+
+			return redirect('samples:create')
+	else:
+
+		context = {
+			'facilities': Facility.objects.all(),
+			'envelope_form': EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()}),
+			'phone_form': PatientPhoneForm,
+			'patient_form': PatientForm,
+			'sample_form': SampleForm(initial={'locator_category':'V'}),
+		}
+
 	return render(request, 'samples/create.html', context)
 
-def save(request):
-	r = request.POST
-	
-	unique_id = "%s-A-%s" %(r.get('facility_id', 0), r.get('art_number', ''))
-	p, pat_created = Patient.objects.get_or_create(
-		unique_id=unique_id,
-		art_number=r.get('art_number', ''),
-		other_id=r.get('other_id', ''),
-		gender=r.get('gender', ''),
-		dob=utils.get_date(r, 'dob'),
-		defaults={'created_by_id':1},
-		)
-
-	phone = r.get('patient_phone', None)
-	if(phone!=None):
-		pat_phone, pp_created = PatientPhone.objects.get_or_create(patient_id=p.id, phone=phone)
-
-	enve,env_created = Envelope.objects.get_or_create(envelope_number=r.get('locator_envelope', ''))
-
-	s = Sample()
-	s.patient_id = p.id
-	s.patient_unique_id = p.unique_id
-	s.locator_category = r.get('locator_category', '')
-	s.envelope_id = enve.id
-	s.locator_position = r.get('locator_position', '')
-	s.vl_sample_id = "8"
-	s.form_number = r.get('form_number', '')
-	s.facility_id = r.get('facility_id', 0)
-	s.current_regimen_id = r.get('current_regimen_id', 0)
-	s.pregnant = r.get('pregnant', '')
-	#s.anc_number = r.get('anc_number', '')
-	s.anc_number = 'pool'
-	s.breast_feeding = r.get('breast_feeding', '')
-	s.active_tb_status = r.get('active_tb_status', '')
-	s.date_collected = utils.get_date(r, 'date_collected')
-	s.date_received = utils.get_date(r, 'date_received')
-	s.treatment_inlast_sixmonths = r.get('treatment_inlast_sixmonths', '')
-	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
-	s.sample_type = r.get('sample_type', '')
-	s.viral_load_testing_id = r.get('viral_load_testing_id', 0)
-	s.treatment_indication_id = r.get('treatment_indication_id', 0)
-	s.treatment_indication_other = r.get('treatment_indication_other', '')
-	#s.treatment_line_id = r.get('treatment_line_id', 0)
-	s.treatment_line_id = 1
-	s.failure_reason_id = r.get('failure_reason_id', 0)
-	s.tb_treatment_phase_id = r.get('tb_treatment_phase_id', 0)
-	s.arv_adherence_id = r.get('arv_adherence_id', 0)
-
-	vl_tesing = r.get('vl_tesing', '')
-
-	s.routine_monitoring = True if vl_tesing=='routine' else False
-	s.routine_monitoring_last_test_date = utils.get_date(r, 'routine_monitoring_last_test_date')
-	s.routine_monitoring_last_value = r.get('routine_monitoring_last_value', '')
-	s.routine_monitoring_last_sample_type = r.get('routine_monitoring_last_sample_type', None)
-
-	s.repeat_testing = True if vl_tesing=='repeat' else False
-	s.repeat_testing_last_test_date = utils.get_date(r, 'repeat_testing_last_test_date')
-	s.repeat_testing_last_value = r.get('repeat_testing_last_value', '')
-	s.repeat_testing_last_sample_type = r.get('repeat_testing_last_sample_type', None)
-
-	s.suspected_treatment_failure = True if vl_tesing=='suspected' else False
-	s.suspected_treatment_failure_last_test_date = utils.get_date(r, 'suspected_treatment_failure_last_test_date')
-	s.suspected_treatment_failure_last_value = r.get('suspected_treatment_failure_last_value', '')
-	s.suspected_treatment_failure_last_sample_type = r.get('suspected_treatment_failure_last_sample_type', None)
-
-	s.created_by_id = 1
-
-	s.save()	
-
-	return render(request, 'samples/create.html', {'success_message':'Sample details successfully saved',})
-	
+def get_facility(request, form_number):
+	facility_id = sample_utils.get_facility_by_form(form_number)
+	return HttpResponse(facility_id)
 
 def show(request, sample_id):
 	return render(request, 'samples/show.html', {'sample': get_object_or_404(Sample, pk=sample_id)})
