@@ -84,7 +84,7 @@ class Sample(models.Model):
 	locator_category = models.CharField(max_length=1, choices=( ('V', 'V'), ('R', 'R') ))
 	envelope = models.ForeignKey(Envelope)
 	locator_position = models.CharField(max_length=3)
-	vl_sample_id = models.CharField(max_length=128)
+	vl_sample_id = models.CharField(max_length=128, unique=True)
 	form_number = models.CharField(max_length=64)
 	facility = models.ForeignKey(backend.Facility)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen')
