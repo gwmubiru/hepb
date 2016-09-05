@@ -59,11 +59,12 @@ def create(request):
 	else:
 
 		context = {
-			'facilities': Facility.objects.all(),
 			'envelope_form': EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()}),
 			'phone_form': PatientPhoneForm,
 			'patient_form': PatientForm,
 			'sample_form': SampleForm(initial={'locator_category':'V'}),
+			'facilities': Facility.objects.all(),
+			'regimens': Appendix.objects.filter(appendix_category=3),
 		}
 
 	return render(request, 'samples/create.html', context)
