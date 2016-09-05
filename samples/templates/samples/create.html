@@ -182,15 +182,15 @@
 					<div class="col-lg-6">
 
 						<div class="form-group">
-							{{ sample_form.current_regimen.label_tag }}
-							{{ sample_form.current_regimen.errors }}
-							{{ sample_form.current_regimen }}				
-						</div>
-
-						<div class="form-group">
 							{{ sample_form.pregnant.label_tag }}
 							{{ sample_form.pregnant.errors }}
 							{{ sample_form.pregnant }}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.anc_number.label_tag }}
+							{{ sample_form.anc_number.errors }}
+							{{ sample_form.anc_number }}
 						</div>
 
 						<div class="form-group">
@@ -345,6 +345,7 @@
     	});*/
 		
 		$("#id_treatment_line").attr("disabled","true");
+		$("#id_anc_number").attr("readonly","true");
 
     	$("#id_facility").select2({	
     		placeholder: "Select facility", 
@@ -382,6 +383,15 @@
     		}
     	})
 
+    	$("#id_pregnant").change(function(){
+    		var preggas = $(this).val();
+    		if(preggas=="Y"){
+    			$("#id_anc_number").removeAttr("readonly");
+    		}else{
+    			$("#id_anc_number").attr("readonly","true");
+    		}
+    	})
+
     	$("#id_form_number").change(function(){
     		
     		if (window.XMLHttpRequest){// code for IE7+, Firefox, Chrome, Opera, Safari 
@@ -403,6 +413,8 @@
 		$("#id_current_regimen").change(function(){
 			$("#id_treatment_line").val(regimen_json[$(this).val()]); 
 		})
+
+
     	
   	});
 //422551
