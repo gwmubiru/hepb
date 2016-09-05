@@ -189,6 +189,12 @@
 							{{ sample_form.failure_reason }}				
 						</div>
 
+						<div class="form-group">
+							{{ sample_form.viral_load_testing.label_tag }}
+							{{ sample_form.viral_load_testing.errors }}
+							{{ sample_form.viral_load_testing }}				
+						</div>
+
 					</div>
 					<div class="col-lg-6">
 
@@ -448,6 +454,25 @@
 
 		$("#id_age_units").change(function(){
 			set_dob();			
+		});
+
+		$("#id_viral_load_testing").change(function(){
+			var vl_val = $(this).val();
+			var $vl_testing = $('input:radio[name=vl_testing]');
+
+			console.log("dhejehd"+$vl_testing);
+			switch(vl_val){
+				case "93":
+					$vl_testing.filter('[value=routine]').prop('checked', true);
+					break;
+				case "94":
+					$vl_testing.filter('[value=repeat]').prop('checked', true);
+					break;
+				case "95":
+					$vl_testing.filter('[value=suspected]').prop('checked', true);
+					break;
+			}
+
 		});
 
     	
