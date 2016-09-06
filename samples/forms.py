@@ -5,12 +5,13 @@ from backend.models import Appendix, Facility
 from .models import *
 from home import utils
 
-def appendix_field(category):
+def appendix_field(category, required=True):
 		queryset = Appendix.objects.filter(
 						appendix_category_id=category
 						)
-		widget = forms.Select(attrs=utils.ATTRS)
-		return forms.ModelChoiceField(queryset=queryset, widget=widget)
+		attrs = utils.ATTRS if required else utils.ATTRS_OPTIONAL
+		widget = forms.Select(attrs=attrs)
+		return forms.ModelChoiceField(queryset=queryset, widget=widget, required=required)
 
 
 class PatientForm(forms.ModelForm):
@@ -21,7 +22,7 @@ class PatientForm(forms.ModelForm):
 
 		widgets = {
 			'art_number': forms.TextInput(attrs=utils.ATTRS),
-			'other_id': forms.TextInput(attrs=utils.ATTRS),
+			'other_id': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'gender': forms.Select(attrs=utils.ATTRS2),
 			'dob': forms.DateInput(attrs=utils.ATTRS_DATE),
 		}
@@ -54,7 +55,7 @@ class PatientPhoneForm(forms.ModelForm):
 		fields = ('phone',)
 
 		widgets = {
-			'phone': forms.TextInput(attrs=utils.ATTRS),
+			'phone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 		}
 		
 
@@ -62,19 +63,18 @@ class SampleForm(forms.ModelForm):
 
 	#facility = Facility.objects.values('id', 'facility').filter(active=True)	
 	current_regimen = appendix_field(3)
-	treatment_indication = appendix_field(6)
+	treatment_indication = appendix_field(6, False)
 	treatment_line = appendix_field(7) 
-	failure_reason = appendix_field(2)
+	failure_reason = appendix_field(2, False)
 	viral_load_testing = appendix_field(8)
-	tb_treatment_phase = appendix_field(5)
-	arv_adherence = appendix_field(1)
+	tb_treatment_phase = appendix_field(5, False)
+	arv_adherence = appendix_field(1, False)
 
 	class Meta:
 		model = Sample
 
 		fields = (
 			'locator_category',
-			'envelope',
 			'locator_position',
 			'form_number',
 			'facility',
@@ -116,35 +116,28 @@ class SampleForm(forms.ModelForm):
 				),
 			'form_number': forms.TextInput(attrs=utils.ATTRS),
 			'facility': forms.Select(attrs=utils.ATTRS),
-			'current_regimen': forms.Select(attrs=utils.ATTRS),
-			'pregnant': forms.Select(attrs=utils.ATTRS2),
-			'anc_number': forms.TextInput(attrs=utils.ATTRS),
-			'breast_feeding': forms.Select(attrs=utils.ATTRS2),
-			'active_tb_status': forms.Select(attrs=utils.ATTRS2),
+			'pregnant': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
+			'anc_number': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
+			'breast_feeding': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
+			'active_tb_status': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
 			'date_collected': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'date_received': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'treatment_inlast_sixmonths': forms.Select(attrs=utils.ATTRS2),
 			'treatment_initiation_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'sample_type': forms.Select(attrs=utils.ATTRS2),
-			'viral_load_testing': forms.Select(attrs=utils.ATTRS),
-			'treatment_indication': forms.Select(attrs=utils.ATTRS),
-			'treatment_indication_other': forms.TextInput(attrs=utils.ATTRS),
-			'treatment_line': forms.Select(attrs=utils.ATTRS),
-			'failure_reason': forms.Select(attrs=utils.ATTRS),
-			'tb_treatment_phase': forms.Select(attrs=utils.ATTRS),
-			'arv_adherence': forms.Select(attrs=utils.ATTRS2),
+			'treatment_indication_other': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			
 			'routine_monitoring_last_test_date': forms.DateInput(attrs=utils.ATTRS_DATE),
-			'routine_monitoring_last_value': forms.TextInput(attrs=utils.ATTRS2),
-			'routine_monitoring_last_sample_type': forms.Select(attrs=utils.ATTRS2),
+			'routine_monitoring_last_value': forms.TextInput(attrs=utils.ATTRS2_OPTIONAL),
+			'routine_monitoring_last_sample_type': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
 			
 			'repeat_testing_last_test_date': forms.DateInput(attrs=utils.ATTRS_DATE),
-			'repeat_testing_last_value': forms.TextInput(attrs=utils.ATTRS2),
-			'repeat_testing_last_sample_type':forms.Select(attrs=utils.ATTRS2),
+			'repeat_testing_last_value': forms.TextInput(attrs=utils.ATTRS2_OPTIONAL),
+			'repeat_testing_last_sample_type':forms.Select(attrs=utils.ATTRS2_OPTIONAL),
 			
 			'suspected_treatment_failure_last_test_date': forms.DateInput(attrs=utils.ATTRS_DATE),
-			'suspected_treatment_failure_last_value': forms.TextInput(attrs=utils.ATTRS2),
-			'suspected_treatment_failure_last_sample_type': forms.Select(attrs=utils.ATTRS2),
+			'suspected_treatment_failure_last_value': forms.TextInput(attrs=utils.ATTRS2_OPTIONAL),
+			'suspected_treatment_failure_last_sample_type': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
 			}
 
 		VL_DATE = "Last VL Date"

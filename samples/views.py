@@ -1,5 +1,5 @@
 import json
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 #from django.views.generic import TemplateView
 
@@ -27,7 +27,9 @@ def create(request):
 		valid_sample = sample_form.is_valid()
 
 		if valid_patient and valid_phone and valid_envelope and valid_sample:
-			unique_id = "%s-A-%s" %(patient.facility, patient.art_number)
+			facility = patient_form.cleaned_data.get('facility')
+			art_number = patient_form.cleaned_data.get('art_number')
+			unique_id = "%s-A-%s" %(facility, art_number)
 			patient_form.cleaned_data.update({'created_by': request.user})
 			patient, pat_created = Patient.objects.get_or_create(
 						unique_id=unique_id,
@@ -40,34 +42,39 @@ def create(request):
 						)
 
 			envelope, env_created = Envelope.objects.get_or_create(
-						patient=patient,
 						**envelope_form.cleaned_data
 						)
 
 			sample = sample_form.save(commit=False)
+			sample.patient = patient
 			sample.patient_unique_id = patient.unique_id
 			sample.envelope = envelope
 			sample.vl_sample_id = sample_utils.create_sample_id()
-			vl_testing = request.get('vl_testing', '')
+			vl_testing = request.POST.get('vl_testing', '')
 			sample.routine_monitoring = True if vl_testing=='routine' else False
 			sample.repeat_testing = True if vl_testing=='repeat' else False
 			sample.suspected_treatment_failure = True if vl_testing=='suspected' else False	
 			sample.created_by = request.user
 			sample.save()
-
 			return redirect('samples:create')
+
 	else:
+		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
+		phone_form = PatientPhoneForm
+		patient_form = PatientForm
+		sample_form = SampleForm(initial={'locator_category':'V'})
 
-		context = {
-			'envelope_form': EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()}),
-			'phone_form': PatientPhoneForm,
-			'patient_form': PatientForm,
-			'sample_form': SampleForm(initial={'locator_category':'V'}),
-			'facilities': Facility.objects.all(),
-			'regimens': Appendix.objects.filter(appendix_category=3),
-		}
-
+	context = {
+		'envelope_form': envelope_form,
+		'phone_form': phone_form,
+		'patient_form': patient_form,
+		'sample_form': sample_form,
+		'facilities': Facility.objects.all(),
+		'regimens': Appendix.objects.filter(appendix_category=3),
+	}
+		
 	return render(request, 'samples/create.html', context)
+
 
 def get_facility(request, form_number):
 	facility_id = sample_utils.get_facility_by_form(form_number)

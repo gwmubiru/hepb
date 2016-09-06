@@ -15,6 +15,12 @@
 
 {% block content %}	
 <div class="page-title">capture sample details</div>
+
+	{% if vl_sample_id %} 
+		<div class="alert alert-success">
+			Sample ({{ vl_sample_id }}) successfully saved
+		</div> 
+	{% endif %}
 	
 	<div class="panel panel-default">
 		<!-- <div class="panel-heading"><b>Capture sample details</b></div> -->
@@ -363,7 +369,7 @@
       		dateFormat: "yy-mm-dd"
     	});*/
 		
-		$("#id_treatment_line").attr("disabled","true");
+		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
 
     	$("#id_facility").select2({	
@@ -394,11 +400,11 @@
     	$("#id_gender").change(function(){
     		var gender = $(this).val();
     		if(gender=="M"){
-    			$("#id_pregnant").attr("disabled","true");
-    			$("#id_breast_feeding").attr("disabled","true");
+    			$("#id_pregnant").attr("readonly","true").val("N");
+    			$("#id_breast_feeding").attr("readonly","true").val("N");
     		}else{
-    			$("#id_pregnant").removeAttr("disabled");
-    			$("#id_breast_feeding").removeAttr("disabled");
+    			$("#id_pregnant").removeAttr("readonly").val("");
+    			$("#id_breast_feeding").removeAttr("readonly").val("");
     		}
     	});
 

@@ -42,9 +42,9 @@ class Patient(models.Model):
 	)
 	unique_id = models.CharField(max_length=128, unique=True)
 	art_number = models.CharField(max_length=64)
-	other_id = models.CharField(max_length=64, null=True)
+	other_id = models.CharField(max_length=64, null=True, blank=True)
 	gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-	dob = models.DateField(null=True)
+	dob = models.DateField(null=True, blank=True)
 	created_by = models.ForeignKey(User)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
@@ -54,7 +54,7 @@ class Patient(models.Model):
 
 class PatientPhone(models.Model):
 	patient = models.ForeignKey(Patient)
-	phone = models.CharField(max_length=16)
+	phone = models.CharField(max_length=16, null=True, blank=True)
 
 	class Meta:
 		db_table = 'vl_patient_phones'
@@ -88,37 +88,37 @@ class Sample(models.Model):
 	form_number = models.CharField(max_length=64)
 	facility = models.ForeignKey(backend.Facility)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen')
-	pregnant = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-	anc_number = models.CharField(max_length=64, null=True) #anc number for pregnant women
+	pregnant = models.CharField(max_length=1, choices=YES_NO_CHOICES, )
+	anc_number = models.CharField(max_length=64, null=True, blank=True) #anc number for pregnant women
 	breast_feeding = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-	active_tb_status = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True)
-	date_collected = models.DateField(null=True) #Date on which the sample was collected from the patient
-	date_received = models.DateField() #Date received at CPHL
+	active_tb_status = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
+	date_collected = models.DateField(null=True, blank=True)
+	date_received = models.DateField()
 	treatment_inlast_sixmonths = models.CharField(max_length=1, choices=YES_NO_CHOICES)
-	treatment_initiation_date = models.DateField(null=True)
+	treatment_initiation_date = models.DateField(null=True, blank=True)
 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
 	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing')
-	treatment_indication = models.ForeignKey(backend.Appendix, related_name='treatment_indication', null=True)
-	treatment_indication_other = models.CharField(max_length=64, null=True)
+	treatment_indication = models.ForeignKey(backend.Appendix, related_name='treatment_indication', null=True, blank=True)
+	treatment_indication_other = models.CharField(max_length=64, null=True, blank=True)
 	treatment_line = models.ForeignKey(backend.Appendix, related_name='treatment_line')
-	failure_reason = models.ForeignKey(backend.Appendix, related_name='failure_reason', null=True)
-	tb_treatment_phase = models.ForeignKey(backend.Appendix, related_name='tb_treatment_phase', null=True)
-	arv_adherence = models.ForeignKey(backend.Appendix, related_name='arv_adherence', null=True)
+	failure_reason = models.ForeignKey(backend.Appendix, related_name='failure_reason', null=True, blank=True)
+	tb_treatment_phase = models.ForeignKey(backend.Appendix, related_name='tb_treatment_phase', null=True, blank=True)
+	arv_adherence = models.ForeignKey(backend.Appendix, related_name='arv_adherence', null=True, blank=True)
 	
 	routine_monitoring = models.BooleanField(default=False)
-	routine_monitoring_last_test_date = models.DateField(null=True)
-	routine_monitoring_last_value = models.CharField(max_length=64, null=True)
-	routine_monitoring_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True)
+	routine_monitoring_last_test_date = models.DateField(null=True, blank=True)
+	routine_monitoring_last_value = models.CharField(max_length=64, null=True, blank=True)
+	routine_monitoring_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
 	
 	repeat_testing = models.BooleanField(default=False)
-	repeat_testing_last_test_date = models.DateField(null=True)
-	repeat_testing_last_value = models.CharField(max_length=64, null=True)
-	repeat_testing_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True)
+	repeat_testing_last_test_date = models.DateField(null=True, blank=True)
+	repeat_testing_last_value = models.CharField(max_length=64, null=True, blank=True)
+	repeat_testing_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
 	
 	suspected_treatment_failure = models.BooleanField(default=False)
-	suspected_treatment_failure_last_test_date = models.DateField(null=True)
-	suspected_treatment_failure_last_value = models.CharField(max_length=64, null=True)
-	suspected_treatment_failure_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True)
+	suspected_treatment_failure_last_test_date = models.DateField(null=True, blank=True)
+	suspected_treatment_failure_last_value = models.CharField(max_length=64, null=True, blank=True)
+	suspected_treatment_failure_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
 	
 	verified = models.BooleanField(default=False)
 	in_worksheet = models.BooleanField(default=False)
@@ -136,8 +136,8 @@ class Sample(models.Model):
 class Verification(models.Model):
 	sample = models.ForeignKey(Sample)
 	accepted = models.BooleanField(default=False)
-	rejection_reason = models.ForeignKey(backend.Appendix, null=True)
-	comments = models.CharField(max_length=128)
+	rejection_reason = models.ForeignKey(backend.Appendix, null=True, blank=True)
+	comments = models.CharField(max_length=128, null=True, blank=True)
 	verified_by = models.ForeignKey(User, related_name='verified_by')
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
