@@ -1,18 +1,43 @@
-sudo adduser vl
+$ sudo adduser vl
 
-su vl
+$ su vl
 
-sudo apt-get install python-pip
+sudo apt-get install libmysqlclient-dev build-essential autoconf libtool pkg-config python-opengl python-imaging python-pyrex python-pyside.qtopengl idle-python2.7 qt4-dev-tools qt4-designer libqtgui4 libqtcore4 libqt4-xml libqt4-test libqt4-script libqt4-network libqt4-dbus python-qt4 python-qt4-gl libgle3 python-dev
 
-sudo pip install virtualenv virtualenvwrapper
+$ sudo apt-get install python-pip
 
-echo "export WORKON_HOME=~/Env" >> ~/.bashrc
-echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
+$ sudo apt-get install nodejs
+
+$ sudo apt-get install npm
+
+$ sudo npm install -g bower
+
+$ sudo ln -s /usr/bin/nodejs /usr/bin/node --- in case /usr/bin/env is missing
+
+$ sudo pip install virtualenv virtualenvwrapper
+
+$ echo "export WORKON_HOME=~/Env" >> ~/.bashrc
+$ echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 
 
-source ~/.bashrc
+$ source ~/.bashrc
 
-mkvirtualenv vl_vm #Creates VM and activates it;; use deactivate to get out and workon vl_vm to go back on
+$ mkvirtualenv vl_vm #Creates VM and activates it;; use deactivate to get out and workon vl_vm to go back on
+
+$
+
+$ cd viral_load2/viral_load2/
+
+$ pip install -r requirements.txt
+
+$ pip install html5lib==1.0b8
+
+$ bower update
+
+$ cp local_settings.example.py local_settings.py
+
+$ vi local_settings.py
+
 
 git clone https://github.com/CHAIUganda/viral_load2.git
 
@@ -26,13 +51,85 @@ $ mysqldump -u username -p db | gzip -c > db.sql.gz
 
 $ zcat db.sql.gz | mysql -u username -p db_name -f
 
-$ cd viral_load2/viral_load2/
 
-$ cp local_settings.example.py local_settings.py
-
-$ vi local_settings.py
 
 $ set DB
 
 $ ./manage.py migrate
+
+
+sudo apt-get install python-dev
+
+
+sudo pip install uwsgi
+
+
+
+
+
+sudo mkdir -p /etc/uwsgi/sites
+cd /etc/uwsgi/sites
+
+
+sudo vi vl.ini
+
+		[uwsgi]
+		project = firstsite
+		base = /home/user
+
+		chdir = %(base)/%(project)
+		home = %(base)/Env/%(project)
+		module = %(project).wsgi:application
+
+		master = true
+		processes = 5
+
+		socket = %(base)/%(project)/%(project).sock
+		chmod-socket = 664
+		vacuum = true
+
+sudo vi /etc/init/uwsgi.conf
+
+		description "uWSGI application server in Emperor mode"
+
+		start on runlevel [2345]
+		stop on runlevel [!2345]
+
+		setuid vl
+		setgid www-data
+
+		exec /usr/local/bin/uwsgi --emperor /etc/uwsgi/sites
+
+
+
+sudo vi /etc/nginx/sites-available/viral_load2
+
+		server {
+		    listen 80;
+		    server_name xx.com www.xx.com;
+
+		    location = /favicon.ico { access_log off; log_not_found off; }
+		    location /static/ {
+		        root /home/user/firstsite;
+		    }
+
+		    location / {
+		        include         uwsgi_params;
+		        uwsgi_pass      unix:/home/user/firstsite/firstsite.sock;
+		    }
+		}
+
+
+sudo ln -s /etc/nginx/sites-available/viral_load2 /etc/nginx/sites-enabled
+
+
+sudo service nginx configtest
+
+sudo service nginx restart
+
+sudo service uwsgi start
+
+
+
+
 
