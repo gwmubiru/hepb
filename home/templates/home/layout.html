@@ -134,7 +134,11 @@
       							</div><!-- /btn-group -->
                             </div>
                             <!-- /input-group -->
-                        </li>    
+                        </li>   
+
+                        <li>
+                            <a href="{% url 'logout' %}"><i class="glyphicon glyphicon-log-out"></i> Logout</a>
+                        </li> 
                       
                     </ul>
                 </div>
@@ -173,34 +177,8 @@
     	 	window.location.href = link+"?search_val="+search_val;
     	 	return false;
     	 	//return window.location.assign(link+"?search_val="+search_val);
-    	 });
-
-        //var ff = $(".bc");
-        //var vlbarcodes = $(".vlbarcodes");
-
-        //console.log("u have "+vlbarcodes.length)
-
-       /* $(".vlbarcodes").each(function (index){
-            var val = $(this).attr("value");
-            $(this).barcode(val, "code128")
-        })*/
-
-       /* for (var i = vlbarcodes.length - 1; i >= 0; i--) {
-            var bc=vlbarcodes[i];
-            console.log(bc.getAttribute("value"));
-            //bc.barcode(bc.value,"code128",{barWidth: 3,showHRI:true,})
-        };*/
-
-        /*for(var i in vlbarcodes){
-            console.log("insede")
-            var bc = vlbarcodes[i];
-            //bc.barcode(bc.attr("value"),"code128",{barWidth: 3,showHRI:true,})
-        }*/
-
-        
-         
-    	
-  	});
+    	 }); 
+    });
     </script>
 	</body>
 </html>

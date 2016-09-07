@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout as auth_logout
 
 # Create your views here.
 @login_required
@@ -25,3 +25,7 @@ def login_attempt(request):
 	else:
 		return render(request, 'home/login.html', {'error_message': error_message, })
 		# Return an 'invalid login' error message.
+
+def logout(request):
+	auth_logout(request)
+	return redirect('home_page')
