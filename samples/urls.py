@@ -16,6 +16,8 @@ urlpatterns  = [
 	url(r'^verify/(?P<envelope_id>[0-9]+)/$', views.verify, name='verify'),
 	url(r'^verify_envelope/(?P<envelope_id>[0-9]+)/$', views.verify_envelope, name='verify_envelope'),
 	url(r'^save_verify/$', views.save_verify, name='save_verify'),
+	url(r'^verify_list_json$', views.VerifyListJson.as_view(), name='verify_list_json'),
+	
 
 	#ex: /polls/5/
     #url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),

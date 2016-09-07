@@ -250,3 +250,15 @@ class ListJson(BaseDatatableView):
 			return links
 		else:
 			return super(ListJson, self).render_column(row, column)
+
+class VerifyListJson(BaseDatatableView):
+	model = Envelope
+	columns = ['envelope_number', 'pk']
+	order_columns = ['envelope_number', '']
+
+	def render_column(self, row, column):
+		if(column == 'pk'):
+			url0 = "/samples/verify/{0}".format(row.pk)
+			return utils.dropdown_links([{"label":"verify", "url":url0}])
+		else:
+			return super(VerifyListJson, self).render_column(row, column)
