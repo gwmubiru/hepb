@@ -63,7 +63,7 @@ def attach_samples(request, worksheet_id):
 		return redirect('worksheets:show',worksheet_id)
 	else:
 		#form = AttachSamplesForm()
-		samples = Sample.objects.filter(verified=True, in_worksheet=False).order_by('created_at')[:10]
+		samples = Sample.objects.filter(verified=True, in_worksheet=False).order_by('created_at')[:80]
 		return render(request, 'worksheets/attach_samples.html', {'samples':samples, 'worksheet_id': worksheet_id})
 
 def list(request):
