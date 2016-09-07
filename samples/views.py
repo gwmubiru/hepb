@@ -170,7 +170,6 @@ def verify_envelope(request, envelope_id):
 				'treatment_initiation_date': utils.local_date(s.treatment_initiation_date),
 				'sample_creator': s.created_by.username,
 				'created_at': utils.local_date(s.created_at),
-
 			})
 	return HttpResponse(json.dumps(ret))
 
