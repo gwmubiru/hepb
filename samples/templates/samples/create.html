@@ -15,19 +15,17 @@
 
 {% block content %}	
 <div class="page-title">capture sample details</div>
-
-	{% if vl_sample_id %} 
-		<div class="alert alert-success">
-			Sample ({{ vl_sample_id }}) successfully saved
-		</div> 
-	{% endif %}
 	
 	<div class="panel panel-default">
 		<!-- <div class="panel-heading"><b>Capture sample details</b></div> -->
 
 		<div class="panel-body">
 			
-			<form action="{% url 'samples:create'  %}" method="post" role="form">
+			<form action="{% if sample_id %} 
+						    {% url 'samples:edit' sample_id  %}  
+						  {% else %} 
+						    {% url 'samples:create'  %} 
+						  {% endif %}" method="post" role="form">
 				{% csrf_token %}
 				<span class='sub-title'>form/facility details</span>
 
@@ -368,6 +366,9 @@
       		changeYear: true,
       		dateFormat: "yy-mm-dd"
     	});*/
+
+		set_district_hub();
+		set_age();
 		
 		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
@@ -389,12 +390,10 @@
     	});
 
     	$("#id_facility").change(function(){
-    		var f = facility_json[$(this).val()]; 
-    		$("#district").val(f.district);
-    		$("#hub").val(f.hub);
+    		set_district_hub();
     		setTimeout(function(){
-				$(".day").first().focus();
-			},100);    		
+    			$(".day").first().focus();
+    		},100);    		    		
     	});
 
     	$("#id_gender").change(function(){
@@ -440,18 +439,7 @@
 		});
 
 		$("#id_dob").change(function(){
-			var dob = new Date($(this).val());
-			var dob_s = dob.getTime();
-			var yrs = (now_s-dob_s)/(365*24*3600*1000) || 0;
-			if(yrs<1){
-				var mths = yrs*12;
-				$("#id_age").val(round1(mths));
-				$("#id_age_units").val("M");
-			}else{
-				$("#id_age").val(round1(yrs));
-				$("#id_age_units").val("Y");
-			}
-			
+			set_age();			
 		});
 
 		$("#id_age").change(function(){
@@ -498,6 +486,26 @@
 		var dob_s = now_s-age_s;
 		var dob = new Date(dob_s);
 		$("#id_dob").combodate('setValue', dob);
+	}
+
+	function set_age(){
+		var dob = new Date($("#id_dob").val());
+		var dob_s = dob.getTime();
+		var yrs = (now_s-dob_s)/(365*24*3600*1000) || 0;
+		if(yrs<1){
+			var mths = yrs*12;
+			$("#id_age").val(round1(mths));
+			$("#id_age_units").val("M");
+		}else{
+			$("#id_age").val(round1(yrs));
+			$("#id_age_units").val("Y");
+		}
+	}
+
+	function set_district_hub(){
+		var f = facility_json[$("#id_facility").val()]; 
+		$("#district").val(f.district);
+		$("#hub").val(f.hub);
 	}
 //422551
 

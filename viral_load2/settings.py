@@ -26,7 +26,7 @@ SECRET_KEY = 'sf0bgysf((pz2_agu$7b^6(yyndq9n3dx4vs91v-6p_4d)y^5h'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG',True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost"]
 
 
 # Application definition
@@ -132,6 +132,8 @@ STATIC_URL = '/static/'
 
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout'
+
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 try:
     from local_settings import *

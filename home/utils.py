@@ -108,3 +108,21 @@ def month(format=""):
 	else:
 		month = now().month
 	return month
+
+def dropdown_links(links):
+	ret = """<div class="btn-group">
+				<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+					Options 
+					<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" role="menu">
+					%s
+				</ul>
+			</div>"""
+
+	links_str = ""
+	for link in links:
+		li = "<li><a href='%s'>%s</a></li>" %(link.get('url'), link.get('label'))
+		links_str = links_str + li
+
+	return ret %links_str

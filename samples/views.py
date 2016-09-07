@@ -1,6 +1,7 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
+from django_datatables_view.base_datatable_view import BaseDatatableView
 #from django.views.generic import TemplateView
 
 from backend.models import Appendix,Facility
@@ -56,7 +57,7 @@ def create(request):
 			sample.suspected_treatment_failure = True if vl_testing=='suspected' else False	
 			sample.created_by = request.user
 			sample.save()
-			return redirect('samples:create')
+			return redirect('samples/create')
 
 	else:
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
@@ -75,6 +76,45 @@ def create(request):
 		
 	return render(request, 'samples/create.html', context)
 
+def edit(request, sample_id):
+	sample = Sample.objects.get(pk=sample_id)
+	patient = sample.patient
+	envelope = sample.envelope
+	if request.method == 'POST':
+		patient_form = PatientForm(request.POST, instance=patient)
+		#phone_form = PatientPhoneForm(request.POST, )
+		envelope_form = EnvelopeForm(request.POST, instance=envelope)
+		sample_form = SampleForm(request.POST, instance=sample)
+
+		valid_patient = patient_form.is_valid()
+		#valid_phone = phone_form.is_valid()
+		valid_envelope = envelope_form.is_valid()
+		valid_sample = sample_form.is_valid()
+
+		if valid_patient and valid_envelope and valid_sample:
+			patient_form.save()
+			envelope.save()
+			sample.save()
+			return redirect('/samples/list')
+
+	else:
+		envelope_form = EnvelopeForm(instance=sample.envelope)
+		phone_form = PatientPhoneForm()
+		patient_form = PatientForm(instance=patient)
+		sample_form = SampleForm(instance=sample)
+
+	context = {
+		'sample_id': sample_id,
+		'envelope_form': envelope_form,
+		'phone_form': phone_form,
+		'patient_form': patient_form,
+		'sample_form': sample_form,
+		'facilities': Facility.objects.all(),
+		'regimens': Appendix.objects.filter(appendix_category=3),
+	}
+		
+	return render(request, 'samples/create.html', context)
+
 
 def get_facility(request, form_number):
 	facility_id = sample_utils.get_facility_by_form(form_number)
@@ -83,9 +123,8 @@ def get_facility(request, form_number):
 def show(request, sample_id):
 	return render(request, 'samples/show.html', {'sample': get_object_or_404(Sample, pk=sample_id)})
 
-
 def list(request):
-	return render(request, 'samples/list.html', {'samples': Sample.objects.all()[:SAMPLES_LIMIT]})
+	return render(request, 'samples/list.html')
 	
 
 def appendix_select(name="", cat_id=0, clss='form-control input-xs w-md'):
@@ -186,3 +225,29 @@ def appendices_json(cat_id):
 		ret[a['id']] = a['appendix']
 	return json.dumps(ret)
 		
+class ListJson(BaseDatatableView):
+	model = Sample
+	columns = ['facility', 'facility.hub', 'form_number' ,'locator_position', 'vl_sample_id',  'date_collected', 'date_received', 'pk']
+	order_columns = ['facility', 'facility.hub', 'form_number', 'locator_position', 'vl_sample_id', 'date_collected', 'date_received', ' ']
+	max_display_length = 500
+
+	def render_column(self, row, column):
+		if column == 'facility':
+			return '{0}'.format(row.facility)
+		elif column == 'facility.hub':
+			return '{0}'.format(row.facility.hub)
+		elif column == 'locator_position':
+			return '{0}{1}/{2}'.format(row.locator_category, 
+									   row.envelope.envelope_number, 
+									   row.locator_position)
+		elif column == 'pk':
+			#url0 = "/samples/show/{0}".format(row.pk)
+			url0 = "#".format(row.pk)
+			url1 = "/samples/edit/{0}".format(row.pk)
+			links = utils.dropdown_links([
+				{"label":"view", "url":url0},
+				{"label":"edit", "url":url1},
+				])
+			return links
+		else:
+			return super(ListJson, self).render_column(row, column)

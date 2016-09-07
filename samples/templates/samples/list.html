@@ -2,6 +2,15 @@
 {% load form_tags %}
 {% load staticfiles %}
 
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
 {% block content %}	
 
 <div class="page-title">Samples</div>
@@ -11,34 +20,25 @@
 		<thead>
 			<tr>
 				<th>Facility</th>
-				<th>District</th>
 				<th>Hub</th>
+				<th>Form Number</th>
 				<th>Locator ID</th>
-				<th>ART Number</th>
+				<th>VL Sample ID</th>
 				<th>Date Collected</th>
 				<th>Date Received</th>
 				<th>...</th>
 			</tr>
 		</thead>
-		<tbody>
-		{% for sample in samples %}
-			<tr>
-				<td>{{ sample.facility }}</td>
-				<td>{{ sample.facility.district }}</td>
-				<td>{{ sample.facility.hub }}</td>
-				<td>
-					{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}
-				</td>
-				<td>{{ sample.patient.art_number }}</td>
-				<td>{{ sample.date_collected | date:"d M Y" }}</td>
-				<td>{{ sample.date_received | date:"d M Y" }}</td>
-
-
-				<td><a href="{% url 'samples:show' sample.id %}">show</a></td>
-			</tr>
-		{% endfor %}
-		</tbody>
+		
 	</table>
 </div>
-
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"serverSide": true,
+		"ajax": "{% url 'samples:list_json' %}",
+	});
+});
+</script>
 {% endblock %}
