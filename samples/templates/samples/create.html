@@ -504,8 +504,12 @@
 
 	function set_district_hub(){
 		var f = facility_json[$("#id_facility").val()]; 
-		$("#district").val(f.district);
-		$("#hub").val(f.hub);
+
+		if(f!=undefined){
+			$("#district").val(f.district);
+			$("#hub").val(f.hub);
+		}
+			
 	}
 //422551
 

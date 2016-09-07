@@ -22,7 +22,7 @@ $ echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 
 $ source ~/.bashrc
 
-$ mkvirtualenv vl_vm #Creates VM and activates it;; use deactivate to get out and workon vl_vm to go back on
+$ mkvirtualenv viral_load2 #Creates VM and activates it;; use deactivate to get out and workon vl_vm to go back on
 
 $
 
@@ -106,7 +106,7 @@ sudo vi /etc/nginx/sites-available/viral_load2
 
 		server {
 		    listen 80;
-		    server_name xx.com www.xx.com;
+		    listen ip;
 
 		    location = /favicon.ico { access_log off; log_not_found off; }
 		    location /static/ {
@@ -128,6 +128,12 @@ sudo service nginx configtest
 sudo service nginx restart
 
 sudo service uwsgi start
+
+
+./manage.py collectstatic
+
+
+uwsgi --http :3333 --home /home/vl/Env/viral_load2 --chdir /home/vl/viral_load2 -w viral_load2.wsgi
 
 
 
