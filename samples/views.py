@@ -57,7 +57,7 @@ def create(request):
 			sample.suspected_treatment_failure = True if vl_testing=='suspected' else False	
 			sample.created_by = request.user
 			sample.save()
-			return redirect('samples/create')
+			return redirect('/samples/create')
 
 	else:
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
@@ -210,12 +210,12 @@ def verify_list(request):
 	search_val = request.GET.get('search_val', None)
 
 	if search_val is not None:
-		envelopes = Envelope.objects.filter(envelope_number__contains=search_val)
-	else:
-		envelopes = Envelope.objects.all()[:ENVS_LIMIT]
-		
+		envelopes = Envelope.objects.filter(envelope_number__contains=search_val).order_by('-pk')[:1]
+		if envelopes:
+			envelope = envelopes[0]
+			return redirect('/samples/verify/%d' %envelope.pk)
 
-	return render(request, "samples/verify_list.html", {'envelopes': envelopes})
+	return render(request, "samples/verify_list.html")
 
 def appendices_json(cat_id):
 	appendices = Appendix.objects.values('id', 'appendix').filter(appendix_category_id=cat_id)
