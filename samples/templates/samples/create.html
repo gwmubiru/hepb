@@ -331,16 +331,6 @@
 	var facility_json = {};
 	var regimen_json = {};
 
-	/*
-	{% for facility in facilities %}
-		facility_json["{{ facility.id }}"] = {  
-						hub: "{{ facility.hub }}",
-						district: "{{ facility.district }}",  
-					};
-
-	{% endfor %}
-	*/
-
 	{% for regimen in regimens %}
 		var reg_id = "{{ regimen.id }}";
 		switch("{{regimen.tag}}"){
