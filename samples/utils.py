@@ -1,4 +1,7 @@
+import json
+
 from home import utils
+from backend.models import Facility
 from .models import Sample,ClinicalRequestForm
 
 def initial_env_number():
@@ -28,3 +31,16 @@ def get_facility_by_form(form_number):
 		pass
 
 	return facility_id
+
+def get_district_hub_by_facility(facility_id):
+	ret = {}
+	try:
+		facility = Facility.objects.get(pk=facility_id)
+		ret = {
+			'district': facility.district.district,
+			'hub': facility.hub.hub,
+			}
+	except:
+		pass
+
+	return json.dumps(ret)

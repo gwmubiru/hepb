@@ -38,6 +38,9 @@ $ cp local_settings.example.py local_settings.py
 
 $ vi local_settings.py
 
+recv() failed (104: Connection reset by peer)
+--
+http://stackoverflow.com/questions/22697584/nginx-uwsgi-104-connection-reset-by-peer-while-reading-response-header-from-u
 
 git clone https://github.com/CHAIUganda/viral_load2.git
 

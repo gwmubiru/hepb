@@ -331,6 +331,7 @@
 	var facility_json = {};
 	var regimen_json = {};
 
+	/*
 	{% for facility in facilities %}
 		facility_json["{{ facility.id }}"] = {  
 						hub: "{{ facility.hub }}",
@@ -338,6 +339,7 @@
 					};
 
 	{% endfor %}
+	*/
 
 	{% for regimen in regimens %}
 		var reg_id = "{{ regimen.id }}";
@@ -417,21 +419,10 @@
     	});
 
     	$("#id_form_number").change(function(){
-    		
-    		if (window.XMLHttpRequest){// code for IE7+, Firefox, Chrome, Opera, Safari 
-				xmlhttp=new XMLHttpRequest();
-			}else{// code for IE6, IE5
-				xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-			}
-
-			xmlhttp.onreadystatechange=function(){
-				if (xmlhttp.readyState==4 && xmlhttp.status==200){
-					$('#id_facility').select2().select2('val',xmlhttp.responseText);
-				}
-			}
-
-			xmlhttp.open("GET","/samples/get_facility/"+$(this).val()+"/",true);
-			xmlhttp.send();
+    		var url =  "/samples/get_facility/"+$(this).val()+"/";
+    		$.get(url, function(data, status){
+    			$('#id_facility').select2().select2('val',data);
+    		});
 		});
 
 		$("#id_current_regimen").change(function(){
@@ -503,13 +494,16 @@
 	}
 
 	function set_district_hub(){
-		var f = facility_json[$("#id_facility").val()]; 
-
-		if(f!=undefined){
-			$("#district").val(f.district);
-			$("#hub").val(f.hub);
+		var facility_id = $('#id_facility').val();
+		if(facility_id!=''){
+			var url =  "/samples/get_district_hub/"+facility_id+"/";
+			$.get(url, function(data, status){
+				var json_data = JSON.parse(data);
+				$("#district").val(json_data.district);
+				$("#hub").val(json_data.hub);
+			});	
 		}
-			
+					
 	}
 //422551
 

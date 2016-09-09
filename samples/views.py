@@ -70,7 +70,7 @@ def create(request):
 		'phone_form': phone_form,
 		'patient_form': patient_form,
 		'sample_form': sample_form,
-		'facilities': Facility.objects.all(),
+		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}
 		
@@ -109,7 +109,7 @@ def edit(request, sample_id):
 		'phone_form': phone_form,
 		'patient_form': patient_form,
 		'sample_form': sample_form,
-		'facilities': Facility.objects.all(),
+		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}
 		
@@ -119,6 +119,10 @@ def edit(request, sample_id):
 def get_facility(request, form_number):
 	facility_id = sample_utils.get_facility_by_form(form_number)
 	return HttpResponse(facility_id)
+
+def get_district_hub(request, facility_id):
+	district_hub = sample_utils.get_district_hub_by_facility(facility_id)
+	return HttpResponse(district_hub)
 
 def show(request, sample_id):
 	return render(request, 'samples/show.html', {'sample': get_object_or_404(Sample, pk=sample_id)})
@@ -240,8 +244,7 @@ class ListJson(BaseDatatableView):
 									   row.envelope.envelope_number, 
 									   row.locator_position)
 		elif column == 'pk':
-			#url0 = "/samples/show/{0}".format(row.pk)
-			url0 = "#".format(row.pk)
+			url0 = "/samples/show/{0}".format(row.pk)
 			url1 = "/samples/edit/{0}".format(row.pk)
 			links = utils.dropdown_links([
 				{"label":"view", "url":url0},
