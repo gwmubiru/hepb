@@ -66,11 +66,13 @@ def attach_samples(request, worksheet_id):
 	else:
 		#form = AttachSamplesForm()
 		sample_limit = 21 if worksheet.machine_type == 'R' else 93
+		sample_pads = 11 if worksheet.include_calibrators else 3
 		samples = Sample.objects.filter(verified=True, in_worksheet=False).order_by('created_at')[:sample_limit]
 		context = {
 			'samples':samples, 
 			'worksheet': worksheet,
 			'sample_limit': sample_limit,
+			'sample_pads':sample_pads,
 			}
 		return render(request, 'worksheets/attach_samples.html', context)
 
@@ -80,8 +82,12 @@ def list(request):
 
 def show(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
-	return render(request, 'worksheets/show.html', {'worksheet': worksheet})
+	sample_pads = 11 if worksheet.include_calibrators else 3
+	context = {'worksheet': worksheet, 'sample_pads': sample_pads}
+	return render(request, 'worksheets/show.html', context)
 
 def vlprint(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
-	return render(request, 'worksheets/vlprint.html', {'worksheet': worksheet})
+	sample_pads = 11 if worksheet.include_calibrators else 3
+	context = {'worksheet': worksheet, 'sample_pads': sample_pads}
+	return render(request, 'worksheets/vlprint.html', context)

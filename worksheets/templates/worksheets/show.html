@@ -17,9 +17,37 @@
 				</div>
 				<br>
 				<div class="row ">
+					<div class="col-md-1 vlbarcodes-wrapper">
+						1<br>
+						Negative Control<br>
+						NC							
+					</div>
+					<div class="col-md-1 vlbarcodes-wrapper">
+						2<br>
+						Positive Control<br>
+						PC
+					</div>
+					<div class="col-md-1 vlbarcodes-wrapper">
+						3<br>
+						HPC
+					</div>
+
+					{% if worksheet.include_calibrators %}
+						{% for i in "xxxxxxxx" %}
+							{% with runner=forloop.counter|add:3 %}
+							<div class="col-md-1 vlbarcodes-wrapper">
+								{{ runner }}<br>
+								Calibrator
+							</div>
+							{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
+							{% endwith%}
+						{% endfor %}
+					{% endif %}
+
 					{% for sample in worksheet.samples.all %}
+						{% with runner=forloop.counter|add:sample_pads %}
 						<div class="col-md-1 vlbarcodes-wrapper">
-							{{ forloop.counter }}<br>
+							{{ runner }}<br>
 							<span class='sm-label'>Patient ART #</span>: {{ sample.patient.art_number }}<br>
 							<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
 							<span class='sm-label'>Location ID</span>: 
@@ -28,7 +56,8 @@
 
 							<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>
 						</div>
-						{% if forloop.counter|divisibleby:6 %}</div><div class="row">{% endif %}
+						{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
+						{% endwith %}
 						
 					{% endfor %}
 				</div>

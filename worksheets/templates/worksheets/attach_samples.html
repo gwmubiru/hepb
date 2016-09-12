@@ -14,6 +14,18 @@
 			<form action="{% url 'worksheets:attach_samples' worksheet.id %}" method="post" role="form">
 				{% csrf_token %}
 				<div class="worksheet">
+					<div class="row" >
+						<div class="col-md-4">Worksheet Ref Number: 
+							<u>{{ worksheet.worksheet_reference_number }}</u>
+						</div>
+						<div class="col-md-4">Machine Type: 
+							<u>{{ worksheet.get_machine_type_display }}</u>
+						</div>
+						<div class="col-md-4">Sample Type: 
+							<u>{{ worksheet.get_sample_type_display }}</u>
+						</div>
+					</div>					
+					<br>
 					<div class="form-inline">
 						<input type="text" id="samples_number0" class="form-control input-sm" value="{{ sample_limit }}" size="1" maxlength="2">  <a class="btn btn-sm btn-danger" id="select0" href="#">Select</a>
 					</div>
@@ -22,8 +34,7 @@
 						<div class="col-md-1 vlbarcodes-wrapper">
 							1<br>
 							Negative Control<br>
-							NC
-								
+							NC							
 						</div>
 						<div class="col-md-1 vlbarcodes-wrapper">
 							2<br>
@@ -35,12 +46,24 @@
 							HPC
 						</div>
 
+						{% if worksheet.include_calibrators %}
+							{% for i in "xxxxxxxx" %}
+								{% with runner=forloop.counter|add:3 %}
+								<div class="col-md-1 vlbarcodes-wrapper">
+									{{ runner }}<br>
+									Calibrator
+								</div>
+								{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
+								{% endwith%}
+							{% endfor %}
+						{% endif %}
+
 
 						{% for sample in samples %}
-							{% with runner=forloop.counter|add:3 %}
+							{% with runner=forloop.counter|add:sample_pads %}
 							<div class="col-md-1 vlbarcodes-wrapper">
-																{{ runner }}<br>
-								<span class='sm-label'>Patient ART #</span>: {{ sample.patient.art_number }}<br>
+								{{ runner }}<br>
+								<span class='sm-label'>Pat ART #</span>: {{ sample.patient.art_number }}<br>
 								<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
 								<span class='sm-label'>Location ID</span>: {{ sample.locator_category }}{{ sample.envelope.envelope_number }}{{ sample.locator_position }}<br>
 								<span class='sm-label'>Form #</span>: {{ sample.form_number }}
