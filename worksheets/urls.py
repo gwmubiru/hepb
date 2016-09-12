@@ -5,7 +5,7 @@ from . import views
 
 app_name = 'worksheets'
 urlpatterns  = [
-	url(r'^create/$', login_required(views.create), name='create'),
+	url(r'^create/(?P<machine_type>[A|R])$', login_required(views.create), name='create'),
 	url(r'^attach_samples/(?P<worksheet_id>[0-9]+)/$', login_required(views.attach_samples), name='attach_samples'),
 	url(r'^show/(?P<worksheet_id>[0-9]+)/$', login_required(views.show), name='show'),
 	url(r'^vlprint/(?P<worksheet_id>[0-9]+)/$', login_required(views.vlprint), name='vlprint'),

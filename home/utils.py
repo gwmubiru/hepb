@@ -5,9 +5,9 @@ from django.db import IntegrityError
 from django.contrib.auth.models import User
 
 
-ATTRS = {'class':'form-control input-sm w-md', }
+ATTRS = {'class':'form-control input-sm w-md', 'required':'true'}
 ATTRS_OPTIONAL = {'class':'form-control input-sm w-md', }
-ATTRS2 = {'class':'form-control input-sm w-xs', }
+ATTRS2 = {'class':'form-control input-sm w-xs', 'required':'true'}
 ATTRS2_OPTIONAL = {'class':'form-control input-sm w-xs', }
 ATTRS_DATE = {'class':'form-control input-sm w-sm date'}
 

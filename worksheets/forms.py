@@ -32,7 +32,7 @@ class WorksheetForm(forms.ModelForm):
 			'sample_type': forms.Select(attrs=utils.ATTRS2),
 			'sample_prep': forms.TextInput(attrs=utils.ATTRS),
 			'sample_prep_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
-			'bulk_lysis_buffer': forms.TextInput(attrs=utils.ATTRS),
+			'bulk_lysis_buffer': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'bulk_lysis_buffer_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'control': forms.TextInput(attrs=utils.ATTRS),
 			'control_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),

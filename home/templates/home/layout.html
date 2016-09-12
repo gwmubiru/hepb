@@ -94,7 +94,11 @@
                             <a href="#"><i class="fa fa-flask fa-fw"></i> Lab<span class="fa arrow"></span></a>
                             <ul class="nav nav-second-level">
                                 <li>
-                                    <a href="{% url 'worksheets:create'  %}">Create Worksheet</a>
+                                    <a href="#">Create Worksheet</a>
+                                    <ul class="nav nav-third-level">
+                                        <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
+                                        <li><a href="{% url 'worksheets:create' 'R' %}">For Roche</a></li>
+                                    </ul>
                                 </li>
                                 <li>
                                     <a href="{% url 'worksheets:list'  %}">List Worksheets</a>

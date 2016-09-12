@@ -36,35 +36,43 @@ def generate_pdf(request, worksheet_id):
 	return HttpResponse(pdf, 'application/pdf')
 
 	
-def create(request):
+def create(request, machine_type):
 	if request.method == 'POST':
 		form = WorksheetForm(request.POST)
 		if form.is_valid():
 			worksheet = form.save(commit=False)
+			worksheet.machine_type = machine_type
 			worksheet.generated_by = request.user
 			worksheet.save()
 			return redirect('worksheets:attach_samples', worksheet_id=worksheet.id)
 	else:
-		form = WorksheetForm()
+		form = WorksheetForm(initial={'machine_type':machine_type})
 
-	return render(request, 'worksheets/create.html', {'form': form})
+	return render(request, 'worksheets/create.html', {'form': form, 'machine_type':machine_type})
 
 def attach_samples(request, worksheet_id):
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	if request.method == 'POST':
 		# pass
 		attached_samples = request.POST.getlist('samples')
-		w = Worksheet.objects.get(pk=worksheet_id)
+		
 		for sample_id in attached_samples:
 			sample = Sample.objects.get(pk=sample_id)
-			w.samples.add(sample)
+			worksheet.samples.add(sample)
 			sample.in_worksheet = True
 			sample.save()
 			
 		return redirect('worksheets:show',worksheet_id)
 	else:
 		#form = AttachSamplesForm()
-		samples = Sample.objects.filter(verified=True, in_worksheet=False).order_by('created_at')[:80]
-		return render(request, 'worksheets/attach_samples.html', {'samples':samples, 'worksheet_id': worksheet_id})
+		sample_limit = 21 if worksheet.machine_type == 'R' else 93
+		samples = Sample.objects.filter(verified=True, in_worksheet=False).order_by('created_at')[:sample_limit]
+		context = {
+			'samples':samples, 
+			'worksheet': worksheet,
+			'sample_limit': sample_limit,
+			}
+		return render(request, 'worksheets/attach_samples.html', context)
 
 def list(request):
 	worksheets = Worksheet.objects.all()

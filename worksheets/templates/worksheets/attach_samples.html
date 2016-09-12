@@ -11,13 +11,35 @@
 	<div class="panel panel-default">
 		<div class="panel-body">
 			
-			<form action="{% url 'worksheets:attach_samples' worksheet_id %}" method="post" role="form">
+			<form action="{% url 'worksheets:attach_samples' worksheet.id %}" method="post" role="form">
 				{% csrf_token %}
 				<div class="worksheet">
+					<div class="form-inline">
+						<input type="text" id="samples_number0" class="form-control input-sm" value="{{ sample_limit }}" size="1" maxlength="2">  <a class="btn btn-sm btn-danger" id="select0" href="#">Select</a>
+					</div>
+					<br>
 					<div class="row ">
+						<div class="col-md-1 vlbarcodes-wrapper">
+							1<br>
+							Negative Control<br>
+							NC
+								
+						</div>
+						<div class="col-md-1 vlbarcodes-wrapper">
+							2<br>
+							Positive Control<br>
+							PC
+						</div>
+						<div class="col-md-1 vlbarcodes-wrapper">
+							3<br>
+							HPC
+						</div>
+
+
 						{% for sample in samples %}
+							{% with runner=forloop.counter|add:3 %}
 							<div class="col-md-1 vlbarcodes-wrapper">
-								{{ forloop.counter }}<br>
+																{{ runner }}<br>
 								<span class='sm-label'>Patient ART #</span>: {{ sample.patient.art_number }}<br>
 								<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
 								<span class='sm-label'>Location ID</span>: {{ sample.locator_category }}{{ sample.envelope.envelope_number }}{{ sample.locator_position }}<br>
@@ -26,7 +48,8 @@
 								<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>
 								<input type="checkbox" name="samples" class="sample" value="{{ sample.id }}">
 							</div>
-							{% if forloop.counter|divisibleby:6 %}</div><div class="row">{% endif %}
+							{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
+							{% endwith %}
 							
 						{% endfor %}
 					</div>
@@ -43,8 +66,16 @@
             $(this).barcode(val, "code128",{showHRI: false,posX: 4});
         });
 
+        $('#select0').click(function(){
+        	$(".sample").attr("checked", false);
+        	var sample_number = $('#samples_number0').val();
+        	$(".sample").slice(0,sample_number).attr("checked", true);
+        })
 
-        $(".sample").prop("checked", "true")
+
+
+
+        //$(".sample").prop("checked", "true")
       })
 
 	</script>
