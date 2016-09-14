@@ -48,7 +48,7 @@
 						{% with runner=forloop.counter|add:sample_pads %}
 						<div class="col-md-1 vlbarcodes-wrapper">
 							{{ runner }}<br>
-							<span class='sm-label'>Patient ART #</span>: {{ sample.patient.art_number }}<br>
+							<span class='sm-label'>Pat ART #</span>: {{ sample.patient.art_number }}<br>
 							<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
 							<span class='sm-label'>Location ID</span>: 
 							{{ sample.locator_category }}{{ sample.envelope.envelope_number }}{{ sample.locator_position }}<br>

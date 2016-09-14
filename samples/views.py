@@ -2,6 +2,7 @@ import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 from django_datatables_view.base_datatable_view import BaseDatatableView
+from django.db.models import Q
 #from django.views.generic import TemplateView
 
 from backend.models import Appendix,Facility
@@ -125,9 +126,31 @@ def get_district_hub(request, facility_id):
 	return HttpResponse(district_hub)
 
 def show(request, sample_id):
-	return render(request, 'samples/show.html', {'sample': get_object_or_404(Sample, pk=sample_id)})
+	sample = Sample.objects.get(pk=sample_id)
+	patient = sample.patient
+	envelope = sample.envelope
+
+	context = {
+		'sample_id': sample_id,
+		'envelope_form': EnvelopeForm(instance=sample.envelope),
+		'phone_form': PatientPhoneForm(),
+		'patient_form': PatientForm(instance=patient),
+		'sample_form': SampleForm(instance=sample),
+	}
+
+	return render(request, 'samples/show.html', context)
 
 def list(request):
+	search_val = request.GET.get('search_val')
+
+	if search_val:
+		samples = Sample.objects.filter(
+					Q(form_number__contains=search_val)|
+					Q(vl_sample_id__contains=search_val)
+					).order_by('-pk')[:1]
+		if samples:
+			sample = samples[0]
+			return redirect('/samples/show/%d' %sample.pk)
 	return render(request, 'samples/list.html')
 	
 
@@ -211,9 +234,9 @@ def save_verify(request):
 
 def verify_list(request):
 
-	search_val = request.GET.get('search_val', None)
+	search_val = request.GET.get('search_val')
 
-	if search_val is not None:
+	if search_val:
 		envelopes = Envelope.objects.filter(envelope_number__contains=search_val).order_by('-pk')[:1]
 		if envelopes:
 			envelope = envelopes[0]

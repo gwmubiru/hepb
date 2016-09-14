@@ -77,6 +77,14 @@ def attach_samples(request, worksheet_id):
 		return render(request, 'worksheets/attach_samples.html', context)
 
 def list(request):
+	search_val = request.GET.get('search_val')
+
+	if search_val:
+		worksheets = Worksheet.objects.filter(worksheet_reference_number__contains=search_val).order_by('-pk')[:1]
+		if worksheets:
+			worksheet = worksheets[0]
+			return redirect('/worksheets/show/%d' %worksheet.pk)
+
 	worksheets = Worksheet.objects.all()
 	return render(request,'worksheets/list.html',{'worksheets':worksheets})
 

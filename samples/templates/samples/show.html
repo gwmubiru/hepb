@@ -14,25 +14,390 @@
 
 
 {% block content %}	
-<div class="page-title">sample details</div>
+<div class="page-title">capture sample details</div>
 	
 	<div class="panel panel-default">
 		<!-- <div class="panel-heading"><b>Capture sample details</b></div> -->
 
-
 		<div class="panel-body">
-			dejkdedwjedkw dewjkdwde dwehjbnwe
 
-			{{ sample.vl_sample_id }}
-			
-		</body>
+				<span class='sub-title'>form/facility details</span>
+
+				<div class="row">
+					<div class="col-lg-6">
+
+						<div class="form-inline">
+							<label for="locator_envelope">Location/Rejection ID</label><br>
+							{{ sample_form.locator_position.errors }}
+
+							{{ sample_form.locator_category }}
+
+							{{ envelope_form.envelope_number }}
+							<span class="vl-slash">/</span>
+							{{ sample_form.locator_position }}
+
+						</div><br>
+
+						<div class="form-group">
+							{{ sample_form.form_number.label_tag}}
+							{{ sample_form.form_number.errors}}
+							{{ sample_form.form_number}}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.facility.label_tag }}<br>
+							{{ sample_form.facility.errors }}
+							{{ sample_form.facility }}
+						</div>
+					</div>
+
+					<div class="col-lg-6">
+
+						<div class="form-group">
+							<label for="district">District</label>
+							{% input "district"  "" "{'disabled':'true'}" %}
+						</div>
+
+						<div class="form-group">
+							<label for="hub">Hub</label>
+							{% input "hub"  "" "{'disabled':'true'}" %}
+						</div>
+
+					</div>
+				</div>
+
+				<!--  Sample Information -->
+				<br>
+				<span class='sub-title'>sample details</span>
+				
+				<div class="row">
+					<div class="col-lg-6">
+						<div class="form-inline">
+							{{ sample_form.date_collected.label_tag }}<br>
+							{{ sample_form.date_collected.errors }}
+							{{ sample_form.date_collected }}													
+						</div>
+						<br>
+
+						<div class="form-inline">
+							{{ sample_form.date_received.label_tag }}<br>
+							{{ sample_form.date_received.errors }}
+							{{ sample_form.date_received }}
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="form-group">
+							{{ sample_form.sample_type.label_tag }}
+							{{ sample_form.sample_type.errors }}
+							{{ sample_form.sample_type }}
+						</div>
+					</div>
+
+				</div><br>				
+
+
+				<!--  Patient Information -->
+				<br>
+				<span class='sub-title'>patient information</span>
+				<div class="row">
+					<div class="col-lg-6">
+
+						<div class="form-group">
+							{{ patient_form.art_number.label_tag }}
+							{{ patient_form.art_number.errors }}
+							{{ patient_form.art_number }}
+						</div> 
+
+						<div class="form-group">
+							{{ patient_form.other_id.label_tag }}
+							{{ patient_form.other_id.errors }}
+							{{ patient_form.other_id }}
+						</div> 
+
+						<div class="form-group">
+							{{ patient_form.gender.label_tag }}
+							{{ patient_form.gender.errors }}
+							{{ patient_form.gender }}
+						</div>
+					</div>
+					<div class="col-lg-6"> 
+						<div class="form-inline">
+							{{ patient_form.dob.label_tag }}<br>
+							{{ patient_form.dob.errors }}
+							{{ patient_form.dob }}													
+						</div>
+						<br>
+
+						<div class="form-inline">
+							<label for="id_age">Age</label><br>
+							<input type="text" name="age" id="id_age" class="form-control input-sm" size="11">
+							<select name="age_units" id="id_age_units" class="form-control input-sm">
+								<option value="Y">Years</option>
+								<option value="M">Months</option>
+							</select>												
+						</div>
+						<br>
+
+						<div class="form-group">
+							{{ phone_form.phone.label_tag }}
+							{{ phone_form.phone.errors }}
+							{{ phone_form.phone }}
+						</div> 
+					</div>
+				</div>
+
+				<!-- Treatment Information -->
+				<br>
+				<span class='sub-title'>treatment information</span>
+				<div class="row">
+					<div class="col-lg-6">
+						<div class="form-group">
+							{{ sample_form.treatment_inlast_sixmonths.label_tag }}
+							{{ sample_form.treatment_inlast_sixmonths.errors }}
+							{{ sample_form.treatment_inlast_sixmonths }}
+						</div>
+
+						<div class="form-inline">
+							{{ sample_form.treatment_initiation_date.label_tag }}<br>
+							{{ sample_form.treatment_initiation_date.errors }}
+							{{ sample_form.treatment_initiation_date }}
+						</div><br>
+
+						<div class="form-group">
+							{{ sample_form.current_regimen.label_tag }}
+							{{ sample_form.current_regimen.errors }}
+							{{ sample_form.current_regimen }}			
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.treatment_line.label_tag }}
+							{{ sample_form.treatment_line.errors }}
+							{{ sample_form.treatment_line }}
+						</div> 
+
+						<div class="form-group">
+							{{ sample_form.treatment_indication.label_tag }}
+							{{ sample_form.treatment_indication.errors }}
+							{{ sample_form.treatment_indication }}				
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.failure_reason.label_tag }}
+							{{ sample_form.failure_reason.errors }}
+							{{ sample_form.failure_reason }}				
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.viral_load_testing.label_tag }}
+							{{ sample_form.viral_load_testing.errors }}
+							{{ sample_form.viral_load_testing }}				
+						</div>
+
+					</div>
+					<div class="col-lg-6">
+
+						<div class="form-group">
+							{{ sample_form.pregnant.label_tag }}
+							{{ sample_form.pregnant.errors }}
+							{{ sample_form.pregnant }}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.anc_number.label_tag }}
+							{{ sample_form.anc_number.errors }}
+							{{ sample_form.anc_number }}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.breast_feeding.label_tag }}
+							{{ sample_form.breast_feeding.errors }}
+							{{ sample_form.breast_feeding }}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.active_tb_status.label_tag }}
+							{{ sample_form.active_tb_status.errors }}
+							{{ sample_form.active_tb_status }}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.tb_treatment_phase.label_tag }}
+							{{ sample_form.tb_treatment_phase.errors }}
+							{{ sample_form.tb_treatment_phase }}					
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.arv_adherence.label_tag }}
+							{{ sample_form.arv_adherence.errors }}
+							{{ sample_form.arv_adherence }}				
+						</div>
+					</div>
+
+				</div>
+
+				<br>
+				<span class='sub-title'>indication for viral load testing</span>
+
+				<div class="row">
+
+					<div class="col-lg-4">
+
+						<label><input type="radio" name="vl_testing" value="routine" > Routine Monitoring</label><br><br>
+
+						<div class="form-inline">
+							{{ sample_form.routine_monitoring_last_test_date.label_tag }}<br>
+							{{ sample_form.routine_monitoring_last_test_date.errors }}
+							{{ sample_form.routine_monitoring_last_test_date }}							
+						</div><br>
+
+						<div class="form-group">
+							{{ sample_form.routine_monitoring_last_value.label_tag }}<br>
+							{{ sample_form.routine_monitoring_last_value.errors }}
+							{{ sample_form.routine_monitoring_last_value }}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.routine_monitoring_last_sample_type.label_tag }}<br>
+							{{ sample_form.routine_monitoring_last_sample_type.errors }}
+							{{ sample_form.routine_monitoring_last_sample_type }}	
+						</div>
+					</div>
+
+					<div class="col-lg-5">
+						<label>
+							<input type="radio" name="vl_testing" value="repeat" > 
+							Repeat Viral Load Test after detectable 
+							viraemia and 6 months adherence counseling
+						</label>
+						<br>
+
+						<div class="form-inline">
+							{{ sample_form.repeat_testing_last_test_date.label_tag }}<br>
+							{{ sample_form.repeat_testing_last_test_date.errors }}
+							{{ sample_form.repeat_testing_last_test_date }}							
+						</div><br>
+
+						<div class="form-group">
+							{{ sample_form.repeat_testing_last_value.label_tag }}<br>
+							{{ sample_form.repeat_testing_last_value.errors }}
+							{{ sample_form.repeat_testing_last_value }}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.repeat_testing_last_sample_type.label_tag }}<br>
+							{{ sample_form.repeat_testing_last_sample_type.errors }}
+							{{ sample_form.repeat_testing_last_sample_type }}	
+						</div>
+					</div>
+
+					<div class="col-lg-3">
+						<label><input type="radio" name="vl_testing" value="suspected" > Suspected Treatment Failure</label><br><br>
+
+						<div class="form-inline">
+							{{ sample_form.suspected_treatment_failure_last_test_date.label_tag }}<br>
+							{{ sample_form.suspected_treatment_failure_last_test_date.errors }}
+							{{ sample_form.suspected_treatment_failure_last_test_date }}							
+						</div><br>
+
+						<div class="form-group">
+							{{ sample_form.suspected_treatment_failure_last_value.label_tag }}<br>
+							{{ sample_form.suspected_treatment_failure_last_value.errors }}
+							{{ sample_form.suspected_treatment_failure_last_value }}
+						</div>
+
+						<div class="form-group">
+							{{ sample_form.suspected_treatment_failure_last_sample_type.label_tag }}<br>
+							{{ sample_form.suspected_treatment_failure_last_sample_type.errors }}
+							{{ sample_form.suspected_treatment_failure_last_sample_type }}	
+						</div>
+					</div>
+
+
+				</div>
+				<a class="btn btn-danger" href="{% url 'samples:edit' sample_id %}">Edit</a>
+			</div>
 	</div>
 
 <script type="text/javascript">
-	
+	var date_now = new Date();
+	var now_s = date_now.getTime();
+	var facility_json = {};
+	var regimen_json = {};
+
+	$( function() {
+		set_district_hub();
+		set_age();		
+
+    	$(".date").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm",
+    		minYear: 1900,
+    		maxYear: date_now.getFullYear(),
+    	});
+
+    	$("input").each(function (index){
+            $(this).attr("disabled", true);
+        });
+
+        $("select").each(function (index){
+            $(this).attr("disabled", true);
+        });
+
+        $("radio").each(function (index){
+            $(this).attr("disabled", true);
+        });
+
+        $("#search_id").attr("disabled", false);
+
+    	
+
+  	});
+
+	function round1(val){
+		return Math.round(val*10)/10;
+	}
+
+	function set_dob(){
+		var age = $("#id_age").val();
+		var units = $("#id_age_units").val();
+		if(units=='M'){
+			var age = age/12;
+		}
+		var age_s = age*365*24*3600*1000;
+		var dob_s = now_s-age_s;
+		var dob = new Date(dob_s);
+		$("#id_dob").combodate('setValue', dob);
+	}
+
+	function set_age(){
+		var dob = new Date($("#id_dob").val());
+		var dob_s = dob.getTime();
+		var yrs = (now_s-dob_s)/(365*24*3600*1000) || 0;
+		if(yrs<1){
+			var mths = yrs*12;
+			$("#id_age").val(round1(mths));
+			$("#id_age_units").val("M");
+		}else{
+			$("#id_age").val(round1(yrs));
+			$("#id_age_units").val("Y");
+		}
+	}
+
+	function set_district_hub(){
+		var facility_id = $('#id_facility').val();
+		if(facility_id!=''){
+			var url =  "/samples/get_district_hub/"+facility_id+"/";
+			$.get(url, function(data, status){
+				var json_data = JSON.parse(data);
+				$("#district").val(json_data.district);
+				$("#hub").val(json_data.hub);
+			});	
+		}
+					
+	}
+//422551
+
 </script>
 
 {% endblock %}
-
-
-
