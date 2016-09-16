@@ -126,3 +126,7 @@ def dropdown_links(links):
 		links_str = links_str + li
 
 	return ret %links_str
+
+def btn_link(*args):
+	url,label = args
+	return "<a class='btn btn-xs btn-danger' href='%s'>%s</a>" %(url, label)
