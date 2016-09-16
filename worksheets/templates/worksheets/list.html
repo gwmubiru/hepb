@@ -2,6 +2,14 @@
 {% load form_tags %}
 {% load staticfiles %}
 
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
 {% block content %}	
 
 <div class="page-title">Worksheets</div>
@@ -17,35 +25,15 @@
 				<th />
 			</tr>
 		</thead>
-		<tbody>
-		{% for worksheet in worksheets %}
-			<tr>
-				<td>{{ worksheet.worksheet_reference_number }}</td>
-				<td>{{ worksheet.get_machine_type_display }}</td>
-				<td>{{ worksheet.get_sample_type_display }}</td>
-				<td>{{ worksheet.created_at | date:"d M Y" }}</td>
-
-				<td>
-					<div class="btn-group">
-						<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-							Options 
-							<span class="caret"></span>
-						</button>
-						<ul class="dropdown-menu" role="menu">
-							<li><a href="{% url 'worksheets:show' worksheet.id %}">view</a></li>
-							<li><a href="javascript:windPop('{% url 'worksheets:vlprint' worksheet.id %}')">print</a></li>
-							<li><a href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">pdf</a></li>
-							<li><a href="#">edit</a></li>
-							<li><a href="#">upload results</a></li>						
-							
-						</ul>
-					</div>
-				</td>
-				
-			</tr>
-		{% endfor %}
-		</tbody>
 	</table>
 </div>
-
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"serverSide": true,
+		"ajax": "{% url 'worksheets:list_json' %}",
+	});
+});
+</script>
 {% endblock %}
