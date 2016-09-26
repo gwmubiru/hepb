@@ -115,21 +115,13 @@ class ListJson(BaseDatatableView):
 			url0 = "/worksheets/show/{0}".format(row.pk)
 			url1 = "javascript:windPop(\"/worksheets/vlprint/{0}\")".format(row.pk)
 			url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
+			url3 = "/results/upload/{0}".format(row.pk)
 			links = utils.dropdown_links([
 					{"label":"view", "url":url0},
 					{"label":"Print", "url":url1},
 					{"label":"PDF", "url":url2},
+					{"label":"Upload Results", "url": url3},
 				])
 			return links
 		else:
 			return super(ListJson, self).render_column(row, column)
-
-	# def filter_queryset(self, qs):
-	# 	search = self.request.GET.get(u'search[value]', None)
-	# 	if search:
-	# 		wrn_cond = Q(worksheet_reference_number__istartswith=search)
-	# 		mt_cond = Q(machine_type__istartswith=search)
-	# 		st_cond = Q(sample_type__istartswith=search)
-	# 		qs = qs.filter(wrn_cond | mt_cond | st_cond)
-
-	# 	return qs

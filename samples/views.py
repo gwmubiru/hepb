@@ -1,7 +1,7 @@
 import json
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
-from django_datatables_view.base_datatable_view import BaseDatatableView
+
 from django.db.models import Q
 #from django.views.generic import TemplateView
 

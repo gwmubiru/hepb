@@ -1,7 +1,9 @@
 from __future__ import unicode_literals
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.translation import ugettext_lazy as _
 
 import samples.models as samples
 import backend.models as backend
@@ -15,7 +17,6 @@ class FinalResult(models.Model):
 	sample = models.ForeignKey(samples.Sample)
 	valid = models.BooleanField(default=False)
 	final_result = models.PositiveSmallIntegerField(choices=RESULT_CHOICES)
-	failure_reason = models.ForeignKey(backend.Appendix)
 	result_numeric = models.IntegerField()
 	result_alphanumeric = models.TextField()
 	test_date = models.DateTimeField()
@@ -56,8 +57,9 @@ class SamplePrintingDispatching(object):
 #track worksheets whose results have been uploaded
 class WorksheetResultsUpload(models.Model):
 	worksheet = models.ForeignKey(worksheets.Worksheet)
-	results_file = models.FileField(upload_to='uploads/results/')
-	upload_date = models.DateTimeField()
+	results_file = models.FileField(upload_to='results')
+	multiplier = models.IntegerField(default=1)
+	upload_date = models.DateTimeField(auto_now_add=True)
 	uploaded_by = models.ForeignKey(User, related_name='uploaded_by')
 
 	class Meta:
@@ -69,6 +71,13 @@ class WorksheetResultsPrinting(models.Model):
 	worksheet = models.ForeignKey(worksheets.Worksheet)
 	print_date = models.DateTimeField()
 	printed_by = models.ForeignKey(User, related_name='printed_by')
+
+	def clean(self):
+		file_name = self.results_file.name		
+		if self.worksheet == 'R' and file_name.endswith('.csv') is not True:
+			raise ValidationError(_("Expecting a csv file"))
+		if self.worksheet == 'A' and file_name.endswith('.txt') is not True:
+			raise ValidationError(_("Expecting a txt file"))
 
 	class Meta:
 		db_table = 'vl_worksheet_results_printing'		

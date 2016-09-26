@@ -27,5 +27,5 @@ urlpatterns = [
 	url(r'^admin/', admin.site.urls),
 	url(r'^samples/', include('samples.urls')),
 	url(r'^worksheets/', include('worksheets.urls')),
-
+	url(r'^results/', include('results.urls')),
 ]
