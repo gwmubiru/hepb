@@ -30,8 +30,7 @@ def store_result(sample,result):
 
 def handle_files(f, worksheet):
 	if worksheet.machine_type == 'R':
-		reader = pandas.read_csv(f)
-		#reader = pandas.read_csv(f, sep=',')
+		reader = pandas.read_csv(f, sep=',')
 		for row in reader.iterrows():
 			# try:
 			index, data = row
