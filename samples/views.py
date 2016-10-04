@@ -1,4 +1,5 @@
 import json
+from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import HttpResponse
 
@@ -61,7 +62,7 @@ def create(request):
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
 		phone_form = PatientPhoneForm
 		patient_form = PatientForm
-		sample_form = SampleForm(initial={'locator_category':'V'})
+		sample_form = SampleForm(initial={'locator_category':'V', 'date_received': timezone.now().date()})
 
 	context = {
 		'vl_sample_id': vl_sample_id,

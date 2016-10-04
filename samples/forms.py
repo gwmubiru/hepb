@@ -27,15 +27,6 @@ class PatientForm(forms.ModelForm):
 			'dob': forms.DateInput(attrs=utils.ATTRS_DATE),
 		}
 
-	# unique_id = models.CharField(max_length=128, unique=True)
-	# art_number = models.CharField(max_length=64)
-	# other_id = models.CharField(max_length=64, null=True)
-	# gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-	# dob = models.DateField(null=True)
-	# created_by = models.ForeignKey(User)
-	# created_at = models.DateTimeField(auto_now_add=True)
-	# updated_at = models.DateTimeField(auto_now=True)
-
 class EnvelopeForm(forms.ModelForm):
 	class Meta:
 		model = Envelope
