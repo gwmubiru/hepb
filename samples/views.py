@@ -17,6 +17,7 @@ ENVS_LIMIT = 1000
 SAMPLES_LIMIT = 1000
 
 def create(request):
+	vl_sample_id = request.GET.get('vl_sample_id')
 	if request.method == 'POST':
 		patient_form = PatientForm(request.POST)
 		phone_form = PatientPhoneForm(request.POST)
@@ -52,13 +53,9 @@ def create(request):
 			sample.patient_unique_id = patient.unique_id
 			sample.envelope = envelope
 			sample.vl_sample_id = sample_utils.create_sample_id()
-			vl_testing = request.POST.get('vl_testing', '')
-			sample.routine_monitoring = True if vl_testing=='routine' else False
-			sample.repeat_testing = True if vl_testing=='repeat' else False
-			sample.suspected_treatment_failure = True if vl_testing=='suspected' else False	
 			sample.created_by = request.user
 			sample.save()
-			return redirect('/samples/create')
+			return redirect('/samples/create?vl_sample_id=%s' %sample.vl_sample_id)
 
 	else:
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
@@ -67,6 +64,7 @@ def create(request):
 		sample_form = SampleForm(initial={'locator_category':'V'})
 
 	context = {
+		'vl_sample_id': vl_sample_id,
 		'envelope_form': envelope_form,
 		'phone_form': phone_form,
 		'patient_form': patient_form,

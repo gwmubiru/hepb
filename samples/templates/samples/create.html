@@ -17,9 +17,12 @@
 <div class="page-title">capture sample details</div>
 	
 	<div class="panel panel-default">
-		<!-- <div class="panel-heading"><b>Capture sample details</b></div> -->
-
 		<div class="panel-body">
+			{% if vl_sample_id %}
+			<div id="success" class="alert alert-success vl-alert" role="alert">
+				sample ({{ vl_sample_id }}) successfully created
+			</div>
+			{% endif %}
 			
 			<form action="{% if sample_id %} 
 						    {% url 'samples:edit' sample_id  %}  
@@ -242,81 +245,34 @@
 				</div>
 
 				<br>
-				<span class='sub-title'>indication for viral load testing</span>
+				<span class='sub-title'>previous test</span>
 
 				<div class="row">
 
-					<div class="col-lg-4">
-
-						<label><input type="radio" name="vl_testing" value="routine" > Routine Monitoring</label><br><br>
+					<div class="col-lg-6">
 
 						<div class="form-inline">
-							{{ sample_form.routine_monitoring_last_test_date.label_tag }}<br>
-							{{ sample_form.routine_monitoring_last_test_date.errors }}
-							{{ sample_form.routine_monitoring_last_test_date }}							
+							{{ sample_form.last_test_date.label_tag }}<br>
+							{{ sample_form.last_test_date.errors }}
+							{{ sample_form.last_test_date }}							
 						</div><br>
 
 						<div class="form-group">
-							{{ sample_form.routine_monitoring_last_value.label_tag }}<br>
-							{{ sample_form.routine_monitoring_last_value.errors }}
-							{{ sample_form.routine_monitoring_last_value }}
+							{{ sample_form.last_value.label_tag }}<br>
+							{{ sample_form.last_value.errors }}
+							{{ sample_form.last_value }}
 						</div>
 
 						<div class="form-group">
-							{{ sample_form.routine_monitoring_last_sample_type.label_tag }}<br>
-							{{ sample_form.routine_monitoring_last_sample_type.errors }}
-							{{ sample_form.routine_monitoring_last_sample_type }}	
+							{{ sample_form.last_sample_type.label_tag }}<br>
+							{{ sample_form.last_sample_type.errors }}
+							{{ sample_form.last_sample_type }}	
 						</div>
 					</div>
 
-					<div class="col-lg-5">
-						<label>
-							<input type="radio" name="vl_testing" value="repeat" > 
-							Repeat Viral Load Test after detectable 
-							viraemia and 6 months adherence counseling
-						</label>
-						<br>
+					
 
-						<div class="form-inline">
-							{{ sample_form.repeat_testing_last_test_date.label_tag }}<br>
-							{{ sample_form.repeat_testing_last_test_date.errors }}
-							{{ sample_form.repeat_testing_last_test_date }}							
-						</div><br>
-
-						<div class="form-group">
-							{{ sample_form.repeat_testing_last_value.label_tag }}<br>
-							{{ sample_form.repeat_testing_last_value.errors }}
-							{{ sample_form.repeat_testing_last_value }}
-						</div>
-
-						<div class="form-group">
-							{{ sample_form.repeat_testing_last_sample_type.label_tag }}<br>
-							{{ sample_form.repeat_testing_last_sample_type.errors }}
-							{{ sample_form.repeat_testing_last_sample_type }}	
-						</div>
-					</div>
-
-					<div class="col-lg-3">
-						<label><input type="radio" name="vl_testing" value="suspected" > Suspected Treatment Failure</label><br><br>
-
-						<div class="form-inline">
-							{{ sample_form.suspected_treatment_failure_last_test_date.label_tag }}<br>
-							{{ sample_form.suspected_treatment_failure_last_test_date.errors }}
-							{{ sample_form.suspected_treatment_failure_last_test_date }}							
-						</div><br>
-
-						<div class="form-group">
-							{{ sample_form.suspected_treatment_failure_last_value.label_tag }}<br>
-							{{ sample_form.suspected_treatment_failure_last_value.errors }}
-							{{ sample_form.suspected_treatment_failure_last_value }}
-						</div>
-
-						<div class="form-group">
-							{{ sample_form.suspected_treatment_failure_last_sample_type.label_tag }}<br>
-							{{ sample_form.suspected_treatment_failure_last_sample_type.errors }}
-							{{ sample_form.suspected_treatment_failure_last_sample_type }}	
-						</div>
-					</div>
+					
 
 				</div>
 				
@@ -353,6 +309,9 @@
 
 
 	$( function() {
+		setTimeout(function(){
+			$("#success").slideUp("fast");
+		},1000);
     	/*$( ".date-picker" ).datepicker({
       		changeMonth: true,
       		changeYear: true,

@@ -105,20 +105,9 @@ class Sample(models.Model):
 	tb_treatment_phase = models.ForeignKey(backend.Appendix, related_name='tb_treatment_phase', null=True, blank=True)
 	arv_adherence = models.ForeignKey(backend.Appendix, related_name='arv_adherence', null=True, blank=True)
 	
-	routine_monitoring = models.BooleanField(default=False)
-	routine_monitoring_last_test_date = models.DateField(null=True, blank=True)
-	routine_monitoring_last_value = models.CharField(max_length=64, null=True, blank=True)
-	routine_monitoring_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
-	
-	repeat_testing = models.BooleanField(default=False)
-	repeat_testing_last_test_date = models.DateField(null=True, blank=True)
-	repeat_testing_last_value = models.CharField(max_length=64, null=True, blank=True)
-	repeat_testing_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
-	
-	suspected_treatment_failure = models.BooleanField(default=False)
-	suspected_treatment_failure_last_test_date = models.DateField(null=True, blank=True)
-	suspected_treatment_failure_last_value = models.CharField(max_length=64, null=True, blank=True)
-	suspected_treatment_failure_last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
+	last_test_date = models.DateField(null=True, blank=True)
+	last_value = models.CharField(max_length=64, null=True, blank=True)
+	last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
 	
 	verified = models.BooleanField(default=False)
 	in_worksheet = models.BooleanField(default=False)
