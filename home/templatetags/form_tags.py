@@ -54,3 +54,16 @@ def format_date(date_val, format = "%Y-%m-%d"):
 		ret = ''
 
 	return ret;
+
+
+@register.simple_tag
+def check_list(val="", choices="{}"):
+	ret = ""
+	checked = "<span class='glyphicon glyphicon-check print-check'></span>"
+	unchecked = "<span class='glyphicon glyphicon-unchecked print-uncheck'></span>"
+	choices = ast.literal_eval(choices)
+	for k,lbl in choices.items():
+		prefix = checked if k == val else unchecked
+		ret += " %s %s " % (prefix, lbl)
+
+	return ret

@@ -23,7 +23,7 @@ class AppendixCategory(models.Model):
 class Appendix(models.Model):
 	appendix_category = models.ForeignKey(AppendixCategory, on_delete=models.CASCADE)
 	code = models.CharField(max_length=32)
-	appendix = models.CharField(max_length=64)
+	appendix = models.CharField(max_length=128)
 	tag = models.CharField(max_length=64, null=True)
 
 	def __str__(self): #return appendix as default

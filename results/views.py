@@ -74,3 +74,20 @@ def upload(request, worksheet_id):
 		form = UploadForm(initial={'multiplier':1, 'worksheet': worksheet})
 		
 	return render(request, 'results/upload.html', {'form': form, 'worksheet': worksheet})
+
+def list(request):
+	search_val = request.GET.get('search_val')
+
+	if search_val:
+		worksheets = Worksheet.objects.filter(worksheet_reference_number__contains=search_val).order_by('-pk')[:1]
+		if worksheets:
+			worksheet = worksheets[0]
+			return redirect('/results/worksheet/%d' %worksheet.pk)
+
+	worksheets = Worksheet.objects.all()
+	return render(request,'worksheets/list.html',{'worksheets':worksheets})
+
+def worksheet_results(request, worksheet_id):
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
+	return render(request, 'results/worksheet_results.html', {'worksheet':worksheet})
+

@@ -123,7 +123,7 @@ class Sample(models.Model):
 
 
 class Verification(models.Model):
-	sample = models.ForeignKey(Sample)
+	sample = models.OneToOneField(Sample, on_delete=models.CASCADE)
 	accepted = models.BooleanField(default=False)
 	rejection_reason = models.ForeignKey(backend.Appendix, null=True, blank=True)
 	comments = models.CharField(max_length=128, null=True, blank=True)

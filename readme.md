@@ -138,5 +138,5 @@ uwsgi --http :3333 --home /home/vl/Env/viral_load2 --chdir /home/vl/viral_load2 
 
 
 
-
+SELECT COUNT(s.id) AS num, p.artNumber,facility, GROUP_CONCAT(resultAlphanumeric SEPARATOR '||') AS res from vl_samples AS s LEFT JOIN vl_patients AS p ON s.patientID = p.id LEFT JOIN vl_facilities As f ON s.facilityID=f.id LEFT JOIN vl_results_merged AS r ON s.vlSampleID=r.vlSampleID WHERE facilityID IN (880,965,691) group by patientUniqueID having num>2;
 

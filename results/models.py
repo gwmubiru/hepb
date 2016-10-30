@@ -14,11 +14,13 @@ import worksheets.models as worksheets
 #hold results for each sample
 class FinalResult(models.Model):
 	RESULT_CHOICES = ( (1, 'Suppressed'),(2, 'Unsuppressed'), (3, 'Failed') )
-	sample = models.ForeignKey(samples.Sample)
+	METHOD_CHOICES = ( ('A', 'Abbott Real time HIV-1 PCR'), ('R', 'HIV-1 RNA PCR Roche'))
+	sample = models.OneToOneField(samples.Sample, on_delete=models.CASCADE)
 	valid = models.BooleanField(default=False)
 	final_result = models.PositiveSmallIntegerField(choices=RESULT_CHOICES)
 	result_numeric = models.IntegerField()
 	result_alphanumeric = models.TextField()
+	method = models.CharField(max_length=1, null=True, choices=METHOD_CHOICES)
 	test_date = models.DateTimeField()
 	test_by = models.ForeignKey(User, related_name='test_by')
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -30,7 +32,7 @@ class FinalResult(models.Model):
 
 #track 
 class SampleResults(models.Model):
-	sample = models.ForeignKey(samples.Sample)
+	sample = models.OneToOneField(samples.Sample, on_delete=models.CASCADE)
 	repeat_test = models.BooleanField(default=False)
 	result1 = models.TextField()
 	result2 = models.TextField()
