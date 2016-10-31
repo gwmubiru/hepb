@@ -71,12 +71,16 @@ def attach_samples(request, worksheet_id):
 		#form = AttachSamplesForm()
 		sample_limit = 21 if worksheet.machine_type == 'R' else 93
 		sample_pads = 11 if worksheet.include_calibrators else 3
-		samples = Sample.objects.filter(verified=True, in_worksheet=False).order_by('created_at')[:sample_limit]
+		samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False).order_by('created_at')[:sample_limit]
+		repeat_samples = Sample.objects.filter(sampleresults__repeat_test = True)[:sample_limit]
+		# samples = Sample.objects.filter(in_worksheet=False).order_by('created_at')[:sample_limit]
+		# repeat_samples = Sample.objects.all()[:sample_limit]
 		context = {
-			'samples':samples, 
+			'samples': samples, 
 			'worksheet': worksheet,
 			'sample_limit': sample_limit,
-			'sample_pads':sample_pads,
+			'sample_pads': sample_pads,
+			'repeat_samples': repeat_samples, 
 			}
 		return render(request, 'worksheets/attach_samples.html', context)
 

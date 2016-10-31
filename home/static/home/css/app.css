@@ -86,10 +86,17 @@ body{
 
 .worksheet{
 	padding-left: 15px;
-	height: 600px;
-	width: 100%;
-	height:700px;
-	overflow: auto;
+	height: 100%;
+	width: 100%;	
+	
+}
+
+.worksheet-box{
+	height:400px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: 20px;
+	border: solid 4px #D5D8DC;
 }
 
 .sm-label{

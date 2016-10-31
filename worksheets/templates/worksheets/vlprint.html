@@ -27,23 +27,23 @@
 	<body>
 		<div id="content" >
 			<div class="row" >
-				<div class="col-md-4">Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></div>
-				<div class="col-md-4">Machine Type: <u>{{ worksheet.get_machine_type_display }}</u></div>
-				<div class="col-md-4">Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></div>
+				<div class="col-xs-4">Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></div>
+				<div class="col-xs-4">Machine Type: <u>{{ worksheet.get_machine_type_display }}</u></div>
+				<div class="col-xs-4">Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></div>
 			</div>
 			<br>
 			<div class="row ">
-				<div class="col-md-1 vlbarcodes-wrapper">
+				<div class="col-xs-1 vlbarcodes-wrapper">
 					1<br>
 					Negative Control<br>
 					NC							
 				</div>
-				<div class="col-md-1 vlbarcodes-wrapper">
+				<div class="col-xs-1 vlbarcodes-wrapper">
 					2<br>
 					Positive Control<br>
 					PC
 				</div>
-				<div class="col-md-1 vlbarcodes-wrapper">
+				<div class="col-xs-1 vlbarcodes-wrapper">
 					3<br>
 					HPC
 				</div>
@@ -51,7 +51,7 @@
 				{% if worksheet.include_calibrators %}
 					{% for i in "xxxxxxxx" %}
 						{% with runner=forloop.counter|add:3 %}
-						<div class="col-md-1 vlbarcodes-wrapper">
+						<div class="col-xs-1 vlbarcodes-wrapper">
 							{{ runner }}<br>
 							Calibrator
 						</div>
@@ -62,7 +62,7 @@
 
 				{% for sample in worksheet.samples.all %}
 					{% with runner=forloop.counter|add:sample_pads %}
-					<div class="col-md-1 vlbarcodes-wrapper">
+					<div class="col-xs-1 vlbarcodes-wrapper">
 						{{ runner }}<br>
 						<span class='sm-label'>Pat ART #</span>: {{ sample.patient.art_number }}<br>
 						<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
