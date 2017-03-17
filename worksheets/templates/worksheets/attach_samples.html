@@ -27,8 +27,9 @@
 					</div>					
 					<br>
 					<div class="worksheet-box">
-						<div class="form-inline">
-							<input type="text" id="samples_number0" class="form-control input-sm" value="{{ sample_limit }}" size="1" maxlength="2">  <a class="btn btn-sm btn-danger" id="select0" href="#">Select</a>
+						<div class="form-inline row">
+							<input type="text" id="samples_number0" class="form-control input-sm" value="{{ sample_limit }}" size="1" maxlength="2"> 
+							<a class="btn btn-sm btn-danger" id="select0" >Select</a>
 						</div>
 						<br>
 						<div class="row ">
@@ -81,6 +82,11 @@
 					<br>
 					Samples to be repeated
 					<div class="worksheet-box">
+						<div class="form-inline row">
+							<input type="text" id="samples_number1" class="form-control input-sm" value="" size="1" maxlength="2"> 
+							<a class="btn btn-sm btn-danger" id="select1" >Select for repeat test</a>
+						</div>
+						<br>
 						<div class="row">
 						{% for sample in repeat_samples %}
 							{% with runner=forloop.counter %}
@@ -92,7 +98,7 @@
 								<span class='sm-label'>Form #</span>: {{ sample.form_number }}
 
 								<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>
-								<input type="checkbox" name="samples" class="sample" value="{{ sample.id }}">
+								<input type="checkbox" name="samples" class="repeat_sample" value="{{ sample.id }}">
 							</div>
 							{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
 							{% endwith %}
@@ -120,8 +126,11 @@
         	$(".sample").slice(0,sample_number).attr("checked", true);
         })
 
-
-
+        $('#select1').click(function(){
+        	$(".repeat_sample").attr("checked", false);
+        	var sample_number = $('#samples_number1').val();
+        	$(".repeat_sample").slice(0,sample_number).attr("checked", true);
+        })
 
         //$(".sample").prop("checked", "true")
       })

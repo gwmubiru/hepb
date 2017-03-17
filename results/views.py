@@ -1,18 +1,33 @@
 import csv, pandas, io
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.utils import timezone
 
 from .forms import UploadForm
 from worksheets.models import Worksheet
 from samples.models import Sample
 from .models import FinalResult,SampleResults
+from . import utils as result_utils
 
 # patient, pat_created = Patient.objects.get_or_create(
 # 						unique_id=unique_id,
 # 						defaults=patient_form.cleaned_data
 # 						)
 # Create your views here.
-def store_result(sample,result):
+
+def store_final_result(machine_type, sample, result):
+	fr = FinalResult();
+	fr.sample = sample	
+	fr.valid = True
+	fr.final_result = get_status(result)
+	fr.result_numeric = get_numeric_result(result)
+	fr.result_alphanumeric = get_alphanumeric_result(result)
+	fr.method = machine_type
+	fr.test_date = timezone.now()
+	fr.test_by = 2
+	fr.save()
+
+def store_result(machine_type, sample, result, repeat):
 	sr = SampleResults.objects
 	sample_result, sr_created = sr.get_or_create(sample=sample)
 	if sample_result.result1 == '':
@@ -25,7 +40,12 @@ def store_result(sample,result):
 		sample_result.result4 = result
 	else:
 		sample_result.result5 = result
+
+	sample_result.repeat_test = repeat
 	sample_result.save()
+
+	if repeat==False:
+		store_final_result(machine_type, sample, result)
 
 
 def handle_files(f, worksheet):
@@ -37,7 +57,8 @@ def handle_files(f, worksheet):
 			result = data["Result"]
 			vl_sample_id = data["Sample ID"]
 			sample = Sample.objects.get(vl_sample_id=vl_sample_id)
-			store_result(sample,result)
+			repeat = result_utils.repeat_test('R', result, '')
+			store_result('R', sample, result, repeat)
 			# except:
 			# 	pass			
 			
@@ -49,7 +70,8 @@ def handle_files(f, worksheet):
 			result = data.get("RESULT")
 			vl_sample_id = data.get("SAMPLE ID")
 			sample = Sample.objects.get(vl_sample_id=vl_sample_id)
-			store_result(sample,result)
+			repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
+			store_result('A', sample,result, repeat)
 			# except:
 			# 	pass
 
