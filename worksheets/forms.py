@@ -10,7 +10,6 @@ class WorksheetForm(forms.ModelForm):
 	class Meta:
 		model = Worksheet
 		fields = (
-			'worksheet_reference_number',
 			'machine_type',
 			'sample_type',
 			'sample_prep',
@@ -28,7 +27,6 @@ class WorksheetForm(forms.ModelForm):
 		)
 
 		widgets = {
-			'worksheet_reference_number': forms.TextInput(attrs=utils.ATTRS),
 			'machine_type': forms.Select(attrs=utils.ATTRS2),
 			'sample_type': forms.Select(attrs=utils.ATTRS2),
 			'sample_prep': forms.TextInput(attrs=utils.ATTRS),

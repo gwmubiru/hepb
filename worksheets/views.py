@@ -13,6 +13,7 @@ from home import utils
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet
 from samples.models import Sample
+from . import utils as worksheet_utils
 
 
 # Create your views here.
@@ -45,6 +46,7 @@ def create(request, machine_type):
 		form = WorksheetForm(request.POST)
 		if form.is_valid():
 			worksheet = form.save(commit=False)
+			worksheet.worksheet_reference_number = worksheet_utils.create_worksheet_ref_number(request.user)
 			worksheet.machine_type = machine_type
 			worksheet.generated_by = request.user
 			worksheet.save()

@@ -16,9 +16,11 @@
 				{% csrf_token %}
 				<div class="row">
 					<div class="form-group col-md-5">
-						{{ form.worksheet_reference_number.label_tag }}
-						{{ form.worksheet_reference_number.errors }}
-						{{ form.worksheet_reference_number }}
+						<label for="id_wrn">Worksheet Ref Number:</label>
+
+						
+						<input class="form-control input-sm w-md" id="id_wrn" maxlength="64" name="sample_prep" readonly="true" type="text" placeholder="this will be generated after saving">
+						
 					</div>
 
 					<div class="form-group col-md-4">
