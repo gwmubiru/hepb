@@ -15,19 +15,19 @@
 			<form action="{% url 'worksheets:create' machine_type %}" method="post" role="form">
 				{% csrf_token %}
 				<div class="row">
-					<div class="form-group col-md-4">
+					<div class="form-group col-md-5">
 						{{ form.worksheet_reference_number.label_tag }}
 						{{ form.worksheet_reference_number.errors }}
 						{{ form.worksheet_reference_number }}
 					</div>
 
-					<div class="form-group col-md-3">
+					<div class="form-group col-md-4">
 						{{ form.machine_type.label_tag }}
 						{{ form.machine_type.errors }}
 						{{ form.machine_type }}
 					</div>
 
-					<div class="form-group col-md-5">
+					<div class="form-group col-md-3">
 						{{ form.sample_type.label_tag }}
 						{{ form.sample_type.errors }}
 						{{ form.sample_type }}
@@ -35,7 +35,7 @@
 				</div>
 
 				<div class="row">
-					<div class="form-group col-md-4">
+					<div class="form-group col-md-5">
 						{% if machine_type == 'R' %}
 							<label for="id_sample_prep">HI2CAP</label>
 						{% else %}
@@ -59,7 +59,7 @@
 				</div>
 
 				<div class="row">
-					<div class="form-group col-md-4">
+					<div class="form-group col-md-5">
 						{{ form.bulk_lysis_buffer.label_tag }}
 						{{ form.bulk_lysis_buffer.errors }}
 						{{ form.bulk_lysis_buffer }}
@@ -75,7 +75,7 @@
 				{% if machine_type == 'A' %}
 
 				<div class="row">
-					<div class="form-group col-md-4	">
+					<div class="form-group col-md-5	">
 						{{ form.control.label_tag }}
 						{{ form.control.errors }}
 						{{ form.control }}
@@ -89,19 +89,19 @@
 				</div>
 
 				<div class="row">
-					<div class="form-group col-md-4">
+					<div class="form-group col-md-5">
 						{{ form.calibrator.label_tag }}
 						{{ form.calibrator.errors }}
 						{{ form.calibrator }}
 					</div>
 
-					<div class="form-inline col-md-3">
+					<div class="form-inline col-md-4">
 						{{ form.calibrator_expiry_date.label_tag }}
 						{{ form.calibrator_expiry_date.errors }}
 						<br>{{ form.calibrator_expiry_date }}
 					</div>
 
-					<div class="form-group col-md-5">
+					<div class="form-group col-md-3">
 						<br>	
 						{{ form.include_calibrators.errors }}
 						{{ form.include_calibrators }}
@@ -110,7 +110,7 @@
 				</div>
 
 				<div class="row">
-					<div class="form-group col-md-4">
+					<div class="form-group col-md-5">
 						{{ form.amplication_kit.label_tag }}
 						{{ form.amplication_kit.errors }}
 						{{ form.amplication_kit }}
