@@ -40,7 +40,6 @@ class WorksheetForm(forms.ModelForm):
 			'calibrator_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'amplication_kit': forms.TextInput(attrs=utils.ATTRS),
 			'amplication_kit_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
-			'assay_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 		}
 
 class AttachSamplesForm(forms.ModelForm):
