@@ -1,6 +1,7 @@
 import json
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse
 
 from django.db.models import Q
@@ -17,6 +18,7 @@ from . import utils as sample_utils
 ENVS_LIMIT = 1000
 SAMPLES_LIMIT = 1000
 
+@permission_required('samples.add_sample', login_url='/login/')
 def create(request):
 	vl_sample_id = request.GET.get('vl_sample_id')
 	if request.method == 'POST':

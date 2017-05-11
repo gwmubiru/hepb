@@ -132,7 +132,7 @@
 					<div class="col-lg-6"> 
 						<div class="form-inline">
 							{{ patient_form.dob.label_tag }}<br>
-							{{ patient_form.dob.errors }}
+							{{ patient_form.dob.errors }}<div id="dob_error"></div>
 							{{ patient_form.dob }}													
 						</div>
 						<br>
@@ -141,7 +141,7 @@
 							<label for="id_age">Age</label><br>
 							<input type="text" name="age" id="id_age" class="form-control input-sm" size="11">
 							<select name="age_units" id="id_age_units" class="form-control input-sm">
-								<option value="Y">Years</option>
+								<option value="Y" selected="true">Years</option>
 								<option value="M">Months</option>
 							</select>												
 						</div>
@@ -283,6 +283,7 @@
 
 <script type="text/javascript">
 	var date_now = new Date();
+	console.log(date_now.toDateString());
 	var now_s = date_now.getTime();
 	var facility_json = {};
 	var regimen_json = {};
@@ -319,16 +320,16 @@
     	});*/
 
 		set_district_hub();
-		set_age();
+		//set_age();
 		
 		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
 
-    	$("#id_facility").select2({	
+    	/*$("#id_facility").select2({	
     		placeholder: "Select facility", 
     		allowClear: true,
     		width: "58%",
-    	});
+    	});*/
 
     	//$(".optional").removeAttr('required');
 
@@ -342,9 +343,9 @@
 
     	$("#id_facility").change(function(){
     		set_district_hub();
-    		setTimeout(function(){
-    			$(".day").first().focus();
-    		},100);    		    		
+    		// setTimeout(function(){
+    		// 	$(".day").first().focus();
+    		// },100);    		    		
     	});
 
     	$("#id_gender").change(function(){
@@ -370,7 +371,7 @@
     	$("#id_form_number").change(function(){
     		var url =  "/samples/get_facility/"+$(this).val()+"/";
     		$.get(url, function(data, status){
-    			$('#id_facility').select2().select2('val',data);
+    			$('#id_facility').val(data);
     		});
 		});
 
@@ -379,6 +380,7 @@
 		});
 
 		$("#id_dob").change(function(){
+			//if(strtotime($(this).val())>0 && !valid_dob($(this).val())){ alert("invalid dob"); }			
 			set_age();			
 		});
 
@@ -419,12 +421,17 @@
 	function set_dob(){
 		var age = $("#id_age").val();
 		var units = $("#id_age_units").val();
-		if(units=='M'){
+
+		if(units=='Y'){
+			now_y = date_now.getFullYear();
+			dob_y = now_y-age;
+			var dob = new Date(dob_y+"-01-01");
+		}else{
 			var age = age/12;
-		}
-		var age_s = age*365*24*3600*1000;
-		var dob_s = now_s-age_s;
-		var dob = new Date(dob_s);
+			var age_s = age*365*24*3600*1000;
+			var dob_s = now_s-age_s;
+			var dob = new Date(dob_s);
+		}	
 		$("#id_dob").combodate('setValue', dob);
 	}
 
@@ -453,6 +460,18 @@
 			});	
 		}
 					
+	}
+
+	function future_date(string_date){
+		var now = new Date();
+		var dob_s = strtotime(string_date);
+		var now_s = now.getTime();
+		return dob_s<=now_s;
+	}
+
+	function strtotime(string_date){
+		var date_obj = new Date(string_date+" 00:00:00");
+		return date_obj.getTime();
 	}
 //422551
 

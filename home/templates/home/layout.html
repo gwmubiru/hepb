@@ -72,6 +72,9 @@
                         <li>
                             <a href="{% url 'home_page' %}"><i class="fa fa-home fa-fw"></i> Home</a>
                         </li>
+                        
+
+                        {% if perms.samples %}
 
                         <li>
                             <a href="#"><i class="fa fa-folder-open fa-fw"></i> Samples<span class="fa arrow"></span></a>
@@ -86,9 +89,13 @@
                             
                         </li>
 
+                        {% endif %}
+
                         <li>
                             <a href="{% url 'samples:verify_list' %}"><i class="fa fa-check-square-o fa-fw"></i> Verifications</a>
                         </li>
+
+                         {% if perms.worksheets %}
 
                         <li>
                             <a href="#"><i class="fa fa-flask fa-fw"></i> Lab<span class="fa arrow"></span></a>
@@ -107,9 +114,15 @@
                             
                         </li>
 
+                        {% endif %}
+
+                        {% if perms.results %}
+
                         <li>
                             <a href="#"><i class="fa fa-file-o fa-fw"></i> Results</a>
                         </li>
+
+                        {% endif %}
 
                         <li>
                             <a href="#"><i class="fa fa-copy fa-fw"></i> Reports<span class="fa arrow"></span></a>

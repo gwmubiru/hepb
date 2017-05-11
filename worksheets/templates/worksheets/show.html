@@ -7,7 +7,7 @@
 
 {% block content %}	
 	<span class="page-title">WORKSHEET</span>		
-	<div class="panel panel-default">
+	<div class="panel panel-default" style="overflow-y:auto">
 		<div class="panel-body">
 			<div class="worksheet" id="content" >
 				<div class="row" >
@@ -16,7 +16,7 @@
 					<div class="col-md-4">Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></div>
 				</div>
 				<br>
-				<div class="row ">
+				<div class="row wk-row">
 					<div class="col-xs-1 vlbarcodes-wrapper">
 						1<br>
 						Negative Control<br>
@@ -56,7 +56,7 @@
 
 							<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>
 						</div>
-						{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
+						{% if runner|divisibleby:6 %}</div><div class="row wk-row">{% endif %}
 						{% endwith %}
 						
 					{% endfor %}
