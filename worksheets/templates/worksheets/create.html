@@ -2,14 +2,20 @@
 {% load form_tags %}
 {% load staticfiles %}
 
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
 {% block js %}
 	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
 	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
 {% endblock %}
 
 {% block content %}	
 	<span class="page-title">create worksheet</span>		
-	<div class="panel panel-default">
+	<div class="panel panel-default" ng-app="worksheet_samples" ng-controller="worksheetSamplesController">
 		<div class="panel-body">
 			
 			<form action="{% url 'worksheets:create' machine_type %}" method="post" role="form">
@@ -24,6 +30,7 @@
 					</div>
 
 					<div class="form-group col-md-4">
+						<div id="log"></div>
 						{{ form.machine_type.label_tag }}
 						{{ form.machine_type.errors }}
 						{{ form.machine_type }}
@@ -35,11 +42,13 @@
 						{{ form.sample_type }}
 					</div>
 				</div>
-
+				
 				<div class="row">
 					<div class="form-group col-md-5">
 						{% if machine_type == 'R' %}
 							<label for="id_sample_prep">HI2CAP</label>
+						{% elif machine_type == 'C' %}
+							<label for="id_sample_prep">Cobas HIV 1</label>
 						{% else %}
 							{{ form.sample_prep.label_tag }}
 						{% endif %}
@@ -51,6 +60,8 @@
 					<div class="form-inline col-md-4">
 						{% if machine_type == 'R' %}
 							<label for="id_sample_prep">HI2CAP expiry date</label>
+						{% elif machine_type == 'C' %}
+							<label for="id_sample_prep">Cobas HIV 1 expiry date</label>
 						{% else %}
 							{{ form.sample_prep_expiry_date.label_tag }}
 						{% endif %}
@@ -60,6 +71,7 @@
 					</div>
 				</div>
 
+				{% if machine_type != 'C' %}
 				<div class="row">
 					<div class="form-group col-md-5">
 						{{ form.bulk_lysis_buffer.label_tag }}
@@ -73,9 +85,10 @@
 						<br>{{ form.bulk_lysis_buffer_expiry_date }}
 					</div>
 				</div>
+				{% endif %}
+				
 
 				{% if machine_type == 'A' %}
-
 				<div class="row">
 					<div class="form-group col-md-5	">
 						{{ form.control.label_tag }}
@@ -134,7 +147,64 @@
 				</div>
 				<br>{{ userid }}
 
-				<input type="submit" value="save and attach samples" class="btn btn-danger btn-submit ">
+
+				{% if machine_type == 'C' %}
+				<ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+				    <li id="p_samples" class='active' title='Pending'><a href="#" >Pending Samples</a></li>
+				    <li id="r_samples" title='Repeat Samples'><a href="#" >Repeat Samples</a></li>
+				    <li id="s_samples" title='Selected Samples'><a href="#" >Selected Samples (<span class='ng-cloak' ng-model='sample_len' ng-init="sample_len=0"><% sample_len %></span>)</a></li>		    
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane active" >
+						<div style='height: 500px;overflow-y: auto;' >
+						<div id='pending-samples-space'>
+						<input type="text" class="form-control input-sm w-md" placeholder="search by envelope/box" ng-model='envelope_number' ng-keypress="getSamples($event)"><br>
+						<table class="table table-striped table-condensed table-bordered" id="samples-table" >
+							<thead>
+								<th>ART Number</th>
+								<th>Sample ID</th>
+								<th>Location ID</th>
+								<th>Form</th>
+								<th>Instrument ID</th>
+							</thead>
+							<tbody>
+								 <tr ng-repeat="sample in samples" >
+			                        <td class="ng-cloak"><% sample.art_number %></td>
+			                        <td class="ng-cloak"><% sample.vl_sample_id %></td>
+			                        <td class="ng-cloak"><% sample.locator_id %></td>
+			                        <td class="ng-cloak"><% sample.form_number %></td>
+			                        <td><input id="sss<% sample.index %>" tabindex="<% sample.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% sample.id %>" value="" ng-keypress="setSampleLen($event, sample.index)"></td>
+			                    </tr> 
+							</tbody>
+						</table>
+						</div>
+
+						<div id='selected-samples-space' style='display:none'>
+						<table class="table table-striped table-condensed table-bordered" id="samples-table" >
+							<thead>
+								<th>ART Number</th>
+								<th>Sample ID</th>
+								<th>Location ID</th>
+								<th>Form</th>
+								<th>Instrument ID</th>
+							</thead>
+							<tbody>
+								 <tr ng-repeat="s in selected_samples" >
+			                        <td class="ng-cloak"><% s.art_number %></td>
+			                        <td class="ng-cloak"><% s.vl_sample_id %></td>
+			                        <td class="ng-cloak"><% s.locator_id %></td>
+			                        <td class="ng-cloak"><% s.form_number %></td>
+			                        <td class="ng-cloak"><% s.instrument_id %></td>
+			                    </tr> 
+							</tbody>
+						</table>
+						</div>
+						</div>
+					</div>
+				</div>
+				{% endif %}
+
+				<br><span id='submit' class="btn btn-danger btn-submit ">save and attach samples</span>
 				
 			</form>
 		</div>
@@ -163,7 +233,44 @@
     	});
 
     	$("#id_machine_type").attr('readonly','true');
+
+    	/*var oTable = $('#samples-table').dataTable({
+			"processing": true,
+		});*/
+	});
+
+	$("#p_samples").click(function(){ $("#pending-samples-space").show(); });
+	$("#s_samples").click(function(){ 
+		$(this).addClass('active');
+		$("#p_samples").removeClass('active');
+		$("#selected-samples-space").show();
+		$("#pending-samples-space").hide();
+	});
+
+	/*$(".samples").keypress(function(event){
+		var keyCode = event.which || event.keyCode;
+		if(keyCode == 13){
+			console.log("dede");
+			var curr_index = $(this).attr("tabindex");
+			var next_index = Number(curr_index)+1;
+			$("#sss"+next_index).focus();
+		}		
+	})*/
+
+	$("#submit").click(function(){
+		var form = $('form')[0];
+		form.submit();
 	})
 
+/*$( ".samples" ).on( "keydown", function( event ) {
+  $( "#log" ).html( event.type + ": " +  event.which );
+});*/
+
+	/*$(".samples").change(function(){
+		$("#instrument"+$(this).val()).focus();
+	});*/
+
 	</script>
+
+<script type="text/javascript" src='{% static "worksheets/js/worksheet.js" %}'></script>
 {% endblock %}

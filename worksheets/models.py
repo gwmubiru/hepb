@@ -7,13 +7,13 @@ from samples.models import Sample
 
 # Create your models here.
 class Worksheet(models.Model):
-	MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche') )
-	samples = models.ManyToManyField(Sample)
+	MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche'), ('C', 'Cobas 8800') )
+	samples = models.ManyToManyField(Sample, through='WorksheetSample')
 	worksheet_reference_number = models.CharField(max_length=128)
 	machine_type = models.CharField(max_length=1, choices=MACHINE_TYPES)
 	sample_type = models.CharField(max_length=1, choices=Sample.SAMPLE_TYPES)
-	sample_prep = models.CharField(max_length=64)
-	sample_prep_expiry_date = models.DateField()
+	sample_prep = models.CharField(max_length=64,null=True, blank=True)
+	sample_prep_expiry_date = models.DateField(null=True, blank=True)
 	bulk_lysis_buffer = models.CharField(max_length=64, null=True, blank=True)
 	bulk_lysis_buffer_expiry_date = models.DateField(null=True, blank=True)
 	control = models.CharField(max_length=64, null=True, blank=True)
@@ -34,12 +34,12 @@ class Worksheet(models.Model):
 	class Meta:
 		db_table = 'vl_worksheets'
 
-# #Attaching samples to work sheet
-# class WorksheetSample(models.Model):
-# 	worksheet = models.ForeignKey(Worksheet)
-# 	sample = models.ForeignKey(Sample)
-# 	attached_by = models.ForeignKey(User, related_name='attached_by')
-# 	created_at = models.DateTimeField(auto_now_add=True)	
 
-# 	class Meta:
-# 		db_table = 'vl_worksheet_samples'	
+#Attaching samples to work sheet
+class WorksheetSample(models.Model):
+	worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)
+	sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
+	instrument_id = models.CharField(max_length=64, null=True, blank=True)
+
+	class Meta:
+		db_table = 'vl_worksheet_samples'	

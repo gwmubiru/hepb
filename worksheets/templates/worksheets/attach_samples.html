@@ -67,7 +67,7 @@
 									{{ runner }}<br>
 									<span class='sm-label'>Pat ART #</span>: {{ sample.patient.art_number }}<br>
 									<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
-									<span class='sm-label'>Location ID</span>: {{ sample.locator_category }}{{ sample.envelope.envelope_number }}{{ sample.locator_position }}<br>
+									<span class='sm-label'>Location ID</span>: {{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}<br>
 									<span class='sm-label'>Form #</span>: {{ sample.form_number }}
 
 									<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>

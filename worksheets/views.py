@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from easy_pdf.views import PDFTemplateView
@@ -11,7 +12,7 @@ from django.db.models import Q
 
 from home import utils
 from .forms import WorksheetForm,AttachSamplesForm
-from .models import Worksheet
+from .models import Worksheet,WorksheetSample
 from samples.models import Sample
 from . import utils as worksheet_utils
 
@@ -46,34 +47,65 @@ def create(request, machine_type):
 		form = WorksheetForm(request.POST)
 		if form.is_valid():
 			worksheet = form.save(commit=False)
-			worksheet.worksheet_reference_number = worksheet_utils.create_worksheet_ref_number(request.user)
+			worksheet.worksheet_reference_number = worksheet_utils.create_worksheet_ref_number(machine_type,worksheet.sample_type)
 			worksheet.machine_type = machine_type
 			worksheet.generated_by = request.user
 			worksheet.save()
+
+			if machine_type == 'C':
+				attached_samples = request.POST.getlist('samples')
+				worksheet_samples = []
+				
+				for sample_id in attached_samples:
+					instrument_id = request.POST.get('instrument'+sample_id)
+					if instrument_id:
+						sample = Sample.objects.get(pk=sample_id)
+						worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
+						sample.in_worksheet = True
+						sample.save()
+
+				#return HttpResponse(ret)
+				WorksheetSample.objects.bulk_create(worksheet_samples)
+				return redirect('worksheets:show',worksheet.pk)
+
+
 			return redirect('worksheets:attach_samples', worksheet_id=worksheet.id)
 	else:
 		form = WorksheetForm(initial={'machine_type':machine_type})
+		context = {'form': form, 'machine_type':machine_type}
+		if machine_type == 'C':
+			repeat_samples = Sample.objects.filter(sampleresults__repeat_test = True)[:50]
+			context.update({'samples':Sample.objects.filter(verification__accepted=True, in_worksheet=False).\
+									extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
+									order_by('envelope__envelope_number', 'lposition_int')[:50], 'repeat_samples':repeat_samples})
 
-	return render(request, 'worksheets/create.html', {'form': form, 'machine_type':machine_type})
+
+	return render(request, 'worksheets/create.html', context)
 
 def attach_samples(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	if request.method == 'POST':
 		# pass
 		attached_samples = request.POST.getlist('samples')
+		worksheet_samples = []
 		
 		for sample_id in attached_samples:
-			sample = Sample.objects.get(pk=sample_id)
-			worksheet.samples.add(sample)
+			sample = Sample.objects.get(pk=sample_id)			
+			#worksheet.samples.add(sample)
+			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample))
 			sample.in_worksheet = True
 			sample.save()
+
+		WorksheetSample.objects.bulk_create(worksheet_samples)
 			
 		return redirect('worksheets:show',worksheet_id)
 	else:
 		#form = AttachSamplesForm()
 		sample_limit = 21 if worksheet.machine_type == 'R' else 93
 		sample_pads = 11 if worksheet.include_calibrators else 3
-		samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False).order_by('created_at')[:sample_limit]
+		samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False).\
+					extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
+					order_by('envelope__envelope_number', 'lposition_int')
 		repeat_samples = Sample.objects.filter(sampleresults__repeat_test = True)[:sample_limit]
 		# samples = Sample.objects.filter(in_worksheet=False).order_by('created_at')[:sample_limit]
 		# repeat_samples = Sample.objects.all()[:sample_limit]
@@ -109,6 +141,27 @@ def vlprint(request, worksheet_id):
 	sample_pads = 11 if worksheet.include_calibrators else 3
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 	return render(request, 'worksheets/vlprint.html', context)
+
+def authorize_results(request):
+	pass
+
+def pending_samples(request):	
+	envelope_number =request.GET.get('envelope_number')
+	samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False, envelope__envelope_number=envelope_number).\
+									extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
+									order_by('envelope__envelope_number', 'lposition_int')[:50]
+	ret=[]
+	for i,s in enumerate(samples):
+		ret.append({
+				'index': i,
+				'id': s.id,
+				'vl_sample_id': s.vl_sample_id,
+				'locator_id': "%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
+				'form_number': s.form_number,
+				'art_number': s.patient.art_number,
+			})
+	return HttpResponse(json.dumps(ret))
+
 
 class ListJson(BaseDatatableView):
 	model = Worksheet

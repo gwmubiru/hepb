@@ -58,9 +58,7 @@
             	<li> 
             		<img src='{% static "home/images/ug.png" %}'  width="45" height="45">
             	</li>
-            	
-                
-               
+ 
                 <!-- /.dropdown -->
             </ul>
             <!-- /.navbar-top-links -->
@@ -104,11 +102,15 @@
                                     <a href="#">Create Worksheet</a>
                                     <ul class="nav nav-third-level">
                                         <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
-                                        <li><a href="{% url 'worksheets:create' 'R' %}">For Roche</a></li>
+                                        <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
+                                        <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
                                     </ul>
                                 </li>
                                 <li>
                                     <a href="{% url 'worksheets:list'  %}">List Worksheets</a>
+                                </li>
+                                 <li>
+                                    <a href="{% url 'worksheets:authorize_results'  %}">Authorize Results</a>
                                 </li>
                             </ul>
                             
@@ -119,7 +121,7 @@
                         {% if perms.results %}
 
                         <li>
-                            <a href="#"><i class="fa fa-file-o fa-fw"></i> Results</a>
+                            <a href="#"><i class="fa fa-file-o fa-fw"></i> Results Release</a>
                         </li>
 
                         {% endif %}
