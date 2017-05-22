@@ -7,6 +7,8 @@ $ sudo apt-get install libmysqlclient-dev build-essential autoconf libtool pkg-c
 
 $ sudo apt-get install python-pip
 
+$ sudo apt-get install libmysqlclient-dev
+
 $ sudo apt-get install nodejs
 
 $ sudo apt-get install npm
@@ -41,7 +43,6 @@ recv() failed (104: Connection reset by peer)
 --
 http://stackoverflow.com/questions/22697584/nginx-uwsgi-104-connection-reset-by-peer-while-reading-response-header-from-u
 
-git clone https://github.com/CHAIUganda/viral_load2.git
 
 CREATE DATABASE vldb character set utf8 collate utf8_general_ci;
 
@@ -62,7 +63,7 @@ $ ./manage.py migrate
 
 
 sudo pip install uwsgi
-
+sudo apt-get install nginx
 
 
 
