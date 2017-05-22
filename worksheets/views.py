@@ -43,6 +43,7 @@ def generate_pdf(request, worksheet_id):
 
 	
 def create(request, machine_type):
+	context = { 'machine_type':machine_type}
 	if request.method == 'POST':
 		form = WorksheetForm(request.POST)
 		if form.is_valid():
@@ -146,11 +147,16 @@ def authorize_results(request):
 	pass
 
 def pending_samples(request):	
-	envelope_number =request.GET.get('envelope_number')
-	samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False, envelope__envelope_number=envelope_number).\
-									extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
-									order_by('envelope__envelope_number', 'lposition_int')[:50]
+	repeat = request.GET.get('repeat')
+	if repeat:
+		samples = Sample.objects.filter(sampleresults__repeat_test = True)[:50]
+	else:
+		envelope_number =request.GET.get('envelope_number')
+		samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False, envelope__envelope_number=envelope_number) if envelope_number else\
+					Sample.objects.filter(verification__accepted=True, in_worksheet=False)
+		samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:50]
 	ret=[]
+
 	for i,s in enumerate(samples):
 		ret.append({
 				'index': i,

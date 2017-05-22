@@ -1,10 +1,9 @@
 
-sudo apt-get install mysql-server-5.6
+$ sudo apt-get install mysql-server-5.6
+
 $ sudo adduser vl
 
-$ su vl
-
-sudo apt-get install libmysqlclient-dev build-essential autoconf libtool pkg-config python-opengl python-imaging python-pyrex python-pyside.qtopengl idle-python2.7 qt4-dev-tools qt4-designer libqtgui4 libqtcore4 libqt4-xml libqt4-test libqt4-script libqt4-network libqt4-dbus python-qt4 python-qt4-gl libgle3 python-dev
+$ sudo apt-get install libmysqlclient-dev build-essential autoconf libtool pkg-config python-opengl python-imaging python-pyrex python-pyside.qtopengl idle-python2.7 qt4-dev-tools qt4-designer libqtgui4 libqtcore4 libqt4-xml libqt4-test libqt4-script libqt4-network libqt4-dbus python-qt4 python-qt4-gl libgle3 python-dev
 
 $ sudo apt-get install python-pip
 
@@ -26,7 +25,7 @@ $ source ~/.bashrc
 
 $ mkvirtualenv viral_load2 #Creates VM and activates it;; use deactivate to get out and workon vl_vm to go back on
 
-$
+$ git clone https://github.com/CHAIUganda/viral_load2
 
 $ cd viral_load2/viral_load2/
 
