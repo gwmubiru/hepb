@@ -19,7 +19,7 @@ class Worksheet(models.Model):
 	control = models.CharField(max_length=64, null=True, blank=True)
 	control_expiry_date = models.DateField(null=True, blank=True)
 	calibrator = models.CharField(max_length=64, null=True, blank=True)
-	calibrator_expiry_date = models.DateField(null=True, blank=True)
+	calibrator_expiry_date = models.DateField(null=True, bulk_lysis_bufferank=True)
 	include_calibrators = models.BooleanField(default=False)
 	amplication_kit = models.CharField(max_length=64, null=True, blank=True)
 	amplication_kit_expiry_date = models.DateField(null=True, blank=True)
