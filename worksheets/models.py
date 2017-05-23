@@ -7,7 +7,7 @@ from samples.models import Sample
 
 # Create your models here.
 class Worksheet(models.Model):
-	MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche'), ('C', 'Cobas 8800') )
+	MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche CAP/CTM'), ('C', 'Cobas 8800') )
 	samples = models.ManyToManyField(Sample, through='WorksheetSample')
 	worksheet_reference_number = models.CharField(max_length=128)
 	machine_type = models.CharField(max_length=1, choices=MACHINE_TYPES)
@@ -19,7 +19,7 @@ class Worksheet(models.Model):
 	control = models.CharField(max_length=64, null=True, blank=True)
 	control_expiry_date = models.DateField(null=True, blank=True)
 	calibrator = models.CharField(max_length=64, null=True, blank=True)
-	calibrator_expiry_date = models.DateField(null=True, bulk_lysis_bufferank=True)
+	calibrator_expiry_date = models.DateField(null=True, blank=True)
 	include_calibrators = models.BooleanField(default=False)
 	amplication_kit = models.CharField(max_length=64, null=True, blank=True)
 	amplication_kit_expiry_date = models.DateField(null=True, blank=True)
