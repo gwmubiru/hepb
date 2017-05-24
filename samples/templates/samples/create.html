@@ -20,7 +20,9 @@
 		<div class="panel-body">
 			{% if vl_sample_id %}
 			<div id="success" class="alert alert-success vl-alert" role="alert">
-				sample ({{ vl_sample_id }}) successfully created
+				previously saved: ({{ vl_sample_id }})
+				&nbsp;&nbsp;
+				<span class='x' id='x'>x</span>
 			</div>
 			{% endif %}
 			
@@ -310,9 +312,9 @@
 
 
 	$( function() {
-		setTimeout(function(){
-			$("#success").slideUp("fast");
-		},1000);
+		/*setTimeout(function(){
+			$("#success").slideUp("slow");
+		},10000);*/
     	/*$( ".date-picker" ).datepicker({
       		changeMonth: true,
       		changeYear: true,
@@ -412,6 +414,10 @@
 
 		});
 
+		$("#success").on("click", function(){
+			$("#success").slideUp("slow");
+		});
+
     	
   	});
 
@@ -478,4 +484,12 @@
 
 </script>
 
+
+<style type="text/css">
+    .x{
+    	color: rgb(210, 190, 220);
+    	cursor: pointer;
+    	font-size: 18px;
+    }
+</style>
 {% endblock %}

@@ -119,6 +119,7 @@ class SampleForm(forms.ModelForm):
 		VL_SAMPLETYPE = "Sample Type"
 
 		labels = {
+			'treatment_indication': "Indication for Treament initiation",
 			'last_test_date': "Last VL Date",
 			'last_value': "Value",
 			'last_sample_type': "Sample Type",
