@@ -5,9 +5,12 @@ from django.contrib.auth.models import User
 
 from samples.models import Sample
 
+#'awaiting_results','has_results','passed_lab_qc','passed_data_qc'
+
 # Create your models here.
 class Worksheet(models.Model):
 	MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche CAP/CTM'), ('C', 'Cobas 8800') )
+	STAGE_CHOICES = ( (1, 'awaiting_results'),(2, 'has_results'), (3, 'passed_lab_qc'), (4, 'passed_data_qc') )
 	samples = models.ManyToManyField(Sample, through='WorksheetSample')
 	worksheet_reference_number = models.CharField(max_length=128)
 	machine_type = models.CharField(max_length=1, choices=MACHINE_TYPES)
@@ -28,7 +31,7 @@ class Worksheet(models.Model):
 	worksheet_updated_by = models.ForeignKey(User, related_name='worksheet_updated_by', null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
-	results_uploaded = models.BooleanField(default=False)
+	stage = models.PositiveSmallIntegerField(choices=MACHINE_TYPES, default='1')
 	printed = models.BooleanField(default=False)
 
 	class Meta:

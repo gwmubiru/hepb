@@ -144,7 +144,8 @@ def vlprint(request, worksheet_id):
 	return render(request, 'worksheets/vlprint.html', context)
 
 def authorize_results(request):
-	pass
+	worksheets = Worksheet.objects.filter(stage=2)
+	return render(request,'worksheets/authorize_results.html',{'worksheets':worksheets})
 
 def pending_samples(request):	
 	repeat = request.GET.get('repeat')

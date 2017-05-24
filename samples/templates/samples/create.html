@@ -325,11 +325,11 @@
 		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
 
-    	/*$("#id_facility").select2({	
+    	$("#id_facility").select2({	
     		placeholder: "Select facility", 
     		allowClear: true,
     		width: "58%",
-    	});*/
+    	});
 
     	//$(".optional").removeAttr('required');
 
@@ -371,7 +371,8 @@
     	$("#id_form_number").change(function(){
     		var url =  "/samples/get_facility/"+$(this).val()+"/";
     		$.get(url, function(data, status){
-    			$('#id_facility').val(data);
+    			$('#id_facility').val(data).trigger('change');
+    			//$('#id_facility').val(data);
     		});
 		});
 

@@ -3,10 +3,10 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
 
-from .forms import UploadForm
+from .forms import UploadForm, CobasUploadForm
 from worksheets.models import Worksheet
 from samples.models import Sample
-from .models import FinalResult,SampleResults
+from .models import Result
 from . import utils as result_utils
 
 # patient, pat_created = Patient.objects.get_or_create(
@@ -15,20 +15,20 @@ from . import utils as result_utils
 # 						)
 # Create your views here.
 
-def store_final_result(machine_type, sample, result):
-	fr = FinalResult();
-	fr.sample = sample	
-	fr.valid = True
-	fr.final_result = get_status(result)
-	fr.result_numeric = get_numeric_result(result)
-	fr.result_alphanumeric = get_alphanumeric_result(result)
-	fr.method = machine_type
-	fr.test_date = timezone.now()
-	fr.test_by = 2
-	fr.save()
+# def store_final_result(machine_type, sample, result):
+# 	fr = FinalResult();
+# 	fr.sample = sample	
+# 	fr.valid = True
+# 	fr.final_result = get_status(result)
+# 	fr.result_numeric = get_numeric_result(result)
+# 	fr.result_alphanumeric = get_alphanumeric_result(result)
+# 	fr.method = machine_type
+# 	fr.test_date = timezone.now()
+# 	fr.test_by = 2
+# 	fr.save()
 
 def store_result(machine_type, sample, result, repeat):
-	sr = SampleResults.objects
+	sr = Result.objects
 	sample_result, sr_created = sr.get_or_create(sample=sample)
 	if sample_result.result1 == '':
 		sample_result.result1 = result
@@ -41,11 +41,11 @@ def store_result(machine_type, sample, result, repeat):
 	else:
 		sample_result.result5 = result
 
-	sample_result.repeat_test = repeat
+	#sample_result.repeat_test = repeat
 	sample_result.save()
 
-	if repeat==False:
-		store_final_result(machine_type, sample, result)
+	# if repeat==False:
+	# 	store_final_result(machine_type, sample, result)
 
 
 def handle_files(f, worksheet):
@@ -57,8 +57,8 @@ def handle_files(f, worksheet):
 			result = data["Result"]
 			vl_sample_id = data["Sample ID"]
 			sample = Sample.objects.get(vl_sample_id=vl_sample_id)
-			repeat = result_utils.repeat_test('R', result, '')
-			store_result('R', sample, result, repeat)
+			#repeat = result_utils.repeat_test('R', result, '')
+			store_result('R', sample, result)
 			# except:
 			# 	pass			
 			
@@ -70,8 +70,8 @@ def handle_files(f, worksheet):
 			result = data.get("RESULT")
 			vl_sample_id = data.get("SAMPLE ID")
 			sample = Sample.objects.get(vl_sample_id=vl_sample_id)
-			repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
-			store_result('A', sample,result, repeat)
+			#repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
+			store_result('A', sample,result)
 			# except:
 			# 	pass
 
@@ -91,11 +91,37 @@ def upload(request, worksheet_id):
 			#return HttpResponse(upload.results_file)
 			handle_files(upload.results_file, worksheet)
 
-			#return redirect('worksheets:list')
+			return redirect('worksheets:list')
 	else:
 		form = UploadForm(initial={'multiplier':1, 'worksheet': worksheet})
 		
 	return render(request, 'results/upload.html', {'form': form, 'worksheet': worksheet})
+
+def cobas_upload(request):
+	if(request.method == 'POST'):
+		form = CobasUploadForm(request.POST, request.FILES)
+		if form.is_valid():
+			upload = form.save(commit=False)
+			upload.cobas_uploaded_by = request.user	
+			upload.save()
+
+			reader = pandas.read_csv(upload.results_file, sep=',')
+			for row in reader.iterrows():
+				# try:
+				index, data = row
+				result = data["Target 1"]
+				vl_sample_id = data["Sample ID"]
+				sample = Sample.objects.filter(vl_sample_id=vl_sample_id)[0].sample
+
+				#repeat = result_utils.repeat_test('R', result, '')
+				store_result('R', sample, result)
+
+			
+			return redirect('worksheets:list')
+	else:
+		form = CobasUploadForm(initial={'multiplier':1})
+
+	return render(request, 'results/cobas_upload.html', {'form': form})
 
 def list(request):
 	search_val = request.GET.get('search_val')

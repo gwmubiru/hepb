@@ -106,12 +106,10 @@
                                         <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
                                     </ul>
                                 </li>
-                                <li>
-                                    <a href="{% url 'worksheets:list'  %}">List Worksheets</a>
-                                </li>
-                                 <li>
-                                    <a href="{% url 'worksheets:authorize_results'  %}">Authorize Results</a>
-                                </li>
+                                <li><a href="{% url 'worksheets:list'  %}">List Worksheets</a></li>
+                                <li><a href="{% url 'results:cobas_upload'  %}">Cobas 8800 Upload</a></li>
+                                <li><a href="{% url 'worksheets:authorize_results'  %}">Authorize Results</a></li>
+                               
                             </ul>
                             
                         </li>

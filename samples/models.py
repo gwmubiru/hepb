@@ -111,8 +111,6 @@ class Sample(models.Model):
 	
 	verified = models.BooleanField(default=False)
 	in_worksheet = models.BooleanField(default=False)
-	printed = models.BooleanField(default=False)
-	dispatched = models.BooleanField(default=False)
 	created_by = models.ForeignKey(User, related_name='created_by')
 	updated_by = models.ForeignKey(User, related_name='updated_by', null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
