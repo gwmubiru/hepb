@@ -97,31 +97,30 @@ def upload(request, worksheet_id):
 		
 	return render(request, 'results/upload.html', {'form': form, 'worksheet': worksheet})
 
-def cobas_upload(request):
-	if(request.method == 'POST'):
-		form = CobasUploadForm(request.POST, request.FILES)
-		if form.is_valid():
-			upload = form.save(commit=False)
-			upload.cobas_uploaded_by = request.user	
-			upload.save()
+# def cobas_upload(request):
+# 	if(request.method == 'POST'):
+# 		form = CobasUploadForm(request.POST, request.FILES)
+# 		if form.is_valid():
+# 			upload = form.save(commit=False)
+# 			upload.cobas_uploaded_by = request.user	
+# 			upload.save()
 
-			reader = pandas.read_csv(upload.results_file, sep=',')
-			for row in reader.iterrows():
-				# try:
-				index, data = row
-				result = data["Target 1"]
-				vl_sample_id = data["Sample ID"]
-				sample = Sample.objects.filter(vl_sample_id=vl_sample_id)[0].sample
+# 			reader = pandas.read_csv(upload.results_file, sep=',')
+# 			for row in reader.iterrows():
+# 				# try:
+# 				index, data = row
+# 				result = data["Target 1"]
+# 				vl_sample_id = data["Sample ID"]
+# 				sample = Sample.objects.filter(vl_sample_id=vl_sample_id)[0].sample
 
-				#repeat = result_utils.repeat_test('R', result, '')
-				store_result('R', sample, result)
+# 				#repeat = result_utils.repeat_test('R', result, '')
+# 				store_result('R', sample, result)
+				
+# 			return redirect('worksheets:list')
+# 	else:
+# 		form = CobasUploadForm(initial={'multiplier':1})
 
-			
-			return redirect('worksheets:list')
-	else:
-		form = CobasUploadForm(initial={'multiplier':1})
-
-	return render(request, 'results/cobas_upload.html', {'form': form})
+# 	return render(request, 'results/cobas_upload.html', {'form': form})
 
 def list(request):
 	search_val = request.GET.get('search_val')
