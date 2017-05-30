@@ -75,7 +75,7 @@ def create(request, machine_type):
 		form = WorksheetForm(initial={'machine_type':machine_type})
 		context = {'form': form, 'machine_type':machine_type}
 		if machine_type == 'C':
-			repeat_samples = Sample.objects.filter(sampleresults__repeat_test = True)[:50]
+			repeat_samples = Sample.objects.filter(result__repeat_test = True)[:50]
 			context.update({'samples':Sample.objects.filter(verification__accepted=True, in_worksheet=False).\
 									extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
 									order_by('envelope__envelope_number', 'lposition_int')[:50], 'repeat_samples':repeat_samples})
@@ -107,7 +107,7 @@ def attach_samples(request, worksheet_id):
 		samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False).\
 					extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
 					order_by('envelope__envelope_number', 'lposition_int')
-		repeat_samples = Sample.objects.filter(sampleresults__repeat_test = True)[:sample_limit]
+		repeat_samples = Sample.objects.filter(result__repeat_test = True)[:sample_limit]
 		# samples = Sample.objects.filter(in_worksheet=False).order_by('created_at')[:sample_limit]
 		# repeat_samples = Sample.objects.all()[:sample_limit]
 		context = {
@@ -143,9 +143,15 @@ def vlprint(request, worksheet_id):
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 	return render(request, 'worksheets/vlprint.html', context)
 
-def authorize_results(request):
+def authorize_list(request, machine_type):
 	worksheets = Worksheet.objects.filter(stage=2)
-	return render(request,'worksheets/authorize_results.html',{'worksheets':worksheets})
+	return render(request,'worksheets/list.html',{'worksheets':worksheets})
+
+def authorize_results(request, worksheet_id):
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
+	sample_pads = 11 if worksheet.include_calibrators else 3
+	context = {'worksheet': worksheet, 'sample_pads': sample_pads}
+	return render(request, 'worksheets/authorize_results.html', context)
 
 def pending_samples(request):	
 	repeat = request.GET.get('repeat')

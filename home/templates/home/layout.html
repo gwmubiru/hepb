@@ -108,7 +108,14 @@
                                 </li>
                                 <li><a href="{% url 'worksheets:list'  %}">List Worksheets</a></li>
                                 
-                                <li><a href="{% url 'worksheets:authorize_results'  %}">Authorize Results</a></li>
+                                <li>
+                                    <a href="#">Authorize Results</a>
+                                     <ul class="nav nav-third-level">
+                                        <li><a href="{% url 'worksheets:authorize_list' 'A' %}">For Abbott</a></li>
+                                        <li><a href="{% url 'worksheets:authorize_list' 'R' %}">For Roche CAP/CTM</a></li>
+                                        <li><a href="{% url 'worksheets:authorize_list' 'C' %}">For Cobas 8800</a></li>
+                                    </ul>
+                                </li>
                                
                             </ul>
                             
