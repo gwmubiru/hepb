@@ -6,7 +6,7 @@ from django.utils import timezone
 from .forms import UploadForm, CobasUploadForm
 from worksheets.models import Worksheet
 from samples.models import Sample
-from .models import Result
+from .models import Result,ResultsPrinting
 from . import utils as result_utils
 
 # patient, pat_created = Patient.objects.get_or_create(
@@ -137,4 +137,28 @@ def list(request):
 def worksheet_results(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	return render(request, 'results/worksheet_results.html', {'worksheet':worksheet})
+
+def release_list(request, machine_type):
+	worksheets = Worksheet.objects.filter(stage=3, machine_type=machine_type)
+	return render(request,'results/release_list.html',{'worksheets':worksheets})
+
+def release_results(request, worksheet_id):
+	if request.method == 'POST':
+		result = Result.objects.get(pk=request.POST.get('result_pk'))
+		choice = request.POST.get('choice')
+		rp = ResultsPrinting()
+		if choice == 'release':
+			rp.released = True
+		else:
+			rp.released =False
+		rp.released_by = request.user
+		rp.released_at = timezone.now()
+		rp.result = result
+		rp.save()
+		return HttpResponse("saved")
+	else:
+		worksheet = Worksheet.objects.get(pk=worksheet_id)
+		sample_pads = 11 if worksheet.include_calibrators else 3
+		context = {'worksheet': worksheet, 'sample_pads': sample_pads}
+		return render(request, 'results/release_results.html', context)
 

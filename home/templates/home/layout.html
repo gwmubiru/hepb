@@ -126,8 +126,12 @@
                         {% if perms.results %}
 
                         <li>
-                            <a href="#"><i class="fa fa-file-o fa-fw"></i> Results Release</a>
-                           
+                            <a href="#"><i class="fa fa-file-o fa-fw"></i> Results Release<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li><a href="{% url 'results:release_list' 'A' %}">For Abbott</a></li>
+                                <li><a href="{% url 'results:release_list' 'R' %}">For Roche CAP/CTM</a></li>
+                                <li><a href="{% url 'results:release_list' 'C' %}">For Cobas 8800</a></li>
+                            </ul>
                         </li>
 
                         {% endif %}
