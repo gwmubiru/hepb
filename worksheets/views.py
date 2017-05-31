@@ -1,4 +1,5 @@
 import json
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from easy_pdf.views import PDFTemplateView
@@ -14,6 +15,7 @@ from home import utils
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample
 from samples.models import Sample
+from results.models import Result
 from . import utils as worksheet_utils
 
 
@@ -144,14 +146,33 @@ def vlprint(request, worksheet_id):
 	return render(request, 'worksheets/vlprint.html', context)
 
 def authorize_list(request, machine_type):
-	worksheets = Worksheet.objects.filter(stage=2)
-	return render(request,'worksheets/list.html',{'worksheets':worksheets})
+	worksheets = Worksheet.objects.filter(stage=2, machine_type=machine_type)
+	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets})
 
 def authorize_results(request, worksheet_id):
-	worksheet = Worksheet.objects.get(pk=worksheet_id)
-	sample_pads = 11 if worksheet.include_calibrators else 3
-	context = {'worksheet': worksheet, 'sample_pads': sample_pads}
-	return render(request, 'worksheets/authorize_results.html', context)
+	if request.method == 'POST':
+		result = Result.objects.get(pk=request.POST.get('result_pk'))
+		choice = request.POST.get('choice')
+		if choice == 'reschedule':
+			result.repeat_test = 1
+		elif choice == 'invalid':
+			result.result_alphanumeric = 'FAILED'
+			result.suppressed = 3
+			result.authorised = True
+			result.authorised_by_id = request.user
+			result.authorised_at = timezone.now()
+		else:
+			result.authorised = True
+			result.authorised_by_id = request.user
+			result.authorised_at = timezone.now()
+
+		result.save()
+		return HttpResponse("saved");
+	else:
+		worksheet = Worksheet.objects.get(pk=worksheet_id)
+		sample_pads = 11 if worksheet.include_calibrators else 3
+		context = {'worksheet': worksheet, 'sample_pads': sample_pads}
+		return render(request, 'worksheets/authorize_results.html', context)
 
 def pending_samples(request):	
 	repeat = request.GET.get('repeat')

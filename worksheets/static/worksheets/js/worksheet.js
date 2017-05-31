@@ -44,35 +44,6 @@ ctrller.worksheetSamplesController = function($scope,$http){
 		}		
 	}
 
-/*
-	$scope.saveVerification= function(){
-		//console.log(JSON.stringify($scope.sample));
-		//$http.get("/samples/save_verify?"+$scope.sample)
-
-		 $http({method:'GET',url:"/samples/save_verify",params:$scope.sample}).success(function(response) {
-			//console.log(response);
-			if(response=="saved"){
-				//alert("Saved successfully");
-				if($scope.nxt_sample>=$scope.vdata.length){
-					$("#completed").css("display","block");
-				}else{
-					$scope.sample = $scope.vdata[$scope.nxt_sample];
-					$scope.nxt_sample += 1;
-					$("#success").css("display","block");
-
-					setTimeout(function(){
-						$("#success").slideUp( "slow");
-					},400);
-				}				
-			}else{
-				alert("verifying failed");
-				$scope.sample = $scope.vdata[($scope.nxt_sample-1)]
-			}
-
-					});
-		return false;
-	}*/
-
 }
 
 app.controller(ctrller);

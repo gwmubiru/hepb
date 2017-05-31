@@ -31,7 +31,7 @@ class Worksheet(models.Model):
 	worksheet_updated_by = models.ForeignKey(User, related_name='worksheet_updated_by', null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
-	stage = models.PositiveSmallIntegerField(choices=MACHINE_TYPES, default='1')
+	stage = models.PositiveSmallIntegerField(choices=MACHINE_TYPES, default=1)
 	printed = models.BooleanField(default=False)
 
 	class Meta:

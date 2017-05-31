@@ -13,26 +13,25 @@ import worksheets.models as worksheets
 
 #track 
 class Result(models.Model):
-	RESULT_CHOICES = ( (1, 'Suppressed'),(2, 'Unsuppressed'), (3, 'Failed') )
 	METHOD_CHOICES = ( ('A', 'Abbott Real time HIV-1 PCR'), ('R', 'HIV-1 RNA PCR Roche'), ('C', 'HIV-1 RNA PCR Roche'))
 	sample = models.OneToOneField(samples.Sample, on_delete=models.CASCADE)
-	repeat_test = models.BooleanField(default=False)
+	repeat_test = models.PositiveSmallIntegerField(default=2,choices=( (1, 'YES'),(2, 'NO'), (3, 'PROPOSED') ))
 	result1 = models.TextField()
 	result2 = models.TextField()
 	result3 = models.TextField()
 	result4 = models.TextField()
 	result5 = models.TextField()
 
-	final_result = models.PositiveSmallIntegerField(choices=RESULT_CHOICES)
+	suppressed = models.PositiveSmallIntegerField(default=3,choices=( (1, 'YES'),(2, 'NO'), (3, 'UNKNOWN') ))
 	result_numeric = models.IntegerField()
 	result_alphanumeric = models.TextField()
 	method = models.CharField(max_length=1, null=True, choices=METHOD_CHOICES)
 	test_date = models.DateTimeField()
 	test_by = models.ForeignKey(User, related_name='test_by')
 
+	authorised = models.BooleanField(default=False)
 	authorised_by = models.ForeignKey(User, related_name='authorised_by', null=True)
 	authorised_at = models.DateTimeField(null=True)
-
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
