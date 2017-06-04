@@ -23,11 +23,11 @@ class Result(models.Model):
 	result5 = models.TextField()
 
 	suppressed = models.PositiveSmallIntegerField(default=3,choices=( (1, 'YES'),(2, 'NO'), (3, 'UNKNOWN') ))
-	result_numeric = models.IntegerField()
+	result_numeric = models.IntegerField(null=True)
 	result_alphanumeric = models.TextField()
 	method = models.CharField(max_length=1, null=True, choices=METHOD_CHOICES)
-	test_date = models.DateTimeField()
-	test_by = models.ForeignKey(User, related_name='test_by')
+	test_date = models.DateTimeField(null=True)
+	test_by = models.ForeignKey(User,null=True, related_name='test_by')
 
 	authorised = models.BooleanField(default=False)
 	authorised_by = models.ForeignKey(User, related_name='authorised_by', null=True)

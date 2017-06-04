@@ -177,7 +177,7 @@ def authorize_results(request, worksheet_id):
 def pending_samples(request):	
 	repeat = request.GET.get('repeat')
 	if repeat:
-		samples = Sample.objects.filter(sampleresults__repeat_test = True)[:50]
+		samples = Sample.objects.filter(result__repeat_test = True)[:50]
 	else:
 		envelope_number =request.GET.get('envelope_number')
 		samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False, envelope__envelope_number=envelope_number) if envelope_number else\

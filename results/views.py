@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from .forms import UploadForm, CobasUploadForm
-from worksheets.models import Worksheet
+from worksheets.models import Worksheet,WorksheetSample
 from samples.models import Sample
 from .models import Result,ResultsPrinting
 from . import utils as result_utils
@@ -27,9 +27,8 @@ from . import utils as result_utils
 # 	fr.test_by = 2
 # 	fr.save()
 
-def store_result(machine_type, sample, result, repeat):
-	sr = Result.objects
-	sample_result, sr_created = sr.get_or_create(sample=sample)
+def store_result(machine_type, sample, result, repeat, multiplier, user):
+	sample_result, sr_created = Result.objects.get_or_create(sample=sample)
 	if sample_result.result1 == '':
 		sample_result.result1 = result
 	elif sample_result.result2 == '':
@@ -41,14 +40,22 @@ def store_result(machine_type, sample, result, repeat):
 	else:
 		sample_result.result5 = result
 
-	#sample_result.repeat_test = repeat
+	sample_result.repeat_test = repeat
+	result_dict = result_utils.get_result(result, multiplier)
+	sample_result.result_numeric = result_dict.get('numeric_result')
+	sample_result.result_alphanumeric = result_dict.get('alphanumeric_result')
+	sample_result.suppressed = result_dict.get('suppressed')
+	sample_result.method = machine_type
+	sample_result.test_date = timezone.now()
+	sample_result.test_by = user
+
 	sample_result.save()
 
 	# if repeat==False:
 	# 	store_final_result(machine_type, sample, result)
 
 
-def handle_files(f, worksheet):
+def handle_files(f, worksheet, user):
 	if worksheet.machine_type == 'R':
 		reader = pandas.read_csv(f, sep=',')
 		for row in reader.iterrows():
@@ -57,8 +64,8 @@ def handle_files(f, worksheet):
 			result = data["Result"]
 			vl_sample_id = data["Sample ID"]
 			sample = Sample.objects.get(vl_sample_id=vl_sample_id)
-			#repeat = result_utils.repeat_test('R', result, '')
-			store_result('R', sample, result)
+			repeat = result_utils.repeat_test('R', result, '')
+			store_result('R', sample, result, repeat, worksheet.multiplier, user)
 			# except:
 			# 	pass			
 			
@@ -70,8 +77,8 @@ def handle_files(f, worksheet):
 			result = data.get("RESULT")
 			vl_sample_id = data.get("SAMPLE ID")
 			sample = Sample.objects.get(vl_sample_id=vl_sample_id)
-			#repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
-			store_result('A', sample,result)
+			repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
+			store_result('A', sample,result, repeat, worksheet.multiplier, user)
 			# except:
 			# 	pass
 
@@ -89,7 +96,7 @@ def upload(request, worksheet_id):
 
 			#f = request.FILES['results_file']
 			#return HttpResponse(upload.results_file)
-			handle_files(upload.results_file, worksheet)
+			handle_files(upload.results_file, worksheet, request.user)
 
 			return redirect('worksheets:list')
 	else:
@@ -97,30 +104,33 @@ def upload(request, worksheet_id):
 		
 	return render(request, 'results/upload.html', {'form': form, 'worksheet': worksheet})
 
-# def cobas_upload(request):
-# 	if(request.method == 'POST'):
-# 		form = CobasUploadForm(request.POST, request.FILES)
-# 		if form.is_valid():
-# 			upload = form.save(commit=False)
-# 			upload.cobas_uploaded_by = request.user	
-# 			upload.save()
+def cobas_upload(request):
+	if(request.method == 'POST'):
+		form = CobasUploadForm(request.POST, request.FILES)
+		if form.is_valid():
+			upload = form.save(commit=False)
+			upload.upload_date = timezone.now()
+			upload.cobas_uploaded_by = request.user	
+			upload.save()
 
-# 			reader = pandas.read_csv(upload.results_file, sep=',')
-# 			for row in reader.iterrows():
-# 				# try:
-# 				index, data = row
-# 				result = data["Target 1"]
-# 				vl_sample_id = data["Sample ID"]
-# 				sample = Sample.objects.filter(vl_sample_id=vl_sample_id)[0].sample
-
-# 				#repeat = result_utils.repeat_test('R', result, '')
-# 				store_result('R', sample, result)
+			reader = pandas.read_csv(upload.results_file, sep=',')
+			for row in reader.iterrows():
+				# try:
+				index, data = row
+				result = data["Target 1"]
+				instrument_id = data["Sample ID"]
+				#sample = Sample.objects.filter(vl_sample_id=vl_sample_id)[0].sample
+				ws = WorksheetSample.objects.filter(instrument_id=instrument_id).first()
+				if ws:
+					sample = ws.sample
+					repeat = 3 if result_utils.eq(result, 'invalid') else 2
+					store_result('C', sample, result, repeat, 1, request.user)
 				
-# 			return redirect('worksheets:list')
-# 	else:
-# 		form = CobasUploadForm(initial={'multiplier':1})
+			return redirect('worksheets:list')
+	else:
+		form = CobasUploadForm(initial={'multiplier':1})
 
-# 	return render(request, 'results/cobas_upload.html', {'form': form})
+	return render(request, 'results/cobas_upload.html', {'form': form})
 
 def list(request):
 	search_val = request.GET.get('search_val')
