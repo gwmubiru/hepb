@@ -1,0 +1,215 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+<div ng-app="verify" ng-controller="VerifyController" ng-init="envelope_id={{ envelope_id }}">
+	<div class="page-title">Verify Sample</div>
+	<div id="success" class="alert alert-success vl-alert" role="alert" style="display:none;">
+		Sample successfully verified
+	</div>
+	<div id="completed" class="alert alert-success vl-alert" role="alert" style="display:none;">
+		Envelope verification completed
+	</div>
+	<div class="panel panel-default">
+		
+
+		
+		{% if info_message %} <div class="alert alert-success" role="alert">{{ info_message }}</div> {% endif %}
+		{% if success_message %} <div class="alert alert-success" role="alert">{{ success_message }}</div> {% endif %}
+
+		<div class="panel-body">
+			<form action="" method="post" role="form" ng-submit="saveVerification()" onsubmit="return false">
+				{% csrf_token %}
+				<div class="row">
+					<div class="col-lg-6">
+						<span class='sub-title'>facility details</span>
+						<div class="form-group">
+							<label for="facility_id">Facility</label><br>
+							{{ facility_dropdown | safe }}
+						</div>
+
+						<div class="form-group ng-cloak">
+							<label for="district">District</label>
+							{% input "district"  "<% sample.district %>" "{'disabled':'true'}" %}
+						</div>
+
+						<div class="form-group ng-cloak">
+							<label for="hub">Hub</label>
+							{% input "hub"  "<% sample.hub %>" "{'disabled':'true'}" %}
+						</div>
+
+					</div>
+					<div class="col-lg-6">
+						<span class='sub-title'>sample details</span>
+						<div class="form-group ng-cloak">
+							<label for="form_number">Form Number</label>
+							{% input "form_number" "" "{'ng-model': 'sample.form_number'}" %}
+						</div>
+						<div class="form-group ng-cloak">
+							<label for="collection_date">Collection Date</label>
+							{% input "collection_date" "" "{'class':'form-control input-sm w-md date-picker optional','ng-model': 'sample.collection_date'}" %}
+						</div>
+						<div class="form-group  ng-cloak">
+							<label for="treatment_initiation_date">Treatment Initiation Date</label>
+							{% input "treatment_initiation_date" "" "{'class':'form-control input-sm w-md date-picker', 'ng-model': 'sample.treatment_initiation_date'}" %}
+						</div>
+					</div>
+				</div>
+				<br>
+
+				<span class="sub-title">patient information</span>
+				<div class="row">
+					<div class="col-lg-6">
+						
+						<div class="form-group  ng-cloak">
+							<label for="art_number">ART Number</label>
+							{% input "art_number" "" "{'ng-model': 'sample.art_number'}" %}
+						</div> 
+
+						<div class="form-group  ng-cloak">
+							<label for="other_id">Other ID</label>
+							{% input "other_id" "" "{'class':'form-control input-sm w-md optional', 'ng-model': 'sample.other_id'}" %}
+						</div> 
+
+
+						
+
+					</div>
+
+					<div class='col-lg-6'>
+						<div class="form-group  ng-cloak">
+							<label for="gender">Gender</label>
+							{% select "gender" "{'M':'Male', 'F':'Female', 'X':'Missing Gender'}" "" "{'class':'form-control input-sm w-xs', 'ng-model': 'sample.gender'}" %}
+						</div>
+						<div class="form-group  ng-cloak">
+							<label for="dob">Date of Birth</label>
+							{% input "dob" "" "{'class':'form-control input-sm w-md date-picker optional', 'ng-model': 'sample.dob'}" %}
+						</div>
+					</div>
+
+				</div>
+				<hr>
+
+				<div class="row">
+					<div class="col-lg-6">
+						<div class="form-group">
+							<label for="vl_sample_id" class='hi-lite'>Sample Reference Number</label>
+							{% input "vl_sample_id"  "<% sample.vl_sample_id %>" "{'disabled':'true'}" %}
+						</div>
+					</div>
+					<div class="col-lg-6">					
+
+						<div class="form-inline">
+							<label for="locator_envelope" class='hi-lite'>Location/Rejection ID </label><br>						
+
+							{% select "locator_category" "{'V':'V', 'R':'R'}" "" "{'ng-model': 'sample.locator_category'}" %}
+								
+							{% input "locator_envelope" "" "{'ng-model': 'sample.envelope_number'}" %} 
+							<span class="vl-slash">/</span>	
+							{% input "locator_position" "" "{'style':'width:52px', 'ng-model': 'sample.locator_position'}" %}
+
+						</div><br>
+
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-lg-6">
+						<div class="form-group">
+							<label for="accepted" class='hi-lite'>Verification Status</label>
+							{% select "accepted" "{'1':'Accepted', '0':'Rejected'}" "" "{'class':'form-control input-sm w-xs', 'ng-model': 'sample.accepted'}" %}
+						</div>
+						<div class="form-group" id="reason_div">							
+						</div>
+						<div class="form-group" id="other_reasons">							
+						</div>
+
+					</div>
+					<div class="col-lg-6">
+						<div class="form-group">
+							<label for="sample_creator" class='hi-lite'>Created by</label>
+							{% input "sample_creator"  "<% sample.sample_creator %> (on <% sample.created_at %>) " "{'disabled':'true'}" %}
+						</div>
+
+
+					</div>
+
+				</div>
+
+				<input type="submit" class="btn btn-danger" value="Save and move to next sample">
+
+			</form>
+
+		</div>
+	</div>
+
+</div>
+<script type="text/javascript"> 
+ var envelope_id = {{ envelope_id }};
+ var rejection_reasons = {{ rejection_reasons | safe }};
+ $( function() {
+    	$( ".date-picker" ).datepicker({
+      		changeMonth: true,
+      		changeYear: true,
+      		dateFormat: "yy-mm-dd"
+    	});
+
+    	/*$("#facility_id").select2({	
+    		placeholder: "Select facility", 
+    		allowClear: true,
+    		width: "56%",
+    		tags: "true",
+    	});*/
+
+    	$(".optional").removeAttr('required');   
+
+    	$("#accepted").change(function(){
+    		if(this.value=='0'){
+    			var rjctn_rsns = "<label for='rejection_reason_id'>Reason </label>";
+    			rjctn_rsns += reasonsDropDown("rejection_reason_id", "rejection_reason_id");
+    			$("#reason_div").html(rjctn_rsns);
+    		}else{
+    			$("#reason_div").html("");
+    		}
+    	}) 	
+  	});
+
+
+function remRsn(that_val){
+  delete rejection_reasons[that_val];
+}
+
+function reasonsDropDown(nme,id){
+  var other_options="id='"+id+"' class='form-control input-sm w-md' onchange='remRsn(this.value)'";
+  return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);
+}
+
+function checkOutcome() {
+	if(document.samples.outcome.value=='Rejected') {
+    var primary_reason="<span class='sm_txt'>primary reason:</span><br>"+reasonsDropDown("outcomeReasonsID","outcomeReasonsID");
+		var other_reason="<br><br><span class='sm_txt'>more reasons:</span><div id='other_reasons'></div><span class='add_item' onclick='addOtherReasons()'>add<span>";
+		document.getElementById("outcomeID").innerHTML=primary_reason+other_reason;
+
+    //document.getElementById("outcomeID").innerHTML="<span class='sm_txt'>primary reason:<span><br>"+reasonsDropDown();
+	} else {
+		document.getElementById("outcomeID").innerHTML="";
+	}
+}
+
+function addOtherReasons(){
+  var reasons="<p>"+reasonsDropDown("other_reasons[]","")+" "+removeItemHTML()+"</p>";
+  $("#other_reasons").append(reasons);
+}
+ </script>
+<script type="text/javascript" src='{% static "samples/js/verify.js" %}'></script>
+{% endblock %}

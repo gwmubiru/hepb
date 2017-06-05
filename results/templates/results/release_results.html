@@ -1,0 +1,94 @@
+{% extends "home/layout.html" %}
+{% load staticfiles %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">WORKSHEET</span>		
+	<div class="panel panel-default" style="overflow-y:auto">
+		<div class="panel-body">
+			<div class="worksheet" id="content" >
+				<div class="row" >
+					<div class="col-md-4">Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></div>
+					<div class="col-md-4">Machine Type: <u>{{ worksheet.get_machine_type_display }}</u></div>
+					<div class="col-md-4">Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></div>
+				</div>
+				<br>
+				<table class="table table-striped table-condensed table-bordered" id="samples-table" >
+					<thead>
+						<th>#</th>
+						<th>Location&nbsp;ID&nbsp;&nbsp;&nbsp;</th>
+		                <th width="1%">Form Number</th>
+		                <th>Facility</th>
+		                <th>District</th>                
+		                <th>Art Number</th>
+		                <th>Other ID</th>
+		                <th>Gender</th>
+		                <th width="1%">Date&nbsp;of collection&nbsp;&nbsp;&nbsp;</th>
+		                <th width="1%">Date&nbsp;received at CHPL</th>
+		                <th>Result</th>
+		                <th>Choose</th>
+		                <th/>
+					</thead>
+					<tbody>
+						{% for sample in worksheet.samples.all %}
+						
+						<tr {% if sample.result.repeat_test == 3 %} style = "background:#F5A9A9;" {% endif %}>
+							<td>{{ forloop.counter }}</td>
+							<td>{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}</td>
+							<td>{{ sample.form_number }}</td>
+							<td>{{ sample.facility.facility }}</td>
+							<td>{{ sample.facility.district.district }} </td>
+							<td>{{ sample.patient.art_number }}</td>
+							<td>{{ sample.patient.other_id }}</td>
+							<td>{{ sample.patient.get_gender_display }}</td>
+							<td>{{ sample.date_collected | date:"Y-m-d" }}</td>
+							
+							<td>{{ sample.date_received | date:"Y-m-d" }}</td>
+							<td>{{ sample.result.result_alphanumeric }}</td>
+							
+							<td>
+								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='release'> Release</label>
+								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='retain'> Retain</label>
+							</td>
+							<td><span id="saved{{ sample.result.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;<span class='x' >x</span></span></td>
+						</tr>
+						
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+	 $(function() {
+		$(".vlbarcodes").each(function (index){
+            var val = $(this).attr("value");
+            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
+        });
+
+        $(".status").hide();
+      });
+
+	 $(".choices").on("click",function(){
+	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk:$(this).attr('result-pk'), choice:$(this).val()};
+	 	
+	 	$.post("/results/release_results/{{ worksheet.pk }}/", params).done(function( data ) {
+		    $("#saved"+params.result_pk).show();
+		  });
+	 	
+
+	 // 	$("#success").on("click", function(){
+		// 	$("#success").slideUp("slow");
+		// });
+	 	//alert($(this).val());
+
+	 });
+	 $(".x").on("click", function(){
+	 	$(this).parent().hide();
+	 });
+	</script>
+
+{% endblock %}

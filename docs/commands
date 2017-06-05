@@ -1,0 +1,6 @@
+sudo apt-get build-dep python-imaging
+sudo apt-get install libjpeg8 libjpeg62-dev libfreetype6 libfreetype6-dev
+sudo pip install rlextra -i https://www.reportlab.com/pypi/
+
+
+sudo pip install ez_setup==0.9

@@ -1,0 +1,189 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+        
+        <title>Viral Load</title>
+        <link rel="Shortcut Icon" href='{% static "home/images/favicon.png" %}' />
+         <link href='{% static "home/tisa-admin/assets/css/style.css"%}' rel="stylesheet" media="screen">
+        <link rel="stylesheet" href='{% static "home/vendor/jquery-ui/themes/base/jquery-ui.min.css" %}'>
+        <link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>      
+
+        <link href='{% static "home/vendor/metisMenu/dist/metisMenu.min.css" %}' rel="stylesheet">
+        <link href='{% static "home/sb-admin-2/dist/css/timeline.css" %}' rel="stylesheet">
+        <link href='{% static "home/sb-admin-2/dist/css/sb-admin-2.css" %}' rel="stylesheet">       
+       <!-- <link href="../bower_components/morrisjs/morris.css" rel="stylesheet"> -->
+       <link href='{% static "home/vendor/font-awesome-min/css/font-awesome.min.css" %}' rel="stylesheet" type="text/css">
+
+        <link rel="stylesheet" href='{% static "home/css/app.css" %}'>
+        {% block css %}
+        {% endblock %}
+
+        <script type="text/javascript" src='{% static "home/vendor/jquery/dist/jquery.min.js" %}'></script>
+        <script type="text/javascript" src='{% static "home/vendor/bootstrap/dist/js/bootstrap.min.js" %}'></script>
+        <script type="text/javascript" src='{% static "home/vendor/jquery-ui/jquery-ui.min.js" %}'></script>
+        <script type="text/javascript" src='{% static "home/vendor/metisMenu/dist/metisMenu.min.js" %}'></script>
+
+        <script type="text/javascript" src='{% static "home/sb-admin-2/dist/js/sb-admin-2.js" %}'></script>
+
+        <script type="text/javascript" src='{% static "home/js/app.js" %}'></script>
+
+        {% block js %}
+        {% endblock %}
+
+        <link href='{% static "home/tisa-admin/assets/icons/font-awesome/css/font-awesome.min.css" %}' rel="stylesheet" media="screen">
+            <!-- ionicons -->   
+        <link href='{% static "home/tisa-admin/assets/icons/ionicons/css/ionicons.min.css" %}' rel="stylesheet" media="screen">
+                
+    
+    <!-- page specific stylesheets -->
+                
+        <!-- main stylesheet -->
+       
+        
+       
+    </head>
+    <body class="side_nav_hover theme_f">
+        <!-- top bar -->
+        <header class="navbar navbar-fixed-top" role="banner">
+            <div class="container-fluid">
+                <div class="navbar-header">
+                    <a href="{% url 'home_page' %}" >
+                        <img src='{% static "home/images/logo.png" %}' >                        
+                        <span id='main-link'>Viral Load LIMS</span>
+                        
+                    </a>
+                </div>
+                <!-- <ul class="top_links">
+                    <li>
+                        <a href="tasks_summary.html"><span>23</span>Tasks</a>
+                    </li>
+                    <li>
+                        <a href="mail_inbox.html"><span>8</span>Mails</a>
+                    </li>
+                </ul> -->
+                <ul class="nav navbar-nav navbar-right">
+                    
+                    <li class="user_menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="navbar_el_icon ion-person"></span> <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-right">
+                            <li><a href="#">Profile</a></li>
+                            <li><a href="#">My messages</a></li>
+                            <li><a href="#">My tasks</a></li>
+                            <li class="divider"></li>
+                            <li><a href="{% url 'logout' %}">Log Out</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="javascript:void(0)" class="slidebar-toggle"><span class="navbar_el_icon ion-navicon-round"></span></a></li>
+                </ul>
+            </div>
+        </header>
+        
+        <!-- main content -->
+        <div id="main_wrapper">
+            <div class="page_content">
+                <div class="container-fluid">
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </div>      
+        </div>
+
+        <!-- side navigation -->
+        <nav id="side_nav">
+            <ul>
+                <li>
+                    <a href="{% url 'home_page' %}"><span class="ion-home"></span> <span class="nav_title">Home</span></a>
+                </li>
+                <li>
+                    <a href="#">
+                        <!-- <span class="label label-danger">32</span> -->
+                        <span class="ion-ios7-albums-outline"></span>
+                        <span class="nav_title">Samples</span>
+                    </a>
+                    <div class="sub_panel">
+                        <div class="side_inner">
+                            <!-- <h4 class="panel_heading panel_heading_first">Folders</h4> -->
+                            <ul>
+                                <!-- <li><a href="tasks_summary.html"><span class="side_icon ion-ios7-folder-outline"></span><span class="badge badge-primary">7</span> Summary</a></li> -->
+                                <li><a href="{% url 'samples:create' %}"> Create</a></li>
+                                <li><a href="{% url 'samples:list' %}"> List</a></li>
+                                
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="ion-ios7-checkmark-outline"></span>
+                        <span class="nav_title">Verifications</span>
+                    </a>
+                    <div class="sub_panel">
+                        <div class="side_inner">
+                            <!-- <h4 class="panel_heading panel_heading_first">Folders</h4> -->
+                            <ul>
+                                <!-- <li><a href="tasks_summary.html"><span class="side_icon ion-ios7-folder-outline"></span><span class="badge badge-primary">7</span> Summary</a></li> -->
+                                <li><a href="{% url 'samples:verify_list' %}"> Pending</a></li>
+                                <li><a href="{% url 'samples:verify_list' %}"> Completed</a></li>
+                                
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="ion-beaker"></span>
+                        <span class="nav_title">Lab</span>
+                    </a>
+                    <div class="sub_panel">
+                        <div class="side_inner">
+                            <h4 class="panel_heading panel_heading_first">Worksheet Creation</h4>
+                            <ul>                                
+                                <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
+                                <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
+                                <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
+                            </ul>
+                             <h4 class="panel_heading panel_heading_first">Upload Results</h4>
+                            <ul>                                
+                                <li><a href="/worksheets/list/">For Abbott</a></li>
+                                <li><a href="/worksheets/list/">For Roche CAP/CTM</a></li>
+                                <li><a href="/results/cobas_upload/">For Cobas 8800</a></li>
+                            </ul>
+                            <h4 class="panel_heading panel_heading_first">Authorize Results</h4>
+                            <ul>                                
+                                <li><a href="{% url 'worksheets:authorize_list' 'A' %}">For Abbott</a></li>
+                                <li><a href="{% url 'worksheets:authorize_list' 'R' %}">For Roche CAP/CTM</a></li>
+                                <li><a href="{% url 'worksheets:authorize_list' 'C' %}">For Cobas 8800</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+
+            </ul>
+        </nav>
+        
+        <!-- common functions -->
+        <script src='{% static "home/tisa-admin/assets/js/tisa_common.js"%}'></script>
+        
+      
+        <style type="text/css">
+        #main-link{
+            vertical-align: bottom;
+            font-size: 20px;
+            color: #FFF;
+            font-weight: lighter;
+        }
+
+        #main-link:hover{
+            text-decoration: none;
+        }
+
+        </style>
+    </body>
+</html>
