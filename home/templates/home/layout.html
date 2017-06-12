@@ -65,9 +65,19 @@
                     </li>
                 </ul> -->
                 <ul class="nav navbar-nav navbar-right">
+                    <li class="top_links" id="search-sect">
+                        <input id="search_id" type="text" class="form-control input-sm" placeholder="Search...">
+                        <ul class="dropdown-menu dropdown-menu-left" id="search-list" >
+                            <li ><a class="search_link" href="{% url 'samples:list' %}" >Sample</a></li>
+                            <li ><a class="search_link" href="{% url 'samples:verify_list' %}" >Verify</a></li>
+                            <li ><a class="search_link" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
+                            <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li>
+                        </ul>                        
+                    </li>
                     
                     <li class="user_menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                           
                             <span class="navbar_el_icon ion-person"></span> <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right">
@@ -165,6 +175,23 @@
                     </div>
                 </li>
 
+                <li class="sidebar-search">
+                    <div class="input-group custom-search-form">
+                        <input id="search_id" type="text" class="form-control" placeholder="Search...">
+                        <div class="input-group-btn">
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <span class="caret"></span></button>
+                            <ul class="dropdown-menu dropdown-menu-right">
+                                <li ><a class="search_link" href="{% url 'samples:list' %}" >Sample</a></li>
+                                <li ><a class="search_link" href="{% url 'samples:verify_list' %}" >Verify</a></li>
+                                <li ><a class="search_link" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
+                                <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li>
+                            </ul>
+                        </div><!-- /btn-group -->
+                    </div>
+                    <!-- /input-group -->
+                </li>   
+
             </ul>
         </nav>
         
@@ -185,5 +212,23 @@
         }
 
         </style>
+
+        <script type="text/javascript">
+        $(function() {
+             $(".search_link").click(function(){
+                var link = $(this).attr("href");
+                var search_val = $("#search_id").val();
+                window.location.href = link+"?search_val="+search_val;
+                return false;
+                //return window.location.assign(link+"?search_val="+search_val);
+             }); 
+        });
+
+
+        $("#search-sect").mouseover(function(){ $("#search-list").show(); });
+
+        $("#search-sect").mouseout(function(){ $("#search-list").hide(); });
+        </script>
+
     </body>
 </html>

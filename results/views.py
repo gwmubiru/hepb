@@ -89,9 +89,10 @@ def upload(request, worksheet_id):
 		form = UploadForm(request.POST, request.FILES)
 		if form.is_valid():
 			upload = form.save(commit=False)
-			upload.uploaded_by = request.user	
+			upload.uploaded_by = request.user
 			upload.save()
 			worksheet.results_uploaded = True
+			worksheet.stage = 1
 			worksheet.save()
 
 			#f = request.FILES['results_file']
