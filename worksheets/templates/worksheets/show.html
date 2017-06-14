@@ -27,13 +27,13 @@
 								<th>Instrument ID</th>
 							</thead>
 							<tbody>
-								{% for sample in worksheet.samples.all %}
+								{% for s in worksheet.worksheetsample_set.all %}
 								<tr>
-									<td>{{ sample.patient.art_number }}</td>
-									<td>{{ sample.vl_sample_id }}</td>
-									<td>{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}</td>
-									<td>{{ sample.form_number }}</td>
-									<td>{{ sample.worksheetsample_set.first.instrument_id }}</td>
+									<td>{{ s.sample.patient.art_number }}</td>
+									<td>{{ s.sample.vl_sample_id }}</td>
+									<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
+									<td>{{ s.sample.form_number }}</td>
+									<td>{{ s.instrument_id }}</td>
 								</tr>
 								{% endfor %}
 							</tbody>
