@@ -327,11 +327,11 @@
 		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
 
-    	$("#id_facility").select2({	
+    	/*$("#id_facility").select2({	
     		placeholder: "Select facility", 
     		allowClear: true,
     		width: "58%",
-    	});
+    	});*/
 
     	//$(".optional").removeAttr('required');
 
@@ -345,9 +345,9 @@
 
     	$("#id_facility").change(function(){
     		set_district_hub();
-    		// setTimeout(function(){
-    		// 	$(".day").first().focus();
-    		// },100);    		    		
+    		/*setTimeout(function(){
+    			$(".day").first().focus();
+    		},100);*/    		    		
     	});
 
     	$("#id_gender").change(function(){

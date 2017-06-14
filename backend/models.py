@@ -135,6 +135,8 @@ class Facility(models.Model):
 	class Meta:
 		db_table = 'backend_facilities'
 		verbose_name_plural = 'Facilities'
+		ordering = ('facility',)
+
 
 		
 #Many to Many r/ship between facility and ips
