@@ -326,6 +326,7 @@
 		
 		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
+		$("#id_sample_type").attr("readonly", "true");
 
     	/*$("#id_facility").select2({	
     		placeholder: "Select facility", 
@@ -416,6 +417,13 @@
 
 		$("#success").on("click", function(){
 			$("#success").slideUp("slow");
+		});
+
+		$("#id_envelope_number").on("change", function(){
+			var val = $(this).val().split("-");
+			var env_num = Number(val[1]);
+			$("#id_sample_type").val( (env_num<500?'P':'D') );
+
 		});
 
     	
