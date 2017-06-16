@@ -85,7 +85,7 @@ class Sample(models.Model):
 	envelope = models.ForeignKey(Envelope)
 	locator_position = models.CharField(max_length=3)
 	vl_sample_id = models.CharField(max_length=128, unique=True)
-	form_number = models.CharField(max_length=64)
+	form_number = models.CharField(max_length=64, unique=True)
 	facility = models.ForeignKey(backend.Facility)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen')
 	pregnant = models.CharField(max_length=1, choices=YES_NO_CHOICES, )

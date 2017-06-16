@@ -423,7 +423,7 @@
 			$("#success").slideUp("slow");
 		});
 
-		$("#id_envelope_number").on("change", function(){
+		$("#id_envelope_number").on("blur", function(){
 			var val = $(this).val().split("-");
 			var env_num = Number(val[1]);
 			var s_type =  (env_num<500?'P':'D');
@@ -528,3 +528,6 @@
     }
 </style>
 {% endblock %}
+
+
+1706-0999
