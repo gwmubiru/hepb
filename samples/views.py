@@ -97,7 +97,7 @@ def edit(request, sample_id):
 			patient_form.save()
 			envelope.save()
 			sample.save()
-			return redirect('/samples/list')
+			return redirect("/samples/show/%d" %sample_id)
 
 	else:
 		envelope_form = EnvelopeForm(instance=sample.envelope)

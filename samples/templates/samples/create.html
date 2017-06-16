@@ -20,7 +20,7 @@
 		<div class="panel-body">
 			{% if vl_sample_id %}
 			<div id="success" class="alert alert-success vl-alert" role="alert">
-				previously saved: ({{ vl_sample_id }})
+				previously saved: (<a href='/samples/list/?search_val={{ vl_sample_id }}'>{{ vl_sample_id }}</a>)
 				&nbsp;&nbsp;
 				<span class='x' id='x'>x</span>
 			</div>
