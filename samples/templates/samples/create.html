@@ -321,14 +321,6 @@
 
 
 	$( function() {
-		/*setTimeout(function(){
-			$("#success").slideUp("slow");
-		},10000);*/
-    	/*$( ".date-picker" ).datepicker({
-      		changeMonth: true,
-      		changeYear: true,
-      		dateFormat: "yy-mm-dd"
-    	});*/
 
 		set_district_hub();
 		//set_age();
@@ -336,6 +328,8 @@
 		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
 		$("#id_sample_type").attr("disabled", "true");
+		$("#id_tb_treatment_phase").attr("disabled", "true");
+
 		//$("#anc_sect").hide();
 
     	/*$("#id_facility").select2({	
@@ -435,6 +429,15 @@
 			var s_type =  (env_num<500?'P':'D');
 			$("#id_sample_type").val(s_type);
 			$("#sample_type").val(s_type);
+		});
+
+		$("#id_active_tb_status").on("change", function(){
+			$val = $(this).val();
+			if($val == 'Y'){
+				$("#id_tb_treatment_phase").removeAttr("disabled");
+			}else{
+				$("#id_tb_treatment_phase").attr("disabled", "true");
+			}
 		});
 
 		/*$("#id_pregnant").on("change", function(){
