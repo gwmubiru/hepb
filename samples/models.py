@@ -116,8 +116,10 @@ class Sample(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 
+	
 	class Meta:
 		db_table = 'vl_samples'
+		unique_together = ('envelope', 'locator_position')
 
 
 class Verification(models.Model):

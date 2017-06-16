@@ -32,7 +32,9 @@ def create(request):
 		valid_envelope = envelope_form.is_valid()
 		valid_sample = sample_form.is_valid()
 
-		if valid_patient and valid_phone and valid_envelope and valid_sample:
+		if sample_utils.locator_id_exists(request.POST):
+			sample_form.add_error('locator_position', 'Duplicate Locator ID')
+		elif valid_patient and valid_phone and valid_envelope and valid_sample:
 			facility = patient_form.cleaned_data.get('facility')
 			art_number = patient_form.cleaned_data.get('art_number')
 			unique_id = "%s-A-%s" %(facility, art_number)

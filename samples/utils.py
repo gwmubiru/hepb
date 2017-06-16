@@ -2,7 +2,14 @@ import json
 
 from home import utils
 from backend.models import Facility
-from .models import Sample,ClinicalRequestForm
+from .models import Sample,ClinicalRequestForm, Envelope
+
+def locator_id_exists(data):
+	env = Envelope.objects.filter(envelope_number=data.get('envelope_number')).first()
+	loc_exists = False
+	if env:
+		loc_exists = Sample.objects.filter(envelope=env, locator_position=data.get('locator_position')).exists()
+	return loc_exists	
 
 def initial_env_number():
 	return "%s%s-" %(utils.year('yy'), utils.month('mm'))

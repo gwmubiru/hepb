@@ -1,5 +1,6 @@
 import datetime
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from backend.models import Appendix, Facility
 from .models import *
@@ -60,6 +61,7 @@ class SampleForm(forms.ModelForm):
 	viral_load_testing = appendix_field(8)
 	tb_treatment_phase = appendix_field(5, False)
 	arv_adherence = appendix_field(1, False)
+
 
 	class Meta:
 		model = Sample
@@ -124,3 +126,14 @@ class SampleForm(forms.ModelForm):
 			'last_value': "Value",
 			'last_sample_type': "Sample Type",
 			}
+
+	# def clean(self):
+	# 	cleaned_data = self.cleaned_data
+	# 	envelope = cleaned_data.get('envelope')
+	# 	locator_position = cleaned_data.get('locator_position')
+	# 	loc_exists = Sample.objects.filter( locator_position=locator_position).exists()
+	# 	if loc_exists:
+	# 		#raise ValidationError(_('Duplicate Locator ID'))
+	# 		self.add_error('locator_position', 'Duplicate Locator ID')
+
+	# 	return cleaned_data

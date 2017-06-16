@@ -1,0 +1,5 @@
+//see duplicated form numbers
+select id,count(id) as num, form_number from vl_samples group by form_number having num>1;
+ 
+//see composite duplicates of envelope+position
+ select id,envelope_id, locator_position, count(id) as num from vl_samples group by envelope_id, locator_position having num > 1;

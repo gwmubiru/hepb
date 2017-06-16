@@ -20,7 +20,7 @@
 		<div class="panel-body">
 			{% if vl_sample_id %}
 			<div id="success" class="alert alert-success vl-alert" role="alert">
-				previously saved: (<a href='/samples/list/?search_val={{ vl_sample_id }}'>{{ vl_sample_id }}</a>)
+				just saved: (<a href='/samples/list/?search_val={{ vl_sample_id }}'>{{ vl_sample_id }}</a>)
 				&nbsp;&nbsp;
 				<span class='x' id='x'>x</span>
 			</div>
@@ -109,7 +109,7 @@
 							{{ sample_form.sample_type.label_tag }}
 							{{ sample_form.sample_type.errors }}
 							{{ sample_form.sample_type }}
-							<input type="hidden" name="sample_type" id="sample_type">
+							<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_form.sample_type.value }}'>
 						</div>
 					</div>
 
@@ -423,7 +423,7 @@
 			$("#success").slideUp("slow");
 		});
 
-		$("#id_envelope_number").on("blur", function(){
+		$("#id_envelope_number").on("change", function(){
 			var val = $(this).val().split("-");
 			var env_num = Number(val[1]);
 			var s_type =  (env_num<500?'P':'D');
