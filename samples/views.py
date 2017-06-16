@@ -111,6 +111,7 @@ def edit(request, sample_id):
 		'phone_form': phone_form,
 		'patient_form': patient_form,
 		'sample_form': sample_form,
+		'vsi': sample.vl_sample_id,
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}
@@ -137,6 +138,7 @@ def show(request, sample_id):
 		'phone_form': PatientPhoneForm(),
 		'patient_form': PatientForm(instance=patient),
 		'sample_form': SampleForm(instance=sample),
+		'vl_sample_id': sample.vl_sample_id,
 	}
 
 	return render(request, 'samples/show.html', context)

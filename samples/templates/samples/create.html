@@ -37,7 +37,15 @@
 				<div class="row">
 					<div class="col-lg-6">
 
+						{% if sample_id %}
+						<div class="form-group">
+							<label for='sample_id'>VL Sample ID</label>
+							{% input 'vl_sample_id' vsi '{"disabled":"true"}' %}
+						</div>
+						{% endif %}
+
 						<div class="form-inline">
+							
 							<label for="locator_envelope">Location/Rejection ID</label><br>
 							{{ sample_form.locator_position.errors }}
 
@@ -101,6 +109,7 @@
 							{{ sample_form.sample_type.label_tag }}
 							{{ sample_form.sample_type.errors }}
 							{{ sample_form.sample_type }}
+							<input type="hidden" name="sample_type" id="sample_type">
 						</div>
 					</div>
 
@@ -213,7 +222,7 @@
 							{{ sample_form.pregnant }}
 						</div>
 
-						<div class="form-group">
+						<div class="form-group" id="anc_sect">
 							{{ sample_form.anc_number.label_tag }}
 							{{ sample_form.anc_number.errors }}
 							{{ sample_form.anc_number }}
@@ -326,7 +335,8 @@
 		
 		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
-		$("#id_sample_type").attr("readonly", "true");
+		$("#id_sample_type").attr("disabled", "true");
+		//$("#anc_sect").hide();
 
     	/*$("#id_facility").select2({	
     		placeholder: "Select facility", 
@@ -415,22 +425,36 @@
 
 		});
 
-		$("#success").on("click", function(){
+		$("#x").on("click", function(){
 			$("#success").slideUp("slow");
 		});
 
 		$("#id_envelope_number").on("change", function(){
 			var val = $(this).val().split("-");
 			var env_num = Number(val[1]);
-			$("#id_sample_type").val( (env_num<500?'P':'D') );
-
+			var s_type =  (env_num<500?'P':'D');
+			$("#id_sample_type").val(s_type);
+			$("#sample_type").val(s_type);
 		});
+
+		/*$("#id_pregnant").on("change", function(){
+			var val = $(this).val();
+			if(val == 'Y'){
+				$('#anc_sect').show();
+			}else{
+				$('#anc_sect').hide();
+				$('#id_anc_number').val("");
+			}
+		});*/
+
+
 
     	
   	});
 
 	function round1(val){
-		return Math.round(val*10)/10;
+		return Math.round(val);
+		//return Math.round(val*10)/10;
 	}
 
 	function set_dob(){
