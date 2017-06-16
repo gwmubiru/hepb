@@ -358,11 +358,11 @@
     	$("#id_gender").change(function(){
     		var gender = $(this).val();
     		if(gender=="M"){
-    			$("#id_pregnant").attr("readonly","true").val("N");
-    			$("#id_breast_feeding").attr("readonly","true").val("N");
+    			$("#id_pregnant").attr("disabled","true");
+    			$("#id_breast_feeding").attr("disabled","true");
     		}else{
-    			$("#id_pregnant").removeAttr("readonly").val("");
-    			$("#id_breast_feeding").removeAttr("readonly").val("");
+    			$("#id_pregnant").removeAttr("disabled");
+    			$("#id_breast_feeding").removeAttr("disabled");
     		}
     	});
 
