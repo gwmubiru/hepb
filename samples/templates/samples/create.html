@@ -189,6 +189,12 @@
 							{{ sample_form.current_regimen }}			
 						</div>
 
+						<div class="form-group" id='other-regimen-sect'>
+							{{ sample_form.other_regimen.label_tag }}
+							{{ sample_form.other_regimen.errors }}
+							{{ sample_form.other_regimen }}			
+						</div>
+
 						<div class="form-group">
 							{{ sample_form.treatment_line.label_tag }}
 							{{ sample_form.treatment_line.errors }}
@@ -207,14 +213,16 @@
 							{{ sample_form.failure_reason }}				
 						</div>
 
+						
+
+					</div>
+					<div class="col-lg-6">
+
 						<div class="form-group">
 							{{ sample_form.viral_load_testing.label_tag }}
 							{{ sample_form.viral_load_testing.errors }}
 							{{ sample_form.viral_load_testing }}				
 						</div>
-
-					</div>
-					<div class="col-lg-6">
 
 						<div class="form-group">
 							{{ sample_form.pregnant.label_tag }}
@@ -329,6 +337,7 @@
 		$("#id_anc_number").attr("readonly","true");
 		$("#id_sample_type").attr("disabled", "true");
 		$("#id_tb_treatment_phase").attr("disabled", "true");
+		$("#id_other_regimen").attr("readonly","true");
 
 		//$("#anc_sect").hide();
 
@@ -384,7 +393,13 @@
 		});
 
 		$("#id_current_regimen").change(function(){
-			$("#id_treatment_line").val(regimen_json[$(this).val()]); 
+			var val = $(this).val();
+			$("#id_treatment_line").val(regimen_json[val]); 
+			if(val==37){
+				$("#id_other_regimen").removeAttr("readonly");
+			}else{
+				$("#id_other_regimen").attr("readonly","true").val("");
+			}
 		});
 
 		$("#id_dob").change(function(){

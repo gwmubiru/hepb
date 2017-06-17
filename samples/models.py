@@ -88,6 +88,7 @@ class Sample(models.Model):
 	form_number = models.CharField(max_length=64, unique=True)
 	facility = models.ForeignKey(backend.Facility)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen')
+	other_regimen = models.CharField(max_length=128, null=True, blank=True)
 	pregnant = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
 	anc_number = models.CharField(max_length=64, null=True, blank=True) #anc number for pregnant women
 	breast_feeding = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)

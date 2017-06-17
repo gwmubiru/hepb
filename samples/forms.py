@@ -72,6 +72,7 @@ class SampleForm(forms.ModelForm):
 			'form_number',
 			'facility',
 			'current_regimen',
+			'other_regimen',
 			'pregnant',
 			'anc_number',
 			'breast_feeding',
@@ -114,6 +115,8 @@ class SampleForm(forms.ModelForm):
 			'last_test_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'last_value': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'last_sample_type': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
+
+			'other_regimen':forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			}
 
 		VL_DATE = "Last VL Date"
