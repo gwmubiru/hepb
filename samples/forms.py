@@ -126,8 +126,8 @@ class SampleForm(forms.ModelForm):
 		labels = {
 			'treatment_indication': "Indication for Treament initiation",
 			'last_test_date': "Last VL Date",
-			'last_value': "Value",
-			'last_sample_type': "Sample Type",
+			'last_value': "Value of Last Test",
+			'last_sample_type': "Sample Type of Last Test",
 			}
 
 	# def clean(self):
