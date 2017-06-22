@@ -16,10 +16,11 @@ ctrller.worksheetSamplesController = function($scope,$http){
 		$scope.repeat_samples = data;
 	});
 
-	$scope.getSamples = function($event){
+	$scope.getSamples = function($event,type){
 		var keyCode = $event.which || $event.keyCode;
 		if(keyCode == 13){
-			$http.get("/worksheets/pending_samples?envelope_number="+$scope.envelope_number+"").success(function(data){
+			var append = (type=='sample')?"sample_search="+$scope.sample_search:"envelope_number="+$scope.envelope_number;
+			$http.get("/worksheets/pending_samples?"+append).success(function(data){
 				$scope.samples = data;
 			});
 		}

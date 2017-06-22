@@ -174,14 +174,23 @@ def authorize_results(request, worksheet_id):
 		context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 		return render(request, 'worksheets/authorize_results.html', context)
 
+def _get_pending_samples():
+	pass
+
 def pending_samples(request):	
 	repeat = request.GET.get('repeat')
 	if repeat:
 		samples = Sample.objects.filter(result__repeat_test = True)[:50]
-	else:
-		envelope_number =request.GET.get('envelope_number')
-		samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False, envelope__envelope_number=envelope_number) if envelope_number else\
-					Sample.objects.filter(verification__accepted=True, in_worksheet=False)
+	else:		
+		envelope_number = request.GET.get('envelope_number')
+		sample_search = request.GET.get('sample_search')
+		filters = {'verification__accepted':True, 'in_worksheet':False}
+		if envelope_number:
+			filters.update({'envelope__envelope_number':envelope_number})
+		elif sample_search:
+			filters.update({'form_number':sample_search})
+
+		samples = Sample.objects.filter(**filters)
 		samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:50]
 	ret=[]
 

@@ -23,8 +23,6 @@
 				<div class="row">
 					<div class="form-group col-md-5">
 						<label for="id_wrn">Worksheet Ref Number:</label>
-
-						
 						<input class="form-control input-sm w-md" id="id_wrn" maxlength="64" name="wrn" readonly="true" type="text" placeholder="this will be generated after saving">
 						
 					</div>
@@ -39,7 +37,7 @@
 					<div class="form-group col-md-3">
 						{{ form.sample_type.label_tag }}
 						{{ form.sample_type.errors }}
-						{{ form.sample_type.value }}
+						{{ form.sample_type }}
 					</div>
 				</div>
 				
@@ -180,7 +178,7 @@
     		value: new Date(),
     	});
 
-    	$("#id_machine_type").attr('readonly','true');
+    	$("#id_machine_type").attr('disabled','true');
 
     	/*var oTable = $('#samples-table').dataTable({
 			"processing": true,

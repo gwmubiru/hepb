@@ -7,7 +7,18 @@
 	<div class="tab-pane active" >
 		<div style='height: 500px;overflow-y: auto;' >
 			<div id='lab-spaces1' class='lab-spaces'>
-				<input type="text" class="form-control input-sm w-md" placeholder="search by envelope/box" ng-model='envelope_number' ng-keypress="getSamples($event)"><br>
+				<div class='row'>
+					<div class='col-md-6'>
+						<span class='sm-label'>search by envelope/box number</span>
+						<input type="text" class="form-control input-sm w-md" placeholder="enter number and press enter" ng-model='envelope_number' ng-keypress="getSamples($event,'envelope')">
+					</div>
+					<div class='col-md-6'>
+						<span class='sm-label'>search by sample form number</span>
+						<input type="text" class="form-control input-sm w-md" placeholder="enter number and press enter" ng-model='sample_search' ng-keypress="getSamples($event,'sample')">
+					</div>
+				</div>
+				<br>				
+				
 				<table class="table table-striped table-condensed table-bordered" id="samples-table" >
 					<thead>
 						<th>ART Number</th>
