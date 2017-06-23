@@ -159,6 +159,7 @@
                                 <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
                                 <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
                                 <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
+                                <li><a href="{% url 'worksheets:list' %}">List</a></li>
                             </ul>
                              <h4 class="panel_heading panel_heading_first">Upload Results</h4>
                             <ul>                                
@@ -174,6 +175,27 @@
                             </ul>
                         </div>
                     </div>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="ion-ios7-email-outline"></span>
+                        <span class="nav_title">Results</span>
+                    </a>
+                    <div class="sub_panel">
+                        <div class="side_inner">
+                            <h4 class="panel_heading panel_heading_first">Results Release</h4>
+                            <ul>
+                                <li><a href="{% url 'results:release_list' 'A' %}">For Abbott</a></li>
+                                <li><a href="{% url 'results:release_list' 'R' %}">For Roche CAP/CTM</a></li>
+                                <li><a href="{% url 'results:release_list' 'C' %}">For Cobas 8800</a></li>
+                            </ul>
+                        </div>
+                    </div>                            
+                </li>
+
+                <li>
+                    <a href="#"><span class="ion-clipboard"></span> <span class="nav_title">Reports</span></a>
                 </li>
 
             </ul>
