@@ -31,6 +31,21 @@ class ClinicalRequestForm(models.Model):
 		db_table = 'vl_forms'
 		verbose_name_plural = 'Forms'
 
+class Clinician(models.Model):
+	facility = models.ForeignKey(backend.Facility)
+	cname = models.CharField(max_length=128)
+	cphone = models.CharField(max_length=64, null=True)
+	class Meta:
+		db_table = 'vl_clinicians'
+		unique_together = ('facility', 'cname')
+
+class LabTech(models.Model):
+	facility = models.ForeignKey(backend.Facility)
+	lname = models.CharField(max_length=128)
+	lphone = models.CharField(max_length=64, null=True)
+	class Meta:
+		db_table = 'vl_lab_techs'
+		unique_together = ('facility', 'lname')	
 
 #hold patient records that later on link to the samples
 class Patient(models.Model):
@@ -109,6 +124,8 @@ class Sample(models.Model):
 	last_test_date = models.DateField(null=True, blank=True)
 	last_value = models.CharField(max_length=64, null=True, blank=True)
 	last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
+	clinician = models.ForeignKey(Clinician, null=True, blank=True)
+	lab_tech = models.ForeignKey(LabTech, null=True, blank=True)
 	
 	verified = models.BooleanField(default=False)
 	in_worksheet = models.BooleanField(default=False)

@@ -74,8 +74,8 @@
 					{{ sample_form.facility.errors }}
 					{{ sample_form.facility }}
 					<div style="padding-top:10px;">
-						District: <u id="id_district" style="min-width:100px;">________________</u>
-						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						District: <u id="id_district" style="min-width:100px;">_______________</u>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						Hub: <u id="id_hub">_______________</u>
 					</div>
 				</div>
@@ -292,8 +292,6 @@
 
 		</div>
 
-		<br>
-		<span class='sub-title'>previous test</span>
 
 		<div class="row">
 
@@ -304,20 +302,54 @@
 					{{ sample_form.last_test_date.errors }}
 					{{ sample_form.last_test_date }}							
 				</div><br>
-
+			</div>
+			<div class="col-lg-3">
 				<div class="form-group">
-					{{ sample_form.last_value.label_tag }}<br>
+					{{ sample_form.last_value.label_tag }}
 					{{ sample_form.last_value.errors }}
 					{{ sample_form.last_value }}
 				</div>
-
+			</div>
+			<div class="col-lg-3" style="padding-left:100px">
 				<div class="form-group">
-					{{ sample_form.last_sample_type.label_tag }}<br>
+					{{ sample_form.last_sample_type.label_tag }}
 					{{ sample_form.last_sample_type.errors }}
 					{{ sample_form.last_sample_type }}	
 				</div>
 			</div>				
 
+		</div>
+
+		<div class="row">
+			<div class="col-lg-6">
+				<div class="form-group">
+					{{ clinician_form.cname.label_tag }}
+					{{ clinician_form.cname.errors }}
+					{{ clinician_form.cname }}
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-group">
+					{{ clinician_form.cphone.label_tag }}
+					{{ clinician_form.cphone.errors }}
+					{{ clinician_form.cphone }}
+				</div>
+			</div>
+		
+			<div class="col-lg-6">
+				<div class="form-group">
+					{{ lab_tech_form.lname.label_tag }}
+					{{ lab_tech_form.lname.errors }}
+					{{ lab_tech_form.lname }}
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-group">
+					{{ lab_tech_form.lphone.label_tag }}
+					{{ lab_tech_form.lphone.errors }}
+					{{ lab_tech_form.lphone }}
+				</div>
+			</div>
 		</div>
 		
 		<input type="submit" value="Save and get new form" class="btn btn-danger">

@@ -216,31 +216,57 @@
 
 				</div>
 
-				<span class='sub-title'>previous test</span>
-
 				<div class="row">
 
-					<div class="col-lg-6">
+			<div class="col-lg-6">
 
-						<div class="form-inline">
-							{{ sample_form.last_test_date.label_tag }}<br>
-							{{ sample_form.last_test_date.errors }}
-							{{ sample_form.last_test_date }}							
-						</div><br>
-
-						<div class="form-group">
-							{{ sample_form.last_value.label_tag }}<br>
-							{{ sample_form.last_value.errors }}
-							{{ sample_form.last_value }}
-						</div>
-
-						<div class="form-group">
-							{{ sample_form.last_sample_type.label_tag }}<br>
-							{{ sample_form.last_sample_type.errors }}
-							{{ sample_form.last_sample_type }}	
-						</div>
-					</div>
+				<div class="form-inline">
+					{{ sample_form.last_test_date.label_tag }}<br>
+					{{ sample_form.last_test_date }}							
+				</div><br>
+			</div>
+			<div class="col-lg-3">
+				<div class="form-group">
+					{{ sample_form.last_value.label_tag }}
+					{{ sample_form.last_value }}
 				</div>
+			</div>
+			<div class="col-lg-3" style="padding-left:100px">
+				<div class="form-group">
+					{{ sample_form.last_sample_type.label_tag }}
+					{{ sample_form.last_sample_type }}	
+				</div>
+			</div>				
+
+		</div>
+
+		<div class="row">
+			<div class="col-lg-6">
+				<div class="form-group">
+					{{ clinician_form.cname.label_tag }}
+					{{ clinician_form.cname }}
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-group">
+					{{ clinician_form.cphone.label_tag }}
+					{{ clinician_form.cphone }}
+				</div>
+			</div>
+		
+			<div class="col-lg-6">
+				<div class="form-group">
+					{{ lab_tech_form.lname.label_tag }}
+					{{ lab_tech_form.lname }}
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-group">
+					{{ lab_tech_form.lphone.label_tag }}
+					{{ lab_tech_form.lphone }}
+				</div>
+			</div>
+		</div>
 
 				
 				<a class="btn btn-danger" href="{% url 'samples:edit' sample_id %}">Edit</a>
@@ -282,7 +308,7 @@
   	});
 
 	function round1(val){
-		return Math.round(val*10)/10;
+		return Math.round(val);
 	}
 
 	function set_dob(){

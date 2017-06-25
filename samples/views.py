@@ -8,7 +8,7 @@ from django.db.models import Q
 #from django.views.generic import TemplateView
 
 from backend.models import Appendix,Facility
-from .models import Patient, Sample, PatientPhone, Envelope, Verification
+from .models import Patient, Sample, PatientPhone, Envelope, Verification, Clinician, LabTech
 from forms import *
 from home import utils
 from . import utils as sample_utils
@@ -25,24 +25,38 @@ def create(request):
 		patient_form = PatientForm(request.POST)
 		phone_form = PatientPhoneForm(request.POST)
 		envelope_form = EnvelopeForm(request.POST)
+		clinician_form = ClinicianForm(request.POST)
+		lab_tech_form = LabTechForm(request.POST)
 		sample_form = SampleForm(request.POST)
 
 		valid_patient = patient_form.is_valid()
 		valid_phone = phone_form.is_valid()
 		valid_envelope = envelope_form.is_valid()
 		valid_sample = sample_form.is_valid()
+		valid_clinician = clinician_form.is_valid()
+		valid_lab_tech = lab_tech_form.is_valid()
 
 		if sample_utils.locator_id_exists(request.POST):
 			sample_form.add_error('locator_position', 'Duplicate Locator ID')
-		elif valid_patient and valid_phone and valid_envelope and valid_sample:
-			facility = patient_form.cleaned_data.get('facility')
+		elif valid_patient and valid_phone and valid_envelope and valid_sample and valid_clinician and valid_lab_tech:
+			facility = sample_form.cleaned_data.get('facility')
 			art_number = patient_form.cleaned_data.get('art_number')
-			unique_id = "%s-A-%s" %(facility, art_number)
+			unique_id = "%s-A-%s" %(facility.pk, art_number)
 			patient_form.cleaned_data.update({'created_by': request.user})
 			patient, pat_created = Patient.objects.get_or_create(
 						unique_id=unique_id,
 						defaults=patient_form.cleaned_data
 						)
+
+			clinician_form.cleaned_data.update({'facility':facility})
+			cl_data = clinician_form.cleaned_data
+			clinician, clinician_created = Clinician.objects.get_or_create(
+						facility=facility, cname=cl_data.get('cname'), defaults={'cphone':cl_data.get('cphone')})
+
+			lab_tech_form.cleaned_data.update({'facility':facility})
+			lt_data = lab_tech_form.cleaned_data
+			lab_tech, lab_tech_created = LabTech.objects.get_or_create(
+						facility=facility, lname=lt_data.get('lname'), defaults={'lphone':lt_data.get('lphone')})
 
 			phone, phone_created = PatientPhone.objects.get_or_create(
 						patient=patient,
@@ -54,6 +68,8 @@ def create(request):
 						)
 
 			sample = sample_form.save(commit=False)
+			sample.clinician = clinician
+			sample.lab_tech = lab_tech
 			sample.patient = patient
 			sample.patient_unique_id = patient.unique_id
 			sample.envelope = envelope
@@ -64,11 +80,15 @@ def create(request):
 
 	else:
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
+		clinician_form = ClinicianForm
+		lab_tech_form = LabTechForm
 		phone_form = PatientPhoneForm
 		patient_form = PatientForm
 		sample_form = SampleForm(initial={'locator_category':'V', 'date_received': timezone.now().date()})
 
 	context = {
+		'clinician_form':clinician_form,
+		'lab_tech_form':lab_tech_form,
 		'envelope_form': envelope_form,
 		'phone_form': phone_form,
 		'patient_form': patient_form,
@@ -87,30 +107,51 @@ def edit(request, sample_id):
 	sample = Sample.objects.get(pk=sample_id)
 	patient = sample.patient
 	envelope = sample.envelope
+	clinician = sample.clinician
+	lab_tech = sample.lab_tech
+
 	if request.method == 'POST':
 		patient_form = PatientForm(request.POST, instance=patient)
 		#phone_form = PatientPhoneForm(request.POST, )
 		envelope_form = EnvelopeForm(request.POST, instance=envelope)
 		sample_form = SampleForm(request.POST, instance=sample)
+		clinician_form = ClinicianForm(request.POST, instance=clinician)
+		lab_tech_form = LabTechForm(request.POST, instance=lab_tech)
 
 		valid_patient = patient_form.is_valid()
 		#valid_phone = phone_form.is_valid()
 		valid_envelope = envelope_form.is_valid()
 		valid_sample = sample_form.is_valid()
 
-		if valid_patient and valid_envelope and valid_sample:
+		if valid_patient and valid_envelope and valid_sample and clinician_form.is_valid() and lab_tech_form.is_valid():
 			patient_form.save()
-			envelope.save()
+			envelope_form.save()
+			sample = sample_form.save(commit=False)
+
+			cl = clinician_form.save(commit=False)
+			cl.facility = sample.facility
+			cl.save()
+			lt = lab_tech_form.save(commit=False)
+			lt.facility = sample.facility
+			lt.save()
+
+			sample.clinician = cl
+			sample.lab_tech = lt
 			sample.save()
-			return redirect("/samples/show/%d" %sample_id)
+
+			return redirect("/samples/show/%d" %sample.pk)
 
 	else:
 		envelope_form = EnvelopeForm(instance=sample.envelope)
 		phone_form = PatientPhoneForm()
 		patient_form = PatientForm(instance=patient)
 		sample_form = SampleForm(instance=sample)
+		clinician_form = ClinicianForm(instance=clinician)
+		lab_tech_form = LabTechForm(instance=lab_tech)
 
 	context = {
+		'clinician_form':clinician_form,
+		'lab_tech_form':lab_tech_form,
 		'sample_id': sample_id,
 		'envelope_form': envelope_form,
 		'phone_form': phone_form,
@@ -137,7 +178,10 @@ def show(request, sample_id):
 	patient = sample.patient
 	envelope = sample.envelope
 
+
 	context = {
+		'clinician_form': ClinicianForm(instance=sample.clinician),
+		'lab_tech_form': LabTechForm(instance=sample.lab_tech),
 		'sample_id': sample_id,
 		'envelope_form': EnvelopeForm(instance=sample.envelope),
 		'phone_form': PatientPhoneForm(),
@@ -210,7 +254,7 @@ def verify_envelope(request, envelope_id):
 
 
 def save_verify(request):
-	r = request.GET;
+	r = request.GET
 	p = Patient.objects.get(pk=r['patient_id'])
 	p.art_number = r.get('art_number', '')
 	p.other_id = r.get('other_id', '')
@@ -224,7 +268,7 @@ def save_verify(request):
 	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
 	s.locator_category = r.get('locator_category', '')
 	s.locator_position = r.get('locator_position', '')
-	s.verified = 1;
+	s.verified = 1
 	s.save()
 
 	v = Verification()

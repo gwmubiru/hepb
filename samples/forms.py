@@ -14,6 +14,19 @@ def appendix_field(category, required=True):
 		widget = forms.Select(attrs=attrs)
 		return forms.ModelChoiceField(queryset=queryset, widget=widget, required=required)
 
+class ClinicianForm(forms.ModelForm):
+	class Meta:
+		model = Clinician
+		fields = ('cname', 'cphone')
+		widgets = {'cname':forms.TextInput(attrs=utils.ATTRS), 'cphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
+		labels = {'cname': 'Requesting Clinician', 'cphone':'Phone'}
+
+class LabTechForm(forms.ModelForm):
+	class Meta:
+		model = LabTech
+		fields = ('lname', 'lphone')
+		widgets = {'lname':forms.TextInput(attrs=utils.ATTRS), 'lphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
+		labels = {'lname': 'Lab Technician', 'lphone':'Phone'}
 
 class PatientForm(forms.ModelForm):
 	class Meta:
@@ -124,6 +137,7 @@ class SampleForm(forms.ModelForm):
 		VL_SAMPLETYPE = "Sample Type"
 
 		labels = {
+			'treatment_inlast_sixmonths':'Treatment in last 6 months',
 			'treatment_indication': "Indication for Treament initiation",
 			'last_test_date': "Last VL Date",
 			'last_value': "Value of Last Test",
