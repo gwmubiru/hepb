@@ -795,7 +795,7 @@ ul.dropdown-menu {
   background-color: #292929 !important;
 }
 ul.dropdown-menu .dropdown-header {
-  font-size: 11px;
+  font-size: 12px;
   padding: 3px 16px;
   text-transform: uppercase;
 }
@@ -830,7 +830,7 @@ ul.dropdown-menu .divider {
 }
 /* forms */
 label {
-  font-size: 12px;
+  font-size: 14px;
   display: block;
 }
 legend {
@@ -1048,7 +1048,7 @@ label.label-primary,
   padding: 8px 12px;
 }
 .list-group-sm .list-group-item .badge {
-  font-size: 11px;
+  font-size: 12px;
   margin: 1px 0 0 4px;
   padding: 2px 6px;
 }
@@ -1239,7 +1239,7 @@ a.list-group-item-danger:hover {
 }
 .progress .progress-bar {
   background-color: #2986b9;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
 }
 .progress-success .progress-bar,
@@ -1563,7 +1563,7 @@ a.list-group-item-danger:hover {
 }
 .navbar .top_links > li > a {
   background: rgba(255, 255, 255, 0.1);
-  font-size: 10px;
+  font-size: 12px;
   display: block;
   padding-right: 8px;
   text-transform: uppercase;
@@ -1764,7 +1764,7 @@ a.list-group-item-danger:hover {
 #side_nav > ul > li > a {
   color: rgba(255, 255, 255, 0.75);
   display: block;
-  font-size: 32px;
+  font-size: 42px;
   outline: none;
   padding: 5px 0;
   position: relative;
@@ -1772,7 +1772,7 @@ a.list-group-item-danger:hover {
   text-decoration: none !important;
 }
 #side_nav > ul > li > a .label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: normal;
   line-height: 13px;
   padding: 0 3px;
@@ -1848,7 +1848,7 @@ a.list-group-item-danger:hover {
   text-decoration: none;
 }
 #side_nav .sub_panel ul a .badge {
-  font-size: 11px;
+  font-size: 12px;
   padding: 0 7px;
   float: right;
   line-height: 15px;
@@ -1904,7 +1904,7 @@ a.list-group-item-danger:hover {
   cursor: pointer;
 }
 #side_nav .nav_title {
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   display: block;
 }
@@ -2016,7 +2016,7 @@ a.list-group-item-danger:hover {
   padding-left: 2px;
 }
 #side_nav_acc > ul > li > a .label {
-  font-size: 11px;
+  font-size: 12px;
   padding: 0 3px;
   line-height: 13px;
   position: absolute;
@@ -2089,7 +2089,7 @@ a.list-group-item-danger:hover {
   color: #222222;
 }
 #side_nav_acc .sub_panel ul li a .badge {
-  font-size: 11px;
+  font-size: 12px;
   padding: 0 7px;
   float: right;
   line-height: 15px;
@@ -2294,7 +2294,7 @@ a.list-group-item-danger:hover {
   overflow: hidden;
 }
 .stat_box .stat_content .stat_name {
-  font-size: 11px;
+  font-size: 12px;
   display: block;
   margin-top: 2px;
   color: #888;
@@ -2415,7 +2415,7 @@ a.list-group-item-danger:hover {
 .todo_section li .label {
   margin: 2px 0 0 10px;
   padding: 1px 5px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: normal;
   line-height: 13px;
   text-transform: uppercase;
@@ -2513,7 +2513,7 @@ a.list-group-item-danger:hover {
   font-size: 15px;
 }
 .events_list .event_content li span {
-  font-size: 11px;
+  font-size: 12px;
   color: #999;
   text-transform: uppercase;
 }
@@ -2990,7 +2990,7 @@ a.list-group-item-danger:hover {
   padding: 10px;
 }
 .chart_label {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 14px;
   text-align: center;
   padding: 3px 6px;
@@ -3461,7 +3461,7 @@ a.list-group-item-danger:hover {
 .ms-container .ms-optgroup-label {
   color: #222222;
   background: #f8f8f8;
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   border-bottom: 1px solid #eee;
   padding: 3px 0 3px 5px;
@@ -3570,7 +3570,7 @@ a.list-group-item-danger:hover {
 }
 .table .upload_info .size,
 .table .download_info .size {
-  font-size: 11px;
+  font-size: 12px;
   color: #999;
   margin-bottom: 8px;
 }
@@ -3830,7 +3830,7 @@ a.list-group-item-danger:hover {
 }
 .irs-min,
 .irs-max {
-  font-size: 10px;
+  font-size: 12px;
   padding: 1px 3px;
   background: #e1e2e3;
   line-height: 1.3;
@@ -3842,7 +3842,7 @@ a.list-group-item-danger:hover {
 .irs-single {
   background: #aaa;
   color: #fff;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.3;
   padding: 1px 4px;
   top: 0;
@@ -4864,7 +4864,7 @@ a.fc-event:hover {
 }
 .chat_app .chat_messages .chat_message_body .chat_message_date {
   color: #999;
-  font-size: 11px;
+  font-size: 12px;
 }
 .chat_app .chat_messages .chat_message_body p {
   margin: 0;
@@ -5011,7 +5011,7 @@ a.fc-event:hover {
   left: 0;
   width: 20px;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   color: #999;
 }
 .ln-no-match.listNavHide {

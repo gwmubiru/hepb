@@ -20,7 +20,7 @@ SAMPLES_LIMIT = 1000
 
 @permission_required('samples.add_sample', login_url='/login/')
 def create(request):
-	vl_sample_id = request.GET.get('vl_sample_id')
+	saved_sample = request.GET.get('saved_sample')
 	if request.method == 'POST':
 		patient_form = PatientForm(request.POST)
 		phone_form = PatientPhoneForm(request.POST)
@@ -60,7 +60,7 @@ def create(request):
 			sample.vl_sample_id = sample_utils.create_sample_id()
 			sample.created_by = request.user
 			sample.save()
-			return redirect('/samples/create?vl_sample_id=%s' %sample.vl_sample_id)
+			return redirect('/samples/create?saved_sample=%s' %sample.pk)
 
 	else:
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
@@ -69,7 +69,6 @@ def create(request):
 		sample_form = SampleForm(initial={'locator_category':'V', 'date_received': timezone.now().date()})
 
 	context = {
-		'vl_sample_id': vl_sample_id,
 		'envelope_form': envelope_form,
 		'phone_form': phone_form,
 		'patient_form': patient_form,
@@ -77,6 +76,10 @@ def create(request):
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}
+
+	if saved_sample:
+		sample = Sample.objects.filter(pk=saved_sample).first()
+		context.update({'sample':sample})
 		
 	return render(request, 'samples/create.html', context)
 
