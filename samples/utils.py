@@ -1,4 +1,5 @@
 import json
+from django.db.models import Q
 
 from home import utils
 from backend.models import Facility
@@ -51,3 +52,21 @@ def get_district_hub_by_facility(facility_id):
 		pass
 
 	return json.dumps(ret)
+
+def locator_cond(search=""):
+	cond = False
+	try:
+		if search[0] == 'R' or search[0] =='V':
+			search = search[1:]
+
+		if "/" in search:
+			search_arr = search.split("/")
+			cond = Q(
+				envelope__envelope_number__icontains=search_arr[0][1:],
+				locator_position=search_arr[1]
+				)
+		else:
+			cond = Q(envelope__envelope_number__icontains=search)
+	except:
+		pass
+	return cond

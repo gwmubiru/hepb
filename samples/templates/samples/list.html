@@ -21,22 +21,29 @@
 			<tr>
 				<th>Facility</th>
 				<th>Hub</th>
+				<th>District</th>
+				<th>Sample Type</th>
 				<th>Form Number</th>
 				<th>Locator ID</th>
 				<th>Date Collected</th>
 				<th>Date Received</th>
+				<th>Initiation Date</th>
+				<th>ART Number</th>
+				<th>Other ID</th>
+				<th>Verified</th>
 				<th>...</th>
 			</tr>
 		</thead>
 		
 	</table>
 </div>
+
 <script type="text/javascript">
 $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
 		"serverSide": true,
-		"ajax": "{% url 'samples:list_json' %}",
+		"ajax": "/samples/list_json{% if global_search %}?global_search={{ global_search }}{% endif %}",
 	});
 });
 </script>

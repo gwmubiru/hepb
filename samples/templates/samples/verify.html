@@ -13,21 +13,28 @@
 
 {% block content %}	
 <div ng-app="verify" ng-controller="VerifyController" ng-init="envelope_id={{ envelope_id }}">
-	<div class="page-title">Verify Sample</div>
+	<div class="page-title">Verify Sample <% nxt_sample %></div>
 	<div id="success" class="alert alert-success vl-alert" role="alert" style="display:none;">
 		Sample successfully verified
 	</div>
 	<div id="completed" class="alert alert-success vl-alert" role="alert" style="display:none;">
 		Envelope verification completed
 	</div>
-	<div class="panel panel-default">
+	<div class="panel panel-default row">
 		
 
 		
 		{% if info_message %} <div class="alert alert-success" role="alert">{{ info_message }}</div> {% endif %}
 		{% if success_message %} <div class="alert alert-success" role="alert">{{ success_message }}</div> {% endif %}
+		<div class='panel-body col-lg-2'>
+			<span class='sub-title' >envelope samples</span><br>
+			<div class='ng-cloak' ng-repeat="s in vdata">
+				<div ng-if="s.sample_id==sample.sample_id"><% s.loc %></div>
+				<div ng-if="s.sample_id!=sample.sample_id"><a href="#" ng-click="selectSample(s.sample_id)"><% s.loc %></a></div>
+			</div>
 
-		<div class="panel-body">
+		</div>
+		<div class="panel-body col-lg-10">
 			<form action="" method="post" role="form" ng-submit="saveVerification()" onsubmit="return false">
 				{% csrf_token %}
 				<div class="row">
@@ -79,10 +86,7 @@
 						<div class="form-group  ng-cloak">
 							<label for="other_id">Other ID</label>
 							{% input "other_id" "" "{'class':'form-control input-sm w-md optional', 'ng-model': 'sample.other_id'}" %}
-						</div> 
-
-
-						
+						</div>
 
 					</div>
 
@@ -155,6 +159,7 @@
 
 </div>
 <script type="text/javascript"> 
+ var sample_id = {{ sample_id }};
  var envelope_id = {{ envelope_id }};
  var rejection_reasons = {{ rejection_reasons | safe }};
  $( function() {

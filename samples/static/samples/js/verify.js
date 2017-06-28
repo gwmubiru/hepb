@@ -13,9 +13,9 @@ ctrller.VerifyController = function($scope,$http){
 	$http.get("/samples/verify_envelope/"+envelope_id).success(function(data){
 		//console.log("we got this"+JSON.stringify(data));
 		$scope.vdata=data;
-		$scope.sample=data[0];
-		$scope.nxt_sample=1;
-
+		// $scope.sample=data[0];
+		// $scope.nxt_sample=1;
+		$scope.selectSample(sample_id)
 		$('#gender').val($scope.sample.gender);
 		$('#locator_category').val($scope.sample.locator_category);
 		$('#facility_id').val($scope.sample.facility_id);
@@ -49,6 +49,17 @@ ctrller.VerifyController = function($scope,$http){
 
 					});
 		return false;
+	}
+
+
+	$scope.selectSample = function(sample_id){
+		for(var i in $scope.vdata){
+			if(sample_id == $scope.vdata[i].sample_id ){
+				$scope.sample = $scope.vdata[i];
+				$scope.nxt_sample = parseInt(i)+1;
+				break;
+			}
+		}
 	}
 
 }

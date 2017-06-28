@@ -195,15 +195,17 @@ def show(request, sample_id):
 def list(request):
 	search_val = request.GET.get('search_val')
 
-	if search_val:
-		samples = Sample.objects.filter(
-					Q(form_number__contains=search_val)|
-					Q(vl_sample_id__contains=search_val)
-					).order_by('-pk')[:1]
-		if samples:
-			sample = samples[0]
-			return redirect('/samples/show/%d' %sample.pk)
-	return render(request, 'samples/list.html')
+	# if search_val:
+	# 	samples = Sample.objects.filter(
+	# 				Q(form_number__icontains=search_val)|
+	# 				Q(vl_sample_id__icontains=search_val)|
+	# 				sample_utils.locator_cond(search_val)
+	# 				).order_by('-pk')[:1]
+	# 	if samples:
+	# 		sample = samples[0]
+	# 		return redirect('/samples/show/%d' %sample.pk)
+
+	return render(request, 'samples/list.html', {'global_search':search_val })
 	
 
 def appendix_select(name="", cat_id=0, clss='form-control input-xs w-md'):
@@ -211,10 +213,11 @@ def appendix_select(name="", cat_id=0, clss='form-control input-xs w-md'):
 	more = {'class': clss}
 	return utils.select(name,{'k_col':'id', 'v_col':'appendix', 'items':apendices.filter(appendix_category_id=cat_id)},"",more)
 
-def verify(request, envelope_id):
+def verify(request, sample_id):
 	facilities = Facility.objects.values('id', 'facility').order_by('facility')
 	context = {
-		'envelope_id': envelope_id,
+		'sample_id':sample_id,
+		'envelope_id': Sample.objects.get(pk=sample_id).envelope.pk,
 		"rejection_reasons": appendices_json(4),
 		"facility_dropdown": utils.select( "facility_id",
 										  {'k_col':'id', 'v_col':'facility', 'items':facilities },
@@ -225,7 +228,8 @@ def verify(request, envelope_id):
 
 
 def verify_envelope(request, envelope_id):	
-	samples = Sample.objects.filter(envelope_id=envelope_id).order_by('locator_position')
+	samples = Sample.objects.filter(envelope_id=envelope_id).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('lposition_int')
+
 	ret=[]
 	for s in samples:
 		ret.append({
@@ -235,6 +239,7 @@ def verify_envelope(request, envelope_id):
 				'locator_category': s.locator_category,
 				'locator_position': s.locator_position,
 				'envelope_number': s.envelope.envelope_number,
+				'loc':"%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
 				'form_number': s.form_number,
 				'sample_type':s.sample_type,
 				'facility_id': s.facility_id,
@@ -287,14 +292,15 @@ def save_verify(request):
 def verify_list(request):
 
 	search_val = request.GET.get('search_val')
+	verified = request.GET.get('verified', 0)
 
-	if search_val:
-		envelopes = Envelope.objects.filter(envelope_number__contains=search_val).order_by('-pk')[:1]
-		if envelopes:
-			envelope = envelopes[0]
-			return redirect('/samples/verify/%d' %envelope.pk)
+	# if search_val:
+	# 	envelopes = Envelope.objects.filter(envelope_number__contains=search_val).order_by('-pk')[:1]
+	# 	if envelopes:
+	# 		envelope = envelopes[0]
+	# 		return redirect('/samples/verify/%d' %envelope.pk)
 
-	return render(request, "samples/verify_list.html")
+	return render(request, "samples/verify_list.html", {'verified':verified, 'global_search':search_val })
 
 def appendices_json(cat_id):
 	appendices = Appendix.objects.values('id', 'appendix').filter(appendix_category_id=cat_id)

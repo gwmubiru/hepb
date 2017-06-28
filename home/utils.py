@@ -130,3 +130,6 @@ def dropdown_links(links):
 def btn_link(*args):
 	url,label = args
 	return "<a class='btn btn-xs btn-danger' href='%s'>%s</a>" %(url, label)
+
+def eq(a,b):
+	return a.upper() == b.upper()
