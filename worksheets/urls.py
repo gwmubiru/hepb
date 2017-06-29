@@ -14,6 +14,7 @@ urlpatterns  = [
 	url(r'^list_json/$', login_required(views.ListJson.as_view()), name='list_json'),
 	url(r'^authorize_list/(?P<machine_type>[A|R|C])/$', login_required(views.authorize_list), name='authorize_list'),
 	url(r'^authorize_results/(?P<worksheet_id>[0-9]+)/$', login_required(views.authorize_results), name='authorize_results'),
-	url(r'^pending_samples/$', login_required(views.pending_samples), name='get_pending_samples')
+	url(r'^pending_samples/$', login_required(views.pending_samples), name='get_pending_samples'),
+	url(r'^pending_envelopes/$', login_required(views.pending_envelopes), name='pending_envelopes'),
 	#url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
 ]

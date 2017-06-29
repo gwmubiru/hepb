@@ -7,14 +7,30 @@ var app=angular.module('worksheet_samples', [], function($interpolateProvider) {
 ctrller={};
 ctrller.worksheetSamplesController = function($scope,$http){
 	$scope.selected_samples = [];
+	$scope.pending_envelopes = [];
+	$scope.current_env = '';
 
-	$http.get("/worksheets/pending_samples/").success(function(data){
+	$http.get("/worksheets/pending_envelopes").success(function(data){
+		$scope.pending_envelopes = data;
+	});
+
+	/*$http.get("/worksheets/pending_samples/").success(function(data){
 		$scope.samples = data;
 	});
 
 	$http.get("/worksheets/pending_samples?repeat=1").success(function(data){
 		$scope.repeat_samples = data;
-	});
+	});*/
+
+	$scope.getEnvSamples = function(pk){
+		$scope.current_env = pk;
+		$scope.envelope_number = "";
+		$http.get("/worksheets/pending_samples?env_pk="+pk).success(function(data){
+			$scope.samples = data;
+		});
+	}
+
+
 
 	$scope.getSamples = function($event,type){
 		var keyCode = $event.which || $event.keyCode;
@@ -29,7 +45,7 @@ ctrller.worksheetSamplesController = function($scope,$http){
 
 	$scope.setSample = function($event, i){
 		var keyCode = $event.which || $event.keyCode;
-		if(keyCode == 13){
+		if((keyCode == 13 && $scope.machine_type=='C') || $scope.machine_type!='C'){
 			$scope.selected_samples.push($scope.samples[i]);
 			var next_index = Number(i)+1;
 			$("#sss"+next_index).focus();

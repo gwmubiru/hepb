@@ -5,38 +5,59 @@
 </ul>
 <div class="tab-content">
 	<div class="tab-pane active" >
-		<div style='height: 500px;overflow-y: auto;' >
+		<div style='height: 700px;overflow-y: auto;' >
 			<div id='lab-spaces1' class='lab-spaces'>
 				<div class='row'>
 					<div class='col-md-6'>
 						<span class='sm-label'>search by envelope/box number</span>
-						<input type="text" class="form-control input-sm w-md" placeholder="enter number and press enter" ng-model='envelope_number' ng-keypress="getSamples($event,'envelope')">
+						<input type="text" class="form-control input-sm w-md" ng-model='envelope_number' >
 					</div>
 					<div class='col-md-6'>
 						<span class='sm-label'>search by sample form number</span>
 						<input type="text" class="form-control input-sm w-md" placeholder="enter number and press enter" ng-model='sample_search' ng-keypress="getSamples($event,'sample')">
 					</div>
 				</div>
-				<br>				
+				<br>	
+
+				<div class="row">
+					<div class="col-md-2">
+						<div class="ng-cloak" ng-repeat='e in pending_envelopes | filter:envelope_number'>
+							<div ng-if="e.pk==current_env"><% e.envelope_number %> (<% e.sample_count %>)</div>
+							<div ng-if="e.pk!=current_env">
+								<a href="#" ng-click="getEnvSamples(e.pk)"><% e.envelope_number %></a>
+								(<% e.sample_count %>)
+							</div>
+						</div>
+					</div>
+					<div class="col-md-10">
+						<table class="table table-striped table-condensed table-bordered" id="samples-table" >
+							<thead>
+								<th>ART Number</th>
+								<th>Sample ID</th>
+								<th>Location ID</th>
+								<th>Form</th>
+								<th>{% if worksheet.machine_type == 'C' %}Instrument ID {% else %} Select {% endif %}</th>
+							</thead>
+							<tbody>
+								 <tr ng-repeat="sample in samples" >
+				                    <td class="ng-cloak" ><% sample.art_number %></td>
+				                    <td class="ng-cloak"><% sample.vl_sample_id %></td>
+				                    <td class="ng-cloak"><% sample.locator_id %></td>
+				                    <td class="ng-cloak"><% sample.form_number %></td>
+				                    <td>
+				                    	{% if worksheet.machine_type == 'C' %}
+				                    	<input id="sss<% sample.index %>" tabindex="<% sample.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% sample.id %>" value="" ng-keypress="setSample($event, sample.index)" ng-model="sample.instrument_id">
+				                    	{% else %}
+				                    	<input id="sss<% sample.index %>" tabindex="<% sample.index %>" class="form-control samples" type="checkbox" name="instrument<% sample.id %>" value="" ng-click="setSample($event, sample.index)" ng-model="sample.instrument_id">
+				                    	{% endif %}
+				                    </td>
+				                </tr> 
+							</tbody>
+						</table>
+					</div>
+				</div>			
 				
-				<table class="table table-striped table-condensed table-bordered" id="samples-table" >
-					<thead>
-						<th>ART Number</th>
-						<th>Sample ID</th>
-						<th>Location ID</th>
-						<th>Form</th>
-						<th>Instrument ID</th>
-					</thead>
-					<tbody>
-						 <tr ng-repeat="sample in samples" >
-		                    <td class="ng-cloak"><% sample.art_number %></td>
-		                    <td class="ng-cloak"><% sample.vl_sample_id %></td>
-		                    <td class="ng-cloak"><% sample.locator_id %></td>
-		                    <td class="ng-cloak"><% sample.form_number %></td>
-		                    <td><input id="sss<% sample.index %>" tabindex="<% sample.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% sample.id %>" value="" ng-keypress="setSample($event, sample.index)" ng-model="sample.instrument_id"></td>
-		                </tr> 
-					</tbody>
-				</table>
+				
 			</div>
 
 			<div id='lab-spaces2' class='lab-spaces' style="display:none">
@@ -95,7 +116,6 @@ $(".lab-tabs").click(function(){
 	$("#lab-spaces"+tab).show();
 	$(".lab-tabs").removeClass('active');
 	$(this).addClass('active');
-
 });
 
 </script>

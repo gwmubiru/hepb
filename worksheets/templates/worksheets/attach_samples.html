@@ -2,18 +2,34 @@
 {% load form_tags %}
 {% load staticfiles %}
 
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
 {% block js %}
 	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
 {% endblock %}
 
 {% block content %}	
 	<span class="page-title">attach samples</span>		
-	<div class="panel panel-default">
+	<div class="panel panel-default" ng-app="worksheet_samples" ng-controller="worksheetSamplesController" ng-init="machine_type='{{ worksheet.machine_type }}'">
 		<div class="panel-body">
 			
 			<form action="{% url 'worksheets:attach_samples' worksheet.id %}" method="post" role="form">
 				{% csrf_token %}
-				<div class="worksheet">
+				<div class="row" >
+					<div class="col-md-3"><label>Worksheet Ref Number:</label><u>{{ worksheet.worksheet_reference_number }}</u></div>
+					<div class="col-md-3"><label>Machine Type:</label> <u>{{ worksheet.get_machine_type_display }}</u></div>
+					<div class="col-md-3"><label>Sample Type:</label><u>{{ worksheet.get_sample_type_display }}</u></div>
+					<div class="col-md-3"><label>Date Created:</label> <u>{{ worksheet.created_at | date:"Y-m-d" }}</u></div>
+				</div>
+				<br>
+				{% include "worksheets/_attach_samples.html" %}
+<!-- 				<div class="worksheet">
 					<div class="row" >
 						<div class="col-md-4">Worksheet Ref Number: 
 							<u>{{ worksheet.worksheet_reference_number }}</u>
@@ -106,9 +122,8 @@
 						{% endfor %}
 					</div>
 				</div>
-				<br>
-				
-				<input type="submit" value="save" class="btn btn-danger btn-submit ">
+				<br> -->
+				<span id='submit' class="btn btn-danger btn-submit ">save</span>
 				
 			</form>
 		</div>
@@ -132,8 +147,16 @@
         	$(".repeat_sample").slice(0,sample_number).attr("checked", true);
         })
 
+        $("#submit").click(function(){
+			var form = $('form')[0];
+			form.submit();
+		});
+
         //$(".sample").prop("checked", "true")
       })
 
 	</script>
+
+
+	<script type="text/javascript" src='{% static "worksheets/js/worksheet.js" %}'></script>
 {% endblock %}

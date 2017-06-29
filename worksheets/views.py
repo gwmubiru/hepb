@@ -10,11 +10,12 @@ from xhtml2pdf import pisa
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
+from django.db import models
 
 from home import utils
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample
-from samples.models import Sample
+from samples.models import Sample, Envelope
 from results.models import Result
 from . import utils as worksheet_utils
 
@@ -55,22 +56,21 @@ def create(request, machine_type):
 			worksheet.generated_by = request.user
 			worksheet.save()
 
-			if machine_type == 'C':
-				attached_samples = request.POST.getlist('samples')
-				worksheet_samples = []
+			# if machine_type == 'C':
+			# 	attached_samples = request.POST.getlist('samples')
+			# 	worksheet_samples = []
 				
-				for sample_id in attached_samples:
-					instrument_id = request.POST.get('instrument'+sample_id)
-					if instrument_id:
-						sample = Sample.objects.get(pk=sample_id)
-						worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
-						sample.in_worksheet = True
-						sample.save()
+			# 	for sample_id in attached_samples:
+			# 		instrument_id = request.POST.get('instrument'+sample_id)
+			# 		if instrument_id:
+			# 			sample = Sample.objects.get(pk=sample_id)
+			# 			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
+			# 			sample.in_worksheet = True
+			# 			sample.save()
 
-				#return HttpResponse(ret)
-				WorksheetSample.objects.bulk_create(worksheet_samples)
-				return redirect('worksheets:show',worksheet.pk)
-
+			# 	#return HttpResponse(ret)
+			# 	WorksheetSample.objects.bulk_create(worksheet_samples)
+			# 	return redirect('worksheets:show',worksheet.pk)
 
 			return redirect('worksheets:attach_samples', worksheet_id=worksheet.id)
 	else:
@@ -93,9 +93,10 @@ def attach_samples(request, worksheet_id):
 		worksheet_samples = []
 		
 		for sample_id in attached_samples:
+			instrument_id = request.POST.get('instrument'+sample_id, None)
 			sample = Sample.objects.get(pk=sample_id)			
 			#worksheet.samples.add(sample)
-			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample))
+			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
 			sample.in_worksheet = True
 			sample.save()
 
@@ -184,11 +185,14 @@ def pending_samples(request):
 	else:		
 		envelope_number = request.GET.get('envelope_number')
 		sample_search = request.GET.get('sample_search')
-		filters = {'verification__accepted':True, 'in_worksheet':False}
+		env_pk = request.GET.get('env_pk')
+		filters = {'in_worksheet':False, 'verified':True}
 		if envelope_number:
 			filters.update({'envelope__envelope_number':envelope_number})
 		elif sample_search:
 			filters.update({'form_number':sample_search})
+		elif env_pk:
+			filters.update({'envelope':env_pk})
 
 		samples = Sample.objects.filter(**filters)
 		samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:50]
@@ -205,7 +209,17 @@ def pending_samples(request):
 			})
 	return HttpResponse(json.dumps(ret))
 
+def pending_envelopes(request):
+	unverified_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
+	nein_worksheet_count = models.Count(models.Case(models.When(sample__in_worksheet=False, then=1)))
+	envelopes = Envelope.objects.annotate(smpl_count=models.Count('sample'),uc=unverified_count, nwc=nein_worksheet_count).filter(uc=0, nwc__gt=0)
+	#envelopes = Envelope.objects.annotate(models.Count('sample'))
+	ret = []
+	for i,e in enumerate(envelopes):
+		ret.append({'pk':e.pk,'envelope_number':e.envelope_number,'sample_count':e.smpl_count})
+	return HttpResponse(json.dumps(ret))
 
+	
 class ListJson(BaseDatatableView):
 	model = Worksheet
 	columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at', 'pk']
