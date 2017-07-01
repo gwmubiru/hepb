@@ -28,13 +28,18 @@
 							</thead>
 							<tbody>
 								{% for s in worksheet.worksheetsample_set.all %}
+								{% if forloop.counter0|divisibleby:5 %}
+								<tr><td colspan='5' style='background:#34495e'></td></tr>
+								{% endif %}
+
 								<tr>
-									<td>{{ s.sample.patient.art_number }}</td>
+									<td>{{forloop.counter}}{{ s.sample.patient.art_number }}</td>
 									<td>{{ s.sample.vl_sample_id }}</td>
 									<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
 									<td>{{ s.sample.form_number }}</td>
 									<td>{{ s.instrument_id }}</td>
 								</tr>
+
 								{% endfor %}
 							</tbody>
 						</table>

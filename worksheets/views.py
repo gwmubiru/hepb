@@ -182,17 +182,14 @@ def pending_samples(request):
 	repeat = request.GET.get('repeat')
 	if repeat:
 		samples = Sample.objects.filter(result__repeat_test = True)[:50]
-	else:		
-		envelope_number = request.GET.get('envelope_number')
+	else:
 		sample_search = request.GET.get('sample_search')
 		env_pk = request.GET.get('env_pk')
-		filters = {'in_worksheet':False, 'verified':True}
-		if envelope_number:
-			filters.update({'envelope__envelope_number':envelope_number})
+		filters = {'in_worksheet':False, 'verified':True, 'verification__accepted':True}
+		if env_pk:
+			filters.update({'envelope':env_pk})
 		elif sample_search:
 			filters.update({'form_number':sample_search})
-		elif env_pk:
-			filters.update({'envelope':env_pk})
 
 		samples = Sample.objects.filter(**filters)
 		samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:50]
@@ -212,7 +209,9 @@ def pending_samples(request):
 def pending_envelopes(request):
 	unverified_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
 	nein_worksheet_count = models.Count(models.Case(models.When(sample__in_worksheet=False, then=1)))
-	envelopes = Envelope.objects.annotate(smpl_count=models.Count('sample'),uc=unverified_count, nwc=nein_worksheet_count).filter(uc=0, nwc__gt=0)
+	st = request.GET.get('sample_type')
+	st_count = models.Count(models.Case(models.When(sample__sample_type=st, then=1)))
+	envelopes = Envelope.objects.annotate(smpl_count=models.Count('sample'),uc=unverified_count, nwc=nein_worksheet_count, stc=st_count).filter(uc=0, nwc__gt=0, stc__gt=0)
 	#envelopes = Envelope.objects.annotate(models.Count('sample'))
 	ret = []
 	for i,e in enumerate(envelopes):

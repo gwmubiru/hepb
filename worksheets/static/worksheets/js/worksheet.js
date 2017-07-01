@@ -10,7 +10,7 @@ ctrller.worksheetSamplesController = function($scope,$http){
 	$scope.pending_envelopes = [];
 	$scope.current_env = '';
 
-	$http.get("/worksheets/pending_envelopes").success(function(data){
+	$http.get("/worksheets/pending_envelopes?sample_type="+st).success(function(data){
 		$scope.pending_envelopes = data;
 	});
 

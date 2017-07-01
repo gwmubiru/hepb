@@ -16,15 +16,21 @@
 
 {% block content %}	
 	<span class="page-title">attach samples</span>		
-	<div class="panel panel-default" ng-app="worksheet_samples" ng-controller="worksheetSamplesController" ng-init="machine_type='{{ worksheet.machine_type }}'">
+	<div class="panel panel-default" ng-app="worksheet_samples" ng-controller="worksheetSamplesController">
 		<div class="panel-body">
 			
 			<form action="{% url 'worksheets:attach_samples' worksheet.id %}" method="post" role="form">
 				{% csrf_token %}
 				<div class="row" >
-					<div class="col-md-3"><label>Worksheet Ref Number:</label><u>{{ worksheet.worksheet_reference_number }}</u></div>
-					<div class="col-md-3"><label>Machine Type:</label> <u>{{ worksheet.get_machine_type_display }}</u></div>
-					<div class="col-md-3"><label>Sample Type:</label><u>{{ worksheet.get_sample_type_display }}</u></div>
+					<div class="col-md-3" >
+						<label>Worksheet Ref Number:</label><u>{{ worksheet.worksheet_reference_number }}</u>
+					</div>
+					<div class="col-md-3" ng-init="machine_type='{{ worksheet.machine_type }}'">
+						<label>Machine Type:</label> <u>{{ worksheet.get_machine_type_display }}</u>
+					</div>
+					<div class="col-md-3" ng-init="sample_type='{{ worksheet.sample_type }}'">
+						<label>Sample Type:</label><u>{{ worksheet.get_sample_type_display }}</u>
+					</div>
 					<div class="col-md-3"><label>Date Created:</label> <u>{{ worksheet.created_at | date:"Y-m-d" }}</u></div>
 				</div>
 				<br>
@@ -129,8 +135,9 @@
 		</div>
 	</div>
 	<script type="text/javascript">
+	var st = "{{ worksheet.sample_type}}";
 	 $(function() {
-		$(".vlbarcodes").each(function (index){
+	 	$(".vlbarcodes").each(function (index){
             var val = $(this).attr("value");
             $(this).barcode(val, "code128",{showHRI: false,posX: 4});
         });
