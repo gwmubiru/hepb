@@ -1,4 +1,4 @@
-import csv, pandas, io
+import csv, pandas, io, json
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
@@ -6,7 +6,7 @@ from django.utils import timezone
 from .forms import UploadForm, CobasUploadForm
 from worksheets.models import Worksheet,WorksheetSample
 from samples.models import Sample
-from .models import Result,ResultsPrinting
+from .models import Result,ResultsQC
 from . import utils as result_utils
 
 # patient, pat_created = Patient.objects.get_or_create(
@@ -157,7 +157,7 @@ def release_results(request, worksheet_id):
 	if request.method == 'POST':
 		result = Result.objects.get(pk=request.POST.get('result_pk'))
 		choice = request.POST.get('choice')
-		rp = ResultsPrinting()
+		rp = ResultsQC()
 		if choice == 'release':
 			rp.released = True
 		else:
@@ -173,3 +173,21 @@ def release_results(request, worksheet_id):
 		context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 		return render(request, 'results/release_results.html', context)
 
+def api(request):
+
+	
+	ret=[]
+	results = Result.objects.all()
+
+	for i,r in enumerate(results):
+		s = r.sample
+		p = r.sample.patient
+		ret.append({
+				'sample_id': s.pk,
+				'art_number': p.art_number,
+				'vl_sample_id': s.vl_sample_id,
+				'locator_id': "%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
+				'form_number': s.form_number,
+				'art_number': s.patient.art_number,
+			})
+	return HttpResponse(json.dumps(ret))

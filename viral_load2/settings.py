@@ -27,52 +27,55 @@ SECRET_KEY = 'sf0bgysf((pz2_agu$7b^6(yyndq9n3dx4vs91v-6p_4d)y^5h'
 DEBUG = os.environ.get('DEBUG',True)
 
 ALLOWED_HOSTS = ["localhost"]
-
+	
 
 # Application definition
-
-INSTALLED_APPS = [    
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'backend.apps.BackendConfig',
-    'samples.apps.SamplesConfig',
-    'worksheets.apps.WorksheetsConfig',
-    'results.apps.ResultsConfig',
-    'home.apps.HomeConfig',
-    'easy_pdf',
+	
+INSTALLED_APPS = [	
+	'django.contrib.admin',
+	'django.contrib.auth',
+	'django.contrib.contenttypes',
+	'django.contrib.sessions',
+	'django.contrib.messages',
+	'django.contrib.staticfiles',
+	'rest_framework',
+    'rest_framework.authtoken',
+	'easy_pdf',
+	'backend.apps.BackendConfig',
+	'samples.apps.SamplesConfig',
+	'worksheets.apps.WorksheetsConfig',
+	'results.apps.ResultsConfig',
+	'home.apps.HomeConfig',
+	'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE_CLASSES = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'django.middleware.security.SecurityMiddleware',
+	'django.contrib.sessions.middleware.SessionMiddleware',
+	'django.middleware.common.CommonMiddleware',
+	'django.middleware.csrf.CsrfViewMiddleware',
+	'django.contrib.auth.middleware.AuthenticationMiddleware',
+	'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+	'django.contrib.messages.middleware.MessageMiddleware',
+	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'viral_load2.urls'
 
 TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
+	{
+		'BACKEND': 'django.template.backends.django.DjangoTemplates',
+		'DIRS': [],
+		'APP_DIRS': True,
+		'OPTIONS': {
+			'context_processors': [
+				'django.template.context_processors.debug',
+				'django.template.context_processors.request',
+				'django.contrib.auth.context_processors.auth',
+				'django.contrib.messages.context_processors.messages',
+			],
+		},
+	},
 ]
 
 WSGI_APPLICATION = 'viral_load2.wsgi.application'
@@ -81,14 +84,14 @@ WSGI_APPLICATION = 'viral_load2.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
-    'default': {
-        'ENGINE': db_engines.gears.get(os.environ.get('DB_ENGINE'),'django.db.backends.mysql'),
-        'NAME': os.environ.get('DB_NAME','vl2'),
-        'USER': os.environ.get('DB_USER','vl2'),
-        'PASSWORD': os.environ.get('DB_PASSWORD','vl2'),
-        'HOST': os.environ.get('DB_HOST',''),
-        'PORT': os.environ.get('DB_PORT',''),
-    }
+	'default': {
+		'ENGINE': db_engines.gears.get(os.environ.get('DB_ENGINE'),'django.db.backends.mysql'),
+		'NAME': os.environ.get('DB_NAME','vl2'),
+		'USER': os.environ.get('DB_USER','vl2'),
+		'PASSWORD': os.environ.get('DB_PASSWORD','vl2'),
+		'HOST': os.environ.get('DB_HOST',''),
+		'PORT': os.environ.get('DB_PORT',''),
+	}
 }
 
 
@@ -96,19 +99,29 @@ DATABASES = {
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+	{
+		'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+	},
+	{
+		'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+	},
+	{
+		'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+	},
+	{
+		'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+	},
 ]
+
+REST_FRAMEWORK = {
+	'DEFAULT_AUTHENTICATION_CLASSES': (
+		'rest_framework.authentication.BasicAuthentication',
+		'rest_framework.authentication.SessionAuthentication',
+	),
+	'DEFAULT_PERMISSION_CLASSES': (
+		'rest_framework.permissions.IsAuthenticated',
+	)
+}
 
 
 # Internationalization
@@ -140,6 +153,6 @@ LOGOUT_URL = '/logout'
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
 try:
-    from local_settings import *
+	from local_settings import *
 except ImportError:
-    pass
+	pass

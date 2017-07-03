@@ -32,7 +32,6 @@ class Worksheet(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	stage = models.PositiveSmallIntegerField(choices=MACHINE_TYPES, default=1)
-	printed = models.BooleanField(default=False)
 
 	class Meta:
 		db_table = 'vl_worksheets'
@@ -42,6 +41,7 @@ class Worksheet(models.Model):
 class WorksheetSample(models.Model):
 	worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)
 	sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
+	has_result = models.BooleanField(default=False)
 	instrument_id = models.CharField(max_length=64, null=True, blank=True)
 
 	class Meta:

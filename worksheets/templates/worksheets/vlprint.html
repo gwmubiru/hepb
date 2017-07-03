@@ -43,6 +43,9 @@
 					</thead>
 					<tbody>
 						{% for sample in worksheet.samples.all %}
+						{% if forloop.counter0|divisibleby:5 %}
+						<tr><td colspan='5' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
+						{% endif %}
 						<tr>
 							<td>{{ sample.patient.art_number }}</td>
 							<td>{{ sample.vl_sample_id }}</td>

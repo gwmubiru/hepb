@@ -40,7 +40,7 @@ class Result(models.Model):
 	
 
 #track sample sample printing and dispatch
-class ResultsPrinting(models.Model):
+class ResultsQC(models.Model):
 	result = models.ForeignKey(Result, on_delete=models.CASCADE)
 	released = models.BooleanField(default=False)
 	released_by = models.ForeignKey(User, related_name='released_by', null=True)
@@ -53,7 +53,7 @@ class ResultsPrinting(models.Model):
 	printed_by = models.CharField(max_length=128, null=True)
 
 	class Meta:
-		db_table = 'vl_results_printing'
+		db_table = 'vl_results_qc'
 
 
 #track worksheets whose results have been uploaded
