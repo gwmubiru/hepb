@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from results.models import Result,ResultsQC
 from samples.models import Patient,Envelope,Sample
+from backend.models import District, Hub, Facility
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
@@ -48,3 +49,23 @@ class ResultsQCSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ResultsQC
 		fields = ('result',)
+
+class DistrictSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = District
+		fields = ('district',)
+
+class HubSerializer(serializers.ModelSerializer):
+
+	class Meta:
+		model = Hub
+		fields = ('hub',)
+
+class FacilitySerializer(serializers.ModelSerializer):
+	district = DistrictSerializer(read_only=True)
+	hub = HubSerializer(read_only=True)
+
+	class Meta:
+		model = Facility
+		fields = ('pk','district', 'hub','facility', 'coordinator_name', 'coordinator_contact',)
