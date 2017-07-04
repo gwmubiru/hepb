@@ -6,7 +6,7 @@ from backend.models import District, Hub, Facility
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
-		fields = ('username')
+		fields = ('username',)
 
 class PatientSerializer(serializers.ModelSerializer):
 	class Meta:
