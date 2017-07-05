@@ -56,31 +56,10 @@ def create(request, machine_type):
 			worksheet.generated_by = request.user
 			worksheet.save()
 
-			# if machine_type == 'C':
-			# 	attached_samples = request.POST.getlist('samples')
-			# 	worksheet_samples = []
-				
-			# 	for sample_id in attached_samples:
-			# 		instrument_id = request.POST.get('instrument'+sample_id)
-			# 		if instrument_id:
-			# 			sample = Sample.objects.get(pk=sample_id)
-			# 			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
-			# 			sample.in_worksheet = True
-			# 			sample.save()
-
-			# 	#return HttpResponse(ret)
-			# 	WorksheetSample.objects.bulk_create(worksheet_samples)
-			# 	return redirect('worksheets:show',worksheet.pk)
-
 			return redirect('worksheets:attach_samples', worksheet_id=worksheet.id)
 	else:
 		form = WorksheetForm(initial={'machine_type':machine_type})
 		context = {'form': form, 'machine_type':machine_type}
-		if machine_type == 'C':
-			repeat_samples = Sample.objects.filter(result__repeat_test = True)[:50]
-			context.update({'samples':Sample.objects.filter(verification__accepted=True, in_worksheet=False).\
-									extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
-									order_by('envelope__envelope_number', 'lposition_int')[:50], 'repeat_samples':repeat_samples})
 
 
 	return render(request, 'worksheets/create.html', context)
@@ -147,7 +126,11 @@ def vlprint(request, worksheet_id):
 	return render(request, 'worksheets/vlprint.html', context)
 
 def authorize_list(request, machine_type):
-	worksheets = Worksheet.objects.filter(stage=2, machine_type=machine_type)
+	has_results_count = models.Count(models.Case(models.When(worksheetsample__stage__gte=2, then=1)))
+	samples_count = models.Count('worksheetsample')
+	worksheets = Worksheet.objects.annotate(sc=samples_count,hrc=has_results_count).filter(hrc=samples_count, machine_type=machine_type)
+	#worksheets = Worksheet.objects.filter(stage=2, machine_type=machine_type)
+
 	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets})
 
 def authorize_results(request, worksheet_id):
@@ -168,6 +151,10 @@ def authorize_results(request, worksheet_id):
 			result.authorised_at = timezone.now()
 
 		result.save()
+		worksheet = Worksheet.objects.get(pk=worksheet_id)
+		ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=result.sample).first()
+		ws.stage = 3
+		ws.save()
 		return HttpResponse("saved");
 	else:
 		worksheet = Worksheet.objects.get(pk=worksheet_id)
@@ -192,7 +179,7 @@ def pending_samples(request):
 			filters.update({'form_number':sample_search})
 
 		samples = Sample.objects.filter(**filters)
-		samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:50]
+		samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:200]
 	ret=[]
 
 	for i,s in enumerate(samples):

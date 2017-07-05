@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
 
+from django.db import models
+
 from .forms import UploadForm, CobasUploadForm
 from worksheets.models import Worksheet,WorksheetSample
 from samples.models import Sample
@@ -66,6 +68,9 @@ def handle_files(f, worksheet, user):
 			sample = Sample.objects.get(vl_sample_id=vl_sample_id)
 			repeat = result_utils.repeat_test('R', result, '')
 			store_result('R', sample, result, repeat, worksheet.multiplier, user)
+			ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
+			ws.stage = 2
+			ws.save()
 			# except:
 			# 	pass			
 			
@@ -126,6 +131,8 @@ def cobas_upload(request):
 					sample = ws.sample
 					repeat = 3 if result_utils.eq(result, 'invalid') else 2
 					store_result('C', sample, result, repeat, 1, request.user)
+					ws.stage = 2
+					ws.save()
 				
 			return redirect('worksheets:list')
 	else:
@@ -150,7 +157,10 @@ def worksheet_results(request, worksheet_id):
 	return render(request, 'results/worksheet_results.html', {'worksheet':worksheet})
 
 def release_list(request, machine_type):
-	worksheets = Worksheet.objects.filter(stage=3, machine_type=machine_type)
+	auth_count = models.Count(models.Case(models.When(worksheetsample__stage__gte=3, then=1)))
+	samples_count = models.Count('worksheetsample')
+	worksheets = Worksheet.objects.annotate(sc=samples_count,ac=auth_count).filter(ac=samples_count, machine_type=machine_type)
+	#worksheets = Worksheet.objects.filter(stage=3, machine_type=machine_type)
 	return render(request,'results/release_list.html',{'worksheets':worksheets})
 
 def release_results(request, worksheet_id):
