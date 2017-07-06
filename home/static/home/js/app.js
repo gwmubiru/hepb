@@ -74,3 +74,16 @@ function pad(str, len, pad, dir) {
     return str;
 
 }
+
+
+function future_date(string_date){
+  var now = new Date();
+  var string_s = strtotime(string_date);
+  var now_s = now.getTime();
+  return string_s>now_s;
+}
+
+function strtotime(string_date){
+  var date_obj = new Date(string_date+" 00:00:00");
+  return date_obj.getTime();
+}

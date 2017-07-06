@@ -145,12 +145,14 @@
 				</div>
 				<br>{{ userid }}
 
+				<br><input type='submit' value='save and attach samples' class="btn btn-danger btn-submit "> 
+
 
 				<!-- {% if machine_type == 'C' %}
 				 {% include "worksheets/_attach_samples.html" %}
 				{% endif %} -->
 
-				<br><span id='submit' class="btn btn-danger btn-submit ">save and attach samples</span>
+				<!-- <br><span id='submit' class="btn btn-danger btn-submit ">save and attach samples</span> -->
 				
 			</form>
 		</div>
@@ -183,11 +185,6 @@
     	/*var oTable = $('#samples-table').dataTable({
 			"processing": true,
 		});*/
-	});
-
-	$("#submit").click(function(){
-		var form = $('form')[0];
-		form.submit();
 	});
 
 	/*$(".lab-tabs").on('click',function(){

@@ -1,4 +1,4 @@
-import datetime
+from datetime import *
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
@@ -40,6 +40,10 @@ class PatientForm(forms.ModelForm):
 			'gender': forms.Select(attrs=utils.ATTRS2),
 			'dob': forms.DateInput(attrs=utils.ATTRS_DATE),
 		}
+
+	def clean(self):
+		utils.non_future_dates(self, ['dob'])
+
 
 class EnvelopeForm(forms.ModelForm):
 	class Meta:
@@ -144,13 +148,18 @@ class SampleForm(forms.ModelForm):
 			'last_sample_type': "Sample Type of Last Test",
 			}
 
-	# def clean(self):
-	# 	cleaned_data = self.cleaned_data
-	# 	envelope = cleaned_data.get('envelope')
-	# 	locator_position = cleaned_data.get('locator_position')
-	# 	loc_exists = Sample.objects.filter( locator_position=locator_position).exists()
-	# 	if loc_exists:
-	# 		#raise ValidationError(_('Duplicate Locator ID'))
-	# 		self.add_error('locator_position', 'Duplicate Locator ID')
+	def clean(self):
+		cleaned_data = self.cleaned_data
 
-	# 	return cleaned_data
+		date_today = date.today()
+		locator_category = cleaned_data.get('locator_category')
+		date_collected = cleaned_data.get('date_collected')
+		date_received = cleaned_data.get('date_received')
+
+		utils.non_future_dates(self, ['date_collected', 'date_received', 'treatment_initiation_date', 'last_test_date'])
+
+		if date_collected > date_received: 
+			self.add_error('date_collected', "date collected can not be > date received")
+
+		if (date_today - date_collected).days >=30 and locator_category!='R':
+			self.add_error('date_collected', "date collected >= 30 days, please reject")

@@ -37,6 +37,8 @@
 				    {% url 'samples:create'  %} 
 				  {% endif %}" method="post" role="form">
 		{% csrf_token %}
+		<input type="hidden" name="reject" value="0">
+		<input type="hidden" name="invalid" value="0">
 		
 
 		<div class="row">
@@ -116,33 +118,6 @@
 
 		<!--  Sample Information -->
 		<br>
-		
-		
-		<!-- <div class="row">
-			<div class="col-lg-6">
-				<div class="form-inline required">
-					{{ sample_form.date_collected.label_tag }}<br>
-					{{ sample_form.date_collected.errors }}
-					{{ sample_form.date_collected }}													
-				</div>
-				<br>
-
-				<div class="form-inline required">
-					{{ sample_form.date_received.label_tag }}<br>
-					{{ sample_form.date_received.errors }}
-					{{ sample_form.date_received }}
-				</div>
-			</div>
-			<div class="col-lg-6">
-				<div class="form-group required">
-					{{ sample_form.sample_type.label_tag }}
-					{{ sample_form.sample_type.errors }}
-					{{ sample_form.sample_type }}
-					<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_form.sample_type.value }}'>
-				</div>
-			</div>
-
-		</div><br>	 -->			
 
 
 		<!--  Patient Information -->
@@ -372,7 +347,7 @@
 
 <script type="text/javascript">
 	var date_now = new Date();
-	console.log(date_now.toDateString());
+	//console.log(date_now.toDateString());
 	var now_s = date_now.getTime();
 	var facility_json = {};
 	var regimen_json = {};
@@ -592,18 +567,6 @@
 			});	
 		}
 					
-	}
-
-	function future_date(string_date){
-		var now = new Date();
-		var dob_s = strtotime(string_date);
-		var now_s = now.getTime();
-		return dob_s<=now_s;
-	}
-
-	function strtotime(string_date){
-		var date_obj = new Date(string_date+" 00:00:00");
-		return date_obj.getTime();
 	}
 
 //422551
