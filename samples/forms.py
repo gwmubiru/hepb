@@ -18,14 +18,14 @@ class ClinicianForm(forms.ModelForm):
 	class Meta:
 		model = Clinician
 		fields = ('cname', 'cphone')
-		widgets = {'cname':forms.TextInput(attrs=utils.ATTRS), 'cphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
+		widgets = {'cname':forms.TextInput(attrs=utils.ATTRS_OPTIONAL), 'cphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
 		labels = {'cname': 'Requesting Clinician', 'cphone':'Phone'}
 
 class LabTechForm(forms.ModelForm):
 	class Meta:
 		model = LabTech
 		fields = ('lname', 'lphone')
-		widgets = {'lname':forms.TextInput(attrs=utils.ATTRS), 'lphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
+		widgets = {'lname':forms.TextInput(attrs=utils.ATTRS_OPTIONAL), 'lphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
 		labels = {'lname': 'Lab Technician', 'lphone':'Phone'}
 
 class PatientForm(forms.ModelForm):
@@ -35,7 +35,7 @@ class PatientForm(forms.ModelForm):
 		fields = ('art_number', 'other_id', 'gender', 'dob',)
 
 		widgets = {
-			'art_number': forms.TextInput(attrs=utils.ATTRS),
+			'art_number': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'other_id': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'gender': forms.Select(attrs=utils.ATTRS2),
 			'dob': forms.DateInput(attrs=utils.ATTRS_DATE),
@@ -43,6 +43,9 @@ class PatientForm(forms.ModelForm):
 
 	def clean(self):
 		utils.non_future_dates(self, ['dob'])
+		cld = self.cleaned_data
+		if cld.get('art_number') == '' and cld.get('other_id') == '' and cld.get('locator_category') != 'R':
+			self.add_error('art_number', 'Both ART number and Other ID are null, atleast one is required or reject')
 
 
 class EnvelopeForm(forms.ModelForm):

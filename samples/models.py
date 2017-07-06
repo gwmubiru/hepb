@@ -56,7 +56,7 @@ class Patient(models.Model):
 		('L', 'Left Blank'),
 	)
 	unique_id = models.CharField(max_length=128, unique=True)
-	art_number = models.CharField(max_length=64)
+	art_number = models.CharField(max_length=64, null=True, blank=True)
 	other_id = models.CharField(max_length=64, null=True, blank=True)
 	gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
 	dob = models.DateField(null=True, blank=True)
