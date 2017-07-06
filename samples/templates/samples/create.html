@@ -427,6 +427,11 @@
     		maxYear: date_now.getFullYear(),
     	});
 
+    	$("#id_locator_position").change(function(){
+    		var val = $(this).val();
+    		$(this).val(pad(val, 2, '0', 1));
+    	});
+
     	$("#id_facility").change(function(){
     		set_district_hub();
     		/*setTimeout(function(){
@@ -600,6 +605,7 @@
 		var date_obj = new Date(string_date+" 00:00:00");
 		return date_obj.getTime();
 	}
+
 //422551
 
 </script>
