@@ -34,7 +34,7 @@ class ClinicalRequestForm(models.Model):
 class Clinician(models.Model):
 	facility = models.ForeignKey(backend.Facility)
 	cname = models.CharField(max_length=128)
-	cphone = models.CharField(max_length=64, null=True)
+	cphone = models.CharField(max_length=64, null=True, blank=True)
 	class Meta:
 		db_table = 'vl_clinicians'
 		unique_together = ('facility', 'cname')
@@ -42,7 +42,7 @@ class Clinician(models.Model):
 class LabTech(models.Model):
 	facility = models.ForeignKey(backend.Facility)
 	lname = models.CharField(max_length=128)
-	lphone = models.CharField(max_length=64, null=True)
+	lphone = models.CharField(max_length=64, null=True, blank=True)
 	class Meta:
 		db_table = 'vl_lab_techs'
 		unique_together = ('facility', 'lname')	
@@ -94,6 +94,7 @@ class Envelope(models.Model):
 class Sample(models.Model):
 	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No'), ('L', 'Left Blank') )
 	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
+	TX_DURATION_CHOICES = ( (1, '6 months -< 1yr'), (2, '1 -< 2yrs'), (3, '2 -< 5yrs'), (4, '>=5 yrs') )
 	patient = models.ForeignKey(Patient)
 	patient_unique_id = models.CharField(max_length=128)
 	locator_category = models.CharField(max_length=1, choices=( ('V', 'V'), ('R', 'R') ))
@@ -110,7 +111,7 @@ class Sample(models.Model):
 	active_tb_status = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
 	date_collected = models.DateField(null=True, blank=True)
 	date_received = models.DateField()
-	treatment_inlast_sixmonths = models.CharField(max_length=1, choices=YES_NO_CHOICES)
+	treatment_duration = models.PositiveSmallIntegerField(choices=TX_DURATION_CHOICES, null=True, blank=True)
 	treatment_initiation_date = models.DateField(null=True, blank=True)
 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
 	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing')

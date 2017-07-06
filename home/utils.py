@@ -138,5 +138,5 @@ def non_future_dates(Form, date_list):
 	date_today = date.today()
 	for i in date_list:
 		i_date = Form.cleaned_data.get(i)
-		if str(i_date) > str(date_today):
+		if i_date != None and str(i_date) > str(date_today):
 			Form.add_error(i, "%s can not be in the future" %(i.replace("_"," "),) )

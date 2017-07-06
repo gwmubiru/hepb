@@ -10,7 +10,7 @@ def locator_id_exists(data):
 	loc_exists = False
 	if env:
 		loc_exists = Sample.objects.filter(envelope=env, locator_position=data.get('locator_position')).exists()
-	return loc_exists	
+	return loc_exists
 
 def initial_env_number():
 	return "%s%s-" %(utils.year('yy'), utils.month('mm'))

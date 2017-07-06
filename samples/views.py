@@ -154,7 +154,7 @@ def edit(request, sample_id):
 		'lab_tech_form':lab_tech_form,
 		'sample_id': sample_id,
 		'envelope_form': envelope_form,
-		'phone_form': phone_form,
+		#'phone_form': phone_form,
 		'patient_form': patient_form,
 		'sample_form': sample_form,
 		'vsi': sample.vl_sample_id,

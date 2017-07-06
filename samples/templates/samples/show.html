@@ -21,10 +21,11 @@
 
 		<div class="panel-body">
 
-				<span class='sub-title'>form/facility details</span>
+				
 
 				<div class="row">
 					<div class="col-lg-6">
+						<span class='sub-title'>form/facility details</span>
 						<div class="form-group">
 							<label for='sample_id'>VL Sample ID</label>
 							{% input 'vl_sample_id' vl_sample_id %}
@@ -50,30 +51,17 @@
 						<div class="form-group">
 							{{ sample_form.facility.label_tag }}<br>
 							{{ sample_form.facility }}
+							<div style="padding-top:10px;">
+								District: <u id="id_district" style="min-width:100px;">_______________</u>
+								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								Hub: <u id="id_hub">_______________</u>
+							</div>
 						</div>
 					</div>
 
 					<div class="col-lg-6">
+						<span class='sub-title'>sample details</span>
 
-						<div class="form-group">
-							<label for="district">District</label>
-							{% input "district"  "" "{'disabled':'true'}" %}
-						</div>
-
-						<div class="form-group">
-							<label for="hub">Hub</label>
-							{% input "hub"  "" "{'disabled':'true'}" %}
-						</div>
-
-					</div>
-				</div>
-
-				<!--  Sample Information -->
-				<br>
-				<span class='sub-title'>sample details</span>
-				
-				<div class="row">
-					<div class="col-lg-6">
 						<div class="form-inline">
 							{{ sample_form.date_collected.label_tag }}<br>
 							{{ sample_form.date_collected }}													
@@ -84,15 +72,23 @@
 							{{ sample_form.date_received.label_tag }}<br>
 							{{ sample_form.date_received }}
 						</div>
-					</div>
-					<div class="col-lg-6">
 						<div class="form-group">
 							{{ sample_form.sample_type.label_tag }}
 							{{ sample_form.sample_type }}
 						</div>
-					</div>
 
-				</div><br>				
+						<!-- <div class="form-group">
+							<label for="district">District</label>
+							{% input "district"  "" "{'disabled':'true'}" %}
+						</div>
+
+						<div class="form-group">
+							<label for="hub">Hub</label>
+							{% input "hub"  "" "{'disabled':'true'}" %}
+						</div>
+ -->
+					</div>
+				</div>				
 
 
 				<!--  Patient Information -->
@@ -146,8 +142,8 @@
 				<div class="row">
 					<div class="col-lg-6">
 						<div class="form-group">
-							{{ sample_form.treatment_inlast_sixmonths.label_tag }}
-							{{ sample_form.treatment_inlast_sixmonths }}
+							{{ sample_form.treatment_duration.label_tag }}
+							{{ sample_form.treatment_duration }}
 						</div>
 
 						<div class="form-inline">
@@ -343,8 +339,8 @@
 			var url =  "/samples/get_district_hub/"+facility_id+"/";
 			$.get(url, function(data, status){
 				var json_data = JSON.parse(data);
-				$("#district").val(json_data.district);
-				$("#hub").val(json_data.hub);
+				$("#id_district").html(json_data.district);
+				$("#id_hub").html(json_data.hub);
 			});	
 		}
 					

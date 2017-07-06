@@ -37,9 +37,7 @@
 				    {% url 'samples:create'  %} 
 				  {% endif %}" method="post" role="form">
 		{% csrf_token %}
-		<input type="hidden" name="reject" value="0">
-		<input type="hidden" name="invalid" value="0">
-		
+				
 
 		<div class="row">
 			<div class="col-lg-6">
@@ -176,9 +174,9 @@
 		<div class="row">
 			<div class="col-lg-6">
 				<div class="form-group required">
-					{{ sample_form.treatment_inlast_sixmonths.label_tag }}
-					{{ sample_form.treatment_inlast_sixmonths.errors }}
-					{{ sample_form.treatment_inlast_sixmonths }}
+					{{ sample_form.treatment_duration.label_tag }}
+					{{ sample_form.treatment_duration.errors }}
+					{{ sample_form.treatment_duration }}
 				</div>
 
 				<div class="form-inline required">

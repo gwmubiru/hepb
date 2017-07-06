@@ -1,6 +1,7 @@
 from datetime import *
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
 
 from backend.models import Appendix, Facility
 from .models import *
@@ -18,14 +19,14 @@ class ClinicianForm(forms.ModelForm):
 	class Meta:
 		model = Clinician
 		fields = ('cname', 'cphone')
-		widgets = {'cname':forms.TextInput(attrs=utils.ATTRS_OPTIONAL), 'cphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
+		widgets = {'cname':forms.TextInput(attrs=utils.ATTRS), 'cphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
 		labels = {'cname': 'Requesting Clinician', 'cphone':'Phone'}
 
 class LabTechForm(forms.ModelForm):
 	class Meta:
 		model = LabTech
 		fields = ('lname', 'lphone')
-		widgets = {'lname':forms.TextInput(attrs=utils.ATTRS_OPTIONAL), 'lphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
+		widgets = {'lname':forms.TextInput(attrs=utils.ATTRS), 'lphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
 		labels = {'lname': 'Lab Technician', 'lphone':'Phone'}
 
 class PatientForm(forms.ModelForm):
@@ -99,7 +100,7 @@ class SampleForm(forms.ModelForm):
 			'active_tb_status',
 			'date_collected',
 			'date_received',
-			'treatment_inlast_sixmonths',
+			'treatment_duration',
 			'treatment_initiation_date',
 			'sample_type',
 			'viral_load_testing',
@@ -127,7 +128,7 @@ class SampleForm(forms.ModelForm):
 			'active_tb_status': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
 			'date_collected': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'date_received': forms.DateInput(attrs=utils.ATTRS_DATE),
-			'treatment_inlast_sixmonths': forms.Select(attrs=utils.ATTRS2),
+			'treatment_duration': forms.Select(attrs=utils.ATTRS2),
 			'treatment_initiation_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'sample_type': forms.Select(attrs=utils.ATTRS2),
 			'treatment_indication_other': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
@@ -144,7 +145,7 @@ class SampleForm(forms.ModelForm):
 		VL_SAMPLETYPE = "Sample Type"
 
 		labels = {
-			'treatment_inlast_sixmonths':'Treatment in last 6 months',
+			'treatment_duration':'How long has the patient been on tx',
 			'treatment_indication': "Indication for Treament initiation",
 			'last_test_date': "Last VL Date",
 			'last_value': "Value of Last Test",
@@ -159,10 +160,19 @@ class SampleForm(forms.ModelForm):
 		date_collected = cleaned_data.get('date_collected')
 		date_received = cleaned_data.get('date_received')
 
+		pk = self.instance.pk
+
 		utils.non_future_dates(self, ['date_collected', 'date_received', 'treatment_initiation_date', 'last_test_date'])
 
 		if date_collected > date_received: 
 			self.add_error('date_collected', "date collected can not be > date received")
 
-		if (date_today - date_collected).days >=30 and locator_category!='R':
-			self.add_error('date_collected', "date collected >= 30 days, please reject")
+		if (date_today - date_collected).days >=30 and locator_category!='R' and not pk:
+			self.add_error('date_collected', "date collected >= 30 days, please reject %s" %pk)
+
+		form_fltr = Q(form_number=cleaned_data.get('form_number'))
+		if pk:
+			form_fltr = ~Q(pk=pk) & form_fltr
+
+		if Sample.objects.filter(form_fltr).exists():
+			self.add_error('form_number', "Form number exists")
