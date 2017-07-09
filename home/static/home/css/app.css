@@ -198,3 +198,17 @@ page[size="A4"][layout="portrait"] {
 	font-size:12px;
 	font-weight: bold;
 }
+
+.live_drpdwn{
+	max-height: 300px;
+	border: 1px solid  #D2B9D3;
+	background-color: rgba(221,225,236, 1);
+	position: absolute;
+	border-radius: 2px;
+	-webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    width: 300px;
+    padding-left:5px;
+    overflow-y:auto;
+    z-index:99 !important;
+}

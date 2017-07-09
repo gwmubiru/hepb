@@ -329,3 +329,19 @@ def pat_hist(request, facility_id, art_number):
 			})
 
 	return HttpResponse(json.dumps(ret))
+
+def clinicians(request, facility_id):
+	clinicians = Clinician.objects.filter(facility=facility_id)
+	ret = []
+	for c in clinicians:
+		ret.append({'name':c.cname, 'phone':c.cphone})
+
+	return HttpResponse(json.dumps(ret))
+
+def lab_techs(request, facility_id):
+	lab_techs = LabTech.objects.filter(facility=facility_id)
+	ret = []
+	for l in lab_techs:
+		ret.append({'name':l.lname, 'phone':l.lphone})
+
+	return HttpResponse(json.dumps(ret))

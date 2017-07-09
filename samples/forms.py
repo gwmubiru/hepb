@@ -19,14 +19,18 @@ class ClinicianForm(forms.ModelForm):
 	class Meta:
 		model = Clinician
 		fields = ('cname', 'cphone')
-		widgets = {'cname':forms.TextInput(attrs=utils.ATTRS), 'cphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
+		widgets = {
+			'cname':forms.TextInput(attrs={'class':'form-control input-sm w-md',  'autocomplete':'off', 'required':'true','ng-model':'cname', 'ng-focus':'getClinicians()'}), 
+			'cphone': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'cphone'})}
 		labels = {'cname': 'Requesting Clinician', 'cphone':'Phone'}
 
 class LabTechForm(forms.ModelForm):
 	class Meta:
 		model = LabTech
 		fields = ('lname', 'lphone')
-		widgets = {'lname':forms.TextInput(attrs=utils.ATTRS), 'lphone': forms.TextInput(attrs=utils.ATTRS_OPTIONAL)}
+		widgets = {
+			'lname':forms.TextInput(attrs={'class':'form-control input-sm w-md', 'autocomplete':'off', 'required':'true', 'ng-model':'lname', 'ng-focus':'getLabTechs()'}), 
+			'lphone': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'lphone'})}
 		labels = {'lname': 'Lab Technician', 'lphone':'Phone'}
 
 class PatientForm(forms.ModelForm):

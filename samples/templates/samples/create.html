@@ -327,6 +327,9 @@
 					{{ clinician_form.cname.label_tag }}
 					{{ clinician_form.cname.errors }}
 					{{ clinician_form.cname }}
+					<div class='live_drpdwn' id="id_clinicians">
+						<div ng-repeat="c in clinicians| filter:cname "><a href='#' ng-click='setClinician(c)'><% c.name %></a></div>
+					</div>
 				</div>
 			</div>
 			<div class="col-lg-6">
@@ -342,6 +345,9 @@
 					{{ lab_tech_form.lname.label_tag }}
 					{{ lab_tech_form.lname.errors }}
 					{{ lab_tech_form.lname }}
+					<div class='live_drpdwn' id="id_lab_techs">
+						<div ng-repeat="l in lab_techs| filter:lname "><a href='#' ng-click='setLabTech(l)'><% l.name %></a></div>
+					</div>
 				</div>
 			</div>
 			<div class="col-lg-6">
@@ -531,11 +537,6 @@
 			}
 		});
 
-
-		$("#id_art_number").change(function(){
-			
-		});
-
 		/*$("#id_pregnant").on("change", function(){
 			var val = $(this).val();
 			if(val == 'Y'){
@@ -545,6 +546,10 @@
 				$('#id_anc_number').val("");
 			}
 		});*/
+
+		// $("#id_cname").focusout(function(){ $("#id_clinicians").hide() });
+		$("#id_cname").focus(function(){ $("#id_clinicians").show() });
+		$("#id_lname").focus(function(){ $("#id_lab_techs").show() });
 
 
 
@@ -612,6 +617,8 @@ ctrller={};
 ctrller.SampleController = function($scope,$http){
 	
 	$scope.patient_history = [];
+	$scope.clinicians = [];
+	$scope.lab_techs = [];
 
 	$scope.patHist = function($event){
 		var keyCode = $event.which || $event.keyCode;
@@ -620,6 +627,30 @@ ctrller.SampleController = function($scope,$http){
 				$scope.patient_history = data;
 			});
 		}		
+	}
+
+	$scope.getClinicians = function(){
+		$http.get("/samples/clinicians/"+$scope.facility+"/").success(function(data){
+			$scope.clinicians = data;
+		});
+	}
+
+	$scope.getLabTechs = function(){
+		$http.get("/samples/lab_techs/"+$scope.facility+"/").success(function(data){
+			$scope.lab_techs = data;
+		});
+	}
+
+	$scope.setClinician = function(c){
+		$scope.cname = c.name;
+		$scope.cphone = c.phone;
+		$("#id_clinicians").hide()
+	}
+
+	$scope.setLabTech = function(l){
+		$scope.lname = l.name;
+		$scope.lphone = l.phone;
+		$("#id_lab_techs").hide();
 	}
 }
 

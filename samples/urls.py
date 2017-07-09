@@ -20,4 +20,6 @@ urlpatterns  = [
 	url(r'^verify_list_json$', login_required(data_table_views.VerifyListJson.as_view()), name='verify_list_json'),
 	url(r'^get_district_hub/(?P<facility_id>[0-9]+)/$', login_required(views.get_district_hub), name='get_district_hub'),
 	url(r'^patient_history/(?P<facility_id>[0-9]+)/(?P<art_number>[\w-]+)/$', login_required(views.pat_hist), name='pat_hist'),
+	url(r'^clinicians/(?P<facility_id>[0-9]+)/$', login_required(views.clinicians), name='clinicians'),
+	url(r'^lab_techs/(?P<facility_id>[0-9]+)/$', login_required(views.lab_techs), name='lab_techs'),
 ]
