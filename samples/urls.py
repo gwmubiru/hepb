@@ -18,5 +18,6 @@ urlpatterns  = [
 	url(r'^verify_envelope/(?P<envelope_id>[0-9]+)/$', login_required(views.verify_envelope), name='verify_envelope'),
 	url(r'^save_verify/$', login_required(views.save_verify), name='save_verify'),
 	url(r'^verify_list_json$', login_required(data_table_views.VerifyListJson.as_view()), name='verify_list_json'),
-	url(r'^get_district_hub/(?P<facility_id>[0-9]+)/$', login_required(views.get_district_hub), name='get_district_hub')
+	url(r'^get_district_hub/(?P<facility_id>[0-9]+)/$', login_required(views.get_district_hub), name='get_district_hub'),
+	url(r'^patient_history/(?P<facility_id>[0-9]+)/(?P<art_number>[\w-]+)/$', login_required(views.pat_hist), name='pat_hist'),
 ]

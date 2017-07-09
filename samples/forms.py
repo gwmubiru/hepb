@@ -36,7 +36,7 @@ class PatientForm(forms.ModelForm):
 		fields = ('art_number', 'other_id', 'gender', 'dob',)
 
 		widgets = {
-			'art_number': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
+			'art_number': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'art_number', 'ng-keydown':'patHist($event)'}),
 			'other_id': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'gender': forms.Select(attrs=utils.ATTRS2),
 			'dob': forms.DateInput(attrs=utils.ATTRS_DATE),
@@ -121,7 +121,7 @@ class SampleForm(forms.ModelForm):
 				attrs={'class':'form-control input-sm', 'size': '4', 'required':'true'}
 				),
 			'form_number': forms.TextInput(attrs=utils.ATTRS),
-			'facility': forms.Select(attrs=utils.ATTRS),
+			'facility': forms.Select(attrs={'class':'form-control input-sm w-md', 'required':'true', 'ng-model':'facility'}),
 			'pregnant': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
 			'anc_number': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'breast_feeding': forms.Select(attrs=utils.ATTRS2_OPTIONAL),

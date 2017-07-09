@@ -48,6 +48,9 @@ def create(request):
 						defaults=patient_form.cleaned_data
 						)
 
+			patient.simple_art_number = art_number.replace(' ','').replace('-','').replace('/','')
+			patient.save()
+
 			clinician_form.cleaned_data.update({'facility':facility})
 			cl_data = clinician_form.cleaned_data
 			clinician, clinician_created = Clinician.objects.get_or_create(
@@ -308,3 +311,21 @@ def appendices_json(cat_id):
 	for a in appendices:
 		ret[a['id']] = a['appendix']
 	return json.dumps(ret)
+
+def pat_hist(request, facility_id, art_number):
+	#ret = [{'art_number':art_number, 'test_date':'2017-01-01', 'result':'TND'}, {'art_number':art_number, 'test_date':'2017-04-01', 'result':'TND'}]
+	samples = Sample.objects.filter(patient__simple_art_number=art_number, facility=facility_id).order_by('date_collected')
+	ret = []
+	for s in samples:
+		ret.append({
+				'form_number': s.form_number,				
+				'date_collected': utils.local_date(s.date_collected),
+				'art_number': s.patient.art_number,
+				'other_id': s.patient.other_id,
+				'gender': s.patient.gender,
+				'dob': utils.local_date(s.patient.dob),
+				'result':"%s Copies/mL"%s.result.result_numeric,
+				'test_date':utils.local_date(s.result.test_date),
+			})
+
+	return HttpResponse(json.dumps(ret))
