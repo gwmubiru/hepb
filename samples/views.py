@@ -218,10 +218,11 @@ def appendix_select(name="", cat_id=0, clss='form-control input-xs w-md'):
 
 def verify(request, sample_id):
 	facilities = Facility.objects.values('id', 'facility').order_by('facility')
+	sample = Sample.objects.get(pk=sample_id);
 	context = {
 		'sample_id':sample_id,
-		'envelope_id': Sample.objects.get(pk=sample_id).envelope.pk,
-		"rejection_reasons": appendices_json(4),
+		'envelope_id': sample.envelope.pk,
+		"rejection_reasons": RejectionReasons(sample.sample_type).rejection_reasons,
 		"facility_dropdown": utils.select( "facility_id",
 										  {'k_col':'id', 'v_col':'facility', 'items':facilities },
 										  "",
@@ -345,3 +346,25 @@ def lab_techs(request, facility_id):
 		ret.append({'name':l.lname, 'phone':l.lphone})
 
 	return HttpResponse(json.dumps(ret))
+
+
+class RejectionReasons(Appendix):
+	"""docstring for RejectionReason"""
+	data_quality = {}
+	sample_quality = {}
+	eligibility = {}
+	rejection_reasons = {}
+
+	def __init__(self, sample_type):
+		for r in Appendix.objects.filter(appendix_category=4, tag__startswith=sample_type):
+			if 'data_quality' in r.tag:
+				self.data_quality.update({r.pk:r.appendix})
+			elif 'sample_quality' in r.tag:
+				self.sample_quality.update({r.pk:r.appendix})
+			elif 'eligibility' in r.tag:
+				self.eligibility.update({r.pk:r.appendix})
+
+		self.rejection_reasons = json.dumps({
+			'data_quality':self.data_quality, 
+			'sample_quality':self.sample_quality, 
+			'eligibility':self.eligibility})

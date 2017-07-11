@@ -196,7 +196,19 @@ function remRsn(that_val){
 
 function reasonsDropDown(nme,id){
   var other_options="id='"+id+"' class='form-control input-sm w-md' onchange='remRsn(this.value)'";
-  return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);
+  var slct = "<select name='"+nme+"' class='form-control input-sm w-md'><option>select</option>";
+
+  
+  for (var r in rejection_reasons){
+  	slct += "<optgroup label="+r+">";
+  	var rrs = rejection_reasons[r];
+  	for(var i in rrs){
+  		slct += "<option value='"+i+"'>"+rrs[i]+"</option>";
+  	}
+  	slct += "</optgroup>";
+  }
+  return slct+"</select>";
+  //return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);
 }
 
 function checkOutcome() {

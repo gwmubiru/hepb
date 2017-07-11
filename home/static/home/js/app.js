@@ -75,7 +75,6 @@ function pad(str, len, pad, dir) {
 
 }
 
-
 function future_date(string_date){
   var now = new Date();
   var string_s = strtotime(string_date);
