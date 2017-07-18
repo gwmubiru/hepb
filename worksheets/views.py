@@ -205,6 +205,15 @@ def pending_envelopes(request):
 		ret.append({'pk':e.pk,'envelope_number':e.envelope_number,'sample_count':e.smpl_count})
 	return HttpResponse(json.dumps(ret))
 
+def delete(request, pk):
+	worksheet = Worksheet.objects.get(pk=pk)
+	for s in worksheet.samples.all():
+		s.in_worksheet = False;
+		s.save()
+		
+	worksheet.delete()
+	return redirect('worksheets:list')
+
 	
 class ListJson(BaseDatatableView):
 	model = Worksheet
@@ -218,11 +227,13 @@ class ListJson(BaseDatatableView):
 			url1 = "javascript:windPop(\"/worksheets/vlprint/{0}\")".format(row.pk)
 			url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
 			url3 = "/results/upload/{0}".format(row.pk)
+			url4 = "/worksheets/delete/{0}".format(row.pk)
 			links = utils.dropdown_links([
 					{"label":"view", "url":url0},
 					{"label":"Print", "url":url1},
 					{"label":"PDF", "url":url2},
 					{"label":"Upload Results", "url": url3},
+					{"label":"Delete", "url":url4},
 				])
 			return links
 		else:

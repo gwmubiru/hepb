@@ -16,5 +16,6 @@ urlpatterns  = [
 	url(r'^authorize_results/(?P<worksheet_id>[0-9]+)/$', login_required(views.authorize_results), name='authorize_results'),
 	url(r'^pending_samples/$', login_required(views.pending_samples), name='get_pending_samples'),
 	url(r'^pending_envelopes/$', login_required(views.pending_envelopes), name='pending_envelopes'),
+	url(r'^delete/(?P<pk>[0-9]+)/$', login_required(views.delete), name='delete'),
 	#url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
 ]

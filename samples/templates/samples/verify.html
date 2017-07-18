@@ -135,8 +135,10 @@
 						</div>
 						<div class="form-group" id="reason_div">							
 						</div>
-						<div class="form-group" id="other_reasons">							
+						<div class="form-group" id="other_reasons">	
+													
 						</div>
+						<a href="#" id='add_reason'>add</a><br><br>
 
 					</div>
 					<div class="col-lg-6">
@@ -163,6 +165,7 @@
  var envelope_id = {{ envelope_id }};
  var rejection_reasons = {{ rejection_reasons | safe }};
  $( function() {
+ 		$("#add_reason").hide();
     	$( ".date-picker" ).datepicker({
       		changeMonth: true,
       		changeYear: true,
@@ -183,19 +186,22 @@
     			var rjctn_rsns = "<label for='rejection_reason_id'>Reason </label>";
     			rjctn_rsns += reasonsDropDown("rejection_reason_id", "rejection_reason_id");
     			$("#reason_div").html(rjctn_rsns);
+    			$("#add_reason").show();
+
     		}else{
     			$("#reason_div").html("");
+    			$("#add_reason").hide();
+    			$("#other_reasons").html();
     		}
     	}) 	
+
+    	$("#add_reason").click(function(){
+    		addOtherReasons();
+    	})
   	});
 
-
-function remRsn(that_val){
-  delete rejection_reasons[that_val];
-}
-
 function reasonsDropDown(nme,id){
-  var other_options="id='"+id+"' class='form-control input-sm w-md' onchange='remRsn(this.value)'";
+  var other_options="id='"+id+"' class='form-control input-sm w-md' ";
   var slct = "<select name='"+nme+"' class='form-control input-sm w-md'><option>select</option>";
 
   
@@ -224,7 +230,7 @@ function checkOutcome() {
 }
 
 function addOtherReasons(){
-  var reasons="<p>"+reasonsDropDown("other_reasons[]","")+" "+removeItemHTML()+"</p>";
+  var reasons="<div>"+reasonsDropDown("other_reasons[]","")+"</div><br>";
   $("#other_reasons").append(reasons);
 }
  </script>
