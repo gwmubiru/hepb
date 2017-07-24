@@ -1,4 +1,5 @@
 import json
+import os.path
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
@@ -11,6 +12,7 @@ from xhtml2pdf import pisa
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
 from django.db import models
+from django.core import serializers
 
 from home import utils
 from .forms import WorksheetForm,AttachSamplesForm
@@ -47,6 +49,7 @@ def generate_pdf(request, worksheet_id):
 	
 def create(request, machine_type):
 	context = { 'machine_type':machine_type}
+	r_file = "media/regimen_info_%s.json"%machine_type
 	if request.method == 'POST':
 		form = WorksheetForm(request.POST)
 		if form.is_valid():
@@ -58,7 +61,12 @@ def create(request, machine_type):
 
 			return redirect('worksheets:attach_samples', worksheet_id=worksheet.id)
 	else:
-		form = WorksheetForm(initial={'machine_type':machine_type})
+		init = {'machine_type': machine_type}
+		if os.path.exists(r_file):
+			with open(r_file, "r") as out:
+				data = json.loads(out.read())
+				init.update(data)
+		form = WorksheetForm(initial=init)
 		context = {'form': form, 'machine_type':machine_type}
 
 
@@ -213,6 +221,30 @@ def delete(request, pk):
 		
 	worksheet.delete()
 	return redirect('worksheets:list')
+
+def reg_info(request, machine_type):
+	context = { 'machine_type':machine_type}
+	r_file = "media/regimen_info_%s.json"%machine_type
+	if request.method == 'POST':
+		posted_data = request.POST
+		posted_data._mutable = True
+		posted_data.pop('csrfmiddlewaretoken')
+		with open(r_file, "w") as out:
+			data = json.dumps(posted_data)
+			out.write(data)
+		return redirect('worksheets:reg_info', machine_type=machine_type)
+	else:
+		init = {'machine_type': machine_type}
+		if os.path.exists(r_file):
+			with open(r_file, "r") as out:
+				data = json.loads(out.read())
+				init.update(data)
+		
+		form = WorksheetForm(initial=init)
+		context = {'form': form, 'machine_type':machine_type}
+
+
+	return render(request, 'worksheets/reg_info.html', context)
 
 	
 class ListJson(BaseDatatableView):
