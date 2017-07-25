@@ -27,12 +27,12 @@ def create_worksheet_ref_number(worksheet_type, sample_type):
 		wt = 'CT'
 	elif worksheet_type == 'C':
 		wt = 'C8'	
-	
-	try:
-		num = Worksheet.objects.filter(created_at__year=utils.year(), created_at__month=utils.month()).count()
-	except:
-		pass
-	
+
+	w = Worksheet.objects.filter(created_at__year=utils.year(), created_at__month=utils.month()).last()
+
+	if w:
+		num = int(w.worksheet_reference_number[7:])
+
 	num = str(num+1)
 	num = num.zfill(4)
 	return "%s%s%s%s%s" %(utils.year('yy'), utils.month('mm'), wt, sample_type , num)

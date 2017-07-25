@@ -84,6 +84,7 @@ sudo vi vl.ini
 
 		master = true
 		processes = 5
+		buffer-size = 65535
 
 		socket = %(base)/%(project)/%(project).sock
 		chmod-socket = 664
