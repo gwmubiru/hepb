@@ -77,7 +77,7 @@ def get_or_create_user(email):
 	email = email if email != '@guest' else 'guest@guest.guest'
 	c_user = email.partition('@')
 	username = c_user[0]
-	password =  "%s12345" %username
+	password =  "unhls12345"
 	user = __get_or_create_user(username, email, password)
 	return user
 

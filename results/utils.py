@@ -62,6 +62,10 @@ def get_result(result, multiplier):
 		numeric_result = 20
 		alphanumeric_result = '< 20.00 Copies / mL'
 		suppressed = 1
+	elif eq(result, '> Titer max'):
+		numeric_result = 10000000
+		alphanumeric_result = '> 10,000,000 Copies / mL'
+		suppressed = 2
 	else:
 		result_new = result.replace('Copies / mL', '')
 		result_new = result_new.replace(' ', '')

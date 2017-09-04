@@ -239,6 +239,7 @@ def verify_envelope(request, envelope_id):
 		ret.append({
 				'patient_id': s.patient.id,
 				'sample_id': s.id,
+				'accepted': s.verification.accepted if hasattr(s, 'verification') else '',
 				'vl_sample_id': s.vl_sample_id,
 				'locator_category': s.locator_category,
 				'locator_position': s.locator_position,

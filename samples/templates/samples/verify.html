@@ -13,7 +13,7 @@
 
 {% block content %}	
 <div ng-app="verify" ng-controller="VerifyController" ng-init="envelope_id={{ envelope_id }}">
-	<div class="page-title">Verify Sample <% nxt_sample %></div>
+	<div class="page-title">Verify Sample</div>
 	<div id="success" class="alert alert-success vl-alert" role="alert" style="display:none;">
 		Sample successfully verified
 	</div>
@@ -29,8 +29,9 @@
 		<div class='panel-body col-lg-2'>
 			<span class='sub-title' >envelope samples</span><br>
 			<div class='ng-cloak' ng-repeat="s in vdata">
-				<div ng-if="s.sample_id==sample.sample_id"><% s.loc %></div>
-				<div ng-if="s.sample_id!=sample.sample_id"><a href="#" ng-click="selectSample(s.sample_id)"><% s.loc %></a></div>
+				
+				<div ng-if="s.sample_id==sample.sample_id"><% s.loc %><span> <% s.verified %></span></div>
+				<div ng-if="s.sample_id!=sample.sample_id"><a href="#" ng-click="selectSample(s.sample_id)"> <% s.loc %></a><span><% s.verified %></span></div>
 			</div>
 
 		</div>
@@ -131,7 +132,7 @@
 					<div class="col-lg-6">
 						<div class="form-group">
 							<label for="accepted" class='hi-lite'>Verification Status</label>
-							{% select "accepted" "{'1':'Accepted', '0':'Rejected'}" "" "{'class':'form-control input-sm w-xs', 'ng-model': 'sample.accepted'}" %}
+							{% select "accepted" "{'1':'Accepted', '0':'Rejected'}" "0" "{'class':'form-control input-sm w-xs', 'ng-model': 'sample.accepted'}" %}
 						</div>
 						<div class="form-group" id="reason_div">							
 						</div>

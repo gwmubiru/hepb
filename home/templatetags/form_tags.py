@@ -28,8 +28,8 @@ def select(name="", data="{}", selected_val="", more="{}"):
 	data = ast.literal_eval(data)
 	select_tag += "<option value=''></option>"
 	for val,label in data.items():
-		selected = "selected='true'" if selected_val==val else ""
-		select_tag += "<option %s value='%s'>%s</option>" % (selected, val, label)
+		selected = "selected" if selected_val==val else ""
+		select_tag += "<option value='%s' %s>%s</option>" % (val, selected, label)
 	
 	select_tag += "</select>"
 	return mark_safe(select_tag)
