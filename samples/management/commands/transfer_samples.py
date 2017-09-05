@@ -42,7 +42,7 @@ class Command(BaseCommand):
 		# 		WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND migrated = 'NO' GROUP BY s.id LIMIT 10000
 		#		"""
 
-		sql = """SELECT s.*, s.id AS sid, p.*, p.id AS pid, s.createdby AS screatedby,
+		sql = """SELECT s.*, s.id AS sid, p.*, p.id AS pid, s.createdby AS screatedby,s.created as screated,
 				v.*, v.createdby AS verified_by, v.created AS vcreated, v.id AS vid
 				FROM vl_samples AS s
 				LEFT JOIN vl_patients AS p ON s.patientID=p.id
@@ -154,6 +154,7 @@ class Command(BaseCommand):
 		s.last_test_date = rm_test_date or rt_test_date or stf_test_date
 		s.last_value = rm_value or rt_value or stf_value
 		s.last_sample_type = rm_sample_type or rt_sample_type or stf_sample_type
+		s.created_at = utils.get_date(r, 'screated')
 
 		s.created_by_id = user_id
 		s.save()
