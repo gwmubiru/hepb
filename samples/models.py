@@ -96,6 +96,8 @@ class Sample(models.Model):
 	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No'), ('L', 'Left Blank') )
 	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
 	TX_DURATION_CHOICES = ( (1, '6 months -< 1yr'), (2, '1 -< 2yrs'), (3, '2 -< 5yrs'), (4, '>=5 yrs') )
+	WHO_STAGES = ((1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV'))
+	TX_CARE_APPROACHES = ((1, 'FBIM'), (2, 'FBG'), (3, 'FTDR'), (4, 'CDDP'), (5, 'CCLAD'))
 	patient = models.ForeignKey(Patient)
 	patient_unique_id = models.CharField(max_length=128)
 	locator_category = models.CharField(max_length=1, choices=( ('V', 'V'), ('R', 'R') ))
@@ -114,6 +116,7 @@ class Sample(models.Model):
 	date_received = models.DateField()
 	treatment_duration = models.PositiveSmallIntegerField(choices=TX_DURATION_CHOICES, null=True, blank=True)
 	treatment_initiation_date = models.DateField(null=True, blank=True)
+	current_who_stage = models.PositiveSmallIntegerField(choices=WHO_STAGES, null=True, blank=True)
 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
 	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing')
 	treatment_indication = models.ForeignKey(backend.Appendix, related_name='treatment_indication', null=True, blank=True)
@@ -122,6 +125,7 @@ class Sample(models.Model):
 	failure_reason = models.ForeignKey(backend.Appendix, related_name='failure_reason', null=True, blank=True)
 	tb_treatment_phase = models.ForeignKey(backend.Appendix, related_name='tb_treatment_phase', null=True, blank=True)
 	arv_adherence = models.ForeignKey(backend.Appendix, related_name='arv_adherence', null=True, blank=True)
+	treatment_care_approach = models.PositiveSmallIntegerField(choices=TX_CARE_APPROACHES, null=True, blank=True)
 	
 	last_test_date = models.DateField(null=True, blank=True)
 	last_value = models.CharField(max_length=64, null=True, blank=True)
@@ -141,6 +145,31 @@ class Sample(models.Model):
 		db_table = 'vl_samples'
 		unique_together = ('envelope', 'locator_position')
 
+class DrugResistanceRequest(models.Model):
+	sample = models.OneToOneField(Sample, on_delete=models.CASCADE)
+	body_weight = models.PositiveSmallIntegerField(null=True, blank=True)
+	patient_on_rifampicin = models.CharField(max_length=1, choices=( ('Y', 'Yes'), ('N', 'No'),), null=True, blank=True)
+
+	class Meta:
+		db_table = 'vl_drug_resistance_requests'
+
+class PastRegimens(models.Model):
+	drug_resistance_request = models.ForeignKey(DrugResistanceRequest, on_delete=models.CASCADE)
+	regimen =  models.ForeignKey(backend.Appendix)
+	start_date = models.DateField(null=True, blank=True)
+	stop_date = models.DateField(null=True, blank=True)
+
+	class Meta:
+		db_table = 'vl_past_regimens'
+
+class DrugResistanceResults(models.Model):
+	drug_resistance_request = models.ForeignKey(DrugResistanceRequest, on_delete=models.CASCADE)
+	results_file = models.FileField(upload_to='drug_resistance_results')
+	upload_date = models.DateTimeField(auto_now_add=True)
+	drr_uploaded_by = models.ForeignKey(User, related_name='drr_uploaded_by')
+
+	class Meta:
+		db_table = 'vl_drug_resistance_results'
 
 class Verification(models.Model):
 	sample = models.OneToOneField(Sample, on_delete=models.CASCADE)

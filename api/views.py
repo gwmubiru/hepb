@@ -7,10 +7,19 @@ from rest_framework.response import Response
 # from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 # from rest_framework.permissions import IsAuthenticated
 
+from samples.models import Sample
 from results.models import ResultsQC
 from backend.models import Facility
-from api.serializers import ResultsQCSerializer, FacilitySerializer
+from api.serializers import ResultsQCSerializer, FacilitySerializer, SampleSerializer
 
+from django.db.models import Q
+
+@api_view(['GET'])
+def samples(request):
+	if request.method == 'GET':
+		samples = Sample.objects.all()[:500]
+		serializer = SampleSerializer(samples, many=True, read_only=True)
+		return Response(serializer.data)
 
 @api_view(['GET'])
 def results(request):

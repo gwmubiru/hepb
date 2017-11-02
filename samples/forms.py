@@ -7,11 +7,12 @@ from backend.models import Appendix, Facility
 from .models import *
 from home import utils
 
-def appendix_field(category, required=True):
+def appendix_field(category, required=True, attrs=False):
 		queryset = Appendix.objects.filter(
 						appendix_category_id=category
 						)
-		attrs = utils.ATTRS if required else utils.ATTRS_OPTIONAL
+		if not attrs:
+			attrs = utils.ATTRS if required else utils.ATTRS_OPTIONAL
 		widget = forms.Select(attrs=attrs)
 		return forms.ModelChoiceField(queryset=queryset, widget=widget, required=required)
 
@@ -44,6 +45,11 @@ class PatientForm(forms.ModelForm):
 			'other_id': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'gender': forms.Select(attrs=utils.ATTRS2),
 			'dob': forms.DateInput(attrs=utils.ATTRS_DATE),
+		}
+
+		labels = {
+			'art_number':'Patient Clinic ID/ART #',
+			'other_id':'Other ID(NIN)',
 		}
 
 	def clean(self):
@@ -106,6 +112,7 @@ class SampleForm(forms.ModelForm):
 			'date_received',
 			'treatment_duration',
 			'treatment_initiation_date',
+			'current_who_stage',
 			'sample_type',
 			'viral_load_testing',
 			'treatment_indication',
@@ -117,6 +124,7 @@ class SampleForm(forms.ModelForm):
 			'last_test_date',
 			'last_value',
 			'last_sample_type',
+			'treatment_care_approach',
 			)
 
 		widgets = {
@@ -134,8 +142,10 @@ class SampleForm(forms.ModelForm):
 			'date_received': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'treatment_duration': forms.Select(attrs=utils.ATTRS2),
 			'treatment_initiation_date': forms.DateInput(attrs=utils.ATTRS_DATE),
+			'current_who_stage':forms.Select(attrs=utils.ATTRS2_OPTIONAL),
 			'sample_type': forms.Select(attrs=utils.ATTRS2),
 			'treatment_indication_other': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
+			'treatment_care_approach':forms.Select(attrs=utils.ATTRS2_OPTIONAL),
 			
 			'last_test_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'last_value': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
@@ -144,16 +154,14 @@ class SampleForm(forms.ModelForm):
 			'other_regimen':forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			}
 
-		VL_DATE = "Last VL Date"
-		VL_VALUE = "Value"
-		VL_SAMPLETYPE = "Sample Type"
-
 		labels = {
+			'current_who_stage':'Current WHO Stage',
 			'treatment_duration':'How long has the patient been on tx',
 			'treatment_indication': "Indication for Treament initiation",
 			'last_test_date': "Last VL Date",
 			'last_value': "Value of Last Test",
 			'last_sample_type': "Sample Type of Last Test",
+			'treatment_care_approach':'Treament care approach(DSDM)',
 			}
 
 	def clean(self):
@@ -180,3 +188,26 @@ class SampleForm(forms.ModelForm):
 
 		if Sample.objects.filter(form_fltr).exists():
 			self.add_error('form_number', "Form number exists")
+
+
+class DrugResistanceRequestForm(forms.ModelForm):
+	
+	class Meta:
+		model = DrugResistanceRequest
+		fields = ('body_weight','patient_on_rifampicin',)
+		widgets = {
+		'body_weight': forms.TextInput(attrs=utils.ATTRS_OPTIONAL), 
+		'patient_on_rifampicin': forms.Select(attrs=utils.ATTRS2_OPTIONAL),
+		}
+
+class PastRegimensForm(forms.ModelForm):
+	regimen = appendix_field(3, False, utils.ATTRS2_OPTIONAL)
+	
+	class Meta:
+		model = PastRegimens
+		fields = ('regimen','start_date','stop_date',)
+		widgets = {
+			'start_date': forms.DateInput(attrs=utils.ATTRS_DATE),
+			'stop_date': forms.DateInput(attrs=utils.ATTRS_DATE),
+			}
+		

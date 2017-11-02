@@ -7,4 +7,5 @@ app_name = 'api'
 urlpatterns  = [
 	url(r'^results/$', views.results, name='results'),
 	url(r'^facilities/$', views.facilities, name='facilities'),
+	url(r'^samples/$', views.samples, name='samples'),
 ]

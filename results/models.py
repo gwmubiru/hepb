@@ -41,7 +41,7 @@ class Result(models.Model):
 
 #track sample sample printing and dispatch
 class ResultsQC(models.Model):
-	result = models.ForeignKey(Result, on_delete=models.CASCADE)
+	result = models.OneToOneField(Result, on_delete=models.CASCADE)
 	released = models.BooleanField(default=False)
 	released_by = models.ForeignKey(User, related_name='released_by', null=True)
 	released_at = models.DateTimeField(null=True)

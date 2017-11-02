@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse
 
 from django.db.models import Q
+from django.forms import modelformset_factory
 #from django.views.generic import TemplateView
 
 from backend.models import Appendix,Facility
@@ -21,6 +22,7 @@ SAMPLES_LIMIT = 1000
 @permission_required('samples.add_sample', login_url='/login/')
 def create(request):
 	saved_sample = request.GET.get('saved_sample')
+	PastRegimensFormSet = modelformset_factory(PastRegimens, form=PastRegimensForm, extra=5)
 	if request.method == 'POST':
 		patient_form = PatientForm(request.POST)
 		phone_form = PatientPhoneForm(request.POST)
@@ -28,6 +30,10 @@ def create(request):
 		clinician_form = ClinicianForm(request.POST)
 		lab_tech_form = LabTechForm(request.POST)
 		sample_form = SampleForm(request.POST)
+		drug_resistance_form = DrugResistanceRequestForm(request.POST)
+
+		
+		past_regimens_formset =PastRegimensFormSet(request.POST)
 
 		valid_patient = patient_form.is_valid()
 		valid_phone = phone_form.is_valid()
@@ -35,10 +41,12 @@ def create(request):
 		valid_sample = sample_form.is_valid()
 		valid_clinician = clinician_form.is_valid()
 		valid_lab_tech = lab_tech_form.is_valid()
+		valid_dr = drug_resistance_form.is_valid()
+		valid_past_regimens = past_regimens_formset.is_valid()
 
 		if sample_utils.locator_id_exists(request.POST):
 			sample_form.add_error('locator_position', 'Duplicate Locator ID')
-		elif valid_patient and valid_phone and valid_envelope and valid_sample and valid_clinician and valid_lab_tech:
+		elif valid_patient and valid_phone and valid_envelope and valid_sample and valid_clinician and valid_lab_tech and valid_dr and valid_past_regimens:
 			facility = sample_form.cleaned_data.get('facility')
 			art_number = patient_form.cleaned_data.get('art_number')
 			unique_id = "%s-A-%s" %(facility.pk, art_number)
@@ -79,6 +87,17 @@ def create(request):
 			sample.vl_sample_id = sample_utils.create_sample_id()
 			sample.created_by = request.user
 			sample.save()
+
+			drug_resistance = drug_resistance_form.save(commit=False)
+			drug_resistance.sample = sample
+			drug_resistance.save()
+
+			past_regimens = past_regimens_formset.save(commit=False)
+			for past_regimen in past_regimens:
+				past_regimen.drug_resistance_request = drug_resistance
+				past_regimen.save()
+
+			past_regimens_formset
 			return redirect('/samples/create?saved_sample=%s' %sample.pk)
 
 	else:
@@ -88,6 +107,7 @@ def create(request):
 		phone_form = PatientPhoneForm
 		patient_form = PatientForm
 		sample_form = SampleForm(initial={'locator_category':'V', 'date_received': timezone.now().date()})
+		drug_resistance_form = DrugResistanceRequestForm
 
 	context = {
 		'clinician_form':clinician_form,
@@ -96,6 +116,8 @@ def create(request):
 		'phone_form': phone_form,
 		'patient_form': patient_form,
 		'sample_form': sample_form,
+		'drug_resistance_form': drug_resistance_form,
+		'past_regimens_formset': PastRegimensFormSet,
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}
