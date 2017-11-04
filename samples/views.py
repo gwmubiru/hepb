@@ -97,7 +97,6 @@ def create(request):
 				past_regimen.drug_resistance_request = drug_resistance
 				past_regimen.save()
 
-			past_regimens_formset
 			return redirect('/samples/create?saved_sample=%s' %sample.pk)
 
 	else:
@@ -117,7 +116,7 @@ def create(request):
 		'patient_form': patient_form,
 		'sample_form': sample_form,
 		'drug_resistance_form': drug_resistance_form,
-		'past_regimens_formset': PastRegimensFormSet,
+		'past_regimens_formset': PastRegimensFormSet(queryset=PastRegimens.objects.none()),
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}

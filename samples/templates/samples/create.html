@@ -396,7 +396,7 @@
 					</tr>
 			
 				</table>	
-				{{ past_regimens_formset.management_form }}		
+				{{ past_regimens_formset.management_form }}			
 			</div>
 		</div>
 		
@@ -439,7 +439,6 @@
 	var date_now = new Date();
 	//console.log(date_now.toDateString());
 	var now_s = date_now.getTime();
-	var facility_json = {};
 	var regimen_json = {};
 
 	{% for regimen in regimens %}
@@ -464,6 +463,7 @@
 
 
 	$( function() {
+		$("#id_facility").val({{ sample_form.facility.value }});
 
 		set_district_hub();
 		//set_age();
@@ -679,6 +679,13 @@ ctrller.SampleController = function($scope,$http){
 	$scope.patient_history = [];
 	$scope.clinicians = [];
 	$scope.lab_techs = [];
+	$scope.facility = {{ sample_form.facility.value }};
+	$scope.art_number = "{{ patient_form.art_number.value }}";
+	$scope.cname = "{{ clinician_form.cname.value }}";
+	$scope.cphone ="{{ clinician_form.cphone.value }}";
+	$scope.lname = "{{ lab_tech_form.lname.value }}";
+	$scope.lphone = "{{ lab_tech_form.lphone.value }}";
+
 
 	$scope.patHist = function($event){
 		var keyCode = $event.which || $event.keyCode;

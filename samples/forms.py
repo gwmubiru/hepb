@@ -180,7 +180,7 @@ class SampleForm(forms.ModelForm):
 			self.add_error('date_collected', "date collected can not be > date received")
 
 		if (date_today - date_collected).days >=30 and locator_category!='R' and not pk:
-			self.add_error('date_collected', "date collected >= 30 days, please reject %s" %pk)
+			self.add_error('date_collected', "date collected >= 30 days, please reject")
 
 		form_fltr = Q(form_number=cleaned_data.get('form_number'))
 		if pk:
