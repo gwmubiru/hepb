@@ -423,7 +423,7 @@
 
 	<div class="col-lg-1" >
 		{% if sample %}
-			<span class='sub-title' style="margin-left:-60px">envelope samples</span><br>
+			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
 			{% for s in sample.envelope.sample_set.all %}
 				<a href='{% url 'samples:show' s.pk %}'  style="margin-left:-60px">
 					{{s.locator_category }}{{s.envelope.envelope_number}}/{{s.locator_position}}

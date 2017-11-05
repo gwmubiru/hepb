@@ -150,3 +150,29 @@ class IpFacilitySupport(models.Model):
 	class Meta:
 		db_table = 'backend_ip_facility_support'
 		verbose_name_plural = 'IP Facility Support'
+
+class MedicalLab(models.Model):
+	lab_name = models.CharField(max_length=128)
+	contact = models.CharField(max_length=64)
+	address = models.CharField(max_length=128)
+	email = models.EmailField(max_length=128)
+
+	def __str__(self):
+		return self.lab_name
+
+	class Meta:
+		db_table = 'backend_medical_labs'
+		verbose_name_plural = "Medical Labs"
+
+class UserProfile(models.Model):
+	user = models.OneToOneField(User, on_delete=models.CASCADE)
+	phone = models.CharField(max_length=64)
+	signature = models.FileField(upload_to='signatures')
+	medical_lab = models.ForeignKey(MedicalLab, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return "%s %s - %s" %(self.user.first_name, self.user.last_name, self.phone)
+
+	class Meta:
+		db_table = 'backend_user_profiles'
+		verbose_name_plural = "User Profiles"
