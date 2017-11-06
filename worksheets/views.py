@@ -57,6 +57,7 @@ def create(request, machine_type):
 			worksheet.worksheet_reference_number = worksheet_utils.create_worksheet_ref_number(machine_type,worksheet.sample_type)
 			worksheet.machine_type = machine_type
 			worksheet.generated_by = request.user
+			worksheet.worksheet_medical_lab = utils.user_lab(request)
 			worksheet.save()
 
 			return redirect('worksheets:attach_samples', worksheet_id=worksheet.id)
@@ -270,3 +271,6 @@ class ListJson(BaseDatatableView):
 			return links
 		else:
 			return super(ListJson, self).render_column(row, column)
+
+	def filter_queryset(self, qs):
+		return qs.filter(worksheet_medical_lab=utils.user_lab(self.request))

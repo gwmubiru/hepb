@@ -83,7 +83,7 @@ class ListJson(BaseDatatableView):
 		verified = self.request.GET.get('verified')
 		if verified:
 			qs = qs.filter(verified=verified)
-		return qs
+		return qs.filter(sample_medical_lab=utils.user_lab(self.request))
 		
 
 class VerifyListJson(BaseDatatableView):

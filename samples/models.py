@@ -132,6 +132,7 @@ class Sample(models.Model):
 	last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
 	clinician = models.ForeignKey(Clinician, null=True, blank=True)
 	lab_tech = models.ForeignKey(LabTech, null=True, blank=True)
+	sample_medical_lab = models.ForeignKey(backend.MedicalLab,related_name='sample_medical_lab', default=1)
 	
 	verified = models.BooleanField(default=False)
 	in_worksheet = models.BooleanField(default=False)

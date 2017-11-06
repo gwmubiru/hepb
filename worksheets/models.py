@@ -1,9 +1,12 @@
 from __future__ import unicode_literals
 
 from django.db import models
+
 from django.contrib.auth.models import User
 
 from samples.models import Sample
+
+import backend.models as backend
 
 #'awaiting_results','has_results','passed_lab_qc','passed_data_qc'
 
@@ -34,6 +37,7 @@ class Worksheet(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	stage = models.PositiveSmallIntegerField(choices=STAGE_CHOICES, default=1)
+	worksheet_medical_lab = models.ForeignKey(backend.MedicalLab, related_name='worksheet_medical_lab', default=1)
 
 	class Meta:
 		db_table = 'vl_worksheets'

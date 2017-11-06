@@ -8,8 +8,8 @@ from django.db.models import Q
 from django.forms import modelformset_factory
 #from django.views.generic import TemplateView
 
-from backend.models import Appendix,Facility
-from .models import Patient, Sample, PatientPhone, Envelope, Verification, Clinician, LabTech
+from backend.models import Appendix,Facility,MedicalLab
+from .models import Patient, Sample, PatientPhone, Envelope, Verification, Clinician, LabTech, PastRegimens, DrugResistanceRequest
 from forms import *
 from home import utils
 from . import utils as sample_utils
@@ -30,9 +30,7 @@ def create(request):
 		clinician_form = ClinicianForm(request.POST)
 		lab_tech_form = LabTechForm(request.POST)
 		sample_form = SampleForm(request.POST)
-		drug_resistance_form = DrugResistanceRequestForm(request.POST)
-
-		
+		drug_resistance_form = DrugResistanceRequestForm(request.POST)		
 		past_regimens_formset =PastRegimensFormSet(request.POST)
 
 		valid_patient = patient_form.is_valid()
@@ -86,6 +84,9 @@ def create(request):
 			sample.envelope = envelope
 			sample.vl_sample_id = sample_utils.create_sample_id()
 			sample.created_by = request.user
+
+			sample.sample_medical_lab = utils.user_lab(request)
+			
 			sample.save()
 
 			drug_resistance = drug_resistance_form.save(commit=False)
@@ -133,6 +134,17 @@ def edit(request, sample_id):
 	envelope = sample.envelope
 	clinician = sample.clinician
 	lab_tech = sample.lab_tech
+	count_dr = 0
+	drug_resistance = None
+	try:
+		drug_resistance = sample.drugresistancerequest
+		count_dr = PastRegimens.objects.filter(drug_resistance_request=drug_resistance).count()
+	except :
+		pass
+	
+	
+	PastRegimensFormSet = modelformset_factory(PastRegimens, form=PastRegimensForm, 
+							extra=(5-count_dr))
 
 	if request.method == 'POST':
 		patient_form = PatientForm(request.POST, instance=patient)
@@ -141,27 +153,46 @@ def edit(request, sample_id):
 		sample_form = SampleForm(request.POST, instance=sample)
 		clinician_form = ClinicianForm(request.POST, instance=clinician)
 		lab_tech_form = LabTechForm(request.POST, instance=lab_tech)
+		drug_resistance_form = DrugResistanceRequestForm(request.POST, instance=drug_resistance)
+		past_regimens_formset =PastRegimensFormSet(request.POST)
 
 		valid_patient = patient_form.is_valid()
 		#valid_phone = phone_form.is_valid()
 		valid_envelope = envelope_form.is_valid()
 		valid_sample = sample_form.is_valid()
+		valid_dr = drug_resistance_form.is_valid()
+		valid_past_regimens = past_regimens_formset.is_valid()
 
-		if valid_patient and valid_envelope and valid_sample and clinician_form.is_valid() and lab_tech_form.is_valid():
+		if valid_patient and valid_envelope and valid_sample and clinician_form.is_valid() and lab_tech_form.is_valid() and valid_dr and valid_past_regimens:
 			patient_form.save()
 			envelope_form.save()
 			sample = sample_form.save(commit=False)
 
-			cl = clinician_form.save(commit=False)
-			cl.facility = sample.facility
-			cl.save()
-			lt = lab_tech_form.save(commit=False)
-			lt.facility = sample.facility
-			lt.save()
+			facility = sample.facility
+			clinician_form.cleaned_data.update({'facility':facility})
+			cl_data = clinician_form.cleaned_data
+			clinician, clinician_created = Clinician.objects.get_or_create(
+						facility=facility, cname=cl_data.get('cname'), defaults={'cphone':cl_data.get('cphone')})
 
-			sample.clinician = cl
-			sample.lab_tech = lt
+			lab_tech_form.cleaned_data.update({'facility':facility})
+			lt_data = lab_tech_form.cleaned_data
+			lab_tech, lab_tech_created = LabTech.objects.get_or_create(
+						facility=facility, lname=lt_data.get('lname'), defaults={'lphone':lt_data.get('lphone')})
+
+			sample.clinician = clinician
+			sample.lab_tech = lab_tech
+			
+			sample.sample_medical_lab = utils.user_lab(request)
 			sample.save()
+
+			drug_resistance = drug_resistance_form.save(commit=False)
+			drug_resistance.sample = sample
+			drug_resistance.save()
+
+			past_regimens = past_regimens_formset.save(commit=False)
+			for past_regimen in past_regimens:
+				past_regimen.drug_resistance_request = drug_resistance
+				past_regimen.save()
 
 			return redirect("/samples/show/%d" %sample.pk)
 
@@ -172,6 +203,7 @@ def edit(request, sample_id):
 		sample_form = SampleForm(instance=sample)
 		clinician_form = ClinicianForm(instance=clinician)
 		lab_tech_form = LabTechForm(instance=lab_tech)
+		drug_resistance_form = DrugResistanceRequestForm(instance=drug_resistance)
 
 	context = {
 		'clinician_form':clinician_form,
@@ -182,6 +214,8 @@ def edit(request, sample_id):
 		'patient_form': patient_form,
 		'sample_form': sample_form,
 		'vsi': sample.vl_sample_id,
+		'drug_resistance_form': drug_resistance_form,
+		'past_regimens_formset': PastRegimensFormSet(queryset=PastRegimens.objects.filter(drug_resistance_request=drug_resistance)),
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}
@@ -201,7 +235,13 @@ def show(request, sample_id):
 	sample = Sample.objects.get(pk=sample_id)
 	patient = sample.patient
 	envelope = sample.envelope
+	drug_resistance = None
+	try:
+		drug_resistance = sample.drugresistancerequest
+	except :
+		pass
 
+	PastRegimensFormSet = modelformset_factory(PastRegimens, form=PastRegimensForm)
 
 	context = {
 		'clinician_form': ClinicianForm(instance=sample.clinician),
@@ -211,6 +251,8 @@ def show(request, sample_id):
 		'phone_form': PatientPhoneForm(),
 		'patient_form': PatientForm(instance=patient),
 		'sample_form': SampleForm(instance=sample),
+		'drug_resistance_form': DrugResistanceRequestForm(instance=drug_resistance),
+		'past_regimens_formset': PastRegimensFormSet(queryset=PastRegimens.objects.filter(drug_resistance_request=drug_resistance)),
 		'vl_sample_id': sample.vl_sample_id,
 	}
 

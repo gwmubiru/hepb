@@ -4,6 +4,8 @@ from django.utils import timezone
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 
+from backend.models import MedicalLab
+
 
 ATTRS = {'class':'form-control input-sm w-md', 'required':'true'}
 ATTRS_OPTIONAL = {'class':'form-control input-sm w-md', }
@@ -140,3 +142,11 @@ def non_future_dates(Form, date_list):
 		i_date = Form.cleaned_data.get(i)
 		if i_date != None and str(i_date) > str(date_today):
 			Form.add_error(i, "%s can not be in the future" %(i.replace("_"," "),) )
+
+def user_lab(request):
+	med_lab = MedicalLab.objects.get(pk=1)
+	try:
+		med_lab = request.user.userprofile.medical_lab
+	except:
+		pass
+	return med_lab

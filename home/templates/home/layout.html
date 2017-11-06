@@ -53,7 +53,7 @@
                 <div class="navbar-header">
                     <a href="{% url 'home_page' %}" >
                         <img src='{% static "home/images/logo.png" %}' >                        
-                        <span id='main-link'>Viral Load LIMS</span>
+                        <span id='main-link'>Viral Load LIMS (your lab: {{ request.user.userprofile.medical_lab}})</span>
                         
                     </a>
                 </div>
@@ -79,7 +79,7 @@
                     <li class="user_menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                            
-                            <span class="navbar_el_icon ion-person"></span> <span class="caret"></span>
+                            <span class="navbar_el_icon ion-person"></span> {{ request.user.username }} <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right">
                             <li><a href="#">Profile</a></li>
@@ -104,7 +104,7 @@
                             {% endblock %}
                         </div>
 
-                        <div class="col-lg-1"><span class='stat-count'>100</span></div>
+                        <div class="col-lg-1"><span class='stat-count'>Lab: {{ request.user.userprofile.medical_lab}}</span></div>
                     </div>
                 </div>
             </div>      
@@ -227,6 +227,10 @@
 
         #main-link:hover{
             text-decoration: none;
+        }
+
+        .stat-count{
+            font-size: 20px;
         }
 
         </style>

@@ -336,7 +336,7 @@
 
 		<div class="row">
 			<div class="col-lg-6">
-				<div class="form-group">
+				<div class="form-group required">
 					{{ clinician_form.cname.label_tag }}
 					{{ clinician_form.cname.errors }}
 					{{ clinician_form.cname }}
@@ -354,7 +354,7 @@
 			</div>
 		
 			<div class="col-lg-6">
-				<div class="form-group">
+				<div class="form-group required">
 					{{ lab_tech_form.lname.label_tag }}
 					{{ lab_tech_form.lname.errors }}
 					{{ lab_tech_form.lname }}
@@ -463,7 +463,7 @@
 
 
 	$( function() {
-		$("#id_facility").val({{ sample_form.facility.value }});
+		$("#id_facility").val("{{ sample_form.facility.value|default:'' }}");
 
 		set_district_hub();
 		//set_age();
@@ -679,12 +679,12 @@ ctrller.SampleController = function($scope,$http){
 	$scope.patient_history = [];
 	$scope.clinicians = [];
 	$scope.lab_techs = [];
-	$scope.facility = {{ sample_form.facility.value }};
-	$scope.art_number = "{{ patient_form.art_number.value }}";
-	$scope.cname = "{{ clinician_form.cname.value }}";
-	$scope.cphone ="{{ clinician_form.cphone.value }}";
-	$scope.lname = "{{ lab_tech_form.lname.value }}";
-	$scope.lphone = "{{ lab_tech_form.lphone.value }}";
+	$scope.facility = "{{ sample_form.facility.value|default:'' }}";
+	$scope.art_number = "{{ patient_form.art_number.value|default:'' }}";
+	$scope.cname = "{{ clinician_form.cname.value|default:'' }}";
+	$scope.cphone ="{{ clinician_form.cphone.value|default:'' }}";
+	$scope.lname = "{{ lab_tech_form.lname.value|default:'' }}";
+	$scope.lphone = "{{ lab_tech_form.lphone.value|default:'' }}";
 
 
 	$scope.patHist = function($event){

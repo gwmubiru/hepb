@@ -1,5 +1,5 @@
 {% extends "home/layout.html" %}
 
 {% block content %}
-Welcome
+<h1>Welcome, {{ request.user.username }}</h1>
 {% endblock content %}
