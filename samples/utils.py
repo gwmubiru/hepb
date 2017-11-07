@@ -5,12 +5,22 @@ from home import utils
 from backend.models import Facility
 from .models import Sample,ClinicalRequestForm, Envelope
 
-def locator_id_exists(data):
+def locator_id_exists(data, sample_id=None):
 	env = Envelope.objects.filter(envelope_number=data.get('envelope_number')).first()
 	loc_exists = False
 	if env:
-		loc_exists = Sample.objects.filter(envelope=env, locator_position=data.get('locator_position')).exists()
+		fltr = Q(envelope=env,locator_position=data.get('locator_position'))
+		fltr = ~Q(pk=sample_id) & fltr if sample_id else fltr
+		loc_exists = Sample.objects.filter(fltr).exists()
 	return loc_exists
+
+def initiation_date_valid(data):
+	tx_initiation_date = data.get('treatment_initiation_date')
+	dob = data.get('dob')
+	valid = True
+	if tx_initiation_date < dob:
+		valid = False
+	return valid
 
 def initial_env_number():
 	return "%s%s-" %(utils.year('yy'), utils.month('mm'))

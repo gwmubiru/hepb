@@ -38,8 +38,8 @@
 				    {% url 'samples:create'  %} 
 				  {% endif %}" method="post" role="form">
 		{% csrf_token %}
-				
 
+		{{ sample_form.locator_category.errors }}
 		<div class="row">
 			<div class="col-lg-6">
 				<span class='sub-title'>form/facility details</span>
@@ -57,7 +57,6 @@
 					{{ sample_form.locator_position.errors }}
 
 					{{ sample_form.locator_category }}
-
 					{{ envelope_form.envelope_number }}
 					<span class="vl-slash">/</span>
 					{{ sample_form.locator_position }}
@@ -379,19 +378,29 @@
 					<tr>
 						<td>Past Regimen</td>
 						{% for past_regimens_form in past_regimens_formset %}
-						<td>{{ past_regimens_form.regimen }}</td>
+						<td>
+							{% for hidden in past_regimens_form.hidden_fields %}{{ hidden }}{% endfor %} 
+							{{ past_regimens_form.regimen.errors }}<br>
+							{{ past_regimens_form.regimen }}
+						</td>
 						{% endfor %}
 					</tr>
 					<tr>
 						<td>Start Date</td>
 						{% for past_regimens_form in past_regimens_formset %}
-						<td class="form-inline">{{ past_regimens_form.start_date }}</td>
+						<td class="form-inline">
+							{{ past_regimens_form.start_date.errors }}<br>
+							{{ past_regimens_form.start_date }}
+						</td>
 						{% endfor %}
 					</tr>
 					<tr>
 						<td>Stop Date</td>
 						{% for past_regimens_form in past_regimens_formset %}
-						<td class="form-inline">{{ past_regimens_form.stop_date }}</td>
+						<td class="form-inline">
+							{{ past_regimens_form.stop_date.errors }}<br>
+							{{ past_regimens_form.stop_date }}
+						</td>
 						{% endfor %}
 					</tr>
 			
@@ -404,20 +413,20 @@
 			<div class="col-lg-4">
 				<div class="form-group">
 					{{ drug_resistance_form.body_weight.label }}
+					{{ drug_resistance_form.body_weight.errors }}
 					{{ drug_resistance_form.body_weight }}
 				</div>
 			</div>
 			<div class="col-lg-4">
 				<div class="form-group">
 					{{ drug_resistance_form.patient_on_rifampicin.label }}?
+					{{ drug_resistance_form.patient_on_rifampicin.errors }}
 					{{ drug_resistance_form.patient_on_rifampicin }}
 				</div>
 			</div>
 		</div>
 
-		
-		
-		<input type="submit" value="Save and get new form" class="btn btn-danger">
+		<input type="submit" value="{% if sample_id %} Update {% else %} Save and get new form {% endif %}" class="btn btn-danger">
 	</form>
 	</div>
 
@@ -617,7 +626,7 @@
   	});
 
 	function round1(val){
-		return Math.round(val);
+		return Math.round(val*10)/10;
 		//return Math.round(val*10)/10;
 	}
 

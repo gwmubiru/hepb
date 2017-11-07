@@ -78,12 +78,8 @@ class PatientPhone(models.Model):
 
 class Envelope(models.Model):
 	envelope_number = models.CharField(max_length=10)
-	printed = models.BooleanField(default=False)
-	print_date = models.DateTimeField(null=True)
-	envelope_printed_by = models.ForeignKey(User, related_name='envelope_printed_by', null=True)
-	dispatched = models.BooleanField(default=False)
-	dispatch_date = models.DateTimeField(null=True)
-	envelope_dispatched_by = models.ForeignKey(User, related_name='envelope_dispatched_by', null=True)
+	stage = models.PositiveSmallIntegerField(choices=((1,'not_verified'), (2, 'verified'), (3, 'in_worksheet')), default=1)
+	created_at = models.DateTimeField(auto_now_add=True)
 
 	# def __init__(self):
 	# 	return self.envelope_number

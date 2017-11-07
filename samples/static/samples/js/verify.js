@@ -11,7 +11,7 @@ ctrller.VerifyController = function($scope,$http){
 	$scope.sample = {};
 
 	$http.get("/samples/verify_envelope/"+envelope_id).success(function(data){
-		//console.log("we got this"+JSON.stringify(data));
+		console.log("we got this"+JSON.stringify(data));
 		$scope.vdata=data;
 		// $scope.sample=data[0];
 		// $scope.nxt_sample=1;

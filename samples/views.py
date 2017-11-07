@@ -44,6 +44,8 @@ def create(request):
 
 		if sample_utils.locator_id_exists(request.POST):
 			sample_form.add_error('locator_position', 'Duplicate Locator ID')
+		elif not sample_utils.initiation_date_valid(request.POST):
+			sample_form.add_error('treatment_initiation_date', 'Initiation date greater than DoB')
 		elif valid_patient and valid_phone and valid_envelope and valid_sample and valid_clinician and valid_lab_tech and valid_dr and valid_past_regimens:
 			facility = sample_form.cleaned_data.get('facility')
 			art_number = patient_form.cleaned_data.get('art_number')
@@ -59,12 +61,12 @@ def create(request):
 
 			clinician_form.cleaned_data.update({'facility':facility})
 			cl_data = clinician_form.cleaned_data
-			clinician, clinician_created = Clinician.objects.get_or_create(
+			clinician, clinician_created = Clinician.objects.update_or_create(
 						facility=facility, cname=cl_data.get('cname'), defaults={'cphone':cl_data.get('cphone')})
 
 			lab_tech_form.cleaned_data.update({'facility':facility})
 			lt_data = lab_tech_form.cleaned_data
-			lab_tech, lab_tech_created = LabTech.objects.get_or_create(
+			lab_tech, lab_tech_created = LabTech.objects.update_or_create(
 						facility=facility, lname=lt_data.get('lname'), defaults={'lphone':lt_data.get('lphone')})
 
 			phone, phone_created = PatientPhone.objects.get_or_create(
@@ -99,6 +101,8 @@ def create(request):
 				past_regimen.save()
 
 			return redirect('/samples/create?saved_sample=%s' %sample.pk)
+		else:
+			sample_form.add_error('locator_category', 'Form saving failed')
 
 	else:
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
@@ -108,6 +112,7 @@ def create(request):
 		patient_form = PatientForm
 		sample_form = SampleForm(initial={'locator_category':'V', 'date_received': timezone.now().date()})
 		drug_resistance_form = DrugResistanceRequestForm
+		past_regimens_formset = PastRegimensFormSet(queryset=PastRegimens.objects.none())
 
 	context = {
 		'clinician_form':clinician_form,
@@ -117,7 +122,7 @@ def create(request):
 		'patient_form': patient_form,
 		'sample_form': sample_form,
 		'drug_resistance_form': drug_resistance_form,
-		'past_regimens_formset': PastRegimensFormSet(queryset=PastRegimens.objects.none()),
+		'past_regimens_formset': past_regimens_formset,
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}
@@ -163,20 +168,28 @@ def edit(request, sample_id):
 		valid_dr = drug_resistance_form.is_valid()
 		valid_past_regimens = past_regimens_formset.is_valid()
 
-		if valid_patient and valid_envelope and valid_sample and clinician_form.is_valid() and lab_tech_form.is_valid() and valid_dr and valid_past_regimens:
+		if sample_utils.locator_id_exists(request.POST, sample_id):
+			sample_form.add_error('locator_position', 'Duplicate Locator ID')
+		elif not sample_utils.initiation_date_valid(request.POST):
+			sample_form.add_error('treatment_initiation_date', 'Initiation date greater than DoB')
+		elif valid_patient and valid_envelope and valid_sample and clinician_form.is_valid() and lab_tech_form.is_valid() and valid_dr and valid_past_regimens:
 			patient_form.save()
-			envelope_form.save()
+			#envelope_form.save()
+			envelope, env_created = Envelope.objects.get_or_create(
+						**envelope_form.cleaned_data
+						)
 			sample = sample_form.save(commit=False)
+			sample.envelope = envelope
 
 			facility = sample.facility
 			clinician_form.cleaned_data.update({'facility':facility})
 			cl_data = clinician_form.cleaned_data
-			clinician, clinician_created = Clinician.objects.get_or_create(
+			clinician, clinician_created = Clinician.objects.update_or_create(
 						facility=facility, cname=cl_data.get('cname'), defaults={'cphone':cl_data.get('cphone')})
 
 			lab_tech_form.cleaned_data.update({'facility':facility})
 			lt_data = lab_tech_form.cleaned_data
-			lab_tech, lab_tech_created = LabTech.objects.get_or_create(
+			lab_tech, lab_tech_created = LabTech.objects.update_or_create(
 						facility=facility, lname=lt_data.get('lname'), defaults={'lphone':lt_data.get('lphone')})
 
 			sample.clinician = clinician
@@ -195,6 +208,8 @@ def edit(request, sample_id):
 				past_regimen.save()
 
 			return redirect("/samples/show/%d" %sample.pk)
+		else:
+			sample_form.add_error('locator_position', 'Updating failed')
 
 	else:
 		envelope_form = EnvelopeForm(instance=sample.envelope)
@@ -204,6 +219,7 @@ def edit(request, sample_id):
 		clinician_form = ClinicianForm(instance=clinician)
 		lab_tech_form = LabTechForm(instance=lab_tech)
 		drug_resistance_form = DrugResistanceRequestForm(instance=drug_resistance)
+		past_regimens_formset = PastRegimensFormSet(queryset=PastRegimens.objects.filter(drug_resistance_request=drug_resistance))
 
 	context = {
 		'clinician_form':clinician_form,
@@ -215,7 +231,7 @@ def edit(request, sample_id):
 		'sample_form': sample_form,
 		'vsi': sample.vl_sample_id,
 		'drug_resistance_form': drug_resistance_form,
-		'past_regimens_formset': PastRegimensFormSet(queryset=PastRegimens.objects.filter(drug_resistance_request=drug_resistance)),
+		'past_regimens_formset': past_regimens_formset,
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
 	}
@@ -302,7 +318,7 @@ def verify_envelope(request, envelope_id):
 		ret.append({
 				'patient_id': s.patient.id,
 				'sample_id': s.id,
-				'accepted': s.verification.accepted if hasattr(s, 'verification') else '',
+				'accepted': "%s"%int(s.verification.accepted) if hasattr(s, 'verification') else '',
 				'vl_sample_id': s.vl_sample_id,
 				'locator_category': s.locator_category,
 				'locator_position': s.locator_position,
