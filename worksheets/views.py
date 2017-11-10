@@ -86,13 +86,17 @@ def attach_samples(request, worksheet_id):
 			#worksheet.samples.add(sample)
 			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
 			sample.in_worksheet = True
+			sample.save()
+			
+			if(Sample.objects.filter(envelope=sample.envelope, in_worksheet=False, verification__accepted=True).count()==0):
+				envelope = Envelope.objects.get(pk=sample.envelope.pk)
+				envelope.stage = 3;
+				envelope.save()
 
 			if Result.objects.filter(sample=sample).exists():
 				s_result = Result.objects.get(sample=sample)
 				s_result.repeat_test = False
 				s_result.save()
-
-			sample.save()
 
 		WorksheetSample.objects.bulk_create(worksheet_samples)
 			
