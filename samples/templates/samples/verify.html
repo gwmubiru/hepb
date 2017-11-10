@@ -24,14 +24,14 @@
 		
 
 		
-		{% if info_message %} <div class="alert alert-success" role="alert">{{ info_message }}</div> {% endif %}
+		{% if info_message %} <div class="alert alert-success"  role="alert">{{ info_message }}</div> {% endif %}
 		{% if success_message %} <div class="alert alert-success" role="alert">{{ success_message }}</div> {% endif %}
 		<div class='panel-body col-lg-2'>
 			<span class='sub-title' >envelope samples</span><br>
-			<div class='ng-cloak' ng-repeat="s in vdata">
-				
-				<div ng-if="s.sample_id==sample.sample_id"><% s.loc %><span> <% s.verified %></span></div>
-				<div ng-if="s.sample_id!=sample.sample_id"><a href="#" ng-click="selectSample(s.sample_id)"> <% s.loc %></a><span><% s.verified %></span></div>
+			<div class="list-group ng-cloak" style="height: 800px;overflow-y: auto;">
+				<a href="#" ng-repeat="s in vdata" ng-click="selectSample(s.sample_id)" class='list-group-item <% s.current %>'> 
+					<% s.loc %>
+				</a>
 			</div>
 
 		</div>
@@ -152,6 +152,32 @@
 					</div>
 
 				</div>
+				<div class='row'>
+					<div class="col-lg-10" >						
+						<label>Patient history</label>
+						<table class="table table-striped table-condensed table-bordered" >
+							<tr>
+								<th>Art #</th>
+								<th>DOB</th>
+								<th>Gender</th>
+								<th>Form #</th>
+								<!-- <th>Date Collected</th> -->
+								<th>Result</th>
+								<th>Test Date</th>
+							</tr>
+							<tr ng-repeat="ph in patient_history" class='ng-cloak'>
+								<td><% ph.art_number %></td>
+								<td><% ph.dob %></td>
+								<td><% ph.gender %></td>
+								<td><% ph.form_number %></td>
+								
+								
+								<td><% ph.result %></td>
+								<td><% ph.test_date %></td>
+							</tr>
+						</table>						
+					</div>
+				</div>
 
 				<input type="submit" class="btn btn-danger" value="Save and move to next sample">
 
@@ -166,6 +192,7 @@
  var envelope_id = {{ envelope_id }};
  var rejection_reasons = {{ rejection_reasons | safe }};
  $( function() {
+ 		
  		$("#add_reason").hide();
     	$( ".date-picker" ).datepicker({
       		changeMonth: true,

@@ -21,17 +21,27 @@
 			
 			<form action="{% url 'worksheets:attach_samples' worksheet.id %}" method="post" role="form">
 				{% csrf_token %}
+				<span ng-init="w_sample_type='{{ worksheet.sample_type }}'	"></span>
 				<div class="row" >
-					<div class="col-md-3" >
+					<div class="col-md-4" >
 						<label>Worksheet Ref Number:</label><u>{{ worksheet.worksheet_reference_number }}</u>
 					</div>
 					<div class="col-md-3" ng-init="machine_type='{{ worksheet.machine_type }}'">
 						<label>Machine Type:</label> <u>{{ worksheet.get_machine_type_display }}</u>
 					</div>
-					<div class="col-md-3" ng-init="sample_type='{{ worksheet.sample_type }}'">
+					<div class="col-md-2" ng-init="sample_type='{{ worksheet.sample_type }}'">
 						<label>Sample Type:</label><u>{{ worksheet.get_sample_type_display }}</u>
 					</div>
 					<div class="col-md-3"><label>Date Created:</label> <u>{{ worksheet.created_at | date:"Y-m-d" }}</u></div>
+				</div>
+				<div class="row">
+					<div class="col-md-4 form-inline">I want to attach
+						<input type="text" class="form-control input-sm" ng-init="sample_limit={{ sample_limit }}" ng-model="sample_limit" value="" style="width:50px"> samples
+					</div>
+					<div class="col-md-4"></div>
+					<div class="col-md-4">
+						<div id='submit'><span ng-if="selected_samples.length==sample_limit && selected_samples.length!=0" class="btn btn-danger btn-submit ">save selected samples</span></div>
+					</div>
 				</div>
 				<br>
 				{% include "worksheets/_attach_samples.html" %}
@@ -129,7 +139,6 @@
 					</div>
 				</div>
 				<br> -->
-				<span id='submit' class="btn btn-danger btn-submit ">save</span>
 				
 			</form>
 		</div>
@@ -155,6 +164,7 @@
         })
 
         $("#submit").click(function(){
+        	//console.log("dedede");
 			var form = $('form')[0];
 			form.submit();
 		});

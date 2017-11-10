@@ -75,7 +75,8 @@ def create(request):
 						)
 
 			envelope, env_created = Envelope.objects.get_or_create(
-						**envelope_form.cleaned_data
+						envelope_number=envelope_form.cleaned_data.get('envelope_number'),
+						defaults={'sample_type': sample_form.cleaned_data.get('sample_type'),'sample_medical_lab':utils.user_lab(request)}
 						)
 
 			sample = sample_form.save(commit=False)
@@ -175,9 +176,11 @@ def edit(request, sample_id):
 		elif valid_patient and valid_envelope and valid_sample and clinician_form.is_valid() and lab_tech_form.is_valid() and valid_dr and valid_past_regimens:
 			patient_form.save()
 			#envelope_form.save()
-			envelope, env_created = Envelope.objects.get_or_create(
-						**envelope_form.cleaned_data
+			envelope, env_created = Envelope.objects.update_or_create(
+						envelope_number=envelope_form.cleaned_data.get('envelope_number'),						
+						defaults={'sample_type': sample_form.cleaned_data.get('sample_type'),'sample_medical_lab':utils.user_lab(request)}
 						)
+
 			sample = sample_form.save(commit=False)
 			sample.envelope = envelope
 
@@ -344,14 +347,14 @@ def verify_envelope(request, envelope_id):
 
 def save_verify(request):
 	r = request.GET
-	p = Patient.objects.get(pk=r['patient_id'])
+	p = Patient.objects.get(pk=r.get('patient_id'))
 	p.art_number = r.get('art_number', '')
 	p.other_id = r.get('other_id', '')
 	p.dob = utils.get_date(r, 'dob')
 	p.gender = r.get('gender', '')
 	p.save()
 
-	s = Sample.objects.get(pk=r['sample_id'])
+	s = Sample.objects.get(pk=r.get('sample_id'))
 	s.facility_id = r.get('facility_id', 0)
 	s.date_collected = utils.get_date(r, 'date_collected')
 	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
@@ -360,15 +363,24 @@ def save_verify(request):
 	s.verified = 1
 	s.save()
 
-	v = Verification()
-	v.sample_id = r['sample_id']
+	if s.in_worksheet:
+		return HttpResponse("sample in worksheet already")
+
+	v = Verification.objects.filter(sample=s).first()
+	v = v if v else Verification()
+	v.sample = s
 	v.accepted = r.get('accepted', '')
 
 	if(v.accepted==0):
 		v.rejection_reason_id = r.get('rejection_reason_id', 0)
 
-	v.verified_by_id = 1
+	v.verified_by = request.user
 	v_saved = v.save()
+
+	if(not Sample.objects.filter(envelope=s.envelope, verified=False).count()):
+		envelope = Envelope.objects.get(pk=s.envelope.pk)
+		envelope.stage = 2
+		envelope.save()
 
 	return HttpResponse("saved")
 
@@ -376,7 +388,7 @@ def save_verify(request):
 def verify_list(request):
 
 	search_val = request.GET.get('search_val')
-	verified = request.GET.get('verified', 0)
+	verified = request.GET.get('verified')
 
 	# if search_val:
 	# 	envelopes = Envelope.objects.filter(envelope_number__contains=search_val).order_by('-pk')[:1]

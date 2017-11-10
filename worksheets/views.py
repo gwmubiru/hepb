@@ -86,6 +86,12 @@ def attach_samples(request, worksheet_id):
 			#worksheet.samples.add(sample)
 			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
 			sample.in_worksheet = True
+
+			if Result.objects.filter(sample=sample).exists():
+				s_result = Result.objects.get(sample=sample)
+				s_result.repeat_test = False
+				s_result.save()
+
 			sample.save()
 
 		WorksheetSample.objects.bulk_create(worksheet_samples)
@@ -93,7 +99,7 @@ def attach_samples(request, worksheet_id):
 		return redirect('worksheets:show',worksheet_id)
 	else:
 		#form = AttachSamplesForm()
-		sample_limit = 21 if worksheet.machine_type == 'R' else 93
+		sample_limit = worksheet_utils.sample_limit(worksheet.machine_type)
 		sample_pads = 11 if worksheet.include_calibrators else 3
 		samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False).\
 					extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
@@ -164,7 +170,7 @@ def authorize_results(request, worksheet_id):
 		ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=result.sample).first()
 		ws.stage = 3
 		ws.save()
-		return HttpResponse("saved");
+		return HttpResponse("saved")
 	else:
 		worksheet = Worksheet.objects.get(pk=worksheet_id)
 		sample_pads = 11 if worksheet.include_calibrators else 3
@@ -181,7 +187,7 @@ def pending_samples(request):
 	else:
 		sample_search = request.GET.get('sample_search')
 		env_pk = request.GET.get('env_pk')
-		filters = {'in_worksheet':False, 'verified':True, 'verification__accepted':True}
+		filters = {'verified':True, 'verification__accepted':True}
 		if env_pk:
 			filters.update({'envelope':env_pk})
 		elif sample_search:
@@ -199,25 +205,31 @@ def pending_samples(request):
 				'locator_id': "%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
 				'form_number': s.form_number,
 				'art_number': s.patient.art_number,
+				'sample_type': s.sample_type,
+				'in_worksheet': s.in_worksheet,
 			})
 	return HttpResponse(json.dumps(ret))
 
 def pending_envelopes(request):
-	unverified_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
-	nein_worksheet_count = models.Count(models.Case(models.When(sample__in_worksheet=False, then=1)))
-	st = request.GET.get('sample_type')
-	st_count = models.Count(models.Case(models.When(sample__sample_type=st, then=1)))
-	envelopes = Envelope.objects.annotate(smpl_count=models.Count('sample'),uc=unverified_count, nwc=nein_worksheet_count, stc=st_count).filter(uc=0, nwc__gt=0, stc__gt=0)
+	# unverified_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
+	# nein_worksheet_count = models.Count(models.Case(models.When(sample__in_worksheet=False, then=1)))
+	# st = request.GET.get('sample_type')
+	# st_count = models.Count(models.Case(models.When(sample__sample_type=st, then=1)))
+	# envelopes = Envelope.objects.annotate(smpl_count=models.Count('sample'),uc=unverified_count, nwc=nein_worksheet_count, stc=st_count).filter(uc=0, nwc__gt=0, stc__gt=0)
 	#envelopes = Envelope.objects.annotate(models.Count('sample'))
+
 	ret = []
+	sample_type = request.GET.get('sample_type', '')
+	filter_params = Q(stage=2, sample_type=request.GET.get('sample_type', ''), sample_medical_lab=utils.user_lab(request))
+	envelopes = Envelope.objects.annotate(sample_count=models.Count('sample')).filter(filter_params)
 	for i,e in enumerate(envelopes):
-		ret.append({'pk':e.pk,'envelope_number':e.envelope_number,'sample_count':e.smpl_count})
+		ret.append({'pk':e.pk,'envelope_number':e.envelope_number,'sample_count':e.sample_count})
 	return HttpResponse(json.dumps(ret))
 
 def delete(request, pk):
 	worksheet = Worksheet.objects.get(pk=pk)
 	for s in worksheet.samples.all():
-		s.in_worksheet = False;
+		s.in_worksheet = False
 		s.save()
 		
 	worksheet.delete()

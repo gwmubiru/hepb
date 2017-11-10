@@ -79,6 +79,8 @@ class PatientPhone(models.Model):
 class Envelope(models.Model):
 	envelope_number = models.CharField(max_length=10)
 	stage = models.PositiveSmallIntegerField(choices=((1,'not_verified'), (2, 'verified'), (3, 'in_worksheet')), default=1)
+	sample_type = models.CharField(max_length=1, choices=( ('P', 'Plasma'), ('D', 'DBS') ), default='')
+	sample_medical_lab = models.ForeignKey(backend.MedicalLab,related_name='sample_medical_lab', default=1)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	# def __init__(self):
@@ -128,7 +130,6 @@ class Sample(models.Model):
 	last_sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
 	clinician = models.ForeignKey(Clinician, null=True, blank=True)
 	lab_tech = models.ForeignKey(LabTech, null=True, blank=True)
-	sample_medical_lab = models.ForeignKey(backend.MedicalLab,related_name='sample_medical_lab', default=1)
 	
 	verified = models.BooleanField(default=False)
 	in_worksheet = models.BooleanField(default=False)

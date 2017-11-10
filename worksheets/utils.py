@@ -36,3 +36,14 @@ def create_worksheet_ref_number(worksheet_type, sample_type):
 	num = str(num+1)
 	num = num.zfill(4)
 	return "%s%s%s%s%s" %(utils.year('yy'), utils.month('mm'), wt, sample_type , num)
+	
+def sample_limit(worksheet_type):
+	if worksheet_type == 'A':
+		limit = 93
+	elif worksheet_type == 'R':
+		limit = 21
+	elif worksheet_type == 'C':
+		limit = 21
+	else:
+		limit = 21
+	return limit
