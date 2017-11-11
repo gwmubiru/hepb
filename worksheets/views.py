@@ -87,7 +87,7 @@ def attach_samples(request, worksheet_id):
 			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
 			sample.in_worksheet = True
 			sample.save()
-			
+
 			if(Sample.objects.filter(envelope=sample.envelope, in_worksheet=False, verification__accepted=True).count()==0):
 				envelope = Envelope.objects.get(pk=sample.envelope.pk)
 				envelope.stage = 3;
@@ -122,15 +122,13 @@ def attach_samples(request, worksheet_id):
 
 def list(request):
 	search_val = request.GET.get('search_val')
-
 	if search_val:
 		worksheets = Worksheet.objects.filter(worksheet_reference_number__contains=search_val).order_by('-pk')[:1]
 		if worksheets:
 			worksheet = worksheets[0]
 			return redirect('/worksheets/show/%d' %worksheet.pk)
 
-	worksheets = Worksheet.objects.all()
-	return render(request,'worksheets/list.html',{'worksheets':worksheets})
+	return render(request,'worksheets/list.html', {'machine_type':request.GET.get('type')})
 
 def show(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
@@ -271,22 +269,32 @@ class ListJson(BaseDatatableView):
 	max_display_length = 500
 
 	def render_column(self, row, column):
+		machine_type = self.request.GET.get('machine_type')
 		if column == 'pk':
 			url0 = "/worksheets/show/{0}".format(row.pk)
 			url1 = "javascript:windPop(\"/worksheets/vlprint/{0}\")".format(row.pk)
 			url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
 			url3 = "/results/upload/{0}".format(row.pk)
 			url4 = "/worksheets/delete/{0}".format(row.pk)
-			links = utils.dropdown_links([
+
+			if machine_type:
+				links = "<a href='%s'>upload</a>" %url3
+			else:
+				links = utils.dropdown_links([
 					{"label":"view", "url":url0},
 					{"label":"Print", "url":url1},
 					{"label":"PDF", "url":url2},
 					{"label":"Upload Results", "url": url3},
 					{"label":"Delete", "url":url4},
 				])
+
 			return links
 		else:
 			return super(ListJson, self).render_column(row, column)
 
 	def filter_queryset(self, qs):
-		return qs.filter(worksheet_medical_lab=utils.user_lab(self.request))
+		machine_type = self.request.GET.get('machine_type')
+		qs = qs.filter(worksheet_medical_lab=utils.user_lab(self.request))
+		if machine_type:
+			qs = qs.filter(machine_type=machine_type, stage=1)
+		return qs

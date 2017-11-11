@@ -1,10 +1,11 @@
-import csv, pandas, io, json
+import csv, pandas, io, json, math, os
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
 
 from django.db import models
 
+from home import utils
 from .forms import UploadForm, CobasUploadForm
 from worksheets.models import Worksheet,WorksheetSample
 from samples.models import Sample
@@ -28,6 +29,35 @@ from . import utils as result_utils
 # 	fr.test_date = timezone.now()
 # 	fr.test_by = 2
 # 	fr.save()
+def get_anomalies(uploaded_file, worksheet):
+	ext = os.path.splitext(uploaded_file.name)[1]
+	if worksheet.machine_type == 'R' or worksheet.machine_type == 'C':
+		if not utils.eq(ext, '.csv'):
+			return "<b>Expecting a .csv, but we are getting %s</b>"%ext
+		reader = pandas.read_csv(uploaded_file, sep=',')
+		sample_ids = tuple(reader["Sample ID"])
+	else:
+		if not utils.eq(ext, '.txt'):
+			return "<b>Expecting a .txt, but we are getting %s</b>"%ext
+		reader = pandas.read_csv(uploaded_file, sep='\t', skiprows=20)
+		sample_ids = tuple(reader["SAMPLE ID"])
+
+	duplicates = set(["%s"%x for x in sample_ids if x and not utils.isnan(x) and sample_ids.count(x) > 1])
+	csv_samples_set = set(["%s"%x for x in sample_ids if x and not utils.isnan(x) and x not in ('HIV_LOPOS','HIV_NEG','HIV_HIPOS')])
+
+	w_samples = WorksheetSample.objects.filter(pk=worksheet.pk)
+	w_samples_set = set([x.sample.vl_sample_id for x in w_samples])
+	non_samples_set = csv_samples_set-w_samples_set
+
+	anomalies = ""
+	if( not duplicates and not non_samples_set):
+		return ""
+
+	duplicates_str = "<b>Duplicates:</b> %s" %(', '.join(duplicates)) if duplicates else ""
+	non_samples_str = "<b>Samples not in this worksheet:</b> %s" %(', '.join(non_samples_set)) if non_samples_set else ""
+
+	return "%s <br> %s" %(duplicates_str, non_samples_str)
+
 
 def store_result(machine_type, sample, result, repeat, multiplier, user):
 	sample_result, sr_created = Result.objects.get_or_create(sample=sample)
@@ -55,7 +85,6 @@ def store_result(machine_type, sample, result, repeat, multiplier, user):
 
 	# if repeat==False:
 	# 	store_final_result(machine_type, sample, result)
-
 
 def handle_files(f, worksheet, user):
 	if worksheet.machine_type == 'R':
@@ -90,25 +119,29 @@ def handle_files(f, worksheet, user):
 
 def upload(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
+	anomalies = ''
 	if(request.method == 'POST'):
 		form = UploadForm(request.POST, request.FILES)
 		if form.is_valid():
-			upload = form.save(commit=False)
-			upload.uploaded_by = request.user
-			upload.save()
-			worksheet.results_uploaded = True
-			worksheet.stage = 1
-			worksheet.save()
+			anomalies = get_anomalies(form.cleaned_data.get('results_file'), worksheet)
+			if anomalies=='':
+				upload = form.save(commit=False)
+				upload.uploaded_by = request.user
+				upload.save()
+				worksheet.results_uploaded = True
+				worksheet.stage = 2
+				worksheet.save()
 
-			#f = request.FILES['results_file']
-			#return HttpResponse(upload.results_file)
-			handle_files(upload.results_file, worksheet, request.user)
+				#f = request.FILES['results_file']
+				#return HttpResponse(upload.results_file)
+				handle_files(upload.results_file, worksheet, request.user)
 
-			return redirect('worksheets:list')
-	else:
-		form = UploadForm(initial={'multiplier':1, 'worksheet': worksheet})
+				return redirect('worksheets:list')
+
+
+	form = UploadForm(initial={'multiplier':1, 'worksheet': worksheet})
 		
-	return render(request, 'results/upload.html', {'form': form, 'worksheet': worksheet})
+	return render(request, 'results/upload.html', {'form': form, 'worksheet': worksheet, 'anomalies':anomalies})
 
 def cobas_upload(request):
 	if(request.method == 'POST'):

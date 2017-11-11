@@ -150,3 +150,6 @@ def user_lab(request):
 	except:
 		pass
 	return med_lab
+
+def isnan(x):
+	return str(x) == str(1e400*0)
