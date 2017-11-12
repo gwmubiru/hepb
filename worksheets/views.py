@@ -171,7 +171,7 @@ def authorize_results(request, worksheet_id):
 		result.save()
 		worksheet = Worksheet.objects.get(pk=worksheet_id)
 		ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=result.sample).first()
-		ws.stage = 3
+		ws.stage = 4 if choice == 'reschedule' else 3
 		ws.save()
 		if(WorksheetSample.objects.filter(worksheet=worksheet, stage__lte=2).count()==0):
 			worksheet.stage = 3

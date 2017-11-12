@@ -17,9 +17,23 @@ from django.db.models import Q
 @api_view(['GET'])
 def samples(request):
 	if request.method == 'GET':
-		samples = Sample.objects.all()[:500]
-		serializer = SampleSerializer(samples, many=True, read_only=True)
-		return Response(serializer.data)
+		date_from = request.GET.get('date_from')
+		date_to = request.GET.get('date_to')
+		year = request.GET.get('year')
+		month = request.GET.get('month')
+		if date_from and date_to:
+			samples = Sample.objects.filter(created_at__gte=date_from, created_at__lte=date_to)
+		elif year and month:
+			samples = Sample.objects.filter(created_at__year=year, created_at__month=month)
+		else:
+			samples = Sample.objects.all()[:500]
+
+		if samples.count()>150000:
+			ret = {'Too many records'}
+		else:
+			serializer = SampleSerializer(samples, many=True, read_only=True)
+			ret = serializer.data		
+		return Response(ret)
 
 @api_view(['GET'])
 def results(request):
