@@ -70,16 +70,17 @@ def __get_or_create_user(username, email, password, *args, **kwargs):
 	try:
 		user = User.objects.create_user(username, email, password)
 	except IntegrityError:
-		user = User.objects.get(username=username, email=email)
+		user = User.objects.get(email=email)
 
 	return user
 
 
 def get_or_create_user(email):
-	email = email if email != '@guest' else 'guest@guest.guest'
-	c_user = email.partition('@')
-	username = c_user[0]
-	password =  "unhls12345"
+	#email = email if email != '@guest' else 'guest@guest.guest'
+	#c_user = email.partition('@')
+	email = email
+	username = email
+	password = email
 	user = __get_or_create_user(username, email, password)
 	return user
 
