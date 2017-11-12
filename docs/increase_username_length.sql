@@ -1,0 +1,1 @@
+ALTER TABLE `auth_user` CHANGE `username` `username` VARCHAR( 254 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL ;

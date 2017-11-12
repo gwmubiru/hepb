@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from easy_pdf.views import PDFTemplateView
+from django.contrib.auth.decorators import permission_required
 from django.views import generic
 from django.template import Context
 from django.template.loader import get_template
@@ -33,7 +34,7 @@ from . import utils as worksheet_utils
 # 			title="Worksheet",
 # 			worksheet=Worksheet.objects.get(pk=self.kwargs['pk']),
 # 			 **kwargs)
-
+@permission_required('worksheets.add_worksheet', login_url='/login/')
 def generate_pdf(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	template = get_template("worksheets/pdf.html")
@@ -46,7 +47,7 @@ def generate_pdf(request, worksheet_id):
 	f.close()
 	return HttpResponse(pdf, 'application/pdf')
 
-	
+@permission_required('worksheets.add_worksheet', login_url='/login/')	
 def create(request, machine_type):
 	context = { 'machine_type':machine_type}
 	r_file = "media/regimen_info_%s.json"%machine_type
@@ -73,6 +74,7 @@ def create(request, machine_type):
 
 	return render(request, 'worksheets/create.html', context)
 
+@permission_required('worksheets.add_worksheet', login_url='/login/')
 def attach_samples(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	if request.method == 'POST':
@@ -143,6 +145,7 @@ def vlprint(request, worksheet_id):
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 	return render(request, 'worksheets/vlprint.html', context)
 
+@permission_required('results.add_result', login_url='/login/')
 def authorize_list(request, machine_type):
 
 	# has_results_count = models.Count(models.Case(models.When(worksheetsample__stage=2, then=1)))
@@ -151,6 +154,7 @@ def authorize_list(request, machine_type):
 	worksheets = Worksheet.objects.filter(stage=2, machine_type=machine_type)
 	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets})
 
+@permission_required('results.add_result', login_url='/login/')
 def authorize_results(request, worksheet_id):
 	if request.method == 'POST':
 		result = Result.objects.get(pk=request.POST.get('result_pk'))

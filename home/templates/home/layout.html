@@ -116,6 +116,7 @@
                 <li>
                     <a href="{% url 'home_page' %}"><span class="ion-home"></span> <span class="nav_title">Home</span></a>
                 </li>
+                {% if perms.samples %}
                 <li>
                     <a href="#">
                         <!-- <span class="label label-danger">32</span> -->
@@ -135,6 +136,7 @@
                     </div>
                 </li>
 
+
                 <li>
                     <a href="#">
                         <span class="ion-ios7-checkmark-outline"></span>
@@ -152,7 +154,9 @@
                         </div>
                     </div>
                 </li>
+                {% endif %}
 
+                {% if perms.worksheets %}
                 <li>
                     <a href="#">
                         <span class="ion-beaker"></span>
@@ -180,8 +184,20 @@
                                 <li><a href="/worksheets/list/?type=R">For Roche CAP/CTM</a></li>
                                 <li><a href="/results/cobas_upload/?type=C">For Cobas 8800</a></li>
                             </ul>
-                            <h4 class="panel_heading panel_heading_first">Authorize Results</h4>
-                            <ul>                                
+                        </div>
+                    </div>
+                </li>
+                {% endif %}
+
+                {% if perms.results %}
+                 <li>
+                    <a href="#">
+                        <span class="ion-key"></span>
+                        <span class="nav_title">Results Auth</span>
+                    </a>
+                    <div class="sub_panel">
+                        <div class="side_inner">
+                          <ul>                                
                                 <li><a href="{% url 'worksheets:authorize_list' 'A' %}">For Abbott</a></li>
                                 <li><a href="{% url 'worksheets:authorize_list' 'R' %}">For Roche CAP/CTM</a></li>
                                 <li><a href="{% url 'worksheets:authorize_list' 'C' %}">For Cobas 8800</a></li>
@@ -189,11 +205,13 @@
                         </div>
                     </div>
                 </li>
+                {% endif %}
 
+                {% if perms.resultsqc %}
                 <li>
                     <a href="#">
                         <span class="ion-ios7-email-outline"></span>
-                        <span class="nav_title">Results</span>
+                        <span class="nav_title">Results Release</span>
                     </a>
                     <div class="sub_panel">
                         <div class="side_inner">
@@ -206,6 +224,7 @@
                         </div>
                     </div>                            
                 </li>
+                {% endif %}
 
                 <li>
                     <a href="#"><span class="ion-clipboard"></span> <span class="nav_title">Reports</span></a>

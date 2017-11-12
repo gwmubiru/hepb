@@ -134,6 +134,7 @@ def create(request):
 		
 	return render(request, 'samples/create.html', context)
 
+@permission_required('samples.change_sample', login_url='/login/')
 def edit(request, sample_id):
 	sample = Sample.objects.get(pk=sample_id)
 	patient = sample.patient
@@ -298,6 +299,7 @@ def appendix_select(name="", cat_id=0, clss='form-control input-xs w-md'):
 	more = {'class': clss}
 	return utils.select(name,{'k_col':'id', 'v_col':'appendix', 'items':apendices.filter(appendix_category_id=cat_id)},"",more)
 
+@permission_required('samples.add_verification', login_url='/login/')
 def verify(request, sample_id):
 	facilities = Facility.objects.values('id', 'facility').order_by('facility')
 	sample = Sample.objects.get(pk=sample_id);
@@ -312,7 +314,7 @@ def verify(request, sample_id):
 	}
 	return render(request, 'samples/verify.html', context)
 
-
+@permission_required('samples.add_verification', login_url='/login/')
 def verify_envelope(request, envelope_id):	
 	samples = Sample.objects.filter(envelope_id=envelope_id).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('lposition_int')
 
@@ -344,7 +346,7 @@ def verify_envelope(request, envelope_id):
 			})
 	return HttpResponse(json.dumps(ret))
 
-
+@permission_required('samples.add_verification', login_url='/login/')
 def save_verify(request):
 	r = request.GET
 	p = Patient.objects.get(pk=r.get('patient_id'))
@@ -384,7 +386,7 @@ def save_verify(request):
 
 	return HttpResponse("saved")
 
-
+@permission_required('samples.add_verification', login_url='/login/')
 def verify_list(request):
 
 	search_val = request.GET.get('search_val')

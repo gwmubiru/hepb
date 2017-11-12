@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from django.db import models
+from django.contrib.auth.decorators import permission_required
 
 from home import utils
 from .forms import UploadForm, CobasUploadForm
@@ -132,7 +133,7 @@ def handle_files(form, worksheet, user):
 			# except:
 			# 	pass
 
-
+@permission_required('worksheets.add_worksheet', login_url='/login/')
 def upload(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	if(request.method == 'POST'):
@@ -156,6 +157,7 @@ def upload(request, worksheet_id):
 		
 	return render(request, 'results/upload.html', {'form': form, 'worksheet': worksheet})
 
+@permission_required('worksheets.add_worksheet', login_url='/login/')
 def cobas_upload(request):
 	if(request.method == 'POST'):
 		form = CobasUploadForm(request.POST, request.FILES)
@@ -205,6 +207,7 @@ def worksheet_results(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	return render(request, 'results/worksheet_results.html', {'worksheet':worksheet})
 
+@permission_required('results.add_resultsqc', login_url='/login/')
 def release_list(request, machine_type):
 	# auth_count = models.Count(models.Case(models.When(worksheetsample__stage__gte=3, then=1)))
 	# samples_count = models.Count('worksheetsample')
@@ -212,6 +215,7 @@ def release_list(request, machine_type):
 	worksheets = Worksheet.objects.filter(stage=3, machine_type=machine_type)
 	return render(request,'results/release_list.html',{'worksheets':worksheets})
 
+@permission_required('results.add_resultsqc', login_url='/login/')
 def release_results(request, worksheet_id):
 	if request.method == 'POST':
 		result = Result.objects.get(pk=request.POST.get('result_pk'))

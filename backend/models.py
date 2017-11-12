@@ -22,9 +22,9 @@ class AppendixCategory(models.Model):
 #Appendices are to hold basic back end data to be used on forms
 class Appendix(models.Model):
 	appendix_category = models.ForeignKey(AppendixCategory, on_delete=models.CASCADE)
-	code = models.CharField(max_length=32)
+	code = models.CharField(max_length=32, null=True, blank=True)
 	appendix = models.CharField(max_length=128)
-	tag = models.CharField(max_length=64, null=True)
+	tag = models.CharField(max_length=64, null=True, blank=True)
 
 	def __str__(self): #return appendix as default
 		return self.appendix
@@ -49,13 +49,13 @@ class Region(models.Model):
 class Ip(models.Model):
 	ip = models.CharField(max_length=32, unique=True)
 	full_name = models.CharField(max_length=128)
-	address = models.CharField(max_length=64)
-	ip_email = models.EmailField(max_length=128)
-	website = models.URLField(max_length=128)
-	focal_person_name = models.CharField(max_length=64)
-	focal_person_contact = models.CharField(max_length=64)
-	focal_person_email = models.EmailField(max_length=128)
-	funding_source = models.CharField(max_length=64)
+	address = models.CharField(max_length=64, null=True, blank=True)
+	ip_email = models.EmailField(max_length=128, null=True, blank=True)
+	website = models.URLField(max_length=128, null=True, blank=True)
+	focal_person_name = models.CharField(max_length=64, null=True, blank=True)
+	focal_person_contact = models.CharField(max_length=64, null=True, blank=True)
+	focal_person_email = models.EmailField(max_length=128, null=True, blank=True)
+	funding_source = models.CharField(max_length=64, null=True, blank=True)
 	active = models.BooleanField(default=True)
 
 	def __str__(self): #return ip as default
@@ -67,9 +67,10 @@ class Ip(models.Model):
 
 #Hold data about districts
 class District(models.Model):
-	region = models.ForeignKey(Region, on_delete=models.CASCADE)
+	region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
 	district = models.CharField(max_length=32, unique=True)
-	map_code = models.CharField(max_length=64)
+	map_code = models.CharField(max_length=64, null=True, blank=True)
+	dhis2_uid = models.CharField(max_length=128, null=True, blank=True)
 
 	def __str__(self): #return district as default
 		return self.district
@@ -80,12 +81,12 @@ class District(models.Model):
 
 #Hold data about hubs
 class Hub(models.Model):	
-	ip = models.ForeignKey(Ip)
+	ip = models.ForeignKey(Ip, null=True, blank=True )
 	hub = models.CharField(max_length=32, unique=True)
-	hub_email = models.EmailField(max_length=128)
-	coordinator_name = models.CharField(max_length=64)
-	coordinator_contact = models.CharField(max_length=64)
-	coordinator_email = models.EmailField(max_length=128)
+	hub_email = models.EmailField(max_length=128, null=True, blank=True)
+	coordinator_name = models.CharField(max_length=64, null=True, blank=True)
+	coordinator_contact = models.CharField(max_length=64, null=True, blank=True)
+	coordinator_email = models.EmailField(max_length=128, null=True, blank=True)
 	active = models.BooleanField(default=True)
 
 	def __str__(self): #return hub as default
@@ -115,18 +116,20 @@ class HubRider(models.Model):
 
 #Hold data about facilities (hospitals, and lower level health centers including HC IV, HC III and HC II)
 class Facility(models.Model):
-	district = models.ForeignKey(District, on_delete=models.CASCADE)
-	hub = models.ForeignKey(Hub, on_delete=models.CASCADE)
+	district = models.ForeignKey(District, on_delete=models.CASCADE, null=True, blank=True)
+	hub = models.ForeignKey(Hub, on_delete=models.CASCADE, null=True, blank=True)
 	ips = models.ManyToManyField(Ip, through='IpFacilitySupport')
 	facility = models.CharField(max_length=128)
+	dhis2_name = models.CharField(max_length=128, null=True, blank=True)
+	dhis2_uid = models.CharField(max_length=128, null=True, blank=True)
 	hub_facility = models.BooleanField(default=False)#this field asks whether the facility is a hub
-	facility_contact = models.CharField(max_length=64)
-	facility_email = models.EmailField(max_length=128)
-	physical_address = models.CharField(max_length=128)
-	return_address = models.CharField(max_length=128)
-	coordinator_name = models.CharField(max_length=64)
-	coordinator_contact = models.CharField(max_length=64)
-	coordinator_email = models.EmailField(max_length=128)
+	facility_contact = models.CharField(max_length=64, null=True, blank=True)
+	facility_email = models.EmailField(max_length=128, null=True, blank=True)
+	physical_address = models.CharField(max_length=128, null=True, blank=True)
+	return_address = models.CharField(max_length=128, null=True, blank=True)
+	coordinator_name = models.CharField(max_length=64, null=True, blank=True)
+	coordinator_contact = models.CharField(max_length=64, null=True, blank=True)
+	coordinator_email = models.EmailField(max_length=128, null=True, blank=True)
 	active = models.BooleanField(default=True)
 
 	def __str__(self): #return facility as default
