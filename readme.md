@@ -59,6 +59,9 @@ $ zcat db.sql.gz | mysql -u username -p db_name -f
 $ set DB
 
 $ ./manage.py migrate
+$ ./manage.py loaddata initial_data.json
+$ ./manage.py transfer_users
+$ ./manage.py transfer_facility_stuff
 
 
 

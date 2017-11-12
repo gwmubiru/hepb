@@ -119,7 +119,7 @@ class Facility(models.Model):
 	district = models.ForeignKey(District, on_delete=models.CASCADE, null=True, blank=True)
 	hub = models.ForeignKey(Hub, on_delete=models.CASCADE, null=True, blank=True)
 	ips = models.ManyToManyField(Ip, through='IpFacilitySupport')
-	facility = models.CharField(max_length=128)
+	facility = models.CharField(max_length=128, unique=True)
 	dhis2_name = models.CharField(max_length=128, null=True, blank=True)
 	dhis2_uid = models.CharField(max_length=128, null=True, blank=True)
 	hub_facility = models.BooleanField(default=False)#this field asks whether the facility is a hub
@@ -155,7 +155,7 @@ class IpFacilitySupport(models.Model):
 		verbose_name_plural = 'IP Facility Support'
 
 class MedicalLab(models.Model):
-	lab_name = models.CharField(max_length=128)
+	lab_name = models.CharField(max_length=128, unique=True)
 	contact = models.CharField(max_length=64)
 	address = models.CharField(max_length=128)
 	email = models.EmailField(max_length=128)
