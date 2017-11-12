@@ -18,7 +18,6 @@
 				<br>
 				<table class="table table-striped table-condensed table-bordered" id="samples-table" >
 					<thead>
-						<th>#</th>
 						<th>Location&nbsp;ID&nbsp;&nbsp;&nbsp;</th>
 		                <th width="1%">Form Number</th>
 		                <th>Facility</th>
@@ -33,28 +32,32 @@
 		                <th/>
 					</thead>
 					<tbody>
-						{% for sample in worksheet.samples.all %}
-						
-						<tr {% if sample.result.repeat_test == 3 %} style = "background:#F5A9A9;" {% endif %}>
-							<td>{{ forloop.counter }}</td>
-							<td>{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}</td>
-							<td>{{ sample.form_number }}</td>
-							<td>{{ sample.facility.facility }}</td>
-							<td>{{ sample.facility.district.district }} </td>
-							<td>{{ sample.patient.art_number }}</td>
-							<td>{{ sample.patient.other_id }}</td>
-							<td>{{ sample.patient.get_gender_display }}</td>
-							<td>{{ sample.date_collected | date:"Y-m-d" }}</td>
+						{% for s in worksheet.worksheetsample_set.all %}
+						{% if s.sample.result.repeat_test == 2 %}						
+						<tr {% if s.sample.result.repeat_test == 3 %} style = "background:#F5A9A9;" {% endif %}>
+							<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
+							<td>{{ s.sample.result.repeat_test }}</td>
+							<td>{{ s.sample.facility.facility }}</td>
+							<td>{{ s.sample.facility.district.district }} </td>
+							<td>{{ s.sample.patient.art_number }}</td>
+							<td>{{ s.sample.patient.other_id }}</td>
+							<td>{{ s.sample.patient.get_gender_display }}</td>
+							<td>{{ s.sample.date_collected | date:"Y-m-d" }}</td>
 							
-							<td>{{ sample.date_received | date:"Y-m-d" }}</td>
-							<td>{{ sample.result.result_alphanumeric }}</td>
+							<td>{{ s.sample.date_received | date:"Y-m-d" }}</td>
+							<td>{{ s.sample.result.result_alphanumeric }}</td>
 							
 							<td>
-								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='release'> Release</label>
-								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='retain'> Retain</label>
+								<label><input type='radio' name='choices{{ s.sample.result.pk }}' class='choices' result-pk="{{ s.sample.result.pk }}" value='release'> Release</label>
+								<label><input type='radio' name='choices{{ s.sample.result.pk }}' class='choices' result-pk="{{ s.sample.result.pk }}" value='retain'> Retain</label>
+								<div class="comments" id="comments_sect{{ s.sample.result.pk }}" >
+								<input type="text"  name='comments{{ s.sample.result.pk }}' placeholder="comments" id="comment{{ s.sample.result.pk }}" value="">
+								<span class="btn btn-primary btn-xs comments_save" result-pk="{{ s.sample.result.pk }}">save</span>
+								</div>
 							</td>
-							<td><span id="saved{{ sample.result.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;<span class='x' >x</span></span></td>
+							<td><span id="saved{{ s.sample.result.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;<span class='x' >x</span></span></td>
 						</tr>
+						{% endif %}
 						
 						{% endfor %}
 					</tbody>
@@ -70,16 +73,34 @@
         });
 
         $(".status").hide();
+        $(".comments").hide();
       });
 
 	 $(".choices").on("click",function(){
-	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk:$(this).attr('result-pk'), choice:$(this).val()};
-	 	
+	 	var choice = $(this).val();
+	 	var result_pk = $(this).attr('result-pk');
+	 	if(choice == 'release'){
+	 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk, choice: choice};
+	 		saveDetails(params);
+	 		$('#comments_sect'+result_pk).hide();
+	 	}else{
+	 		$('#comments_sect'+result_pk).show();
+	 	} 	
+
+	 });
+
+	 $(".comments_save").on("click", function(){
+	 	var result_pk = $(this).attr('result-pk');
+	 	var comments = $("#comment"+result_pk).val();
+	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk, choice: 'retain', comments:comments};
+	 	saveDetails(params);
+	 });
+
+	 saveDetails = function(params){
 	 	$.post("/results/release_results/{{ worksheet.pk }}/", params).done(function( data ) {
 		    $("#saved"+params.result_pk).show();
 		  });
-
-	 });
+	 }
 	 $(".x").on("click", function(){
 	 	$(this).parent().hide();
 	 });

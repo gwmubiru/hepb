@@ -84,7 +84,8 @@ def attach_samples(request, worksheet_id):
 			instrument_id = request.POST.get('instrument'+sample_id, None)
 			sample = Sample.objects.get(pk=sample_id)			
 			#worksheet.samples.add(sample)
-			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id))
+			sample_run = 1+WorksheetSample.objects.filter(sample=sample).count()
+			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id, sample_run=sample_run))
 			sample.in_worksheet = True
 			sample.save()
 
@@ -143,11 +144,11 @@ def vlprint(request, worksheet_id):
 	return render(request, 'worksheets/vlprint.html', context)
 
 def authorize_list(request, machine_type):
-	has_results_count = models.Count(models.Case(models.When(worksheetsample__stage__gte=2, then=1)))
-	samples_count = models.Count('worksheetsample')
-	worksheets = Worksheet.objects.annotate(sc=samples_count,hrc=has_results_count).filter(hrc=samples_count, machine_type=machine_type)
-	#worksheets = Worksheet.objects.filter(stage=2, machine_type=machine_type)
 
+	# has_results_count = models.Count(models.Case(models.When(worksheetsample__stage=2, then=1)))
+	# samples_count = models.Count('worksheetsample')
+	# worksheets = Worksheet.objects.annotate(sc=samples_count,hrc=has_results_count).filter(hrc=samples_count, machine_type=machine_type)
+	worksheets = Worksheet.objects.filter(stage=2, machine_type=machine_type)
 	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets})
 
 def authorize_results(request, worksheet_id):
@@ -172,6 +173,10 @@ def authorize_results(request, worksheet_id):
 		ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=result.sample).first()
 		ws.stage = 3
 		ws.save()
+		if(WorksheetSample.objects.filter(worksheet=worksheet, stage__lte=2).count()==0):
+			worksheet.stage = 3
+			worksheet.save()
+
 		return HttpResponse("saved")
 	else:
 		worksheet = Worksheet.objects.get(pk=worksheet_id)
@@ -274,7 +279,7 @@ class ListJson(BaseDatatableView):
 			url0 = "/worksheets/show/{0}".format(row.pk)
 			url1 = "javascript:windPop(\"/worksheets/vlprint/{0}\")".format(row.pk)
 			url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
-			url3 = "/results/upload/{0}".format(row.pk)
+			url3 = "/results/cobas_upload/?type=C" if row.machine_type=='C' else "/results/upload/{0}".format(row.pk) 
 			url4 = "/worksheets/delete/{0}".format(row.pk)
 
 			if machine_type:

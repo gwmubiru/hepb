@@ -46,7 +46,6 @@ class ResultsQC(models.Model):
 	released_by = models.ForeignKey(User, related_name='released_by', null=True)
 	released_at = models.DateTimeField(null=True)
 	comments = models.TextField(null=True)
-
 	printed = models.BooleanField(default=False)
 	downloaded = models.BooleanField(default=False)
 	print_date = models.DateTimeField(null=True)

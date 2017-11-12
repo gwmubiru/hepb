@@ -1,4 +1,4 @@
-
+from home import utils
 
 def repeat_test(machine_type, result, flag):
 	repeat = False
@@ -33,55 +33,74 @@ def repeat_test(machine_type, result, flag):
 				"4457 Internal control failed.",
 			]
 
-		check = (result in repeat_list_results) or (flag in repeat_list_flags)
+		check = (result in repeat_list_results) or (flag in repeat_list_flags) or not result or utils.isnan(result)
 		repeat = 3 if check else 2
 
 	return repeat
 
 
 def get_result(result, multiplier):
-	result = result.strip()
+	result = result.strip() if type(result) is str else result
 	numeric_result = 0
 	alphanumeric_result = ''
 	suppressed = 3
+	repeat_test = 2
 
 	if eq(result,'Target Not Detected') or eq(result,'Not detected'):
 		numeric_result = 0
 		alphanumeric_result = result
 		suppressed = 1
-	elif eq(result,'invalid') or eq(result, 'failed'):
+	elif eq(result,'invalid') or eq(result, 'failed') or utils.isnan(result) or result == '':
 		numeric_result = 0
 		alphanumeric_result = 'Failed'
 		suppressed = 3
-	elif result[-5:] == 'cp/ml':
-		numeric_result = int(float(result[:-6]))
-		numeric_result *= multiplier 
-		alphanumeric_result = "%d Copies / mL" %numeric_result
-		suppressed = 1 if numeric_result<1000 else 2
+		repeat_test = 3
 	elif eq(result, '< Titer min'):
-		numeric_result = 20
-		alphanumeric_result = '< 20.00 Copies / mL'
+		numeric_result = 50
+		alphanumeric_result = '< 50.00 Copies / mL'
 		suppressed = 1
 	elif eq(result, '> Titer max'):
 		numeric_result = 10000000
 		alphanumeric_result = '> 10,000,000 Copies / mL'
 		suppressed = 2
+	elif result.startswith('<') or result.startswith('>'):
+		numeric_result = get_numeric_result(result)
+		suppressed = 1 if numeric_result<1000 else 2
+		alphanumeric_result = "%s {:,d} Copies / mL".format(numeric_result) %result[0]
+	elif result[-5:] == 'cp/ml':
+		numeric_result = int(float(result[:-6]))
+		numeric_result *= multiplier 
+		alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
+		suppressed = 1 if numeric_result<1000 else 2
 	else:
-		result_new = result.replace('Copies / mL', '')
-		result_new = result_new.replace(' ', '')
-		result_new = result_new.replace(',', '')
-		result_new = result_new.replace('>', '')
-		result_new = result_new.replace('<', '')
-		numeric_result = int(float(result_new))
-		if result[0] == '<' or result[0] == '>':
-			alphanumeric_result = result
-			suppressed = 1 if numeric_result<1000 else 2
+		numeric_result = get_numeric_result(result)
+		numeric_result *= multiplier
+		if numeric_result > 10000000:
+			suppressed = 2
+			alphanumeric_result = "> 10,000,000 Copies / mL"
 		else:
-			numeric_result *= multiplier
-			alphanumeric_result = "%d Copies / mL" %numeric_result
+			alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
 			suppressed = 1 if numeric_result<1000 else 2	
 
-	return {'numeric_result':numeric_result, 'alphanumeric_result':alphanumeric_result, 'suppressed': suppressed}
+	return {
+			'numeric_result':numeric_result, 
+			'alphanumeric_result':alphanumeric_result, 
+			'suppressed': suppressed,
+			'repeat_test': repeat_test,
+			}
+
+def get_numeric_result(result):
+	numeric_result = 0
+	result_new = result.replace('Copies / mL', '')
+	result_new = result_new.replace(' ', '')
+	result_new = result_new.replace(',', '')
+	result_new = result_new.replace('>', '')
+	result_new = result_new.replace('<', '')
+	try:
+		numeric_result = int(float(result_new))
+	except :
+		pass
+	return numeric_result
 
 def eq(a,b):
 	return a.upper() == b.upper()

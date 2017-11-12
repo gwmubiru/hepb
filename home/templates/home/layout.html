@@ -166,13 +166,14 @@
                                 <li><a href="{% url 'worksheets:reg_info' 'R' %}">For Roche CAP/CTM</a></li>
                                 <li><a href="{% url 'worksheets:reg_info' 'C' %}">For Cobas 8800</a></li>
                             </ul>
+                            
                             <h4 class="panel_heading panel_heading_first">Worksheet Creation</h4>
                             <ul>                                
                                 <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
                                 <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
                                 <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
-                                <li><a href="{% url 'worksheets:list' %}">List</a></li>
                             </ul>
+                            <ul style="margin-top:10px;"><li><a href="{% url 'worksheets:list' %}">List worksheets</a></li></ul>
                              <h4 class="panel_heading panel_heading_first">Upload Results</h4>
                             <ul>                                
                                 <li><a href="/worksheets/list/?type=A">For Abbott</a></li>

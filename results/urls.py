@@ -12,5 +12,6 @@ urlpatterns  = [
 	url(r'^list/$', login_required(views.list), name='list'),
 	url(r'^worksheet/(?P<worksheet_id>[0-9]+)/$', login_required(views.worksheet_results), name='worksheet'),
 	url(r'^api', login_required(views.api), name='api'),
+	url(r'^anomalies/(?P<worksheet_id>[0-9]+)/$', login_required(views.get_anomalies), name='anomalies')
 	#url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
 ]
