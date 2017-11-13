@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connections
 from home import utils
 from samples.models import ClinicalRequestFormsDispatch, ClinicalRequestForm
+from django.db import IntegrityError
 
 
 class Command(BaseCommand):
@@ -41,19 +42,18 @@ class Command(BaseCommand):
 					d = ClinicalRequestFormsDispatch.objects
 					dispatch, d_created = d.get_or_create(
 							id=did,
-							dispatched_by_id=user.id,
-							facility_id=form.get('facilityID'),
-							ref_number=form.get('refNumber'),
-							defaults={'created_at': form.get('created'),
+							defaults={'dispatched_by_id':user.id,
+									  'facility_id':form.get('facilityID'),
+									  'ref_number':form.get('refNumber'),
+									   'created_at': form.get('created'),
 									  'dispatched_at': dispatch_date,}
 							
 						)
 
 				f_objs = ClinicalRequestForm.objects;
 				f, f_created = f_objs.get_or_create(
-							form_number=form.get('formNumber'), 
-							dispatch_id=did)
+							form_number=form.get('formNumber'), defaults={'dispatch_id':did})
 				connections['old_db'].cursor().execute("UPDATE vl_forms_clinicalrequest SET migrated='YES' WHERE id=%s"%fid)
 				print "saved %s" %f.id
-			except :
+			except:
 				print "Failed %s" %fid
