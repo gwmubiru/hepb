@@ -65,7 +65,7 @@ class Command(BaseCommand):
 
 
 	def __get_hubs(self):
-		sql = """SELECT * FROM `vl_hubs` where id in (26, 66, 67)"""
+		sql = """SELECT * FROM `vl_hubs`"""
 		cursor = connections['old_db'].cursor()
 		cursor.execute(sql)
 		self.old_hubs = utils.dictfetchall(cursor)
