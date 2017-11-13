@@ -37,26 +37,30 @@ class ListJson(BaseDatatableView):
 
 	def render_column(self, row, column):
 		verified = self.request.GET.get('verified')
+		verify_url =  "/samples/verify/{0}".format(row.pk)
+		show_url = "/samples/show/{0}".format(row.pk)
+		edit_url = "/samples/edit/{0}".format(row.pk)
+		l = verify_url if verified else show_url
 		if column == 'facility':
 			return '{0}'.format(row.facility.facility)
 		elif column == 'facility.hub':
 			return '%s' %(row.facility.hub.hub)
 		elif column == 'facility.district':
 			return '%s' %(row.facility.district.district)
+		elif column == 'form_number':
+			return "<a href='%s'>%s</a>" %(l,row.form_number)
 		elif column == 'locator_position':
-			return '{0}{1}/{2}'.format(row.locator_category, 
+			locator_id = '{0}{1}/{2}'.format(row.locator_category, 
 									   row.envelope.envelope_number, 
 									   row.locator_position)
+			return "<a href='%s'>%s</a>" %(l,locator_id)
 		elif column == 'pk':
 			if verified:
-				l = "/samples/verify/{0}".format(row.pk)
-				links = "<a class='btn btn-xs btn-danger' href='%s'>verify</a>" %l
+				links = "<a class='btn btn-xs btn-danger' href='%s'>verify</a>" %verify_url
 			else:
-				url0 = "/samples/show/{0}".format(row.pk)
-				url1 = "/samples/edit/{0}".format(row.pk)
 				links = utils.dropdown_links([
-					{"label":"view", "url":url0},
-					{"label":"edit", "url":url1},
+					{"label":"view", "url":show_url},
+					{"label":"edit", "url":edit_url},
 					])
 				
 			return links
