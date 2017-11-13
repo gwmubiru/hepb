@@ -1,4 +1,5 @@
-import ast
+import ast, datetime
+from django.db.models import Q
 from django import template
 from django.utils.safestring import mark_safe
 from samples.models import Sample, Verification
@@ -71,10 +72,53 @@ def check_list(val="", choices="{}"):
 	return ret
 
 @register.simple_tag
-def quick_stats(request, section):
+def quick_stats(request, contenttype, when='today', who='me'):
+	#when: today, this_month, last_month, all
+	#who: me, all
+	#contenttype: samples, approvals
+	today = datetime.datetime.today()
+	last_month = utils.last_month()
 	quick_stat = ''
-	if section == 'samples':
-		quick_stat = Sample.objects.filter(created_by=request.user, created_at__range=utils.today_range()).count()
-	elif section == 'approvals':
-		quick_stat = Verification.objects.filter(verified_by=request.user, created_at__range=utils.today_range()).count()
+	when_fltr = Q()
+	if when == 'today':
+		when_fltr = Q(created_at__range=utils.today_range())
+	elif when == 'this_month':
+		when_fltr = Q(created_at__year=today.year, created_at__month=today.month)
+	elif when == 'last_month':
+		when_fltr = Q(created_at__year=last_month.get('year'), created_at__month=last_month.get('month'))
+	else:
+		when_fltr = Q()
+
+	who_fltr = Q()
+	if who == 'me':
+		who_fltr = Q(created_by=request.user) if contenttype=='samples' else Q(verified_by=request.user)
+	else:
+		who_fltr = Q()
+
+	if contenttype == 'samples':
+		quick_stat = Sample.objects.filter(who_fltr,when_fltr).count()
+	elif contenttype == 'approvals':
+		quick_stat = Verification.objects.filter(who_fltr,when_fltr).count()
 	return quick_stat
+
+# def filter_queryset(self, qs):
+# 		search = self.request.GET.get(u'search[value]', None)
+# 		global_search = self.request.GET.get('global_search', None)
+
+# 		if global_search:
+# 			search = global_search
+		
+# 		if search:
+# 			f_cond = Q(facility__facility__icontains=search)
+# 			h_cond = Q(facility__hub__hub__icontains=search)
+# 			fn_cond = Q(form_number__icontains=search)
+# 			loc_cond = sample_utils.locator_cond(search)
+# 			st_cond = Q(sample_type=search[0])
+# 			qs_params = f_cond | h_cond | fn_cond | st_cond
+# 			qs_params = qs_params | loc_cond if loc_cond else qs_params
+# 			qs = qs.filter(qs_params)
+
+# 		verified = self.request.GET.get('verified')
+# 		if verified=='0' or verified=='1':
+# 			qs = qs.filter(verified=verified)
+# 		return qs.filter(envelope__sample_medical_lab=utils.user_lab(self.request))

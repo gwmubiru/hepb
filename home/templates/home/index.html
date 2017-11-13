@@ -1,5 +1,69 @@
 {% extends "home/layout.html" %}
-
+{% load form_tags %}
 {% block content %}
 <h1>Welcome, {{ request.user.username }}</h1>
+{% include "home/_sample_stats.html" %}
+{% include "home/_approval_stats.html" %}
+
+<!-- <div class="row">
+<div class="col-lg-3 col-md-6">
+	<div class="panel panel-default">
+		<div class="stat_box">
+			<div class="stat_ico color_g"><i class="ion-ios7-albums-outline"></i></div>
+			<div class="stat_content">
+				<span class="stat_count">321</span><i class="ion-ios7-person"></i>
+				<span class="stat_name">Your Samples</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="col-lg-3 col-md-6">
+	<div class="panel panel-default">
+		<div class="stat_box">
+			<div class="stat_ico color_b"><i class="ion-ios7-albums-outline"></i></div>
+			<div class="stat_content">
+				<span class="stat_count">321</span><i class="ion-ios7-person"></i>
+				<span class="stat_name">Your Samples (last month)</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="col-lg-3 col-md-6">
+	<div class="panel panel-default">
+		<div class="stat_box">
+			<div class="stat_ico color_c"><i class="ion-ios7-albums-outline"></i></div>
+			<div class="stat_content">
+				<span class="stat_count">321</span><i class="ion-ios7-person"></i>
+				<span class="stat_name">Your Samples (this month)</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="col-lg-3 col-md-6">
+	<div class="panel panel-default">
+		<div class="stat_box">
+			<div class="stat_ico color_d"><i class="ion-ios7-albums-outline"></i></div>
+			<div class="stat_content">
+				<span class="stat_count">0</span><i class="ion-ios7-person"></i>
+				<span class="stat_name">Your Samples (today)</span>
+			</div>
+		</div>
+	</div>
+</div>	
+							
+</div> -->
+				
+<style type="text/css">
+.stat_name{
+	text-transform: uppercase;
+}
+
+.stat_box{
+	height: 70px;
+}
+</style>				
+
 {% endblock content %}

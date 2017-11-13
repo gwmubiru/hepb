@@ -159,3 +159,14 @@ def today_range():
 	today_min = datetime.combine(date.today(), time.min)
 	today_max = datetime.combine(date.today(), time.max)
 	return (today_min, today_max)
+
+def last_month():
+	this_m = datetime.today().month
+	last_m = this_m-1
+	if last_m==0:
+		month = 12
+		year = datetime.today().year-1
+	else:
+		month = last_m
+		year = datetime.today().year	
+	return {'year':year, 'month':month}

@@ -1,0 +1,122 @@
+{% load form_tags %}
+<div class="row">
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+
+				<div class="stat_ico color_b"><i class="ion-ios7-people"></i></div>
+				<div class="stat_content">
+					<span class="stat_name" style="color:#e67e22">
+						Approval stats for everyone
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">						
+				<div class="stat_content">
+					<span class="stat_count">{% quick_stats request 'approvals' 'all' 'all' %}</span>
+					<span class="stat_name">all</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+				
+				<div class="stat_content">
+					<span class="stat_count">{% quick_stats request 'approvals' 'last_month' 'all' %}</span>
+					<span class="stat_name">last month</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-2 col-md-4" >
+		<div class="panel panel-default">
+			<div class="stat_box" >
+				
+				<div class="stat_content">
+					<span class="stat_count">{% quick_stats request 'approvals' 'this_month' 'all' %}</span>
+					<span class="stat_name">this month</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+				
+				<div class="stat_content">
+					<span class="stat_count">{% quick_stats request 'approvals' 'today' 'all' %}</span>
+					<span class="stat_name">today</span>
+				</div>
+			</div>
+		</div>
+	</div>	
+							
+</div>
+
+<div class="row">
+			<div class="col-lg-2 col-md-4">
+				<div class="panel panel-default">
+					<div class="stat_box">
+
+						<div class="stat_ico color_b"><i class="ion-ios7-person"></i></div>
+						<div class="stat_content">
+							<span class="stat_name" style="color:#e67e22">
+								Approval stats for you
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-2 col-md-4">
+				<div class="panel panel-default">
+					<div class="stat_box">						
+						<div class="stat_content">
+							<span class="stat_count">{% quick_stats request 'approvals' 'all' 'me' %}</span>
+							<span class="stat_name">all</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-lg-2 col-md-4">
+				<div class="panel panel-default">
+					<div class="stat_box">
+						
+						<div class="stat_content">
+							<span class="stat_count">{% quick_stats request 'approvals' 'last_month' 'me' %}</span>
+							<span class="stat_name">last month</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-2 col-md-4" >
+				<div class="panel panel-default">
+					<div class="stat_box" >
+						
+						<div class="stat_content">
+							<span class="stat_count">{% quick_stats request 'approvals' 'this_month' 'me' %}</span>
+							<span class="stat_name">this month</span>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-lg-2 col-md-4">
+				<div class="panel panel-default">
+					<div class="stat_box">
+						
+						<div class="stat_content">
+							<span class="stat_count">{% quick_stats request 'approvals' 'today' 'me' %}</span>
+							<span class="stat_name">today</span>
+						</div>
+					</div>
+				</div>
+			</div>	
+									
+		</div>
