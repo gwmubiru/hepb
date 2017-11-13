@@ -1,6 +1,8 @@
 import ast
 from django import template
 from django.utils.safestring import mark_safe
+from samples.models import Sample, Verification
+from home import utils
 
 register = template.Library()
 
@@ -67,3 +69,12 @@ def check_list(val="", choices="{}"):
 		ret += " %s %s " % (prefix, lbl)
 
 	return ret
+
+@register.simple_tag
+def quick_stats(request, section):
+	quick_stat = ''
+	if section == 'samples':
+		quick_stat = Sample.objects.filter(created_by=request.user, created_at__range=utils.today_range()).count()
+	elif section == 'approvals':
+		quick_stat = Verification.objects.filter(verified_by=request.user, created_at__range=utils.today_range()).count()
+	return quick_stat

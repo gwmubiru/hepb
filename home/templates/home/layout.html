@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load form_tags %}
 <!DOCTYPE html>
 <html>
     <head>
@@ -99,12 +100,12 @@
             <div class="page_content">
                 <div class="container-fluid">
                     <div class="row">
-                        <div class="col-lg-11">
+                        <div class="col-lg-12">
                             {% block content %}
                             {% endblock %}
                         </div>
 
-                        <div class="col-lg-1"><span class='stat-count'>Lab: {{ request.user.userprofile.medical_lab}}</span></div>
+                        <!-- <div class="col-lg-1"><span class='stat-count'>Lab: {{ request.user.userprofile.medical_lab}}</span></div> -->
                     </div>
                 </div>
             </div>      
@@ -119,13 +120,13 @@
                 {% if perms.samples %}
                 <li>
                     <a href="#">
-                        <!-- <span class="label label-danger">32</span> -->
+                        <span class="label label-success">{% quick_stats request 'samples' %}</span>
                         <span class="ion-ios7-albums-outline"></span>
                         <span class="nav_title">Samples</span>
                     </a>
                     <div class="sub_panel">
                         <div class="side_inner">
-                            <!-- <h4 class="panel_heading panel_heading_first">Folders</h4> -->
+                            <h4 class="panel_heading panel_heading_first">Sample Data</h4>
                             <ul>
                                 <!-- <li><a href="tasks_summary.html"><span class="side_icon ion-ios7-folder-outline"></span><span class="badge badge-primary">7</span> Summary</a></li> -->
                                 <li><a href="{% url 'samples:create' %}"> Create</a></li>
@@ -139,12 +140,14 @@
 
                 <li>
                     <a href="#">
+                        <span class="label label-success">{% quick_stats request 'approvals' %}</span>
                         <span class="ion-ios7-checkmark-outline"></span>
                         <span class="nav_title">Approvals</span>
                     </a>
                     <div class="sub_panel">
                         <div class="side_inner">
-                            <!-- <h4 class="panel_heading panel_heading_first">Folders</h4> -->
+                           
+                            <h4 class="panel_heading panel_heading_first">Sample Approvals</h4>
                             <ul>
                                 <!-- <li><a href="tasks_summary.html"><span class="side_icon ion-ios7-folder-outline"></span><span class="badge badge-primary">7</span> Summary</a></li> -->
                                 <li><a href="/samples/verify_list?verified=0"> Pending</a></li>
@@ -197,7 +200,8 @@
                     </a>
                     <div class="sub_panel">
                         <div class="side_inner">
-                          <ul>                                
+                            <h4 class="panel_heading panel_heading_first">Authorize Results</h4>
+                            <ul>                                
                                 <li><a href="{% url 'worksheets:authorize_list' 'A' %}">For Abbott</a></li>
                                 <li><a href="{% url 'worksheets:authorize_list' 'R' %}">For Roche CAP/CTM</a></li>
                                 <li><a href="{% url 'worksheets:authorize_list' 'C' %}">For Cobas 8800</a></li>
@@ -207,7 +211,7 @@
                 </li>
                 {% endif %}
 
-                {% if perms.resultsqc %}
+                {% if perms.results %}
                 <li>
                     <a href="#">
                         <span class="ion-ios7-email-outline"></span>
@@ -215,12 +219,16 @@
                     </a>
                     <div class="sub_panel">
                         <div class="side_inner">
-                            <h4 class="panel_heading panel_heading_first">Results Release</h4>
+                            <h4 class="panel_heading panel_heading_first">Release Results</h4>
                             <ul>
                                 <li><a href="{% url 'results:release_list' 'A' %}">For Abbott</a></li>
                                 <li><a href="{% url 'results:release_list' 'R' %}">For Roche CAP/CTM</a></li>
                                 <li><a href="{% url 'results:release_list' 'C' %}">For Cobas 8800</a></li>
                             </ul>
+
+                            <ul style="margin-top:10px;"><li><a href="{% url 'worksheets:list' %}">Release rejected samples</a></li></ul>
+
+                            <ul style="margin-top:10px;"><li><a href="{% url 'worksheets:list' %}">Results Intervention</a></li></ul>
                         </div>
                     </div>                            
                 </li>

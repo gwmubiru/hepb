@@ -154,3 +154,8 @@ def user_lab(request):
 
 def isnan(x):
 	return str(x) == str(1e400*0)
+
+def today_range():
+	today_min = datetime.combine(date.today(), time.min)
+	today_max = datetime.combine(date.today(), time.max)
+	return (today_min, today_max)
