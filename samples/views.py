@@ -307,10 +307,11 @@ def verify(request, sample_id):
 		'sample_id':sample_id,
 		'envelope_id': sample.envelope.pk,
 		"rejection_reasons": RejectionReasons(sample.sample_type).rejection_reasons,
-		"facility_dropdown": utils.select( "facility_id",
-										  {'k_col':'id', 'v_col':'facility', 'items':facilities },
-										  "",
-										  {'ng-model': 'v.facility_id'}),
+		"facilities": Facility.objects.all(),
+		# "facility_dropdown": utils.select( "facility_id",
+		# 								  {'k_col':'id', 'v_col':'facility', 'items':facilities },
+		# 								  "",
+		# 								  {'ng-model': 'v.facility_id'}),
 	}
 	return render(request, 'samples/verify.html', context)
 
@@ -331,7 +332,7 @@ def verify_envelope(request, envelope_id):
 				'loc':"%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
 				'form_number': s.form_number,
 				'sample_type':s.sample_type,
-				'facility_id': s.facility_id,
+				'facility_id': str(s.facility_id),
 				'facility_name': s.facility.facility,
 				'district': s.facility.district.district,
 				'hub': s.facility.hub.hub,
@@ -346,6 +347,7 @@ def verify_envelope(request, envelope_id):
 			})
 	return HttpResponse(json.dumps(ret))
 
+
 @permission_required('samples.add_verification', login_url='/login/')
 def save_verify(request):
 	r = request.GET
@@ -357,7 +359,10 @@ def save_verify(request):
 	p.save()
 
 	s = Sample.objects.get(pk=r.get('sample_id'))
-	s.facility_id = r.get('facility_id', 0)
+	facility_id = r.get('facility_id')
+	if facility_id:
+		s.facility_id = facility_id
+	s.form_number = r.get('form_number')
 	s.date_collected = utils.get_date(r, 'date_collected')
 	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
 	s.locator_category = r.get('locator_category', '')

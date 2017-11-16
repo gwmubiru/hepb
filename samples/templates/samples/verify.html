@@ -14,18 +14,8 @@
 {% block content %}	
 <div ng-app="verify" ng-controller="VerifyController" ng-init="envelope_id={{ envelope_id }}">
 	<div class="page-title">Sample Approval</div>
-	<div id="success" class="alert alert-success vl-alert" role="alert" style="display:none;">
-		Sample successfully verified
-	</div>
-	<div id="completed" class="alert alert-success vl-alert" role="alert" style="display:none;">
-		Envelope verification completed
-	</div>
 	<div class="panel panel-default row">
 		
-
-		
-		{% if info_message %} <div class="alert alert-success"  role="alert">{{ info_message }}</div> {% endif %}
-		{% if success_message %} <div class="alert alert-success" role="alert">{{ success_message }}</div> {% endif %}
 		<div class='panel-body col-lg-2'>
 			
 			<div class="list-group ng-cloak" style="height: 800px;overflow-y: auto;">
@@ -41,9 +31,13 @@
 				<div class="row">
 					<div class="col-lg-5 panel panel-default sect">
 						<span class='sub-title'>facility details</span>
-						<div class="form-group">
-							<label for="facility_id">Facility</label>
-							{{ facility_dropdown | safe }}
+						<div class="form-group ng-cloak">
+							<label for="facility_id">Facility: <%sample.facility_id%></label>
+							<select id="facility_id"  ng-model="sample.facility_id" class="form-control input-sm w-sm">
+								{% for f in facilities %}
+								<option value="{{ f.pk }}">{{ f.facility }}</option>
+								{% endfor %}								
+							</select>
 
 							<div style="padding-top:10px;">
 								District: <u id="id_district" style="min-width:100px;"><% sample.district %></u>
@@ -96,15 +90,6 @@
 							</tr>
 						</table>
 						
-						<!-- <div class="form-group  ng-cloak">
-							<label for="art_number">ART Number</label>
-							{% input "art_number" "" "{'ng-model': 'sample.art_number'}" %}
-						</div> 
-
-						<div class="form-group  ng-cloak">
-							<label for="other_id">Other ID</label>
-							{% input "other_id" "" "{'class':'form-control input-sm w-md optional', 'ng-model': 'sample.other_id'}" %}
-						</div> -->
 
 					</div>
 
@@ -137,7 +122,7 @@
 
 						</div>
 					</div>
-					<div class="col-lg-3">
+					<div class="col-lg-3 ng-cloak" >
 						<div class="form-group">
 							<span class='hi-lite'>Created by:</span>
 							{% input "sample_creator"  "<% sample.sample_creator %> (on <% sample.created_at %>) " "{'disabled':'true', 'class':'form-control input-sm'}" %}
@@ -185,7 +170,20 @@
 						</table>						
 					</div>
 				</div>
-				<input type="submit" class="btn btn-danger" value="Save and move to next sample">
+				<div class="row">
+					<div class="col-lg-6">
+						<input type="submit" class="btn btn-danger" value="Save and move to next sample">
+					</div>
+					<div class="col-lg-6">
+						<div id="success" class="alert alert-success vl-alert" role="alert" style="display:none;">
+							Sample successfully approved
+						</div>
+						<div id="completed" class="alert alert-success vl-alert" role="alert" style="display:none;">
+							Envelope verification completed
+						</div>
+
+					</div>
+				</div>		
 
 			</form>
 
@@ -195,7 +193,7 @@
 </div>
 <style type="text/css">
 .vl-table td{
-	padding: 2px;	
+	padding: 2px;
 }
 .sect{
 	margin-left: 10px;

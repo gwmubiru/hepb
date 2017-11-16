@@ -10,17 +10,20 @@ ctrller.VerifyController = function($scope,$http){
 	$scope.vdata = {};
 	$scope.sample = {};
 	$scope.current_index =0;
-
+	
 	$http.get("/samples/verify_envelope/"+envelope_id).success(function(data){
-		//console.log("we got this"+JSON.stringify(data));
 		$scope.vdata=data;
+		$scope.selectSample(sample_id);
+		$scope.patHist();
+		//console.log("we got this"+JSON.stringify(data));
+		
 		// $scope.sample=data[0];
 		// $scope.nxt_sample=1;
-		$scope.selectSample(sample_id)
-		$('#gender').val($scope.sample.gender);
+		
+		/*$('#gender').val($scope.sample.gender);
 		$('#locator_category').val($scope.sample.locator_category);
-		$('#facility_id').val($scope.sample.facility_id);
-		$scope.patHist();
+		$('#facility_id').val($scope.sample.facility_id);*/
+		
 	});
 
 
@@ -39,7 +42,7 @@ ctrller.VerifyController = function($scope,$http){
 				$("#success").css("display","block");
 				setTimeout(function(){
 					$("#success").slideUp( "slow");
-				},400);
+				},1000);
 
 				/*if($scope.nxt_sample>=$scope.vdata.length){
 					$("#completed").css("display","block");
@@ -73,6 +76,7 @@ ctrller.VerifyController = function($scope,$http){
 				$scope.sample = $scope.vdata[i];
 				$scope.current_index = i;
 				$scope.nxt_sample = parseInt(i)+1;
+				$scope.nxt_sample = $scope.nxt_sample==$scope.vdata.length?0:$scope.nxt_sample;
 				//console.log("next index:-"+$scope.nxt_sample);
 				break;
 			}
