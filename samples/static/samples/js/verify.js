@@ -28,7 +28,7 @@ ctrller.VerifyController = function($scope,$http){
 	$scope.saveVerification= function(){
 		//console.log(JSON.stringify($scope.sample));
 		//$http.get("/samples/save_verify?"+$scope.sample)
-		
+		//$scope.sample.facility_id = $scope.facility_id;
 
 		 $http({method:'GET',url:"/samples/save_verify",params:$scope.sample}).success(function(response) {
 			//console.log(response);

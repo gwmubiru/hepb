@@ -5,6 +5,7 @@
 
 body{
 	font-family: OpenSans;
+	font-size:12px;
 }
 
 .w-xs{
@@ -49,11 +50,12 @@ body{
 
 .form-group > label,.form-inline > label{
 	font-weight: lighter;
+	font-size: 12px;
 }
 
 .hi-lite{
 	color: #d9534f;
-	font-size: 18px;
+	font-size: 16px;
 	font-weight: bold;
 }
 

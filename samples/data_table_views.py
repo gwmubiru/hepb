@@ -22,13 +22,11 @@ class ListJson(BaseDatatableView):
 
 	model = Sample
 	columns = [
-		'facility', 'facility.hub', 'facility.district', 
-		'sample_type', 'form_number', 'locator_position', 
-		'date_collected', 'date_received', 'treatment_initiation_date',
-		'patient.art_number','patient.other_id','verified', 'pk']
+		'form_number', 'locator_position', 'sample_type', 'date_collected','treatment_initiation_date',
+		'date_received', 'patient.art_number','patient.other_id', 'facility.district', 'facility', 'verified', 'pk']
 
 	order_columns = [
-		'facility', 'facility.hub', 'facility.district', 
+		'facility', 'facility.district', 
 		'sample_type', 'form_number', 'locator_position', 
 		'date_collected', 'date_received', 'treatment_initiation_date',
 		'patient.art_number','patient.other_id','verified', '']
@@ -43,20 +41,26 @@ class ListJson(BaseDatatableView):
 		l = verify_url if verified else show_url
 		if column == 'facility':
 			return '{0}'.format(row.facility.facility)
-		elif column == 'facility.hub':
-			return '%s' %(row.facility.hub.hub)
 		elif column == 'facility.district':
 			return '%s' %(row.facility.district.district)
 		elif column == 'form_number':
-			return "<a href='%s'>%s</a>" %(l,row.form_number)
+			return "<a href='%s' target='_blank'>%s</a>" %(show_url,row.form_number)
 		elif column == 'locator_position':
 			locator_id = '{0}{1}/{2}'.format(row.locator_category, 
 									   row.envelope.envelope_number, 
 									   row.locator_position)
-			return "<a href='%s'>%s</a>" %(l,locator_id)
+			return "<a href='%s' target='_blank'>%s</a>" %(show_url,locator_id)
+		elif column == 'verified':
+			if row.verified:
+				try:
+					return "accepted" if row.verification else "rejected" 
+				except: 
+					return ""
+			else:
+				return "pending"
 		elif column == 'pk':
 			if verified:
-				links = "<a class='btn btn-xs btn-danger' href='%s'>verify</a>" %verify_url
+				links = "<a class='btn btn-xs btn-danger' href='%s'>approve</a>" %verify_url
 			else:
 				links = utils.dropdown_links([
 					{"label":"view", "url":show_url},
@@ -76,11 +80,11 @@ class ListJson(BaseDatatableView):
 		
 		if search:
 			f_cond = Q(facility__facility__icontains=search)
-			h_cond = Q(facility__hub__hub__icontains=search)
+			#h_cond = Q(facility__hub__hub__icontains=search)
 			fn_cond = Q(form_number__icontains=search)
 			loc_cond = sample_utils.locator_cond(search)
 			st_cond = Q(sample_type=search[0])
-			qs_params = f_cond | h_cond | fn_cond | st_cond
+			qs_params = f_cond | fn_cond | st_cond
 			qs_params = qs_params | loc_cond if loc_cond else qs_params
 			qs = qs.filter(qs_params)
 
