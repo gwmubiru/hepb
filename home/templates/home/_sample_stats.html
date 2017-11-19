@@ -60,63 +60,65 @@
 							
 </div>
 
+{% if perms.samples %}
 <div class="row">
-			<div class="col-lg-2 col-md-4">
-				<div class="panel panel-default">
-					<div class="stat_box">
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
 
-						<div class="stat_ico color_g"><i class="ion-ios7-person"></i></div>
-						<div class="stat_content">
-							<span class="stat_name" style="color:#ac193d">
-								Samples stats for you
-						</div>
-					</div>
+				<div class="stat_ico color_g"><i class="ion-ios7-person"></i></div>
+				<div class="stat_content">
+					<span class="stat_name" style="color:#ac193d">
+						Samples stats for you
 				</div>
 			</div>
-			<div class="col-lg-2 col-md-4">
-				<div class="panel panel-default">
-					<div class="stat_box">						
-						<div class="stat_content">
-							<span class="stat_count">{% quick_stats request 'samples' 'all' 'me' %}</span>
-							<span class="stat_name">all</span>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="col-lg-2 col-md-4">
-				<div class="panel panel-default">
-					<div class="stat_box">
-						
-						<div class="stat_content">
-							<span class="stat_count">{% quick_stats request 'samples' 'last_month' 'me' %}</span>
-							<span class="stat_name">last month</span>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="col-lg-2 col-md-4" >
-				<div class="panel panel-default">
-					<div class="stat_box" >
-						
-						<div class="stat_content">
-							<span class="stat_count">{% quick_stats request 'samples' 'this_month' 'me' %}</span>
-							<span class="stat_name">this month</span>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="col-lg-2 col-md-4">
-				<div class="panel panel-default">
-					<div class="stat_box">
-						
-						<div class="stat_content">
-							<span class="stat_count">{% quick_stats request 'samples' 'today' 'me' %}</span>
-							<span class="stat_name">today</span>
-						</div>
-					</div>
-				</div>
-			</div>	
-									
 		</div>
+	</div>
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">						
+				<div class="stat_content">
+					<span class="stat_count">{% quick_stats request 'samples' 'all' 'me' %}</span>
+					<span class="stat_name">all</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+				
+				<div class="stat_content">
+					<span class="stat_count">{% quick_stats request 'samples' 'last_month' 'me' %}</span>
+					<span class="stat_name">last month</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-2 col-md-4" >
+		<div class="panel panel-default">
+			<div class="stat_box" >
+				
+				<div class="stat_content">
+					<span class="stat_count">{% quick_stats request 'samples' 'this_month' 'me' %}</span>
+					<span class="stat_name">this month</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+				
+				<div class="stat_content">
+					<span class="stat_count">{% quick_stats request 'samples' 'today' 'me' %}</span>
+					<span class="stat_name">today</span>
+				</div>
+			</div>
+		</div>
+	</div>	
+									
+</div>
+{% endif %}
