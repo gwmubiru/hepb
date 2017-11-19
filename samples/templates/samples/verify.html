@@ -18,7 +18,7 @@
 		
 		<div class='panel-body col-lg-2'>
 			
-			<div class="list-group ng-cloak" style="height: 800px;overflow-y: auto;">
+			<div class="list-group ng-cloak" style="height: 800px;overflow-y: auto;margin-top:20px">
 				<a href="#" ng-repeat="s in vdata" ng-click="selectSample(s.sample_id)" class='list-group-item <% s.current %>'> 
 					<% s.loc %>
 				</a>
@@ -29,7 +29,7 @@
 			<form action="" method="post" role="form" ng-submit="saveVerification()" onsubmit="return false">
 				{% csrf_token %}
 				<div class="row">
-					<div class="col-lg-5 panel panel-default sect">
+					<div class="col-lg-5 panel panel-default sect0">
 						<span class='sub-title'>facility details</span>
 						<div class="form-group ng-cloak">
 							<label for="facility_id">Facility: <%sample.facility_id%></label>
@@ -47,9 +47,9 @@
 						</div>
 
 					</div>
-					<div class="col-lg-1"></div>
+					
 
-					<div class="col-lg-5 panel panel-default sect">
+					<div class="col-lg-5 panel panel-default sect1">
 						<!-- <div class="panel-heading">SAMPLE DETAILS</div> -->
 
 						<span class='sub-title'>sample details</span>
@@ -195,12 +195,17 @@
 .vl-table td{
 	padding: 2px;
 }
-.sect{
+.sect0{
 	margin-left: 10px;
-	margin-right: 10px;
 	min-height: 150px;
 	width: 450px;
-	
+	margin-top: 20px;
+}
+
+.sect1{
+	margin-left: 20px;
+	min-height: 150px;
+	width: 450px;
 }
 
 .sect2{	

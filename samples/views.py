@@ -45,7 +45,7 @@ def create(request):
 		if sample_utils.locator_id_exists(request.POST):
 			sample_form.add_error('locator_position', 'Duplicate Locator ID')
 		elif not sample_utils.initiation_date_valid(request.POST):
-			sample_form.add_error('treatment_initiation_date', 'Initiation date greater than DoB')
+			sample_form.add_error('treatment_initiation_date', 'Initiation date can not be < DoB')
 		elif valid_patient and valid_phone and valid_envelope and valid_sample and valid_clinician and valid_lab_tech and valid_dr and valid_past_regimens:
 			facility = sample_form.cleaned_data.get('facility')
 			art_number = patient_form.cleaned_data.get('art_number')
@@ -69,10 +69,9 @@ def create(request):
 			lab_tech, lab_tech_created = LabTech.objects.update_or_create(
 						facility=facility, lname=lt_data.get('lname'), defaults={'lphone':lt_data.get('lphone')})
 
-			phone, phone_created = PatientPhone.objects.get_or_create(
-						patient=patient,
-						**phone_form.cleaned_data
-						)
+			ph_number = phone_form.cleaned_data.get('phone')
+			if ph_number:
+				phone, phone_created = PatientPhone.objects.get_or_create(patient=patient,**phone_form.cleaned_data)
 
 			envelope, env_created = Envelope.objects.get_or_create(
 						envelope_number=envelope_form.cleaned_data.get('envelope_number'),
@@ -173,7 +172,7 @@ def edit(request, sample_id):
 		if sample_utils.locator_id_exists(request.POST, sample_id):
 			sample_form.add_error('locator_position', 'Duplicate Locator ID')
 		elif not sample_utils.initiation_date_valid(request.POST):
-			sample_form.add_error('treatment_initiation_date', 'Initiation date greater than DoB')
+			sample_form.add_error('treatment_initiation_date', 'Initiation date can not be < DoB')
 		elif valid_patient and valid_envelope and valid_sample and clinician_form.is_valid() and lab_tech_form.is_valid() and valid_dr and valid_past_regimens:
 			patient_form.save()
 			#envelope_form.save()

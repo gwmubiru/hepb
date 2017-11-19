@@ -170,3 +170,23 @@ def last_month():
 		month = last_m
 		year = datetime.today().year	
 	return {'year':year, 'month':month}
+
+def compare_dates(**kwargs):
+	first_date = kwargs.get('first_date')
+	second_date = kwargs.get('second_date')
+	operator = kwargs.get('operator')
+	ret = False
+	if first_date and second_date and operator:
+		if operator == 'eq':
+			ret = first_date == second_date
+		elif operator == 'lt':
+			ret = first_date < second_date
+		elif operator == 'gt':
+			ret = first_date > second_date
+		elif operator == 'lte':
+			ret = first_date <= second_date
+		elif operator == 'gte':
+			ret = first_date >= second_date
+		else:
+			ret = False
+	return ret

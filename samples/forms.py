@@ -176,11 +176,11 @@ class SampleForm(forms.ModelForm):
 
 		utils.non_future_dates(self, ['date_collected', 'date_received', 'treatment_initiation_date', 'last_test_date'])
 
-		if date_collected > date_received: 
+		if utils.compare_dates(first_date=date_collected, second_date=date_received, operator='gt'): 
 			self.add_error('date_collected', "date collected can not be > date received")
 
-		if (date_today - date_collected).days >=30 and locator_category!='R' and not pk:
-			self.add_error('date_collected', "date collected >= 30 days, please reject")
+		# if (date_today - date_collected).days >=30 and locator_category!='R' and not pk:
+		# 	self.add_error('date_collected', "date collected >= 30 days, please reject")
 
 		form_fltr = Q(form_number=cleaned_data.get('form_number'))
 		if pk:

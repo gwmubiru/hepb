@@ -93,7 +93,6 @@
 		                    	<input id="rrr<% r.index %>" tabindex="<% r.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% r.id %>" value="" ng-keypress="setRepeatSample($event, r.index)" ng-model="r.instrument_id">
 		                    {% else %}
 		                    	<input id="rrr<% r.index %>" tabindex="<% r.index %>" class="samples" type="checkbox" name="instrument<% r.id %>" value="" ng-click="setRepeatSample($event, r.index)" ng-model="r.instrument_id">
-
 		                    {% endif %}
 
 		                    </td>
@@ -123,7 +122,6 @@
 		                    	<input type="hidden" name="samples" value="<% s.id %>">
 		                    </td>
 		                    <td><a href="#" ng-click="removeSelectedSample(s)">remove</a></td>
-
 		                </tr> 
 					</tbody>
 				</table>

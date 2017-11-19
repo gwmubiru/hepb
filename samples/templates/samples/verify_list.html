@@ -42,7 +42,7 @@ $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
 		"serverSide": true,
-		"order": [[ 1, "asc" ]],
+		"order": [],
 		"ajax": "/samples/list_json?verified={{ verified }}{% if global_search %}&global_search={{ global_search }}{% endif %}",
 	});
 });
