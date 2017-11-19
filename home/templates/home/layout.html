@@ -83,10 +83,11 @@
                             <span class="navbar_el_icon ion-person"></span> {{ request.user.username }} <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right">
-                            <li><a href="#">Profile</a></li>
+                            <!-- <li><a href="#">Profile</a></li>
                             <li><a href="#">My messages</a></li>
-                            <li><a href="#">My tasks</a></li>
-                            <li class="divider"></li>
+                            <li><a href="#">My tasks</a></li> -->
+                           <!--  <li class="divider"></li> -->
+                            <li><a href="{% url 'password_change' %}">Change password</a></li>
                             <li><a href="{% url 'logout' %}">Log Out</a></li>
                         </ul>
                     </li>
