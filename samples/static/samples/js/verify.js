@@ -32,6 +32,9 @@ ctrller.VerifyController = function($scope,$http){
 		//console.log(JSON.stringify($scope.sample));
 		//$http.get("/samples/save_verify?"+$scope.sample)
 		//$scope.sample.facility_id = $scope.facility_id;
+		if($scope.sample.accepted=='0'){
+			$scope.sample.rejection_reason_id = $('#rejection_reason_id').val();
+		}
 
 		 $http({method:'GET',url:"/samples/save_verify",params:$scope.sample}).success(function(response) {
 			//console.log(response);
@@ -42,13 +45,7 @@ ctrller.VerifyController = function($scope,$http){
 				$("#success").css("display","block");
 				setTimeout(function(){
 					$("#success").slideUp( "slow");
-				},1000);
-
-				/*if($scope.nxt_sample>=$scope.vdata.length){
-					$("#completed").css("display","block");
-				}else{
-
-				}	*/			
+				},1000);			
 			}else{
 				alert("verifying failed, reason:"+response);
 				$scope.sample = $scope.vdata[$scope.current_index];

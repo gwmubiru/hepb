@@ -34,9 +34,9 @@
 					<tbody>
 						{% for s in worksheet.worksheetsample_set.all %}
 						{% if s.sample.result.repeat_test == 2 %}						
-						<tr {% if s.sample.result.repeat_test == 3 %} style = "background:#F5A9A9;" {% endif %}>
+						<tr>
 							<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
-							<td>{{ s.sample.result.repeat_test }}</td>
+							<td>{{ s.sample.form_number }}</td>
 							<td>{{ s.sample.facility.facility }}</td>
 							<td>{{ s.sample.facility.district.district }} </td>
 							<td>{{ s.sample.patient.art_number }}</td>
@@ -48,12 +48,18 @@
 							<td>{{ s.sample.result.result_alphanumeric }}</td>
 							
 							<td>
-								<label><input type='radio' name='choices{{ s.sample.result.pk }}' class='choices' result-pk="{{ s.sample.result.pk }}" value='release'> Release</label>
-								<label><input type='radio' name='choices{{ s.sample.result.pk }}' class='choices' result-pk="{{ s.sample.result.pk }}" value='retain'> Retain</label>
-								<div class="comments" id="comments_sect{{ s.sample.result.pk }}" >
-								<input type="text"  name='comments{{ s.sample.result.pk }}' placeholder="comments" id="comment{{ s.sample.result.pk }}" value="">
-								<span class="btn btn-primary btn-xs comments_save" result-pk="{{ s.sample.result.pk }}">save</span>
-								</div>
+								{% if s.sample.result.resultsqc.released == 1 %}
+									Released
+								{% elif s.sample.result.resultsqc.released == 0 %}
+									Retained
+								{% else %}
+									<label><input type='radio' name='choices{{ s.sample.result.pk }}' class='choices r' result-pk="{{ s.sample.result.pk }}" value='release'> Release</label>
+									<label><input type='radio' name='choices{{ s.sample.result.pk }}' class='choices' result-pk="{{ s.sample.result.pk }}" value='retain'> Retain</label>
+									<div class="comments" id="comments_sect{{ s.sample.result.pk }}" >
+									<input type="text"  name='comments{{ s.sample.result.pk }}' placeholder="comments" id="comment{{ s.sample.result.pk }}" value="">
+									<span class="btn btn-primary btn-xs comments_save" result-pk="{{ s.sample.result.pk }}">save</span>
+									</div>
+								{% endif %}
 							</td>
 							<td><span id="saved{{ s.sample.result.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;<span class='x' >x</span></span></td>
 						</tr>
@@ -67,11 +73,8 @@
 	</div>
 	<script type="text/javascript">
 	 $(function() {
-		$(".vlbarcodes").each(function (index){
-            var val = $(this).attr("value");
-            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
-        });
-
+	 	var num_pending_release = $('.r').length;
+	 	var num_released_currently = 0;
         $(".status").hide();
         $(".comments").hide();
       });
@@ -97,8 +100,15 @@
 	 });
 
 	 saveDetails = function(params){
+	 	num_released_currently = num_released_currently+1;
+	 	if(num_released_currently == num_pending_release){
+	 		params.completed = 'yes';
+	 	}
 	 	$.post("/results/release_results/{{ worksheet.pk }}/", params).done(function( data ) {
-		    $("#saved"+params.result_pk).show();
+		    $("#saved"+params.result_pk).show();	
+		    if(data=='completed'){
+	 			alert("Worksheet Authorization complete");
+	 		}	
 		  });
 	 }
 	 $(".x").on("click", function(){

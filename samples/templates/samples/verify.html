@@ -271,7 +271,7 @@
 
 function reasonsDropDown(nme,id){
   var other_options="id='"+id+"' class='form-control input-sm w-md' ";
-  var slct = "<select name='"+nme+"' class='form-control input-sm w-md'><option>select</option>";
+  var slct = "<select name='"+nme+"' id='"+id+"' class='form-control input-sm w-md' required><option value=''>select</option>";
 
   
   for (var r in rejection_reasons){

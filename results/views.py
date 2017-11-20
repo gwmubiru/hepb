@@ -222,6 +222,7 @@ def release_results(request, worksheet_id):
 		choice = request.POST.get('choice')
 		released = True if choice == 'release' else False
 		comments = request.POST.get('comments')
+		completed = request.POST.get('completed')
 		other_params = {
 			'released': released,
 			'comments': request.POST.get('comments'),
@@ -235,10 +236,12 @@ def release_results(request, worksheet_id):
 		ws.stage = 4
 		ws.save()
 
-		if(WorksheetSample.objects.filter(worksheet=worksheet_id, stage__lte=3).count()==0):
+		if(completed=='yes'):
 			worksheet = Worksheet.objects.get(pk=worksheet_id)
 			worksheet.stage = 4
 			worksheet.save()
+			return HttpResponse("completed")
+			
 		return HttpResponse("saved")
 	else:
 		worksheet = Worksheet.objects.get(pk=worksheet_id)

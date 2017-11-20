@@ -185,6 +185,7 @@ def authorize_results(request, worksheet_id):
 		if(WorksheetSample.objects.filter(worksheet=worksheet, stage__lte=2).count()==0):
 			worksheet.stage = 3
 			worksheet.save()
+			return HttpResponse("completed")
 
 		return HttpResponse("saved")
 	else:
@@ -278,8 +279,8 @@ def reg_info(request, machine_type):
 	
 class ListJson(BaseDatatableView):
 	model = Worksheet
-	columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at', 'pk']
-	order_columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at', '']
+	columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at','stage', 'pk']
+	order_columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at','stage', '']
 	max_display_length = 500
 
 	def render_column(self, row, column):
@@ -310,4 +311,5 @@ class ListJson(BaseDatatableView):
 		qs = qs.filter(worksheet_medical_lab=utils.user_lab(self.request))
 		if machine_type:
 			qs = qs.filter(machine_type=machine_type, stage=1)
+			
 		return qs

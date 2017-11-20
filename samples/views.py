@@ -1,4 +1,5 @@
 import json
+from datetime import date as dt
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
@@ -9,7 +10,7 @@ from django.forms import modelformset_factory
 #from django.views.generic import TemplateView
 
 from backend.models import Appendix,Facility,MedicalLab
-from .models import Patient, Sample, PatientPhone, Envelope, Verification, Clinician, LabTech, PastRegimens, DrugResistanceRequest
+from .models import Patient, Sample, PatientPhone, Envelope, Verification, Clinician, LabTech, PastRegimens, DrugResistanceRequest, RejectedSamplesRelease
 from forms import *
 from home import utils
 from . import utils as sample_utils
@@ -375,13 +376,16 @@ def save_verify(request):
 	v = Verification.objects.filter(sample=s).first()
 	v = v if v else Verification()
 	v.sample = s
-	v.accepted = r.get('accepted', '')
+	accepted = int(r.get('accepted',0))
+	v.accepted = True if accepted == 1 else False
 
-	if(v.accepted==0):
-		v.rejection_reason_id = r.get('rejection_reason_id', 0)
+	if(v.accepted==False):
+		v.rejection_reason_id = r.get('rejection_reason_id', None)
+	else:
+		v.rejection_reason_id = None
 
 	v.verified_by = request.user
-	v_saved = v.save()
+	v.save()
 
 	if(not Sample.objects.filter(envelope=s.envelope, verified=False).count()):
 		envelope = Envelope.objects.get(pk=s.envelope.pk)
@@ -445,6 +449,25 @@ def lab_techs(request, facility_id):
 
 	return HttpResponse(json.dumps(ret))
 
+def release_rejects(request):
+	if request.method == 'POST':
+		sample = Sample.objects.get(pk=request.POST.get('sample_pk'))
+		choice = request.POST.get('choice')
+		released = True if choice == 'release' else False
+		comments = request.POST.get('comments')
+		
+		other_params = {
+			'released': released,
+			'comments': request.POST.get('comments'),
+			'reject_released_by': request.user,
+			'released_at': timezone.now(),
+		}
+		rsr, rsr_created = RejectedSamplesRelease.objects.update_or_create(sample=sample, defaults=other_params)			
+		return HttpResponse("saved")
+	else:
+		date_rejected = request.GET.get('date_rejected',dt.today())
+		rejects = Verification.objects.filter(accepted=False, created_at__date=date_rejected)
+		return render(request, "samples/release_rejects.html", {'rejects':rejects, 'date_rejected':date_rejected.strftime("%Y-%m-%d")})
 
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""

@@ -187,3 +187,18 @@ class VerificationRejectionReason(models.Model):
 
 	class Meta:
 		db_table = 'vl_verification_rejection_reasons'
+
+#track sample sample printing and dispatch
+class RejectedSamplesRelease(models.Model):
+	sample = models.OneToOneField(Sample, on_delete=models.CASCADE)
+	released = models.BooleanField(default=False)
+	reject_released_by = models.ForeignKey(User, related_name='reject_released_by', null=True)
+	released_at = models.DateTimeField(null=True)
+	comments = models.TextField(null=True)
+	printed = models.BooleanField(default=False)
+	downloaded = models.BooleanField(default=False)
+	print_date = models.DateTimeField(null=True)
+	printed_by = models.CharField(max_length=128, null=True)
+
+	class Meta:
+		db_table = 'vl_rejected_samples_release'

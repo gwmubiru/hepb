@@ -22,4 +22,5 @@ urlpatterns  = [
 	url(r'^patient_history/(?P<facility_id>[0-9]+)/(?P<art_number>[\w-]+)/$', login_required(views.pat_hist), name='pat_hist'),
 	url(r'^clinicians/(?P<facility_id>[0-9]+)/$', login_required(views.clinicians), name='clinicians'),
 	url(r'^lab_techs/(?P<facility_id>[0-9]+)/$', login_required(views.lab_techs), name='lab_techs'),
+	url(r'^release_rejects/$', login_required(views.release_rejects), name='release_rejects'),
 ]
