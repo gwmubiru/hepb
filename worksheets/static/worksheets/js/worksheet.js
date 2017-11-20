@@ -10,6 +10,8 @@ ctrller.worksheetSamplesController = function($scope,$http){
 	$scope.selected_samples = [];
 	$scope.pending_envelopes = [];
 	$scope.current_env = '';
+	$scope.instrument_ids = [];
+	$scope.scanned_racks = [];
 
 	$http.get("/worksheets/pending_envelopes?sample_type="+st).success(function(data){
 		$scope.pending_envelopes = data;
@@ -51,6 +53,10 @@ ctrller.worksheetSamplesController = function($scope,$http){
 		var keyCode = $event.which || $event.keyCode;
 		if((keyCode == 13 && $scope.machine_type=='C') || $scope.machine_type!='C'){
 			//$scope.selected_samples.push($scope.samples[i]);
+			if($scope.machine_type=='C'){
+				st = setInstrumentID($("#sss"+i));
+				if(st==false){ return false;}
+			}
 			selectSample($scope.samples[i], $("#sss"+i));
 			var next_index = Number(i)+1;
 			$("#sss"+next_index).focus();
@@ -62,6 +68,10 @@ ctrller.worksheetSamplesController = function($scope,$http){
 		var keyCode = $event.which || $event.keyCode;
 		if((keyCode == 13 && $scope.machine_type=='C') || $scope.machine_type!='C'){
 			//console.log($scope.repeat_samples[i]);
+			if($scope.machine_type=='C'){
+				st = setInstrumentID($("#rrr"+i));
+				if(st==false){ return false;}
+			}
 			selectSample($scope.repeat_samples[i], $("#rrr"+i), true);
 			//$scope.selected_samples.push($scope.repeat_samples[i]);
 			var next_index = Number(i)+1;
@@ -89,8 +99,17 @@ ctrller.worksheetSamplesController = function($scope,$http){
 	$scope.nextRack = function($event, rack_index){
 		var keyCode = $event.which || $event.keyCode;
 		if(keyCode == 13){
-			var next_index = Number(rack_index)+1;
-			$("#racks"+next_index).focus();
+			var rack_now = $("#racks"+rack_index);
+			if($scope.scanned_racks.indexOf(rack_now.val())==-1){
+				$scope.scanned_racks.push(rack_now.val());
+				var next_index = Number(rack_index)+1;
+				$("#racks"+next_index).focus();
+			}else{
+				alert("Rack "+rack_now.val()+" already scanned");
+				rack_now.val('');
+				return false;
+			}
+			
 		}		
 
 	}
@@ -112,6 +131,18 @@ ctrller.worksheetSamplesController = function($scope,$http){
 			
 		}
 
+	}
+
+	setInstrumentID = function(sample){
+		if($scope.instrument_ids.indexOf(sample.val()) == -1){
+			$scope.instrument_ids.push(sample.val());
+			return true;
+		}else{
+			alert(sample.val()+" already scanned");
+			sample.val('');
+			return false;
+		}
+		
 	}
 
 
