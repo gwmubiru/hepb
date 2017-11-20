@@ -6,6 +6,7 @@ var app=angular.module('worksheet_samples', [], function($interpolateProvider) {
 
 ctrller={};
 ctrller.worksheetSamplesController = function($scope,$http){
+	$scope.Math = window.Math;
 	$scope.selected_samples = [];
 	$scope.pending_envelopes = [];
 	$scope.current_env = '';
@@ -23,12 +24,14 @@ ctrller.worksheetSamplesController = function($scope,$http){
 		$scope.repeat_samples = data;
 	});
 
-	$scope.getEnvSamples = function(pk){
+	$scope.getEnvSamples = function(pk){		
 		$scope.current_env = pk;
 		$scope.envelope_number = "";
 		$http.get("/worksheets/pending_samples?env_pk="+pk).success(function(data){
 			$scope.samples = data;
 		});
+		$(".env_list").removeClass("active");
+		$('#env'+pk).addClass('active');
 	}
 
 
@@ -83,6 +86,15 @@ ctrller.worksheetSamplesController = function($scope,$http){
 		}
 	}
 
+	$scope.nextRack = function($event, rack_index){
+		var keyCode = $event.which || $event.keyCode;
+		if(keyCode == 13){
+			var next_index = Number(rack_index)+1;
+			$("#racks"+next_index).focus();
+		}		
+
+	}
+
 	selectSample = function(sample, sample_obj, repeat=false){
 		if((sample.in_worksheet!=true || repeat==true) && sample.sample_type==$scope.w_sample_type){
 			//console.log("re"+$scope.sample_limit+" kde"+$scope.selected_samples.length);
@@ -101,6 +113,7 @@ ctrller.worksheetSamplesController = function($scope,$http){
 		}
 
 	}
+
 
 }
 

@@ -25,19 +25,21 @@
 								<th>Location ID</th>
 								<th>Form</th>
 								<th>Instrument ID</th>
+								<th>Rack ID</th>
 							</thead>
 							<tbody>
 								{% for s in worksheet.worksheetsample_set.all %}
 								{% if forloop.counter0|divisibleby:5 %}
-								<tr><td colspan='5' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
+								<tr><td colspan='6' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
 								{% endif %}
 
 								<tr>
-									<td>{{forloop.counter}}{{ s.sample.patient.art_number }}</td>
+									<td>{{ s.sample.patient.art_number }}</td>
 									<td>{{ s.sample.vl_sample_id }}</td>
 									<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
 									<td>{{ s.sample.form_number }}</td>
 									<td>{{ s.instrument_id }}</td>
+									<td>{{ s.rack_id }}</td>
 								</tr>
 
 								{% endfor %}
@@ -73,17 +75,17 @@
 						{% endfor %}
 					{% endif %}
 
-					{% for sample in worksheet.samples.all %}
+					{% for s in worksheet.worksheetsample_set.all %}
 						{% with runner=forloop.counter|add:sample_pads %}
 						<div class="col-xs-1 vlbarcodes-wrapper">
 							{{ runner }}<br>
-							<span class='sm-label'>Pat ART #</span>: {{ sample.patient.art_number }}<br>
-							<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
+							<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.art_number }}<br>
+							<span class='sm-label'>Sample ID</span>: {{ s.sample.vl_sample_id }}<br>
 							<span class='sm-label'>Location ID</span>: 
-							{{ sample.locator_category }}{{ sample.envelope.envelope_number }}{{ sample.locator_position }}<br>
-							<span class='sm-label'>Form #</span>: {{ sample.form_number }}
+							{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}{{ s.sample.locator_position }}<br>
+							<span class='sm-label'>Form #</span>: {{ s.sample.form_number }}
 
-							<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>
+							<div class="vlbarcodes" value="{{ s.sample.vl_sample_id }}"></div>
 						</div>
 						{% if runner|divisibleby:6 %}</div><div class="row wk-row">{% endif %}
 						{% endwith %}
@@ -94,7 +96,7 @@
 				{% endif %}
 			</div>
 			<br>
-			<a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a>
+			<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a> -->
 			<a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:vlprint' worksheet.id %}')">Print</a>
 		</div>
 	</div>

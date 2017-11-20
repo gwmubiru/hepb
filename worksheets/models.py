@@ -50,6 +50,7 @@ class WorksheetSample(models.Model):
 	stage = models.PositiveSmallIntegerField(choices=STAGE_CHOICES, default=1)
 	sample_run = models.PositiveSmallIntegerField(default=1)
 	instrument_id = models.CharField(max_length=64, null=True, blank=True)
+	rack_id = models.CharField(max_length=64, null=True, blank=True)
 
 	class Meta:
 		db_table = 'vl_worksheet_samples'	

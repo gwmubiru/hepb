@@ -84,10 +84,15 @@ def attach_samples(request, worksheet_id):
 		
 		for sample_id in attached_samples:
 			instrument_id = request.POST.get('instrument'+sample_id, None)
+			sample_rack = request.POST.get('sample_rack'+sample_id, None)
+			if sample_rack!=None:
+				rack_id = request.POST.get('racks'+sample_rack, None) 
+			else:
+				rack_id = None
 			sample = Sample.objects.get(pk=sample_id)			
 			#worksheet.samples.add(sample)
 			sample_run = 1+WorksheetSample.objects.filter(sample=sample).count()
-			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id, sample_run=sample_run))
+			worksheet_samples.append(WorksheetSample(worksheet=worksheet, sample=sample, instrument_id=instrument_id, sample_run=sample_run, rack_id=rack_id))
 			sample.in_worksheet = True
 			sample.save()
 
@@ -282,7 +287,7 @@ class ListJson(BaseDatatableView):
 		if column == 'pk':
 			url0 = "/worksheets/show/{0}".format(row.pk)
 			url1 = "javascript:windPop(\"/worksheets/vlprint/{0}\")".format(row.pk)
-			url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
+			#url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
 			url3 = "/results/cobas_upload/?type=C" if row.machine_type=='C' else "/results/upload/{0}".format(row.pk) 
 			url4 = "/worksheets/delete/{0}".format(row.pk)
 
@@ -292,7 +297,6 @@ class ListJson(BaseDatatableView):
 				links = utils.dropdown_links([
 					{"label":"view", "url":url0},
 					{"label":"Print", "url":url1},
-					{"label":"PDF", "url":url2},
 					{"label":"Upload Results", "url": url3},
 					{"label":"Delete", "url":url4},
 				])
