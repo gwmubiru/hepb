@@ -29,9 +29,22 @@ class Command(BaseCommand):
 		for old_user in self.old_users:
 			email = old_user.get('email', 'guest@guest.com')
 			names = old_user.get('names')
-			sep_index = names.find(' ')
-			first_name = names[0:sep_index] if sep_index!=-1 else names
-			last_name = names[sep_index+1:] if sep_index!=-1 else ""
+			name_split = names.split()
+
+			if len(name_split)>=3:
+				first_name = name_split[0]
+				last_name = "%s %s"%(name_split[1],name_split[2])
+				username = "%s%s"%(name_split[0][0],name_split[2])
+			elif  len(name_split)==2:
+				first_name = name_split[0]
+				last_name = "%s"%(name_split[1])
+				username = "%s%s"%(name_split[0][0],name_split[1])
+			else:
+				first_name = names
+				last_name = names
+				username = names
+
+			username = username.replace(' ','').replace('.','').lower()
 
 			signature_split = old_user.get('signaturePATH').split('/')
 			signature = "signatures/%s" %signature_split.pop() if len(signature_split)>0 else ""
@@ -40,9 +53,9 @@ class Command(BaseCommand):
 
 			try:
 				user = User.objects.create_user(
-					username=email,
+					username=username,
 					email=email,
-					password=email,
+					password="%s111"%username,
 					first_name=first_name, 
 					last_name=last_name,
 					date_joined=old_user.get('created'),
@@ -51,16 +64,18 @@ class Command(BaseCommand):
 			except IntegrityError:
 				user = User.objects.filter(email=email).first()
 
-			usp = UserProfile.objects.filter(user=user)
-			user_profile = usp.first() if usp.exists() else UserProfile()
-			user_profile.user = user
-			user_profile.phone = old_user.get('phone')
-			user_profile.signature = signature
-			user_profile.medical_lab_id = 1
-			user_profile.save()
-
-			self.__save_user_groups(user, permissions)
-			print "saved %s" %names
+			if user:
+				usp = UserProfile.objects.filter(user=user)
+				user_profile = usp.first() if usp.exists() else UserProfile()
+				user_profile.user = user
+				user_profile.phone = old_user.get('phone')
+				user_profile.signature = signature
+				user_profile.medical_lab_id = 1
+				user_profile.save()
+				self.__save_user_groups(user, permissions)
+				print "saved %s" %names
+			else:
+				print "not saved::%s, %s" %(names, email)
 
 	def __save_user_groups(self, user, permissions):
 		# 1 	Data Entry
