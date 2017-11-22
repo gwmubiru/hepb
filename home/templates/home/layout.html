@@ -228,7 +228,12 @@
 
                             <ul style="margin-top:10px;"><li><a href="{% url 'samples:release_rejects' %}">Release rejected samples</a></li></ul>
 
-                            <ul style="margin-top:10px;"><li><a href="{% url 'worksheets:list' %}">Results Intervention</a></li></ul>
+                            <h4 class="panel_heading panel_heading_first">Intervention</h4>
+                            <ul>
+                                <li><a href="{% url 'results:intervene_list' %}">Results</a></li>
+                                <li><a href="{% url 'samples:intervene_list' %}">Rejected samples</a></li>                 
+                            </ul>
+
                         </div>
                     </div>                            
                 </li>

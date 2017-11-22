@@ -154,6 +154,7 @@ def edit(request, sample_id):
 							extra=(5-count_dr))
 
 	if request.method == 'POST':
+		intervene = request.POST.get('intervene')
 		patient_form = PatientForm(request.POST, instance=patient)
 		#phone_form = PatientPhoneForm(request.POST, )
 		envelope_form = EnvelopeForm(request.POST, instance=envelope)
@@ -211,11 +212,22 @@ def edit(request, sample_id):
 				past_regimen.drug_resistance_request = drug_resistance
 				past_regimen.save()
 
+			if intervene=='results':
+				sample.result.resultsqc.released = True
+				sample.result.resultsqc.save()
+				return redirect("/results/intervene_list/")
+			elif intervene=='rejects':
+				sample.rejectedsamplesrelease.released = True
+				sample.rejectedsamplesrelease.save()
+				return redirect("/samples/intervene_list/")
+
+
 			return redirect("/samples/show/%d" %sample.pk)
 		else:
 			sample_form.add_error('locator_position', 'Updating failed')
 
 	else:
+		intervene = request.GET.get('intervene')
 		envelope_form = EnvelopeForm(instance=sample.envelope)
 		phone_form = PatientPhoneForm()
 		patient_form = PatientForm(instance=patient)
@@ -238,6 +250,7 @@ def edit(request, sample_id):
 		'past_regimens_formset': past_regimens_formset,
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
+		'intervene': intervene,
 	}
 		
 	return render(request, 'samples/create.html', context)
@@ -468,6 +481,10 @@ def release_rejects(request):
 		date_rejected = request.GET.get('date_rejected',dt.today())
 		rejects = Verification.objects.filter(accepted=False, created_at__date=date_rejected)
 		return render(request, "samples/release_rejects.html", {'rejects':rejects, 'date_rejected':date_rejected.strftime("%Y-%m-%d")})
+
+def intervene_list(request):
+	intervene_rejects = RejectedSamplesRelease.objects.filter(released=False)[:500]
+	return render(request, 'samples/intervene_list.html', {'intervene_rejects':intervene_rejects})
 
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""

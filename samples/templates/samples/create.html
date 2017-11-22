@@ -421,7 +421,8 @@
 			</div>
 		</div>
 
-		<input type="submit" value="{% if sample_id %} Update {% else %} Save and get new form {% endif %}" class="btn btn-danger">
+		<input type="hidden" name="intervene" value="{{ intervene }}">
+		<input type="submit" value="{% if sample_id %} Update {% if intervene %} and release {% endif %} {% else %} Save and get new form {% endif %}" class="btn btn-danger">
 	</form>
 	</div>
 

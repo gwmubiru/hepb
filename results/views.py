@@ -249,6 +249,10 @@ def release_results(request, worksheet_id):
 		context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 		return render(request, 'results/release_results.html', context)
 
+def intervene_list(request):
+	intervene_results = ResultsQC.objects.filter(released=False)[:500]
+	return render(request, 'results/intervene_list.html', {'intervene_results':intervene_results})
+
 def api(request):	
 	ret=[]
 	results = Result.objects.all()
