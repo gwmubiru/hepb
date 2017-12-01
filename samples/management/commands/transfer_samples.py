@@ -21,7 +21,7 @@ class Command(BaseCommand):
 		self.appendices = {}
 		self.__appendices()
 		#print self.appendices
-		for x in xrange(0,20):
+		for x in xrange(0,3):
 			self.__save_samples()
 
 	def __get_samples(self):		
@@ -47,7 +47,7 @@ class Command(BaseCommand):
 				FROM vl_samples AS s
 				LEFT JOIN vl_patients AS p ON s.patientID=p.id
 				LEFT JOIN vl_samples_verify AS v ON s.id=v.sampleID
-				WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND migrated = 'NO' GROUP BY s.id LIMIT 10000
+				WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND migrated = 'NO' GROUP BY s.id LIMIT 40000
 				"""
 
 		cursor = connections['old_db'].cursor()
@@ -105,15 +105,24 @@ class Command(BaseCommand):
 
 
 	def __save_sample(self, r, env_id, user_id):
+		dup_form = r.get('dup_form_number')
+		dup_lr = r.get('dup_locator_id')
 		s = Sample()
-		s.id = int(r.get('sid'))
+		s.pk = int(r.get('sid'))
 		s.patient_id = int(r.get('patientID'))
 		s.patient_unique_id = r.get('patientUniqueID')
 		s.locator_category = r.get('lrCategory', '')
 		s.envelope_id = env_id
-		s.locator_position = int(r.get('lrNumericID', ''))
+		lrN = r.get('lrNumericID', '')
+		if dup_lr==1:
+			lrN = "%s*"%lrN
+
+		s.locator_position = lrN
 		s.vl_sample_id = r.get('vlSampleID')
-		s.form_number = r.get('formNumber', '')
+		form_number = r.get('formNumber', '')
+		if dup_form == 1:
+			form_number = "%s*"%form_number
+		s.form_number = form_number
 		s.facility_id = int(r.get('facilityID', 0))
 		s.current_regimen_id = self.__appendix_id(r.get('currentRegimenID', 0), 3) 
 		s.pregnant = self.choices.get(r.get('pregnant', ''), '')
@@ -121,7 +130,13 @@ class Command(BaseCommand):
 		s.breast_feeding = self.choices.get(r.get('breastfeeding', ''), '')
 		s.active_tb_status = self.choices.get(r.get('activeTBStatus', ''), '')
 		s.date_collected = utils.get_date(r, 'collectionDate')
-		s.date_received = utils.get_date(r, 'receiptDate')
+
+		receiptDate= r.get('receiptDate')
+		if receiptDate=='0000-00-00':
+			s.date_received = s.date_collected
+		else:
+			s.date_received = utils.get_date(r, 'receiptDate')
+		
 		s.treatment_inlast_sixmonths = self.choices.get(r.get('treatmentLast6Months', ''), '')
 		s.treatment_initiation_date = utils.get_date(r, 'treatmentInitiationDate')
 		s.sample_type = self.sample_types.get(r.get('sampleTypeID', ''), '')
@@ -132,6 +147,7 @@ class Command(BaseCommand):
 		s.failure_reason_id = self.__appendix_id(r.get('reasonForFailureID', 0), 2)
 		s.tb_treatment_phase_id = self.__appendix_id(r.get('tbTreatmentPhaseID', 0), 5)
 		s.arv_adherence_id = self.__appendix_id(r.get('arvAdherenceID', 0), 1)
+		s.in_worksheet = r.get('in_worksheet',0)
 
 		vid = r.get('vid')
 		if (vid!=None):
@@ -162,12 +178,13 @@ class Command(BaseCommand):
 
 	def __save_verification(self, r):
 		outcome = r.get('outcome')
+		in_worksheet = r.get('in_worksheet',0)
 		user = utils.get_or_create_user(r.get('verified_by'))
 
 		v = Verification()
-		v.sample_id = int(r.get('id'))
+		v.sample_id = int(r.get('sid'))
 		v.comments = r.get('comments')
-		v.accepted = True if outcome=='Accepted' else False
+		v.accepted = True if(outcome=='Accepted' or in_worksheet==1) else False
 		v.created_at = r.get('vcreated')
 		v.rejection_reason_id = self.__appendix_id(r.get('outcomeReasonsID', 0), 4)
 		v.verified_by_id = user.id

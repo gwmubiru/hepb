@@ -184,6 +184,7 @@ def edit(request, sample_id):
 						)
 
 			sample = sample_form.save(commit=False)
+			sample.updated_by = request.user
 			sample.envelope = envelope
 
 			facility = sample.facility

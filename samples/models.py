@@ -100,7 +100,7 @@ class Sample(models.Model):
 	patient_unique_id = models.CharField(max_length=128)
 	locator_category = models.CharField(max_length=1, choices=( ('V', 'V'), ('R', 'R') ))
 	envelope = models.ForeignKey(Envelope)
-	locator_position = models.CharField(max_length=3)
+	locator_position = models.CharField(max_length=4)
 	vl_sample_id = models.CharField(max_length=128, unique=True)
 	form_number = models.CharField(max_length=64, unique=True)
 	facility = models.ForeignKey(backend.Facility)
@@ -141,7 +141,7 @@ class Sample(models.Model):
 	
 	class Meta:
 		db_table = 'vl_samples'
-		unique_together = ('envelope', 'locator_position')
+		unique_together = ('locator_category', 'envelope', 'locator_position')
 
 class DrugResistanceRequest(models.Model):
 	sample = models.OneToOneField(Sample, on_delete=models.CASCADE)

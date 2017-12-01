@@ -70,7 +70,7 @@ def __get_or_create_user(username, email, password, *args, **kwargs):
 	try:
 		user = User.objects.create_user(username, email, password)
 	except IntegrityError:
-		user = User.objects.get(email=email)
+		user = User.objects.filter(email=email).first()
 
 	return user
 

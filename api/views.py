@@ -26,8 +26,9 @@ def samples(request):
 		elif year and month:
 			samples = Sample.objects.filter(created_at__year=year, created_at__month=month)
 		else:
-			samples = Sample.objects.all()[:500]
-
+			#samples = Sample.objects.filter(pk=329760)
+			samples = Sample.objects.all()
+			
 		if samples.count()>150000:
 			ret = {'Too many records'}
 		else:
