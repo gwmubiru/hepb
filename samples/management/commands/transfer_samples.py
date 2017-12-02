@@ -77,29 +77,29 @@ class Command(BaseCommand):
 			#print r.get('treatmentStatusID')
 			user = utils.get_or_create_user(r.get('screatedby'))
 			sid = r.get('sid')
-			# try:
-			p, pat_created = Patient.objects.get_or_create(
-				id=r.get('pid'),
-				defaults={'unique_id':r.get('uniqueID'),
-						  'art_number':r.get('artNumber'),
-						  'other_id':r.get('otherID', ''),
-						  'gender':self.genders.get(r.get('gender'), None),
-						  'dob':utils.get_date(r, 'dateOfBirth'),
-						  'created_by_id': user.id},
-				)
+			try:
+				p, pat_created = Patient.objects.get_or_create(
+					id=r.get('pid'),
+					defaults={'unique_id':r.get('uniqueID'),
+							  'art_number':r.get('artNumber'),
+							  'other_id':r.get('otherID', ''),
+							  'gender':self.genders.get(r.get('gender'), None),
+							  'dob':utils.get_date(r, 'dateOfBirth'),
+							  'created_by_id': user.id},
+					)
 
-			enve,env_created = Envelope.objects.get_or_create(envelope_number=r.get('lrEnvelopeNumber'))
+				enve,env_created = Envelope.objects.get_or_create(envelope_number=r.get('lrEnvelopeNumber'))
 
-			self.__save_sample(r, enve.id, user.id)
+				self.__save_sample(r, enve.id, user.id)
 
-			vid = r.get('vid')
-			if (vid!=None):
-				self.__save_verification(r)
-				
-			connections['old_db'].cursor().execute("UPDATE vl_samples SET migrated='YES' WHERE id=%s"%sid)
-			print "saved %s" %sid
-			# except :
-			# 	print "Failed %s" %sid
+				vid = r.get('vid')
+				if (vid!=None):
+					self.__save_verification(r)
+					
+				connections['old_db'].cursor().execute("UPDATE vl_samples SET migrated='YES' WHERE id=%s"%sid)
+				print "saved %s" %sid
+			except :
+				print "Failed %s" %sid
 
 
 
