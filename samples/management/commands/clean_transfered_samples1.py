@@ -17,13 +17,12 @@ class Command(BaseCommand):
 
 	def handle(self, *args, **options):
 		self.create_year = options['period'][0]
-		self.limit = int(options['period'][1])
+		self.creat_month = options['period'][1]
 		self.old_samples = []		
 		self.appendices = {}
 		self.__appendices()
 		#print self.appendices
-		for x in xrange(0,10):
-			self.__save_samples()
+		self.__save_samples()
 
 	def __get_samples(self):
 
@@ -32,11 +31,11 @@ class Command(BaseCommand):
 				FROM vl_samples AS s
 				LEFT JOIN vl_patients AS p ON s.patientID=p.id
 				LEFT JOIN vl_samples_verify AS v ON s.id=v.sampleID
-				WHERE YEAR(s.created)=%s AND migrated = 'YES' GROUP BY s.id LIMIT %s
+				WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND migrated = 'YES' GROUP BY s.id
 				"""
 
 		cursor = connections['old_db'].cursor()
-		cursor.execute(sql, [self.create_year, self.limit])
+		cursor.execute(sql, [self.create_year, self.creat_month])
 		self.old_samples = utils.dictfetchall(cursor)
 
 	def __appendices(self):
