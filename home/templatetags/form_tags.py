@@ -73,6 +73,7 @@ def check_list(val="", choices="{}"):
 
 @register.simple_tag
 def quick_stats(request, contenttype, when='today', who='me'):
+	#quick_stats request 'samples' 'all' 'all'
 	#when: today, this_month, last_month, all
 	#who: me, all
 	#contenttype: samples, approvals
