@@ -78,12 +78,14 @@ class Command(BaseCommand):
 					s.date_received = s.created_at
 				else:
 					s.date_received = utils.get_date(r, 'receiptDate')
+				s.save()
 
 				v = Verification.objects.filter(sample=s).first()
 				if v:
 					#v.created_at = dt.datetime.strptime(r.get('vcreated'), "%Y-%m-%d %H:%M:%S")
 					v.created_at = r.get('vcreated')
+					v.save()
 
-			print "saved %s" %sid
+			print "updated %s" %sid
 			# except :
 			# 	print "Failed %s" %sid
