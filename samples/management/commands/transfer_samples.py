@@ -131,7 +131,7 @@ class Command(BaseCommand):
 		s.date_collected = utils.get_date(r, 'collectionDate')
 
 		receiptDate= r.get('receiptDate')
-		if receiptDate=='0000-00-00':
+		if receiptDate==None:
 			s.date_received = s.date_collected
 		else:
 			s.date_received = utils.get_date(r, 'receiptDate')
