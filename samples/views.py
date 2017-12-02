@@ -50,14 +50,13 @@ def create(request):
 		elif valid_patient and valid_phone and valid_envelope and valid_sample and valid_clinician and valid_lab_tech and valid_dr and valid_past_regimens:
 			facility = sample_form.cleaned_data.get('facility')
 			art_number = patient_form.cleaned_data.get('art_number')
-			unique_id = "%s-A-%s" %(facility.pk, art_number)
+			unique_id = "%s-A-%s" %(facility.pk, art_number.replace(' ','').replace('-','').replace('/',''))
 			patient_form.cleaned_data.update({'created_by': request.user})
-			patient, pat_created = Patient.objects.get_or_create(
+			patient, pat_created = Patient.objects.update_or_create(
 						unique_id=unique_id,
 						defaults=patient_form.cleaned_data
 						)
 
-			patient.simple_art_number = art_number.replace(' ','').replace('-','').replace('/','')
 			patient.save()
 
 			clinician_form.cleaned_data.update({'facility':facility})
@@ -431,7 +430,8 @@ def appendices_json(cat_id):
 
 def pat_hist(request, facility_id, art_number):
 	#ret = [{'art_number':art_number, 'test_date':'2017-01-01', 'result':'TND'}, {'art_number':art_number, 'test_date':'2017-04-01', 'result':'TND'}]
-	samples = Sample.objects.filter(patient__simple_art_number=art_number, facility=facility_id).order_by('date_collected')
+	unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
+	samples = Sample.objects.filter(patient__unique_id=unique_id).order_by('date_collected')
 	ret = []
 	for s in samples:
 		ret.append({
