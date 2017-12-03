@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from results.models import Result, ResultsQC
+from results.models import Result, ResultsQC, ResultsDispatch
 from samples.models import Patient, Envelope, Sample, PatientPhone, RejectedSamplesRelease, Verification
 from backend.models import Appendix, District, Hub, Facility, UserProfile
 
@@ -67,7 +67,7 @@ class ResultsQCSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = ResultsQC
-		fields = ('released','released_at','printed','downloaded','print_date','printed_by')
+		fields = ('released','released_at', )
 
 class ResultSerializer(serializers.ModelSerializer):
 	test_by = UserSerializer(read_only=True)
@@ -76,6 +76,12 @@ class ResultSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Result
 		fields = ('result_numeric','result_alphanumeric','suppressed','method', 'test_by', 'test_date','resultsqc',)
+
+class ResultsDispatchSerializer(serializers.ModelSerializer):
+	
+	class Meta:
+		model = ResultsDispatch
+		fields = ('dispatch_type','dispatch_date','dispatched_by',)
 
 class RejectedSamplesReleaseSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -93,6 +99,7 @@ class SampleSerializer(serializers.ModelSerializer):
 	envelope = EnvelopeSerializer(read_only=True)
 	verification =  VerificationSerializer(read_only=True)
 	result = ResultSerializer(read_only=True)
+	resultsdispatch = ResultsDispatchSerializer(read_only=True)
 	rejectedsamplesrelease = RejectedSamplesReleaseSerializer(read_only=True)
 	facility = FacilityMinSerializer(read_only=True)
 	current_regimen = AppendixSerializer(read_only=True)
@@ -122,4 +129,5 @@ class SampleSerializer(serializers.ModelSerializer):
 			'verification',
 			'result',
 			'rejectedsamplesrelease',
+			'resultsdispatch',
 			)

@@ -46,14 +46,18 @@ class ResultsQC(models.Model):
 	released_by = models.ForeignKey(User, related_name='released_by', null=True)
 	released_at = models.DateTimeField(null=True)
 	comments = models.TextField(null=True)
-	printed = models.BooleanField(default=False)
-	downloaded = models.BooleanField(default=False)
-	print_date = models.DateTimeField(null=True)
-	printed_by = models.CharField(max_length=128, null=True)
 
 	class Meta:
 		db_table = 'vl_results_qc'
 
+class ResultsDispatch(models.Model):
+	sample = models.OneToOneField(samples.Sample, on_delete=models.CASCADE)
+	dispatch_type = models.CharField(max_length=1, null=True, choices=( ('P', 'Printed'),('D', 'Downloaded') ))
+	dispatch_date = models.DateTimeField(null=True)
+	dispatched_by = models.CharField(max_length=128, null=True)
+
+	class Meta:
+		db_table = 'vl_results_dispatch'
 
 #track worksheets whose results have been uploaded
 class WorksheetResultsUpload(models.Model):

@@ -24,23 +24,7 @@ class Command(BaseCommand):
 		for x in xrange(0,3):
 			self.__save_samples()
 
-	def __get_samples(self):		
-
-		# sql = """SELECT s.*, s.id AS sid, p.*, p.id AS pid, s.createdby AS screatedby,
-		# 		v.*, v.createdby AS verified_by, v.created AS vcreated, v.id AS vid,
-		# 		GROUP_CONCAT(res_r.Result, '||', res_r.created SEPARATOR '::') AS roche_result,
-		# 		GROUP_CONCAT(res_a.result, '||', res_a.created SEPARATOR '::') AS abbott_result,
-		# 		GROUP_CONCAT(res_o.result, '||', res_o.created SEPARATOR '::') AS override_result,
-		# 		prt.created AS date_printed, prt.createdby AS printed_by
-		# 		FROM vl_samples AS s
-		# 		LEFT JOIN vl_patients AS p ON s.patientID=p.id
-		# 		LEFT JOIN vl_samples_verify AS v ON s.id=v.sampleID
-		# 		LEFT JOIN vl_results_abbott AS res_a ON s.vlSampleID=res_a.sampleID
-		# 		LEFT JOIN vl_results_roche AS res_r ON s.vlSampleID=res_r.sampleID
-		# 		LEFT JOIN vl_results_override AS res_o ON s.vlSampleID=res_o.sampleID
-		# 		LEFT JOIN vl_logs_printedresults AS prt ON s.id=prt.sampleID
-		# 		WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND migrated = 'NO' GROUP BY s.id LIMIT 10000
-		#		"""
+	def __get_samples(self):
 
 		sql = """SELECT s.*, s.id AS sid, p.*, p.id AS pid, s.createdby AS screatedby,s.created as screated,
 				v.*, v.createdby AS verified_by, v.created AS vcreated, v.id AS vid
