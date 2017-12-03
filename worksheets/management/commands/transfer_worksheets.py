@@ -14,15 +14,16 @@ class Command(BaseCommand):
 	def handle(self, *args, **options):
 		self.create_year = options['period'][0]
 		self.create_month = options['period'][1]
-		self.old_samples = []		
-		self.__get_samples()
-		self.__save_samples()
+		self.old_samples = []
+		for x in xrange(0,3):
+			self.__get_samples()
+			self.__save_samples()
 
 	def __get_samples(self):
 		sql = """SELECT sw.*, sw.id AS swid, w.*, w.id AS wid, w.created AS wcreated, w.createdby AS wcreatedby
 				FROM vl_samples_worksheet AS sw
 				INNER JOIN vl_samples_worksheetcredentials AS w ON sw.worksheetID=w.id
-				WHERE YEAR(sw.created)=%s AND MONTH(sw.created)=%s AND sw.migrated = 0"""
+				WHERE YEAR(sw.created)=%s AND MONTH(sw.created)=%s AND sw.migrated = 0 LIMIT 50000"""
 
 		cursor = connections['old_db'].cursor()
 		cursor.execute(sql, [self.create_year, self.create_month])
