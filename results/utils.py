@@ -89,6 +89,46 @@ def get_result(result, multiplier):
 			'repeat_test': repeat_test,
 			}
 
+def get_result2(result, multiplier, machine_type):
+	result = result.strip() if type(result) is str else result
+	numeric_result = 0
+	alphanumeric_result = ''
+	suppressed = 3
+	if not multiplier:
+		multiplier = 1
+
+	if eq(result,'Target Not Detected') or eq(result,'Not detected'):
+		numeric_result = 0
+		alphanumeric_result = result
+		suppressed = 1
+	elif eq(result,'invalid') or eq(result, 'failed') or utils.isnan(result) or result == '':
+		numeric_result = 0
+		alphanumeric_result = 'Failed'
+		suppressed = 3
+	elif result.startswith('<') or result.startswith('>'):
+		numeric_result = get_numeric_result(result)
+		suppressed = 1 if numeric_result<1000 else 2
+		alphanumeric_result = "%s {:,d} Copies / mL".format(numeric_result) %result[0]
+	else:
+		numeric_result = get_numeric_result(result)
+		numeric_result *= multiplier
+		if machine_type=='A' and result.find('Copies')==-1:
+			numeric_result = 0
+			alphanumeric_result = 'Failed'
+			suppressed = 3 
+		elif numeric_result > 10000000:
+			suppressed = 2
+			alphanumeric_result = "> 10,000,000 Copies / mL"
+		else:
+			alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
+			suppressed = 1 if numeric_result<1000 else 2	
+
+	return {
+			'numeric_result':numeric_result, 
+			'alphanumeric_result':alphanumeric_result, 
+			'suppressed': suppressed,
+			}
+
 def get_numeric_result(result):
 	numeric_result = 0
 	result_new = result.replace('Copies / mL', '')
@@ -96,6 +136,9 @@ def get_numeric_result(result):
 	result_new = result_new.replace(',', '')
 	result_new = result_new.replace('>', '')
 	result_new = result_new.replace('<', '')
+	result_new = result_new.replace(')', '')
+	result_new = result_new.replace('(', '')
+	result_new = result_new.replace('Log', '')
 	try:
 		numeric_result = int(float(result_new))
 	except :
