@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
 	def __get_results(self):
 		
-		sql = """SELECT s.id AS sid, rr.*, fp.*, fp.id AS fpid, rr.created AS auth_at, rr.createdby AS auth_by, w.machineType
+		sql = """SELECT s.id AS sid, rr.*, fp.*, fp.id AS fpid, rr.created AS auth_at, rr.createdby AS auth_by, w.machineType, w.createdby AS test_by
 			    FROM vl_samples AS s
 			    INNER JOIN vl_results_released AS rr ON s.id=rr.sample_id
 			    INNER JOIN vl_facility_printing AS fp ON s.id=fp.sample_id
@@ -77,9 +77,9 @@ class Command(BaseCommand):
 					res.suppressed = 1 if res.result_numeric<1000 else 2
 
 			res.test_date = r.get('test_date')
-			res.test_by = utils.get_or_create_user(r.get('auth_by'))
+			res.test_by = utils.get_or_create_user(r.get('test_by'))
 			res.authorised = True
-			res.authorised_by = utils.get_or_create_user(r.get('auth_by'))
+			res.authorised_by_id = 1
 			res.authorised_at = r.get('auth_at')
 			res.save()
 
