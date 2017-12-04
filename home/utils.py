@@ -67,10 +67,9 @@ def dictfetchall(cursor):
 
 
 def __get_or_create_user(username, email, password, *args, **kwargs):
-	try:
+	user = User.objects.filter(email=email).first()
+	if not user:
 		user = User.objects.create_user(username, email, password)
-	except IntegrityError:
-		user = User.objects.filter(email=email).first()
 
 	return user
 
