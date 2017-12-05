@@ -114,14 +114,14 @@ def vl_list(request):
 	# <th>...</th>
 
 def vl_list_data(request):
+	# columns = [
+	# 	'form_number', 'locator_position', 'sample_type', 'date_collected','treatment_initiation_date',
+	# 	'date_received', 'patient.art_number','patient.other_id', 'facility.district', 'facility', 'verified', 'pk']
 	r = request.GET
-	start = int(r.get('start'))
-	length = int(r.get('length'))
-	filter_query = __get_filter_query(r)
-	samples = Sample.objects.filter(filter_query)[start:start+length]
-	recordsTotal = Sample.objects.count()
+	samples = __get_samples(r)
+	samples_data = samples.get('samples_data')
 	data = []
-	for s in samples:
+	for s in samples_data:
 		data.append(
 			[
 			s.form_number,
@@ -141,10 +141,23 @@ def vl_list_data(request):
 
 	return HttpResponse(json.dumps({
 				"draw":r.get('draw'),
-				"recordsTotal":recordsTotal,
-				"recordsFiltered":recordsTotal,
+				"recordsTotal": samples.get('recordsTotal'),
+				"recordsFiltered":samples.get('recordsFiltered'),
 				"data":data,
 				}))
+
+def __get_samples(r):
+	start = int(r.get('start'))
+	length = int(r.get('length'))
+	filter_query = __get_filter_query(r)
+
+	samples_data = Sample.objects.filter(filter_query)\
+				.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})\
+				.order_by('-envelope__envelope_number','lposition_int')[start:start+length]
+
+	recordsTotal =  Sample.objects.count()
+	recordsFiltered = recordsTotal if not filter_query else Sample.objects.filter(filter_query).count()
+	return {'samples_data':samples_data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 
 def __get_filter_query(r):
 	qs_params = Q()
@@ -156,13 +169,12 @@ def __get_filter_query(r):
 		
 	if search:
 		search = search.strip()
-		f_cond = Q(facility__facility__icontains=search)
+		#f_cond = Q(facility__facility__icontains=search)
 		#h_cond = Q(facility__hub__hub__icontains=search)
 		fn_cond = Q(form_number__icontains=search)
 		loc_cond = sample_utils.locator_cond(search)
-		st_cond = Q(sample_type=search[0])
-		qs_params = f_cond | fn_cond | st_cond
-		qs_params = qs_params | loc_cond if loc_cond else qs_params
+		#st_cond = Q(sample_type=search[0])
+		qs_params = fn_cond | loc_cond if loc_cond else fn_cond
 
 	
 	verified = r.get('verified')
@@ -186,4 +198,3 @@ def __get_links(s):
 			])
 
 	return links
-
