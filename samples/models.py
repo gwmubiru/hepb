@@ -92,7 +92,7 @@ class Envelope(models.Model):
 class Sample(models.Model):
 	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No'), ('L', 'Left Blank') )
 	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
-	TX_DURATION_CHOICES = ( (1, '6 months -< 1yr'), (2, '1 -< 2yrs'), (3, '2 -< 5yrs'), (4, '>=5 yrs') )
+	TX_DURATION_CHOICES = ( (1, '6 months -< 1yr'), (2, '1 -< 2yrs'), (3, '2 -< 5yrs'), (4, '>=5 yrs'), (5, 'Left Blank') )
 	WHO_STAGES = ((1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV'))
 	TX_CARE_APPROACHES = ((1, 'FBIM'), (2, 'FBG'), (3, 'FTDR'), (4, 'CDDP'), (5, 'CCLAD'))
 	patient = models.ForeignKey(Patient)

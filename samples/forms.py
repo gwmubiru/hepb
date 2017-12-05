@@ -21,7 +21,7 @@ class ClinicianForm(forms.ModelForm):
 		model = Clinician
 		fields = ('cname', 'cphone')
 		widgets = {
-			'cname':forms.TextInput(attrs={'class':'form-control input-sm w-md',  'autocomplete':'off', 'required':'true','ng-model':'cname', 'ng-focus':'getClinicians()'}), 
+			'cname':forms.TextInput(attrs={'class':'form-control input-sm w-md',  'autocomplete':'off', 'ng-model':'cname', 'ng-focus':'getClinicians()'}), 
 			'cphone': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'cphone'})}
 		labels = {'cname': 'Requesting Clinician', 'cphone':'Phone'}
 
@@ -30,7 +30,7 @@ class LabTechForm(forms.ModelForm):
 		model = LabTech
 		fields = ('lname', 'lphone')
 		widgets = {
-			'lname':forms.TextInput(attrs={'class':'form-control input-sm w-md', 'autocomplete':'off', 'required':'true', 'ng-model':'lname', 'ng-focus':'getLabTechs()'}), 
+			'lname':forms.TextInput(attrs={'class':'form-control input-sm w-md', 'autocomplete':'off', 'ng-model':'lname', 'ng-focus':'getLabTechs()'}), 
 			'lphone': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'lphone'})}
 		labels = {'lname': 'Lab Technician', 'lphone':'Phone'}
 

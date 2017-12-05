@@ -18,7 +18,7 @@ def initiation_date_valid(data):
 	tx_initiation_date = data.get('treatment_initiation_date')
 	dob = data.get('dob')
 	valid = True
-	if tx_initiation_date < dob:
+	if tx_initiation_date and dob and tx_initiation_date < dob:
 		valid = False
 	return valid
 

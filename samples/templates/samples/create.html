@@ -94,7 +94,7 @@
 				</div> -->
 
 				<span class='sub-title'>sample details</span>
-				<div class="form-inline">
+				<div class="form-inline required">
 					{{ sample_form.date_collected.label_tag }}<br>
 					{{ sample_form.date_collected.errors }}
 					{{ sample_form.date_collected }}													
@@ -330,7 +330,7 @@
 		<div class="row">
 			<div class="col-lg-6">
 				<div class="form-group required">
-					{{ clinician_form.cname.label_tag }}
+					{{ clinician_form.cname.label_tag }}&nbsp;-<i>N/A if missing</i>
 					{{ clinician_form.cname.errors }}
 					{{ clinician_form.cname }}
 					<div class='live_drpdwn' id="id_clinicians">
@@ -345,15 +345,17 @@
 					{{ clinician_form.cphone }}
 				</div>
 			</div>
-		
+		</div>
+		<div class="row">		
 			<div class="col-lg-6">
 				<div class="form-group required">
-					{{ lab_tech_form.lname.label_tag }}
+					{{ lab_tech_form.lname.label_tag }}&nbsp;-<i>N/A if missing</i>
 					{{ lab_tech_form.lname.errors }}
 					{{ lab_tech_form.lname }}
 					<div class='live_drpdwn' id="id_lab_techs">
 						<div ng-repeat="l in lab_techs| filter:lname "><a href='#' ng-click='setLabTech(l)'><% l.name %></a></div>
 					</div>
+					na if missing
 				</div>
 			</div>
 			<div class="col-lg-6">
@@ -534,7 +536,9 @@
     	$("#id_form_number").change(function(){
     		var url =  "/samples/get_facility/"+$(this).val()+"/";
     		$.get(url, function(data, status){
-    			$('#id_facility').val(data).trigger('change');
+    			if(data!=''){
+    				$('#id_facility').val(data).trigger('change');
+    			}    			
     			//$('#id_facility').val(data);
     		});
 		});
@@ -588,7 +592,7 @@
 		$("#id_envelope_number").on("change", function(){
 			var val = $(this).val().split("-");
 			var env_num = Number(val[1]);
-			var s_type =  (env_num<500?'P':'D');
+			var s_type =  (env_num<=800?'P':'D');
 			$("#id_sample_type").val(s_type);
 			$("#sample_type").val(s_type);
 		});
