@@ -72,7 +72,7 @@ def check_list(val="", choices="{}"):
 	return ret
 
 @register.simple_tag
-def quick_stats(request, contenttype, when='today', who='me'):
+def quick_stats(request, contenttype, when='today', who='me', extra=''):
 	#quick_stats request 'samples' 'all' 'all'
 	#when: today, this_month, last_month, all
 	#who: me, all
@@ -99,7 +99,10 @@ def quick_stats(request, contenttype, when='today', who='me'):
 	if contenttype == 'samples':
 		quick_stat = Sample.objects.filter(who_fltr,when_fltr).count()
 	elif contenttype == 'approvals':
-		quick_stat = Verification.objects.filter(who_fltr,when_fltr).count()
+		if extra=='pending':
+			quick_stat = Sample.objects.filter(who_fltr,when_fltr,Q(verified=False)).count()
+		else:
+			quick_stat = Verification.objects.filter(who_fltr,when_fltr).count()
 	return quick_stat
 
 # def filter_queryset(self, qs):

@@ -110,7 +110,7 @@ def create(request):
 		lab_tech_form = LabTechForm
 		phone_form = PatientPhoneForm
 		patient_form = PatientForm
-		sample_form = SampleForm(initial={'locator_category':'V', 'date_received': timezone.now().date()})
+		sample_form = SampleForm(initial={'locator_category':'V', 'date_received': timezone.now().date(), 'date_collected': timezone.now().date()})
 		drug_resistance_form = DrugResistanceRequestForm
 		past_regimens_formset = PastRegimensFormSet(queryset=PastRegimens.objects.none())
 

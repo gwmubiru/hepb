@@ -54,7 +54,7 @@
                 <div class="navbar-header">
                     <a href="{% url 'home_page' %}" >
                         <img src='{% static "home/images/logo.png" %}' >                        
-                        <span id='main-link'>Viral Load LIMS (your lab: {{ request.user.userprofile.medical_lab}})</span>
+                        <span id='main-link'>Viral Load LIMS</span>
                         
                     </a>
                 </div>
@@ -152,7 +152,13 @@
                             <h4 class="panel_heading panel_heading_first">Sample Approvals</h4>
                             <ul>
                                 <!-- <li><a href="tasks_summary.html"><span class="side_icon ion-ios7-folder-outline"></span><span class="badge badge-primary">7</span> Summary</a></li> -->
-                                <li><a href="/samples/verify_list?verified=0"> Pending</a></li>
+                                <li>
+                                    <a href="/samples/verify_list?verified=0"> 
+                                        Pending 
+                                        <span class="badge badge-default">
+                                           {% quick_stats request 'approvals' 'all' 'all' 'pending' %}
+                                        </span>
+                                    </a></li>
                                 <li><a href="/samples/verify_list?verified=1"> Completed</a></li>
                                 
                             </ul>
