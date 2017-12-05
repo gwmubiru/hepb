@@ -89,7 +89,7 @@ class SampleForm(forms.ModelForm):
 	treatment_indication = appendix_field(6, False)
 	treatment_line = appendix_field(7) 
 	failure_reason = appendix_field(2, False)
-	viral_load_testing = appendix_field(8)
+	viral_load_testing = appendix_field(8, True, utils.ATTRS2_OPTIONAL)
 	tb_treatment_phase = appendix_field(5, False)
 	arv_adherence = appendix_field(1, False)
 
@@ -146,7 +146,7 @@ class SampleForm(forms.ModelForm):
 			'sample_type': forms.Select(attrs=utils.ATTRS2),
 			'treatment_indication_other': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'treatment_care_approach':forms.Select(attrs=utils.ATTRS2_OPTIONAL),
-			
+			'viral_load_testing':forms.Select(attrs={'class':'form-control input-sm', 'size': '4', 'required':'true'}),			
 			'last_test_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'last_value': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'last_sample_type': forms.Select(attrs=utils.ATTRS2_OPTIONAL),

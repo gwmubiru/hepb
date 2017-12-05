@@ -41,7 +41,7 @@
 
 		{{ sample_form.locator_category.errors }}
 		<div class="row">
-			<div class="col-lg-6">
+			<div class="col-lg-5">
 				<span class='sub-title'>form/facility details</span>
 
 				{% if sample_id %}
@@ -117,7 +117,7 @@
 
 		<span class='sub-title'>patient information</span>
 		<div class="row">
-			<div class="col-lg-6">
+			<div class="col-lg-5">
 
 				<div class="form-group required">
 					{{ patient_form.art_number.label_tag }}
@@ -137,15 +137,18 @@
 					{{ patient_form.gender }}
 				</div>
 			</div>
-			<div class="col-lg-3"> 
+			<div class="col-lg-4"> 
 				<div class="form-inline required">
 					{{ patient_form.dob.label_tag }}<br>
 					{{ patient_form.dob.errors }}<div id="dob_error"></div>
-					{{ patient_form.dob }}													
+					{{ patient_form.dob }}&nbsp;
+					<input type="checkbox" name="null_dob"
+					{% if null_dob %} checked='true' {% endif %}
+					>&nbsp;Blank
 				</div>
 				
 
-				<div class="form-inline required">
+				<div class="form-inline">
 					<label for="id_age">Age</label><br>
 					<input type="text" name="age" id="id_age" class="form-control input-sm" size="11">
 					<select name="age_units" id="id_age_units" class="form-control input-sm">
@@ -160,11 +163,11 @@
 				</div> 
 			</div>
 
-			<div class="col-lg-3" >
-				<div style="margin-left:50px;">
+			<div class="col-lg-3" style="font-size:8px">
+				<div style="margin-left:50px;font-size:9px">
 					<label>Patient history</label>
 
-					<table  class="table table-striped table-condensed table-bordered ng-cloak" ng-if="patient_history.length>0">
+					<table  class="table table-striped table-condensed table-bordered ng-cloak">
 						<tr>
 							<th>Art #</th>
 							<th>DOB</th>
@@ -193,24 +196,26 @@
 		<br>
 		<span class='sub-title'>treatment information</span>
 		<div class="row">
-			<div class="col-lg-6">
+			<div class="col-lg-5">
+				<div class="form-group required">
+					{{ sample_form.treatment_duration.label_tag }}
+					{{ sample_form.treatment_duration.errors }}
+					{{ sample_form.treatment_duration }}
+				</div>		
 				<div class="form-inline required">
 					{{ sample_form.treatment_initiation_date.label_tag }}<br>
 					{{ sample_form.treatment_initiation_date.errors }}
-					{{ sample_form.treatment_initiation_date }}
+					{{ sample_form.treatment_initiation_date }}&nbsp;<input type="checkbox" name="null_treatment_initiation_date"
+					{% if null_treatment_initiation_date %} checked='true' {% endif %}
+					>&nbsp;Blank
+
 				</div>
 
 				<div class="form-group">
 					{{ sample_form.current_who_stage.label_tag }}
 					{{ sample_form.current_who_stage.errors }}
 					{{ sample_form.current_who_stage }}
-				</div>
-
-				<div class="form-group required">
-					{{ sample_form.treatment_duration.label_tag }}
-					{{ sample_form.treatment_duration.errors }}
-					{{ sample_form.treatment_duration }}
-				</div>				
+				</div>						
 
 				<div class="form-group required">
 					{{ sample_form.current_regimen.label_tag }}
@@ -290,41 +295,41 @@
 				</div>
 
 
+			</div>
+
+		</div>
+		<br>
+		<span class='sub-title'>indication for viral load testing</span> 
+
+		<div class="row">
+			<div class="col-lg-2">
 				<div class="form-group required">
-					{{ sample_form.viral_load_testing.label_tag }}
+					<label>Select</label>
 					{{ sample_form.viral_load_testing.errors }}
 					{{ sample_form.viral_load_testing }}				
 				</div>
 			</div>
-
-		</div>
-
-
-		<div class="row">
-
-			<div class="col-lg-6">
-
+			<div class="col-lg-4">
 				<div class="form-inline">
 					{{ sample_form.last_test_date.label_tag }}<br>
 					{{ sample_form.last_test_date.errors }}
 					{{ sample_form.last_test_date }}							
 				</div>
 			</div>
-			<div class="col-lg-3">
+			<div class="col-lg-4">
 				<div class="form-group">
 					{{ sample_form.last_value.label_tag }}
 					{{ sample_form.last_value.errors }}
 					{{ sample_form.last_value }}
 				</div>
 			</div>
-			<div class="col-lg-3" style="padding-left:100px">
+			<div class="col-lg-2">
 				<div class="form-group">
 					{{ sample_form.last_sample_type.label_tag }}
 					{{ sample_form.last_sample_type.errors }}
 					{{ sample_form.last_sample_type }}	
 				</div>
-			</div>				
-
+			</div>	
 		</div>
 
 		<div class="row">
@@ -355,7 +360,6 @@
 					<div class='live_drpdwn' id="id_lab_techs">
 						<div ng-repeat="l in lab_techs| filter:lname "><a href='#' ng-click='setLabTech(l)'><% l.name %></a></div>
 					</div>
-					na if missing
 				</div>
 			</div>
 			<div class="col-lg-6">
@@ -699,7 +703,7 @@ ctrller.SampleController = function($scope,$http){
 	$scope.patHist = function($event){
 		var keyCode = $event.which || $event.keyCode;
 		if(keyCode == 9){
-			$http.get("/samples/patient_history/"+$scope.facility+"/"+$scope.art_number+"/").success(function(data){
+			$http.get("/samples/patient_history/"+$scope.facility+"/?art_number="+$scope.art_number).success(function(data){
 				$scope.patient_history = data;
 			});
 		}		

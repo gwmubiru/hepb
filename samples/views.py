@@ -25,6 +25,7 @@ def create(request):
 	saved_sample = request.GET.get('saved_sample')
 	PastRegimensFormSet = modelformset_factory(PastRegimens, form=PastRegimensForm, extra=5)
 	if request.method == 'POST':
+		pst = request.POST
 		patient_form = PatientForm(request.POST)
 		phone_form = PatientPhoneForm(request.POST)
 		envelope_form = EnvelopeForm(request.POST)
@@ -43,6 +44,15 @@ def create(request):
 		valid_dr = drug_resistance_form.is_valid()
 		valid_past_regimens = past_regimens_formset.is_valid()
 
+		null_dob = pst.get('null_dob')
+		null_treatment_initiation_date = pst.get('null_treatment_initiation_date')
+
+		if not pst.get('dob') and not null_dob:
+			patient_form.add_error('dob', 'Date is blank')
+
+		if not pst.get('treatment_initiation_date') and not null_treatment_initiation_date:
+			sample_form.add_error('treatment_initiation_date', 'Date is blank')
+
 		if sample_utils.locator_id_exists(request.POST):
 			sample_form.add_error('locator_position', 'Duplicate Locator ID')
 		elif not sample_utils.initiation_date_valid(request.POST):
@@ -51,13 +61,17 @@ def create(request):
 			facility = sample_form.cleaned_data.get('facility')
 			art_number = patient_form.cleaned_data.get('art_number')
 			unique_id = "%s-A-%s" %(facility.pk, art_number.replace(' ','').replace('-','').replace('/',''))
-			patient_form.cleaned_data.update({'created_by': request.user})
-			patient, pat_created = Patient.objects.update_or_create(
-						unique_id=unique_id,
-						defaults=patient_form.cleaned_data
-						)
-
+			
+			patient = patient_form.save(commit=False)
+			patient.unique_id = unique_id
+			patient.created_by = request.user
 			patient.save()
+
+			# patient_form.cleaned_data.update({'created_by': request.user})
+			# patient, pat_created = Patient.objects.update_or_create(
+			# 			unique_id=unique_id,
+			# 			defaults=patient_form.cleaned_data
+			# 			)
 
 			clinician_form.cleaned_data.update({'facility':facility})
 			cl_data = clinician_form.cleaned_data
@@ -113,6 +127,8 @@ def create(request):
 		sample_form = SampleForm(initial={'locator_category':'V', 'date_received': timezone.now().date(), 'date_collected': timezone.now().date()})
 		drug_resistance_form = DrugResistanceRequestForm
 		past_regimens_formset = PastRegimensFormSet(queryset=PastRegimens.objects.none())
+		null_treatment_initiation_date = None
+		null_dob = None
 
 	context = {
 		'clinician_form':clinician_form,
@@ -125,6 +141,8 @@ def create(request):
 		'past_regimens_formset': past_regimens_formset,
 		#'facilities': Facility.objects.all(),
 		'regimens': Appendix.objects.filter(appendix_category=3),
+		'null_dob': null_dob,
+		'null_treatment_initiation_date':null_treatment_initiation_date,
 	}
 
 	if saved_sample:
@@ -428,10 +446,11 @@ def appendices_json(cat_id):
 		ret[a['id']] = a['appendix']
 	return json.dumps(ret)
 
-def pat_hist(request, facility_id, art_number):
+def pat_hist(request, facility_id):
 	#ret = [{'art_number':art_number, 'test_date':'2017-01-01', 'result':'TND'}, {'art_number':art_number, 'test_date':'2017-04-01', 'result':'TND'}]
+	art_number = request.GET.get('art_number')
 	unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
-	samples = Sample.objects.filter(patient__unique_id=unique_id).order_by('date_collected')
+	samples = Sample.objects.filter( Q(patient__unique_id=unique_id)|Q(facility_id=facility_id,patient__art_number=art_number)).order_by('date_collected')
 	ret = []
 	for s in samples:
 		ret.append({
@@ -441,8 +460,8 @@ def pat_hist(request, facility_id, art_number):
 				'other_id': s.patient.other_id,
 				'gender': s.patient.gender,
 				'dob': utils.local_date(s.patient.dob),
-				'result':"%s Copies/mL"%s.result.result_numeric,
-				'test_date':utils.local_date(s.result.test_date),
+				'result':"%s"%s.result.result_alphanumeric if hasattr(s, 'result') else '',
+				'test_date':utils.local_date(s.result.test_date) if hasattr(s, 'result') else '',
 			})
 
 	return HttpResponse(json.dumps(ret))
