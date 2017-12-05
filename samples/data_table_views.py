@@ -117,7 +117,8 @@ def vl_list_data(request):
 	r = request.GET
 	start = int(r.get('start'))
 	length = int(r.get('length'))
-	samples = Sample.objects.all()[start:start+length]
+	filter_query = __get_filter_query(r)
+	samples = Sample.objects.filter(filter_query)[start:start+length]
 	recordsTotal = Sample.objects.count()
 	data = []
 	for s in samples:
@@ -133,8 +134,8 @@ def vl_list_data(request):
 			s.patient.other_id,
 			s.facility.district.district,
 			s.facility.facility,
-			"",
-			"",			
+			__get_status(s),
+			__get_links(s),			
 			]
 			)
 
@@ -144,4 +145,45 @@ def vl_list_data(request):
 				"recordsFiltered":recordsTotal,
 				"data":data,
 				}))
+
+def __get_filter_query(r):
+	qs_params = Q()
+	search = r.get(u'search[value]', None)
+	global_search = r.get('global_search', None)
+
+	if global_search:
+		search = global_search.strip()
 		
+	if search:
+		search = search.strip()
+		f_cond = Q(facility__facility__icontains=search)
+		#h_cond = Q(facility__hub__hub__icontains=search)
+		fn_cond = Q(form_number__icontains=search)
+		loc_cond = sample_utils.locator_cond(search)
+		st_cond = Q(sample_type=search[0])
+		qs_params = f_cond | fn_cond | st_cond
+		qs_params = qs_params | loc_cond if loc_cond else qs_params
+
+	
+	verified = r.get('verified')
+	if verified=='0' or verified=='1':
+		qs_params = Q(verified=int(verified))
+	return qs_params
+
+
+def __get_status(s):
+	if hasattr(s, 'verification'):
+		return 'accepted' if s.verification.accepted else 'rejected'
+	else:
+		return 'pending'
+
+def __get_links(s):
+	show_url = "/samples/show/{0}".format(s.pk)
+	edit_url = "/samples/edit/{0}".format(s.pk)
+	links = utils.dropdown_links([
+			{"label":"view", "url":show_url},
+			{"label":"edit", "url":edit_url},
+			])
+
+	return links
+
