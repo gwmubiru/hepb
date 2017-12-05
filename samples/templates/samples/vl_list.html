@@ -1,0 +1,50 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">Samples</div>
+
+<div class="panel panel-default">
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>
+				<th style="width:50px">Form #</th>
+				<th style="width:70px">Locator ID</th>				
+				<th>Sample Type</th>				
+				<th>Date Collected</th>
+				<th>Initiation Date</th>
+				<th>Date Received</th>				
+				<th>Patient ART #</th>
+				<th>Other ID</th>
+				<th>District</th>
+				<th>Facility</th>
+				<th>Status</th>
+				<th>...</th>
+			</tr>
+		</thead>
+		
+	</table>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"serverSide": true,
+		"ajax": "/samples/vl_list/data/",
+		//"ajax": "/samples/list_json{% if global_search %}?global_search={{ global_search }}{% endif %}",
+	});
+});
+</script>
+{% endblock %}

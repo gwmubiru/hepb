@@ -24,4 +24,7 @@ urlpatterns  = [
 	url(r'^lab_techs/(?P<facility_id>[0-9]+)/$', login_required(views.lab_techs), name='lab_techs'),
 	url(r'^release_rejects/$', login_required(views.release_rejects), name='release_rejects'),
 	url(r'^intervene_list/$', login_required(views.intervene_list), name='intervene_list'),
+
+	url(r'^vl_list/$', login_required(data_table_views.vl_list), name="vl_list"),
+	url(r'^vl_list/data/$', login_required(data_table_views.vl_list_data), name="vl_list_data"),
 ]

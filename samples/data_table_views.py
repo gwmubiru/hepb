@@ -1,25 +1,14 @@
+import json
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404, redirect
 
 from .models import Sample, Envelope
 from home import utils
 import utils as sample_utils
 
 class ListJson(BaseDatatableView):
-	# <th>Facility</th>
-	# 			<th>Hub</th>
-	# 			<th>District</th>
-	# 			<th>Sample Type</th>
-	# 			<th>Form Number</th>
-	# 			<th>Locator ID</th>
-	# 			<th>Date Collected</th>
-	# 			<th>Date Received</th>
-	# 			<th>Initiation Date</th>
-	# 			<th>ART Number</th>
-	# 			<th>Other ID</th>
-	# 			<th>Verified</th>
-	# 			<th>...</th>
-
 	model = Sample
 	columns = [
 		'form_number', 'locator_position', 'sample_type', 'date_collected','treatment_initiation_date',
@@ -109,9 +98,50 @@ class VerifyListJson(BaseDatatableView):
 
 
 
-class ClassName(object):
-	"""docstring for ClassName"""
-	def __init__(self, arg):
-		super(ClassName, self).__init__()
-		self.arg = arg
+def vl_list(request):
+	return render(request, 'samples/vl_list.html')
+	# <th style="width:50px">Form #</th>
+	# <th style="width:70px">Locator ID</th>				
+	# <th>Sample Type</th>				
+	# <th>Date Collected</th>
+	# <th>Initiation Date</th>
+	# <th>Date Received</th>				
+	# <th>Patient ART #</th>
+	# <th>Other ID</th>
+	# <th>District</th>
+	# <th>Facility</th>
+	# <th>Status</th>
+	# <th>...</th>
+
+def vl_list_data(request):
+	r = request.GET
+	start = int(r.get('start'))
+	length = int(r.get('length'))
+	samples = Sample.objects.all()[start:start+length]
+	recordsTotal = Sample.objects.count()
+	data = []
+	for s in samples:
+		data.append(
+			[
+			s.form_number,
+			'{0}{1}/{2}'.format(s.locator_category, s.envelope.envelope_number, s.locator_position),
+			s.get_sample_type_display(),
+			utils.local_date(s.date_collected),
+			utils.local_date(s.treatment_initiation_date),
+			utils.local_date(s.date_received),
+			s.patient.art_number,
+			s.patient.other_id,
+			s.facility.district.district,
+			s.facility.facility,
+			"",
+			"",			
+			]
+			)
+
+	return HttpResponse(json.dumps({
+				"draw":r.get('draw'),
+				"recordsTotal":recordsTotal,
+				"recordsFiltered":recordsTotal,
+				"data":data,
+				}))
 		
