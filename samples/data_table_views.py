@@ -152,10 +152,12 @@ def __get_samples(r):
 	filter_query = __get_filter_query(r)
 
 	samples_data = Sample.objects.filter(filter_query)\
+				.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})\
 				.order_by('-envelope__envelope_number','locator_position')[start:start+length]
 
 	recordsTotal =  Sample.objects.count()
-	recordsFiltered = recordsTotal if not filter_query else Sample.objects.filter(filter_query).count()
+	recordsFiltered = recordsTotal
+	#recordsFiltered = recordsTotal if not filter_query else Sample.objects.filter(filter_query).count()
 	return {'samples_data':samples_data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 
 def __get_filter_query(r):
