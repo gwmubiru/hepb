@@ -42,6 +42,7 @@ $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
 		"serverSide": true,
+		"searching": false,
 		"ajax": "/samples/list_json{% if global_search %}?global_search={{ global_search }}{% endif %}",
 	});
 });

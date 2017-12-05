@@ -72,7 +72,7 @@ def locator_cond(search=""):
 		if "/" in search:
 			search_arr = search.split("/")
 			cond = Q(
-				envelope__envelope_number__icontains=search_arr[0][1:],
+				envelope__envelope_number__icontains=search_arr[0],
 				locator_position=search_arr[1]
 				)
 		else:

@@ -66,22 +66,24 @@ class ListJson(BaseDatatableView):
 
 		if global_search:
 			search = global_search
-		
+
+		qs_params = Q()
 		if search:
-			f_cond = Q(facility__facility__icontains=search)
+			#f_cond = Q(facility__facility__icontains=search)
 			#h_cond = Q(facility__hub__hub__icontains=search)
 			fn_cond = Q(form_number__icontains=search)
 			loc_cond = sample_utils.locator_cond(search)
-			st_cond = Q(sample_type=search[0])
-			qs_params = f_cond | fn_cond | st_cond
-			qs_params = qs_params | loc_cond if loc_cond else qs_params
-			qs = qs.filter(qs_params)
+			#st_cond = Q(sample_type=search[0])
+			qs_params = fn_cond | loc_cond if loc_cond else fn_cond
 
+		#qs_params = qs_params & Q(envelope__sample_medical_lab=utils.user_lab(self.request))
 		verified = self.request.GET.get('verified')
-		if verified=='0' or verified=='1':
-			qs = qs.filter(verified=verified)
-		return qs.filter(envelope__sample_medical_lab=utils.user_lab(self.request))\
-				.order_by('-envelope__envelope_number','locator_position')
+		qs_params = Q(verified=int(verified)) if verified=='0' or verified=='1' else qs_params
+		if qs_params:
+			return qs.filter(qs_params)
+		else:
+			return qs.all().extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('-envelope__envelope_number','lposition_int')
+		#return qs.filter(envelope__sample_medical_lab=utils.user_lab(self.request))
 		
 
 class VerifyListJson(BaseDatatableView):
@@ -151,13 +153,10 @@ def __get_samples(r):
 	length = int(r.get('length'))
 	filter_query = __get_filter_query(r)
 
-	samples_data = Sample.objects.filter(filter_query)\
-				.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})\
-				.order_by('-envelope__envelope_number','locator_position')[start:start+length]
+	samples_data = Sample.objects.filter(filter_query).order_by('-envelope__envelope_number')[start:start+length]
 
 	recordsTotal =  Sample.objects.count()
-	recordsFiltered = recordsTotal
-	#recordsFiltered = recordsTotal if not filter_query else Sample.objects.filter(filter_query).count()
+	recordsFiltered = recordsTotal if not filter_query else Sample.objects.filter(filter_query).count()
 	return {'samples_data':samples_data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 
 def __get_filter_query(r):
@@ -175,7 +174,8 @@ def __get_filter_query(r):
 		fn_cond = Q(form_number__icontains=search)
 		loc_cond = sample_utils.locator_cond(search)
 		#st_cond = Q(sample_type=search[0])
-		qs_params = fn_cond | loc_cond if loc_cond else fn_cond
+		#qs_params = fn_cond | loc_cond if loc_cond else fn_cond
+		qs_params = fn_cond
 
 	
 	verified = r.get('verified')
