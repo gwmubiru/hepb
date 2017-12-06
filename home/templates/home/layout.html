@@ -42,8 +42,7 @@
     
     <!-- page specific stylesheets -->
                 
-        <!-- main stylesheet -->
-       
+        <!-- main stylesheet -->      
         
        
     </head>
@@ -281,7 +280,11 @@
 
         <script type="text/javascript">
         $(function() {
-             $(".search_link").click(function(){
+            window.setTimeout(function(){
+                window.location.href = "{% url 'logout' %}";
+            }, 900000);
+
+            $(".search_link").click(function(){
                 var link = $(this).attr("href");
                 var section = $(this).attr("section");
                 var search_val = $("#search_id").val();

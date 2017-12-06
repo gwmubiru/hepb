@@ -119,6 +119,8 @@ def create(request):
 				past_regimen.save()
 
 			return redirect('/samples/create?saved_sample=%s' %sample.pk)
+		else:
+			sample_form.add_error('form_number', 'Saving failed')
 	else:
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
 		clinician_form = ClinicianForm
