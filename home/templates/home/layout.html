@@ -72,6 +72,7 @@
                         <ul class="dropdown-menu dropdown-menu-left" id="search-list" >
                             <li ><a class="search_link" section ="samples" href="{% url 'samples:search' %}" >Sample</a></li>
                             <li ><a class="search_link" section ="verify" href="{% url 'samples:search' %}" >Verify</a></li>
+                            <li ><a class="search_link" section ="verify_env" href="{% url 'samples:search' %}" >Verify Envelope</a></li>
                             <li ><a class="search_link" section ="worksheets" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
                            <!--  <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li> -->
                         </ul>                        
@@ -286,6 +287,8 @@
                 var extras = "";
                 if(section=='verify'){
                     extras = "&approvals=1";
+                }else if(section=='verify_env'){
+                    extras = "&approvals=1&search_env=1";
                 }
                 //alert(extras);
                 window.location.href = link+"?search_val="+search_val+""+extras;

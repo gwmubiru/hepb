@@ -510,12 +510,17 @@ def search(request):
 	cond = Q()
 	search = request.GET.get('search_val')
 	approvals = request.GET.get('approvals')
+	search_env = request.GET.get('search_env')
 	if search:
 		search = search.strip()
-		fn_cond = Q(form_number__icontains=search)
-		loc_cond = sample_utils.locator_cond(search)
-		cond = fn_cond | loc_cond if loc_cond else fn_cond
-		samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+		if search_env:
+			env = Envelope.objects.filter(sample_utils.env_cond(search)).first()
+			samples = Sample.objects.filter(envelope=env)[:300]
+		else:
+			fn_cond = Q(form_number__icontains=search)
+			loc_cond = sample_utils.locator_cond(search)
+			cond = fn_cond | loc_cond if loc_cond else fn_cond
+			samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
 	else:
 		samples = None
 	return render(request, 'samples/search.html', {'samples':samples, 'approvals':approvals})

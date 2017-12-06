@@ -80,3 +80,18 @@ def locator_cond(search=""):
 	except:
 		pass
 	return cond
+
+def env_cond(search=""):
+	cond = False
+	try:
+		if search[0] == 'R' or search[0] =='V':
+			search = search[1:]
+
+		if "/" in search:
+			search_arr = search.split("/")
+			cond = Q(envelope_number=search_arr[0])
+		else:
+			cond = Q(envelope_number=search)
+	except:
+		pass
+	return cond
