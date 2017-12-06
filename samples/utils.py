@@ -11,7 +11,7 @@ def locator_id_exists(data, sample_id=None):
 	if env:
 		fltr = Q(envelope=env,locator_position=data.get('locator_position'))
 		fltr = ~Q(pk=sample_id) & fltr if sample_id else fltr
-		loc_exists = Sample.objects.filter(fltr).exists()
+		loc_exists = Sample.objects.filter(fltr).first()
 	return loc_exists
 
 def initiation_date_valid(data):

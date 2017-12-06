@@ -53,8 +53,12 @@ def create(request):
 		if not pst.get('treatment_initiation_date') and not null_treatment_initiation_date:
 			sample_form.add_error('treatment_initiation_date', 'Date is blank')
 
-		if sample_utils.locator_id_exists(request.POST):
-			sample_form.add_error('locator_position', 'Duplicate Locator ID')
+		loc_exists = sample_utils.locator_id_exists(request.POST)
+
+		if loc_exists:
+			loc_by = loc_exists.created_by
+			loc_on = loc_exists.created_at
+			sample_form.add_error('locator_position', 'Locator ID already created by %s on %s'%(loc_by,loc_on))
 		elif not sample_utils.initiation_date_valid(request.POST):
 			sample_form.add_error('treatment_initiation_date', 'Initiation date can not be < DoB')
 		elif valid_patient and valid_phone and valid_envelope and valid_sample and valid_clinician and valid_lab_tech and valid_dr and valid_past_regimens:
@@ -115,9 +119,6 @@ def create(request):
 				past_regimen.save()
 
 			return redirect('/samples/create?saved_sample=%s' %sample.pk)
-		else:
-			sample_form.add_error('locator_category', 'Form saving failed')
-
 	else:
 		envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
 		clinician_form = ClinicianForm
