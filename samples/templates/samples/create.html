@@ -488,6 +488,10 @@
     		maxYear: date_now.getFullYear(),
     	});
 
+    	$(".day").each(function( index ) {
+    		$(this).find(":selected").prependTo($(this));
+    	});
+
     	$("#id_locator_position").change(function(){
     		var val = $(this).val();
     		$(this).val(pad(val, 2, '0', 1));
