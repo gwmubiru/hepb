@@ -515,7 +515,7 @@ def search(request):
 		search = search.strip()
 		if search_env:
 			env = Envelope.objects.filter(sample_utils.env_cond(search)).first()
-			samples = Sample.objects.filter(envelope=env)[:300]
+			samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
 		else:
 			fn_cond = Q(form_number__icontains=search)
 			loc_cond = sample_utils.locator_cond(search)
