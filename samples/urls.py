@@ -27,4 +27,6 @@ urlpatterns  = [
 
 	url(r'^vl_list/$', login_required(data_table_views.vl_list), name="vl_list"),
 	url(r'^vl_list/data/$', login_required(data_table_views.vl_list_data), name="vl_list_data"),
+
+	url(r'^search/$', login_required(views.search), name='search'),
 ]

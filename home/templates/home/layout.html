@@ -70,10 +70,10 @@
                     <li class="top_links" id="search-sect">
                         <input id="search_id" type="text" class="form-control input-sm" placeholder="Search...">
                         <ul class="dropdown-menu dropdown-menu-left" id="search-list" >
-                            <li ><a class="search_link" href="{% url 'samples:list' %}" >Sample</a></li>
-                            <li ><a class="search_link" href="{% url 'samples:verify_list' %}" >Verify</a></li>
-                            <li ><a class="search_link" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
-                            <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li>
+                            <li ><a class="search_link" section ="samples" href="{% url 'samples:search' %}" >Sample</a></li>
+                            <li ><a class="search_link" section ="verify" href="{% url 'samples:search' %}" >Verify</a></li>
+                            <li ><a class="search_link" section ="worksheets" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
+                           <!--  <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li> -->
                         </ul>                        
                     </li>
                     
@@ -159,7 +159,14 @@
                                            {% quick_stats request 'approvals' 'all' 'all' 'pending' %}
                                         </span>
                                     </a></li>
-                                <li><a href="/samples/verify_list?verified=1"> Completed</a></li>
+                                <li>
+                                    <a href="/samples/verify_list?verified=1"> 
+                                        Completed
+                                        <span class="badge badge-default">
+                                           {% quick_stats request 'approvals' 'all' 'all' 'completed' %}
+                                        </span>
+                                    </a>
+                                </li>
                                 
                             </ul>
                         </div>
@@ -245,10 +252,6 @@
                 </li>
                 {% endif %}
 
-                <li>
-                    <a href="#"><span class="ion-clipboard"></span> <span class="nav_title">Reports</span></a>
-                </li>
-
             </ul>
         </nav>
         
@@ -278,8 +281,14 @@
         $(function() {
              $(".search_link").click(function(){
                 var link = $(this).attr("href");
+                var section = $(this).attr("section");
                 var search_val = $("#search_id").val();
-                window.location.href = link+"?search_val="+search_val;
+                var extras = "";
+                if(section=='verify'){
+                    extras = "&approvals=1";
+                }
+                //alert(extras);
+                window.location.href = link+"?search_val="+search_val+""+extras;
                 return false;
                 //return window.location.assign(link+"?search_val="+search_val);
              }); 

@@ -1,0 +1,152 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">Samples</div>
+
+<div class="panel panel-default">
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>
+				<th>#</th>
+				<th style="width:50px">Form #</th>
+				<th style="width:70px">Locator ID</th>				
+				<th>Sample Type</th>				
+				<th>Date Collected</th>
+				<th>Initiation Date</th>
+				<th>Date Received</th>				
+				<th>Patient ART #</th>
+				<th>Other ID</th>
+				<th>District</th>
+				<th>Facility</th>
+				<th>Status</th>
+				<th>...</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for s in samples %}
+			<tr>
+				<td>{{ s.lposition_int }}</td>
+				<td>{{ s.form_number }}</td>
+				<td>{{s.locator_category}}{{s.envelope.envelope_number}}/{{s.locator_position}}</td>				
+				<td>{{ s.get_sample_type_display }}</td>				
+				<td>{{ s.date_collected | date:"Y-m-d" }}</td>
+				<td>{{ s.treatment_initiation_date | date:"Y-m-d"}}</td>
+				<td>{{ s.date_received | date:"Y-m-d"}}</td>				
+				<td>{{ s.patient.art_number }}</td>
+				<td>{{ s.patient.other_id }}</td>
+				<td>{{ s.facility.district }}</td>
+				<td>{{ s.facility }}</td>
+				<td>
+					{% if s.verified %} 
+						<span style="display:none" id="verify_details{{ s.pk }}">
+							<table class="table table-bordered table-condensed">
+								<tr>
+									<td><b>Verified by:</b></td>
+									<td>{{ s.verification.verified_by}}</td>
+								</tr>
+								<tr>
+									<td><b>On:</b></td>
+									<td>{{ s.verification.created_at | date:'Y-m-d'}}</td>
+								</tr>
+								<tr>
+									<td><b>Status:</b></td>
+									<td>
+										{% if s.verification.accepted %} accepted {% else %} rejected {% endif %}
+									</td>
+								</tr>
+								{% if not s.verification.accepted %}
+								<tr>
+									<td><b>Rejection reason:</b></td>
+									<td>{{ s.verification.rejection_reason.appendix }}</td>
+								</tr>
+								{% endif %}
+								{% if approvals %} 
+								<tr>
+									<td colspan=2><a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">change</a>
+									</td></tr>
+								{% endif %}
+							</table>								
+						</span>
+						<button type="button" class="btn btn-xs btn-danger approved" data-toggle="modal" data-target="#myModal" sample_id="{{ s.pk }}">
+							{% if s.verification.accepted %} accepted {% else %} rejected {% endif %}
+						</button>
+					{% else %} 
+						pending 
+					{% endif %} 
+				</td>
+				<td>
+					{% if approvals %} 
+						{% if s.verified %} 
+							<button type="button" class="btn btn-xs btn-danger approved" data-toggle="modal" data-target="#myModal" sample_id="{{ s.pk }}">approved</button>
+						{% else %} 
+							<a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">approve</a>
+						{% endif %} 
+					{% else %} 
+						<div class="btn-group">
+							<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+								Options 
+								<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu" role="menu">
+								<li>
+									<a href="/samples/show/{{ s.pk }}">view</a>
+								</li>
+								<li><a href="/samples/edit/{{ s.pk }}">edit</a></li>
+							</ul>
+						</div>
+					{% endif %} 
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		
+	</table>
+</div>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Approval Details</h4>
+      </div>
+      <div class="modal-body">
+        <p id="approval_details"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"paging":false,
+	});
+
+	$(".approved").click(function(){
+		var sample_id = $(this).attr('sample_id');
+		$("#approval_details").html($("#verify_details"+sample_id).html());		
+	});
+});
+</script>
+{% endblock %}

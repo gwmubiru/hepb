@@ -50,6 +50,7 @@ class ListJson(BaseDatatableView):
 		elif column == 'pk':
 			if verified:
 				links = "<a class='btn btn-xs btn-danger' href='%s'>approve</a>" %verify_url
+				links = "approved" if verified =="1" else links
 			else:
 				links = utils.dropdown_links([
 					{"label":"view", "url":show_url},

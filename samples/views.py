@@ -506,6 +506,20 @@ def intervene_list(request):
 	intervene_rejects = RejectedSamplesRelease.objects.filter(released=False)[:500]
 	return render(request, 'samples/intervene_list.html', {'intervene_rejects':intervene_rejects})
 
+def search(request):
+	cond = Q()
+	search = request.GET.get('search_val')
+	approvals = request.GET.get('approvals')
+	if search:
+		search = search.strip()
+		fn_cond = Q(form_number__icontains=search)
+		loc_cond = sample_utils.locator_cond(search)
+		cond = fn_cond | loc_cond if loc_cond else fn_cond
+		samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+	else:
+		samples = None
+	return render(request, 'samples/search.html', {'samples':samples, 'approvals':approvals})
+
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""
 	data_quality = {}

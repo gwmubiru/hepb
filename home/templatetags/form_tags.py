@@ -72,6 +72,26 @@ def check_list(val="", choices="{}"):
 	return ret
 
 @register.simple_tag
+def dropdown_links(links={}):
+	links = ast.literal_eval(links)
+	ret = """<div class="btn-group">
+				<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+					Options 
+					<span class="caret"></span>
+				</button>
+				<ul class="dropdown-menu" role="menu">
+					%s
+				</ul>
+			</div>"""
+
+	links_str = ""
+	for link in links:
+		li = "<li><a href='%s'>%s</a></li>" %(link.get('url'), link.get('label'))
+		links_str = links_str + li
+
+	return mark_safe(ret %links_str)
+
+@register.simple_tag
 def quick_stats(request, contenttype, when='today', who='me', extra=''):
 	#quick_stats request 'samples' 'all' 'all'
 	#when: today, this_month, last_month, all
@@ -101,6 +121,8 @@ def quick_stats(request, contenttype, when='today', who='me', extra=''):
 	elif contenttype == 'approvals':
 		if extra=='pending':
 			quick_stat = Sample.objects.filter(who_fltr,when_fltr,Q(verified=False)).count()
+		elif extra=='completed':
+			quick_stat = Sample.objects.filter(who_fltr,when_fltr,Q(verified=True)).count()
 		else:
 			quick_stat = Verification.objects.filter(who_fltr,when_fltr).count()
 	return quick_stat
@@ -126,3 +148,5 @@ def quick_stats(request, contenttype, when='today', who='me', extra=''):
 # 		if verified=='0' or verified=='1':
 # 			qs = qs.filter(verified=verified)
 # 		return qs.filter(envelope__sample_medical_lab=utils.user_lab(self.request))
+
+
