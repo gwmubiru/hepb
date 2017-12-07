@@ -356,6 +356,10 @@ def verify_envelope(request, envelope_id):
 	ret=[]
 	for s in samples:
 		facility = s.facility if hasattr(s, 'facility') else ''
+		hub = facility.hub if hasattr(facility, 'hub') else ''
+		hub_name = hub.hub if hasattr(hub, 'hub') else ''
+		district = facility.district if hasattr(facility, 'district') else ''
+		district_name = district.district if hasattr(district, 'district') else ''
 		ret.append({
 				'patient_id': s.patient.id,
 				'sample_id': s.id,
@@ -369,8 +373,8 @@ def verify_envelope(request, envelope_id):
 				'sample_type':s.sample_type,
 				'facility_id': str(s.facility_id),
 				'facility_name': facility.facility if hasattr(facility, 'facility') else '',
-				'district': facility.district.district if hasattr(facility, 'district') else '',
-				'hub': facility.hub.hub if hasattr(facility, 'hub') else '',
+				'district': district_name,
+				'hub': hub_name,
 				'date_collected': utils.local_date(s.date_collected),
 				'art_number': s.patient.art_number,
 				'other_id': s.patient.other_id,
