@@ -355,6 +355,7 @@ def verify_envelope(request, envelope_id):
 
 	ret=[]
 	for s in samples:
+		facility = s.facility if hasattr(s, 'facility') else ''
 		ret.append({
 				'patient_id': s.patient.id,
 				'sample_id': s.id,
@@ -367,9 +368,9 @@ def verify_envelope(request, envelope_id):
 				'form_number': s.form_number,
 				'sample_type':s.sample_type,
 				'facility_id': str(s.facility_id),
-				'facility_name': s.facility.facility,
-				'district': s.facility.district.district if hasattr(s.facility, 'district') else '',
-				'hub': s.facility.hub.hub if hasattr(s.facility, 'hub') else '',
+				'facility_name': facility.facility if hasattr(facility, 'facility') else '',
+				'district': facility.district.district if hasattr(facility, 'district') else '',
+				'hub': facility.hub.hub if hasattr(facility, 'hub') else '',
 				'date_collected': utils.local_date(s.date_collected),
 				'art_number': s.patient.art_number,
 				'other_id': s.patient.other_id,
