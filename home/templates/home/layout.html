@@ -57,21 +57,12 @@
                         
                     </a>
                 </div>
-                <!-- <ul class="top_links">
-                    <li>
-                        <a href="tasks_summary.html"><span>23</span>Tasks</a>
-                    </li>
-                    <li>
-                        <a href="mail_inbox.html"><span>8</span>Mails</a>
-                    </li>
-                </ul> -->
                 <ul class="nav navbar-nav navbar-right">
                     <li class="top_links" id="search-sect">
                         <input id="search_id" type="text" class="form-control input-sm" placeholder="Search...">
                         <ul class="dropdown-menu dropdown-menu-left" id="search-list" >
                             <li ><a class="search_link" section ="samples" href="{% url 'samples:search' %}" >Sample</a></li>
                             <li ><a class="search_link" section ="samples_env" href="{% url 'samples:search' %}" >Envelope</a></li>
-                            <!-- <li ><a class="search_link" section ="verify" href="{% url 'samples:search' %}" >Verify sample(s)</a></li> -->
                             <li ><a class="search_link" section ="verify_env" href="{% url 'samples:search' %}" >Verify Envelope</a></li>
                             <li ><a class="search_link" section ="worksheets" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
                            <!--  <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li> -->
@@ -84,10 +75,6 @@
                             <span class="navbar_el_icon ion-person"></span> {{ request.user.username }} <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right">
-                            <!-- <li><a href="#">Profile</a></li>
-                            <li><a href="#">My messages</a></li>
-                            <li><a href="#">My tasks</a></li> -->
-                           <!--  <li class="divider"></li> -->
                             <li><a href="{% url 'password_change' %}">Change password</a></li>
                             <li><a href="{% url 'logout' %}">Log Out</a></li>
                         </ul>
@@ -282,7 +269,7 @@
         $(function() {
             window.setTimeout(function(){
                 window.location.href = "{% url 'logout' %}";
-            }, 900000);
+            }, 3600000);
 
             $(".search_link").click(function(){
                 var link = $(this).attr("href");
