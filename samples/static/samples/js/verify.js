@@ -45,22 +45,30 @@ ctrller.VerifyController = function($scope,$http){
 				$("#success").css("display","block");
 				setTimeout(function(){
 					$("#success").slideUp( "slow");
-				},1000);			
+				},1000);		
 			}else{
 				alert("verifying failed, reason:"+response);
 				$scope.sample = $scope.vdata[$scope.current_index];
 			}
-
 		});
 	}
 
+	$scope.skip = function(){
+		$scope.sample = $scope.vdata[$scope.nxt_sample];
+		$scope.move();
+	}
+
 	$scope.move = function(){
+		if($scope.nxt_sample==0){
+			$('#myModal').modal('show');
+		}
 		$scope.vdata[$scope.current_index].current = '';
 		$scope.vdata[$scope.nxt_sample].current = 'active';
 		$scope.current_index = $scope.nxt_sample;
 		$scope.nxt_sample += 1;
 		$scope.nxt_sample = $scope.nxt_sample==$scope.vdata.length?0:$scope.nxt_sample;
 		$scope.patHist();
+
 		//console.log("next sample:"+$scope.nxt_sample)
 	}
 
@@ -83,7 +91,7 @@ ctrller.VerifyController = function($scope,$http){
 
 	$scope.patHist = function(){
 		$scope.patient_history=[];
-		$http.get("/samples/patient_history/"+$scope.sample.facility_id+"/"+$scope.sample.art_number+"/").success(function(data){
+		$http.get("/samples/patient_history/"+$scope.sample.facility_id+"/?art_number="+$scope.sample.art_number).success(function(data){
 			$scope.patient_history = data;
 		});		
 	}

@@ -21,7 +21,8 @@
 			<tr>
 				<th>#</th>
 				<th style="width:50px">Form #</th>
-				<th style="width:70px">Locator ID</th>				
+				<th style="width:70px">Locator ID</th>	
+				<th>Pos</th>			
 				<th>Sample Type</th>				
 				<th>Date Collected</th>
 				<th>Initiation Date</th>
@@ -37,9 +38,10 @@
 		<tbody>
 			{% for s in samples %}
 			<tr>
-				<td>{{ s.lposition_int }}</td>
+				<td>{{ forloop.counter }}</td>				
 				<td>{{ s.form_number }}</td>
-				<td>{{s.locator_category}}{{s.envelope.envelope_number}}/{{s.locator_position}}</td>				
+				<td>{{s.locator_category}}{{s.envelope.envelope_number}}/{{s.locator_position}}</td>	
+				<td>{{ s.lposition_int }}</td>			
 				<td>{{ s.get_sample_type_display }}</td>				
 				<td>{{ s.date_collected | date:"Y-m-d" }}</td>
 				<td>{{ s.treatment_initiation_date | date:"Y-m-d"}}</td>
@@ -141,6 +143,7 @@ $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
 		"paging":false,
+		"order": [[ 3, "asc" ]],
 	});
 
 	$(".approved").click(function(){

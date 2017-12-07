@@ -51,12 +51,122 @@
         <header class="navbar navbar-fixed-top" role="banner">
             <div class="container-fluid">
                 <div class="navbar-header">
-                    <a href="{% url 'home_page' %}" >
+                   
                         <img src='{% static "home/images/logo.png" %}' >                        
-                        <span id='main-link'>Viral Load LIMS</span>
+                        <span id='main-link'>VL LIMS</span>
                         
-                    </a>
+                   
                 </div>
+
+                <ul class="nav navbar-nav navbar-left">
+
+                    <li><a href="{% url 'home_page' %}"><span class="vl-menu-items">Home</span></a></li>
+                    {% if perms.samples %}
+                    <li class="user_menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                           
+                            <span class="vl-menu-items">Samples</span><span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-right">
+                            
+                            <li><a href="{% url 'samples:create' %}">Create</a></li>
+                            <li><a href="{% url 'samples:list' %}">List</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    {% if perms.samples.add_verification %}
+                     <li class="user_menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                           
+                            <span class="vl-menu-items">Approvals<span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-right">
+                            <li>
+                                <a href="/samples/verify_list?verified=0"> 
+                                    Pending 
+                                    <span class="badge badge-default">
+                                       {% quick_stats request 'approvals' 'all' 'all' 'pending' %}
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/samples/verify_list?verified=1"> 
+                                    Completed
+                                    <span class="badge badge-default">
+                                       {% quick_stats request 'approvals' 'all' 'all' 'completed' %}
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
+                    {% if perms.worksheets %}
+                    <li class="user_menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="vl-menu-items">Lab</span>
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-right">
+                       
+                            <li class="dropdown-headers">Set Reagent Info</li>
+                            <li><a href="{% url 'worksheets:reg_info' 'A' %}">For Abbott</a></li>
+                            <li><a href="{% url 'worksheets:reg_info' 'R' %}">For Roche CAP/CTM</a></li>
+                            <li><a href="{% url 'worksheets:reg_info' 'C' %}">For Cobas 8800</a></li>
+                            <li class="dropdown-headers">Create worksheet</li>
+                            <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
+                            <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
+                            <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
+                            <li class="dropdown-headers">Upload Result</li>
+                            <li><a href="/worksheets/list/?type=A">For Abbott</a></li>
+                            <li><a href="/worksheets/list/?type=R">For Roche CAP/CTM</a></li>
+                            <li><a href="/results/cobas_upload/?type=C">For Cobas 8800</a></li>
+                            <li class="dropdown-headers">Lists</li>
+                            <li><a href="{% url 'worksheets:list' %}">View all</a></li> 
+                        </ul>
+                    </li>
+                    {% endif %}
+                    {% if perms.results %}
+                    <li class="user_menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="vl-menu-items">Results Auth</span>
+                            <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-right">
+                            <li><a href="{% url 'worksheets:authorize_list' 'A' %}">For Abbott</a></li>
+                            <li><a href="{% url 'worksheets:authorize_list' 'R' %}">For Roche CAP/CTM</a></li>
+                            <li><a href="{% url 'worksheets:authorize_list' 'C' %}">For Cobas 8800</a></li>
+                        </ul>
+                    </li>
+                    <li>
+                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="vl-menu-items">Results Release</span>
+                            <span class="caret"></span>
+                        </a> 
+                         <ul class="dropdown-menu dropdown-menu-right">
+                            <li><a href="{% url 'results:release_list' 'A' %}">For Abbott</a></li>
+                            <li><a href="{% url 'results:release_list' 'R' %}">For Roche CAP/CTM</a></li>
+                            <li><a href="{% url 'results:release_list' 'C' %}">For Cobas 8800</a></li>
+                            <li><a href="{% url 'samples:release_rejects' %}">Rejected samples</a></li>
+                         </ul> 
+                     </li>
+                     <li>
+                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="vl-menu-items">Intervention</span>
+                            <span class="caret"></span>
+                        </a> 
+                         <ul class="dropdown-menu dropdown-menu-right">
+                            <li><a href="{% url 'results:intervene_list' %}">Results</a></li>
+                            <li><a href="{% url 'samples:intervene_list' %}">Rejected samples</a></li>  
+                         </ul> 
+                     </li>
+                {% endif %}
+                    
+                </ul>
+
+
+               
                 <ul class="nav navbar-nav navbar-right">
                     <li class="top_links" id="search-sect">
                         <input id="search_id" type="text" class="form-control input-sm" placeholder="Search...">
@@ -99,155 +209,13 @@
                 </div>
             </div>      
         </div>
-
-        <!-- side navigation -->
-        <nav id="side_nav">
-            <ul>
-                <li>
-                    <a href="{% url 'home_page' %}"><span class="ion-home"></span> <span class="nav_title">Home</span></a>
-                </li>
-                {% if perms.samples %}
-                <li>
-                    <a href="#">
-                        <span class="label label-success">{% quick_stats request 'samples' %}</span>
-                        <span class="ion-ios7-albums-outline"></span>
-                        <span class="nav_title">Samples</span>
-                    </a>
-                    <div class="sub_panel">
-                        <div class="side_inner">
-                            <h4 class="panel_heading panel_heading_first">Sample Data</h4>
-                            <ul>
-                                <!-- <li><a href="tasks_summary.html"><span class="side_icon ion-ios7-folder-outline"></span><span class="badge badge-primary">7</span> Summary</a></li> -->
-                                <li><a href="{% url 'samples:create' %}"> Create</a></li>
-                                <li><a href="{% url 'samples:list' %}"> List</a></li>
-                                
-                            </ul>
-                        </div>
-                    </div>
-                </li>
-                {% endif %}
-
-                {% if perms.samples.add_verification %}
-                <li>
-                    <a href="#">
-                        <span class="label label-success">{% quick_stats request 'approvals' %}</span>
-                        <span class="ion-ios7-checkmark-outline"></span>
-                        <span class="nav_title">Approvals</span>
-                    </a>
-                    <div class="sub_panel">
-                        <div class="side_inner">
-                           
-                            <h4 class="panel_heading panel_heading_first">Sample Approvals</h4>
-                            <ul>
-                                <!-- <li><a href="tasks_summary.html"><span class="side_icon ion-ios7-folder-outline"></span><span class="badge badge-primary">7</span> Summary</a></li> -->
-                                <li>
-                                    <a href="/samples/verify_list?verified=0"> 
-                                        Pending 
-                                        <span class="badge badge-default">
-                                           {% quick_stats request 'approvals' 'all' 'all' 'pending' %}
-                                        </span>
-                                    </a></li>
-                                <li>
-                                    <a href="/samples/verify_list?verified=1"> 
-                                        Completed
-                                        <span class="badge badge-default">
-                                           {% quick_stats request 'approvals' 'all' 'all' 'completed' %}
-                                        </span>
-                                    </a>
-                                </li>
-                                
-                            </ul>
-                        </div>
-                    </div>
-                </li>
-                {% endif %}
-
-                {% if perms.worksheets %}
-                <li>
-                    <a href="#">
-                        <span class="ion-beaker"></span>
-                        <span class="nav_title">Lab</span>
-                    </a>
-                    <div class="sub_panel">
-                        <div class="side_inner">
-                            <h4 class="panel_heading panel_heading_first">Reagent Info</h4>
-                            <ul>                                
-                                <li><a href="{% url 'worksheets:reg_info' 'A' %}">For Abbott</a></li>
-                                <li><a href="{% url 'worksheets:reg_info' 'R' %}">For Roche CAP/CTM</a></li>
-                                <li><a href="{% url 'worksheets:reg_info' 'C' %}">For Cobas 8800</a></li>
-                            </ul>
-                            
-                            <h4 class="panel_heading panel_heading_first">Worksheet Creation</h4>
-                            <ul>                                
-                                <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
-                                <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
-                                <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
-                            </ul>
-                            <ul style="margin-top:10px;"><li><a href="{% url 'worksheets:list' %}">List worksheets</a></li></ul>
-                             <h4 class="panel_heading panel_heading_first">Upload Results</h4>
-                            <ul>                                
-                                <li><a href="/worksheets/list/?type=A">For Abbott</a></li>
-                                <li><a href="/worksheets/list/?type=R">For Roche CAP/CTM</a></li>
-                                <li><a href="/results/cobas_upload/?type=C">For Cobas 8800</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </li>
-                {% endif %}
-
-                {% if perms.results %}
-                 <li>
-                    <a href="#">
-                        <span class="ion-key"></span>
-                        <span class="nav_title">Results Auth</span>
-                    </a>
-                    <div class="sub_panel">
-                        <div class="side_inner">
-                            <h4 class="panel_heading panel_heading_first">Authorize Results</h4>
-                            <ul>                                
-                                <li><a href="{% url 'worksheets:authorize_list' 'A' %}">For Abbott</a></li>
-                                <li><a href="{% url 'worksheets:authorize_list' 'R' %}">For Roche CAP/CTM</a></li>
-                                <li><a href="{% url 'worksheets:authorize_list' 'C' %}">For Cobas 8800</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </li>
-                
-                <li>
-                    <a href="#">
-                        <span class="ion-ios7-email-outline"></span>
-                        <span class="nav_title">Results</span>
-                    </a>
-                    <div class="sub_panel">
-                        <div class="side_inner">
-                            <h4 class="panel_heading panel_heading_first">Release Results</h4>
-                            <ul>
-                                <li><a href="{% url 'results:release_list' 'A' %}">For Abbott</a></li>
-                                <li><a href="{% url 'results:release_list' 'R' %}">For Roche CAP/CTM</a></li>
-                                <li><a href="{% url 'results:release_list' 'C' %}">For Cobas 8800</a></li>
-                            </ul>
-
-                            <ul style="margin-top:10px;"><li><a href="{% url 'samples:release_rejects' %}">Release rejected samples</a></li></ul>
-
-                            <h4 class="panel_heading panel_heading_first">Intervention</h4>
-                            <ul>
-                                <li><a href="{% url 'results:intervene_list' %}">Results</a></li>
-                                <li><a href="{% url 'samples:intervene_list' %}">Rejected samples</a></li>                 
-                            </ul>
-
-                        </div>
-                    </div>                            
-                </li>
-                {% endif %}
-
-            </ul>
-        </nav>
-        
-        <!-- common functions -->
         <script src='{% static "home/tisa-admin/assets/js/tisa_common.js"%}'></script>
         
       
         <style type="text/css">
+        #main_wrapper{
+            margin-left: 20px;
+        }
         #main-link{
             vertical-align: bottom;
             font-size: 20px;
@@ -263,6 +231,17 @@
             font-size: 20px;
         }
 
+        .dropdown-headers{
+            color:#A9CFF5;
+            padding-left:5px;
+            text-transform: uppercase;
+        }
+
+        .vl-menu-items{
+            text-transform: uppercase;
+        }
+
+       
         </style>
 
         <script type="text/javascript">
