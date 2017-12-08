@@ -14,32 +14,18 @@ ctrller.VerifyController = function($scope,$http){
 	$http.get("/samples/verify_envelope/"+envelope_id).success(function(data){
 		$scope.vdata=data;
 		$scope.selectSample(sample_id);
-		$scope.patHist();
-		//console.log("we got this"+JSON.stringify(data));
-		
-		// $scope.sample=data[0];
-		// $scope.nxt_sample=1;
-		
-		/*$('#gender').val($scope.sample.gender);
-		$('#locator_category').val($scope.sample.locator_category);
-		$('#facility_id').val($scope.sample.facility_id);*/
-		
+		$scope.patHist();		
 	});
 
 
 
 	$scope.saveVerification= function(){
-		//console.log(JSON.stringify($scope.sample));
-		//$http.get("/samples/save_verify?"+$scope.sample)
-		//$scope.sample.facility_id = $scope.facility_id;
 		if($scope.sample.accepted=='0'){
 			$scope.sample.rejection_reason_id = $('#rejection_reason_id').val();
 		}
 
 		 $http({method:'GET',url:"/samples/save_verify",params:$scope.sample}).success(function(response) {
-			//console.log(response);
 			if(response=="saved"){
-				//alert("Saved successfully");
 				$scope.sample = $scope.vdata[$scope.nxt_sample];
 				$scope.move();
 				$("#success").css("display","block");
@@ -60,7 +46,8 @@ ctrller.VerifyController = function($scope,$http){
 
 	$scope.move = function(){
 		if($scope.nxt_sample==0){
-			$('#myModal').modal('show');
+			//$('#myModal').modal('show');
+			 window.location.href = "/samples/search/?search_val="+$scope.sample.envelope_number+"&approvals=1&env_complete=1"
 		}
 		$scope.vdata[$scope.current_index].current = '';
 		$scope.vdata[$scope.nxt_sample].current = 'active';

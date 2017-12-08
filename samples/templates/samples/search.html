@@ -13,9 +13,14 @@
 
 {% block content %}	
 
-<div class="page-title">Samples</div>
+<span class="page-title">Samples</span>
 
 <div class="panel panel-default">
+	{%if request.GET.env_complete %}
+	<span id="completed" class="alert alert-success vl-alert" role="alert">
+		You reached end of envelope
+	</span>
+	{% endif %}
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
 		<thead>
 			<tr>
