@@ -29,4 +29,7 @@ urlpatterns  = [
 	url(r'^vl_list/data/$', login_required(data_table_views.vl_list_data), name="vl_list_data"),
 
 	url(r'^search/$', login_required(views.search), name='search'),
+
+	url(r'^envelope_list/$', login_required(views.envelope_list), name="envelope_list"),
+	url(r'^envelope_list_json/$', login_required(data_table_views.envelope_list_json), name='envelope_list_json'),
 ]

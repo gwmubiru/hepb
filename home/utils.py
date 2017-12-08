@@ -57,6 +57,16 @@ def local_date(date_val, format = "%d-%b-%Y"):
 
 	return ret;
 
+def local_datetime(date_val, format = "%d-%b-%Y"):
+	format = "%Y-%m-%d %H:%M:%S"
+	ret = ''
+	try:
+		ret = date_val.strftime(format)
+	except:
+		ret = ''
+
+	return ret;
+
 def dictfetchall(cursor):
 	"Return all rows from a cursor as a dict"
 	columns = [col[0] for col in cursor.description]

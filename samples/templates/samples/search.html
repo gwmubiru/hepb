@@ -55,14 +55,6 @@
 						<span style="display:none" id="verify_details{{ s.pk }}">
 							<table class="table table-bordered table-condensed">
 								<tr>
-									<td><b>Verified by:</b></td>
-									<td>{{ s.verification.verified_by}}</td>
-								</tr>
-								<tr>
-									<td><b>On:</b></td>
-									<td>{{ s.verification.created_at | date:'Y-m-d'}}</td>
-								</tr>
-								<tr>
 									<td><b>Status:</b></td>
 									<td>
 										{% if s.verification.accepted %} accepted {% else %} rejected {% endif %}
@@ -72,8 +64,22 @@
 								<tr>
 									<td><b>Rejection reason:</b></td>
 									<td>{{ s.verification.rejection_reason.appendix }}</td>
-								</tr>
+								</tr>							
 								{% endif %}
+
+								<tr>
+									<td><b>Approved by:</b></td>
+									<td>{{ s.verification.verified_by}}</td>
+								</tr>
+								<tr>
+									<td><b>Approved on:</b></td>
+									<td>{{ s.verification.created_at | date:'Y-m-d'}}</td>
+								</tr>	
+
+								<tr>
+									<td><b>Created by:</b></td>
+									<td>{{ s.created_by}}</td>
+								</tr>
 								{% if approvals %} 
 								<tr>
 									<td colspan=2><a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">change</a>

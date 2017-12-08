@@ -1,6 +1,7 @@
 import json
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
+from django.db import models
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
@@ -100,21 +101,57 @@ class VerifyListJson(BaseDatatableView):
 			return super(VerifyListJson, self).render_column(row, column)
 
 
+# class EnvelopeListJson(BaseDatatableView):
+# 	model = Envelope
+# 	columns = ['envelope_number', 'pk']
+# 	order_columns = ['envelope_number', '']
+
+# 	def render_column(self, row, column):
+# 		if(column == 'pk'):
+# 			url = "/samples/verify/{0}".format(row.pk)
+# 			return utils.btn_link(url, 'Verify')
+# 		else:
+# 			return super(EnvelopeListJson, self).render_column(row, column)
+
+def envelope_list_json(request):
+	r = request.GET
+	envelopes = __get_envelopes(r)
+	envelopes_data = envelopes.get('envelopes_data')
+	data = []
+	for e in envelopes_data:
+		data.append([
+			"<a href='/samples/search/?search_val=%s&approvals=1&search_env=1'>%s</a>"%(e.envelope_number,e.envelope_number),
+			e.s_count,e.p_count,
+			e.c_count, utils.local_datetime(e.created_at),
+			"<a href='/samples/search/?search_val=%s&approvals=1&search_env=1'>view</a>"%e.envelope_number,
+			])
+
+	return HttpResponse(json.dumps({
+				"draw":r.get('draw'),
+				"recordsTotal": envelopes.get('recordsTotal'),
+				"recordsFiltered":envelopes.get('recordsFiltered'),
+				"data":data,
+				}))
+
+def __get_envelopes(r):
+	start = int(r.get('start'))
+	length = int(r.get('length'))
+	filter_query = Q()
+
+	
+	s_count = models.Count('sample')
+	p_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
+	c_count = models.Count(models.Case(models.When(sample__verified=True, then=1)))
+
+	data = Envelope.objects.annotate(s_count=s_count, p_count=p_count, c_count=c_count).filter(filter_query).order_by('-created_at')[start:start+length]
+
+	recordsTotal =  Envelope.objects.count()
+	recordsFiltered = recordsTotal if not filter_query else Envelope.objects.filter(filter_query).count()
+	return {'envelopes_data':data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
+
 
 def vl_list(request):
 	return render(request, 'samples/vl_list.html')
-	# <th style="width:50px">Form #</th>
-	# <th style="width:70px">Locator ID</th>				
-	# <th>Sample Type</th>				
-	# <th>Date Collected</th>
-	# <th>Initiation Date</th>
-	# <th>Date Received</th>				
-	# <th>Patient ART #</th>
-	# <th>Other ID</th>
-	# <th>District</th>
-	# <th>Facility</th>
-	# <th>Status</th>
-	# <th>...</th>
 
 def vl_list_data(request):
 	# columns = [

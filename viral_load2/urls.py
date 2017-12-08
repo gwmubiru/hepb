@@ -24,6 +24,7 @@ urlpatterns = [
 	url(r'^login/', home_views.login_page, name='login_page'),
 	url(r'^login_attempt/', home_views.login_attempt, name='login_attempt'),
 	url(r'^logout/', home_views.logout, name='logout'),
+	url(r'^quick_stats/', home_views.quick_stats, name='quick_stats'),
 	url(r'^change-password/$', auth_views.password_change, {'post_change_redirect': 'home_page'}, name='password_change'),
 	url(r'^admin/', admin.site.urls),
 	url(r'^samples/', include('samples.urls')),

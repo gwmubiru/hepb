@@ -435,9 +435,26 @@ def save_verify(request):
 
 @permission_required('samples.add_verification', login_url='/login/')
 def verify_list(request):
-
 	search_val = request.GET.get('search_val')
 	verified = request.GET.get('verified')
+	context = {
+		'verified':verified,
+		'global_search':search_val,
+	}
+
+	if(verified==0):
+		context.update({
+			'pending': Sample.objects.filter(verified=False).count(),
+			'pending_dbs': Sample.objects.filter(verified=False, sample_type='D').count(),
+			'pending_plasma': Sample.objects.filter(verified=False, sample_type='P').count(),
+			})
+	else:
+		context.update({
+			'completed': Sample.objects.filter(verified=True).count(),
+			'completed_dbs': Sample.objects.filter(verified=True, sample_type='D').count(),
+			'completed_plasma': Sample.objects.filter(verified=True, sample_type='P').count(),
+			})
+
 
 	# if search_val:
 	# 	envelopes = Envelope.objects.filter(envelope_number__contains=search_val).order_by('-pk')[:1]
@@ -445,7 +462,7 @@ def verify_list(request):
 	# 		envelope = envelopes[0]
 	# 		return redirect('/samples/verify/%d' %envelope.pk)
 
-	return render(request, "samples/verify_list.html", {'verified':verified, 'global_search':search_val })
+	return render(request, "samples/verify_list.html", context)
 
 def appendices_json(cat_id):
 	appendices = Appendix.objects.values('id', 'appendix').filter(appendix_category_id=cat_id)
@@ -532,6 +549,9 @@ def search(request):
 	else:
 		samples = None
 	return render(request, 'samples/search.html', {'samples':samples, 'approvals':approvals})
+
+def envelope_list(request):
+	return render(request, 'samples/envelope_list.html')
 
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""
