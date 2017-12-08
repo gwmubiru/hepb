@@ -17,7 +17,10 @@
 		<div class="panel panel-default">
 			<div class="stat_box">						
 				<div class="stat_content">
-					<span class="stat_count"><% stats.approvals_everyone.all|number %></span>
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="!stats"></span>
+						<% stats.approvals_everyone.all|number %>
+					</span>
 					<span class="stat_name">all</span>
 				</div>
 			</div>
@@ -29,7 +32,10 @@
 			<div class="stat_box">
 				
 				<div class="stat_content">
-					<span class="stat_count"><% stats.approvals_everyone.last_month|number %></span>
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="!stats"></span>
+						<% stats.approvals_everyone.last_month|number %>
+					</span>
 					<span class="stat_name">last month</span>
 				</div>
 			</div>
@@ -40,7 +46,10 @@
 			<div class="stat_box" >
 				
 				<div class="stat_content">
-					<span class="stat_count"><% stats.approvals_everyone.this_month|number %></span>
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="!stats"></span>
+						<% stats.approvals_everyone.this_month|number %>
+					</span>
 					<span class="stat_name">this month</span>
 				</div>
 			</div>
@@ -52,7 +61,10 @@
 			<div class="stat_box">
 				
 				<div class="stat_content">
-					<span class="stat_count"><% stats.approvals_everyone.today|number %></span>
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="!stats"></span>
+						<% stats.approvals_everyone.today|number %>
+					</span>
 					<span class="stat_name">today</span>
 				</div>
 			</div>
@@ -78,8 +90,11 @@
 		<div class="panel panel-default">
 			<div class="stat_box">						
 				<div class="stat_content">
-					<span class="stat_count">{% quick_stats request 'approvals' 'all' 'me' %}</span>
-					<span class="stat_name"><% stats.approvals_you.all|number %></span>
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="!stats"></span>
+						<% stats.approvals_you.all|number %>
+					</span>
+					<span class="stat_name">all</span>
 				</div>
 			</div>
 		</div>
@@ -90,7 +105,10 @@
 			<div class="stat_box">
 				
 				<div class="stat_content">
-					<span class="stat_count"><% stats.approvals_you.last_month|number %></span>
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="!stats"></span>
+						<% stats.approvals_you.last_month|number %>
+					</span>
 					<span class="stat_name">last month</span>
 				</div>
 			</div>
@@ -101,7 +119,10 @@
 			<div class="stat_box" >
 				
 				<div class="stat_content">
-					<span class="stat_count"><% stats.approvals_you.this_month|number %></span>
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="!stats"></span>
+						<% stats.approvals_you.this_month|number %>
+					</span>
 					<span class="stat_name">this month</span>
 				</div>
 			</div>
@@ -113,7 +134,10 @@
 			<div class="stat_box">
 				
 				<div class="stat_content">
-					<span class="stat_count"><% stats.approvals_you.today|number %></span>
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="!stats"></span>
+						<% stats.approvals_you.today|number %>
+					</span>
 					<span class="stat_name">today</span>
 				</div>
 			</div>
