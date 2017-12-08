@@ -442,7 +442,7 @@ def verify_list(request):
 		'global_search':search_val,
 	}
 
-	if(verified==0):
+	if(verified=='0'):
 		context.update({
 			'pending': Sample.objects.filter(verified=False).count(),
 			'pending_dbs': Sample.objects.filter(verified=False, sample_type='D').count(),

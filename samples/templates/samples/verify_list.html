@@ -29,7 +29,7 @@
 </ul>
 <div id="my-tab-content" class="tab-content" style="min-height:400px">
     <div class="tab-pane active" id="print"> 
-    	{% if verified == 0 %}
+    	{% if verified == '0' %}
     	<span class="badge badge-default">{{ pending }}</span>
     	<span class="badge badge-default">DBS: {{ pending_dbs }}</span>
     	<span class="badge badge-default">Plasma: {{ pending_plasma }}</span>
