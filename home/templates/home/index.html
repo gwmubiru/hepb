@@ -22,9 +22,11 @@ var app=angular.module('vl_home', [], function($interpolateProvider) {
 ctrller={};
 ctrller.HomeController = function($scope,$http){
 	$scope.stats = {};
+	$scope.still_loading = true;
 	
 	$http.get("/quick_stats/").success(function(data){
-		$scope.stats=data;		
+		$scope.stats=data;	
+		$scope.still_loading = false;	
 	});
 
 }

@@ -17,7 +17,7 @@
 			<div class="stat_box">						
 				<div class="stat_content">
 					<span class="stat_count">
-						<span class="ion-loading-a" ng-if="!stats"></span>
+						<span class="ion-loading-a" ng-if="still_loading"></span>
 						<% stats.samples_everyone.all|number %>
 						</span>
 					<span class="stat_name">all</span>
@@ -32,7 +32,7 @@
 				
 				<div class="stat_content">
 					<span class="stat_count">
-						<span class="ion-loading-a" ng-if="!stats"></span>
+						<span class="ion-loading-a" ng-if="still_loading"></span>
 						<% stats.samples_everyone.last_month|number %>
 					</span>
 					<span class="stat_name">last month</span>
@@ -46,7 +46,7 @@
 				
 				<div class="stat_content">
 					<span class="stat_count">
-						<span class="ion-loading-a" ng-if="!stats"></span>
+						<span class="ion-loading-a" ng-if="still_loading"></span>
 						<% stats.samples_everyone.this_month|number %>
 					</span>
 					<span class="stat_name">this month</span>
@@ -61,7 +61,7 @@
 				
 				<div class="stat_content">
 					<span class="stat_count">
-						<span class="ion-loading-a" ng-if="!stats"></span>
+						<span class="ion-loading-a" ng-if="still_loading"></span>
 						<% stats.samples_everyone.today|number %>
 					</span>
 					<span class="stat_name">today</span>
@@ -91,7 +91,7 @@
 			<div class="stat_box">						
 				<div class="stat_content">
 					<span class="stat_count">
-						<span class="ion-loading-a" ng-if="!stats"></span>
+						<span class="ion-loading-a" ng-if="still_loading"></span>
 						<% stats.samples_you.all|number %>
 					</span>
 					<span class="stat_name">all</span>
@@ -106,7 +106,7 @@
 				
 				<div class="stat_content">
 					<span class="stat_count">
-						<span class="ion-loading-a" ng-if="!stats"></span>
+						<span class="ion-loading-a" ng-if="still_loading"></span>
 						<% stats.samples_you.last_month|number %>
 					</span>
 					<span class="stat_name">last month</span>
@@ -120,7 +120,7 @@
 				
 				<div class="stat_content">
 					<span class="stat_count">
-						<span class="ion-loading-a" ng-if="!stats"></span>
+						<span class="ion-loading-a" ng-if="still_loading"></span>
 						<% stats.samples_you.this_month|number %>
 					</span>
 					<span class="stat_name">this month</span>
@@ -135,7 +135,7 @@
 				
 				<div class="stat_content">
 					<span class="stat_count">
-						<span class="ion-loading-a" ng-if="!stats"></span>
+						<span class="ion-loading-a" ng-if="still_loading"></span>
 						<% stats.samples_you.today|number %>
 					</span>
 					<span class="stat_name">today</span>
