@@ -10,7 +10,7 @@ from django.forms import modelformset_factory
 #from django.views.generic import TemplateView
 
 from backend.models import Appendix,Facility,MedicalLab
-from .models import Patient, Sample, PatientPhone, Envelope, Verification, Clinician, LabTech, PastRegimens, DrugResistanceRequest, RejectedSamplesRelease
+from .models import *
 from forms import *
 from home import utils
 from . import utils as sample_utils
@@ -552,6 +552,39 @@ def search(request):
 
 def envelope_list(request):
 	return render(request, 'samples/envelope_list.html')
+
+def generate_forms(request):
+	if request.method == 'POST':
+		pst = request.POST
+		dispatch = ClinicalRequestFormsDispatch()
+		dispatch.ref_number = sample_utils.generate_ref_number()
+		dispatch.dispatched_at = pst.get('dispatched_at')
+		dispatch.dispatched_by = request.user
+		dispatch.facility_id = pst.get('facility_id')
+		dispatch.save()
+
+		start = int(pst.get('start'))
+		length = int(pst.get('length'))
+		for form_number in xrange(start, start+length):
+			request_form = ClinicalRequestForm()
+			request_form.form_number = form_number
+			request_form.dispatch = dispatch
+			request_form.save()
+
+		return redirect("/samples/forms/?ref_number=%s"%dispatch.ref_number)
+	else:
+		facilities = Facility.objects.all()
+		facility_select = utils.select2("facility_id", {'k_col':'id', 'v_col':'facility', 'items':facilities.values() }, "", {'id':'id_facility'})
+		return render(request, "samples/generate_forms.html", {'facility_select':facility_select})
+
+def forms(request):
+	search = request.GET.get('search_val') or request.GET.get('ref_number')
+	forms = None
+	if search:
+		forms = ClinicalRequestForm.objects.filter(Q(dispatch__ref_number=search)|Q(form_number=search))
+
+	return render(request, "samples/forms.html", {'forms':forms})
+
 
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""

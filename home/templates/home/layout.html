@@ -168,7 +168,7 @@
                             <span class="caret"></span>
                         </a> 
                          <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="#">Generate forms</a></li>
+                            <li><a href="{% url 'samples:generate_forms' %}">Generate forms</a></li>
                             <li><a href="#">Reports</a></li>  
                          </ul> 
                      </li>
@@ -185,6 +185,7 @@
                             <li ><a class="search_link" section ="samples_env" href="{% url 'samples:search' %}" >Envelope</a></li>
                             <li ><a class="search_link" section ="verify_env" href="{% url 'samples:search' %}" >Verify Envelope</a></li>
                             <li ><a class="search_link" section ="worksheets" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
+                            <li><a class="search_link" section="forms" href="{% url 'samples:forms' %}">Forms</a></li>
                            <!--  <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li> -->
                         </ul>                        
                     </li>

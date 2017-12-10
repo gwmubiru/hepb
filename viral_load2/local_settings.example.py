@@ -1,5 +1,6 @@
 import db_engines
 SESSION_COOKIE_AGE = 900
+SECRET_KEY = 'xxxxxxxxxx'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

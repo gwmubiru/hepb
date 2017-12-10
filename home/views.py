@@ -72,4 +72,5 @@ def login_attempt(request):
 
 def logout(request):
 	auth_logout(request)
-	return redirect('home_page')
+	next = request.GET.get('next')
+	return redirect(next if next else '/')

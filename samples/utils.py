@@ -1,3 +1,4 @@
+import datetime as dt
 import json
 from django.db.models import Q
 
@@ -95,3 +96,6 @@ def env_cond(search=""):
 	except:
 		pass
 	return cond
+
+def generate_ref_number():
+	return dt.datetime.today().strftime("%y%m%d%H%M%S")

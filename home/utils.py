@@ -40,6 +40,26 @@ def select(name="", data={}, selected_val="", more={}):
 	select_tag += "</select>"
 	return select_tag
 
+def select2(name="", data={}, selected_val="", more={}):
+	more_attrs = "";
+	for k,v in more.items():
+		more_attrs += " %s='%s' " % (k, v)
+
+	select_tag = "<select name='%s' %s required>" % (name, more_attrs)
+	select_tag += "<option value=''></option>"
+
+	k_col = data.get('k_col','')
+	v_col = data.get('v_col','')
+
+	for item in data.get('items', []):
+		val = item.get(k_col)
+		label = item.get(v_col)
+		selected = "selected='true'" if selected_val==val else ""
+		select_tag += "<option %s value='%s'>%s</option>" % (selected, val, label)
+	
+	select_tag += "</select>"
+	return select_tag
+
 #r represents request.POST
 def get_date(r, date_field):
 	date_val = r.get(date_field, None)
