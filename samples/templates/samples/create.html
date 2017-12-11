@@ -137,20 +137,21 @@
 				<div class="form-inline required">
 					{{ patient_form.dob.label_tag }}<br>
 					<div id="dob_error"></div>
-					{{ patient_form.dob }}&nbsp;
-					<input type="checkbox" name="null_dob"
-					{% if null_dob %} checked='true' {% endif %}
-					>&nbsp;Blank
+					{{ patient_form.dob }}
 				</div>
 				
 
 				<div class="form-inline">
 					<label for="id_age">Age</label><br>
-					<input type="text" name="age" id="id_age" class="form-control input-sm" size="5">
+					<input type="text" name="age" id="id_age" class="form-control input-sm" size="5" maxlength="3">
 					<select name="age_units" id="id_age_units" class="form-control input-sm">
 						<option value="Y" selected="true">Years</option>
 						<option value="M">Months</option>
-					</select>												
+					</select>
+					&nbsp;
+					<input type="checkbox" name="null_dob"
+					{% if null_dob %} checked='true' {% endif %}
+					>&nbsp;Blank												
 				</div>
 				<div class="form-group">
 					{{ phone_form.phone.label_tag }}
@@ -475,6 +476,13 @@
 			}
 		});	
 
+		$("#id_age").keypress(function(e){
+			var c = e.which;
+			if(c!=0){
+				return c > 47 && c < 58?true:false;
+			}
+		});
+
 		//$("#anc_sect").hide();
 
     	/*$("#id_facility").select2({	
@@ -623,7 +631,6 @@
 
 	function round1(val){
 		return Math.floor(val);
-		//return Math.round(val*10)/10;
 	}
 
 	function set_dob(){
@@ -636,7 +643,7 @@
 			var dob = new Date(dob_y+"-01-01");
 		}else{
 			var age = age/12;
-			var age_s = age*365*24*3600*1000;
+			var age_s = age*365.2425*24*3600*1000;
 			var dob_s = now_s-age_s;
 			var dob = new Date(dob_s);
 		}	
@@ -646,7 +653,7 @@
 	function set_age(){
 		var dob = new Date($("#id_dob").val());
 		var dob_s = dob.getTime();
-		var yrs = (now_s-dob_s)/(365*24*3600*1000) || 0;
+		var yrs = (now_s-dob_s)/(365.2425*24*3600*1000) || 0;
 		if(yrs<1){
 			var mths = yrs*12;
 			$("#id_age").val(round1(mths));
