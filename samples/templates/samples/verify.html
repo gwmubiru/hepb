@@ -34,7 +34,7 @@
 					<div class="col-lg-5 panel panel-default sect0">
 						<span class='sub-title'>facility details</span>
 						<div class="form-group ng-cloak">
-							<label for="facility_id">Facility:</label>
+							<label for="facility_id" style="font-size: 14px;">Facility:</label>
 							<select id="facility_id"  ng-model="sample.facility_id" class="form-control input-sm w-sm">
 								{% for f in facilities %}
 								<option value="{{ f.pk }}">{{ f.facility }}</option>
@@ -243,6 +243,10 @@
 
 </div>
 <style type="text/css">
+body{
+	font-size: 14px;
+}
+
 .vl-table td{
 	padding: 2px;
 }
