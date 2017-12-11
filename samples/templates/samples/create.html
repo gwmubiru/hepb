@@ -178,8 +178,6 @@
 							<td><% ph.dob %></td>
 							<td><% ph.gender %></td>
 							<td><% ph.form_number %></td>
-							
-							
 							<td><% ph.result %></td>
 							<td><% ph.test_date %></td>
 						</tr>
@@ -409,9 +407,12 @@
 		{% if sample %}
 			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
 			{% for s in sample.envelope.sample_set.all %}
-				<a href='{% url 'samples:show' s.pk %}'  style="margin-left:-60px">
-					{{s.locator_category }}{{s.envelope.envelope_number}}/{{s.locator_position}}
-				</a><br>
+				<span  style="margin-left:-60px">
+					{{ forloop.counter }}. 
+					<a href='{% url 'samples:show' s.pk %}' >
+						{{s.locator_category }}{{s.envelope.envelope_number}}/{{s.locator_position}}
+					</a>
+				</span><br>
 			{% endfor %}
 		{%endif%}
 	</div>

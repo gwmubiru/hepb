@@ -381,6 +381,7 @@ def verify_envelope(request, envelope_id):
 				'gender': s.patient.gender,
 				'dob': utils.local_date(s.patient.dob),
 				'treatment_initiation_date': utils.local_date(s.treatment_initiation_date),
+				'treatment_duration':"%s"%(s.treatment_duration),
 				'sample_creator': s.created_by.username,
 				'created_at': utils.local_date(s.created_at),
 			})
@@ -406,6 +407,7 @@ def save_verify(request):
 	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
 	s.locator_category = r.get('locator_category', '')
 	s.locator_position = r.get('locator_position', '')
+	s.treatment_duration = r.get('treatment_duration')
 	s.verified = 1
 	s.save()
 
