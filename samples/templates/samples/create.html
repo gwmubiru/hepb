@@ -146,7 +146,7 @@
 
 				<div class="form-inline">
 					<label for="id_age">Age</label><br>
-					<input type="text" name="age" id="id_age" class="form-control input-sm" size="11">
+					<input type="text" name="age" id="id_age" class="form-control input-sm" size="5">
 					<select name="age_units" id="id_age_units" class="form-control input-sm">
 						<option value="Y" selected="true">Years</option>
 						<option value="M">Months</option>
@@ -449,6 +449,7 @@
 
 
 	$( function() {
+
 		$("#id_facility").val("{{ sample_form.facility.value|default:'' }}");
 
 		set_district_hub();
@@ -460,7 +461,19 @@
 		$("#id_tb_treatment_phase").attr("disabled", "true");
 		$("#id_other_regimen").attr("readonly","true");
 
-		
+		$("#id_envelope_number").keypress(function(e){
+			var c = e.which;
+			if(c!=0){
+				return c > 47 && c < 58?true:false;
+			}
+		});
+
+		$("#id_locator_position").keypress(function(e){
+			var c = e.which;
+			if(c!=0){
+				return c > 47 && c < 58?true:false;
+			}
+		});	
 
 		//$("#anc_sect").hide();
 
