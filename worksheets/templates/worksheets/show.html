@@ -82,7 +82,7 @@
 							<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.art_number }}<br>
 							<span class='sm-label'>Sample ID</span>: {{ s.sample.vl_sample_id }}<br>
 							<span class='sm-label'>Location ID</span>: 
-							{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}{{ s.sample.locator_position }}<br>
+							{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}<br>
 							<span class='sm-label'>Form #</span>: {{ s.sample.form_number }}
 
 							<div class="vlbarcodes" value="{{ s.sample.vl_sample_id }}"></div>
