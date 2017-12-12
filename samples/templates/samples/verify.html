@@ -22,7 +22,7 @@
 				<a href="#" ng-repeat="s in vdata" ng-click="selectSample(s.sample_id)" class='list-group-item <% s.current %>'> 
 					<span ng-if="s.accepted=='0'" style="background-color:red">&nbsp;</span>
 					<span ng-if="s.accepted=='1'" style="background-color:green">&nbsp;</span>
-					<% s.loc %>
+					<% s.locator_category %><% s.envelope_number %>/<% s.locator_position %>
 				</a>
 			</div>
 
@@ -107,8 +107,8 @@
 								</tr>
 								<tr>
 									<td>Treatment Duration: </td>
-									<td>
-										{% select "treatment_duration" "{1:'6months', 2:'1-< 2yrs', 3:'2-< 5yrs', 4:'5yrs & above', 5:'Left Blank'}" "" "{'class':'form-control input-sm w-xs', 'ng-model': 'sample.treatment_duration'}" %}
+									<td ng-init="sample.treatment_duration">
+										{% select "treatment_duration" "{1:'6months', 2:'1-< 2yrs', 3:'2-< 5yrs', 4:'5yrs & above', 5:'Left Blank'}" "" "{'class':'form-control input-sm w-xs optional', 'ng-model': 'sample.treatment_duration'}" %}
 									</td>
 								</tr>
 							</table>
@@ -327,8 +327,6 @@ body{
 function reasonsDropDown(nme,id){
   var other_options="id='"+id+"' class='form-control input-sm w-md' ";
   var slct = "<select name='"+nme+"' id='"+id+"' class='form-control input-sm w-md' required><option value=''>select</option>";
-
-  
   for (var r in rejection_reasons){
   	slct += "<optgroup label="+r+">";
   	var rrs = rejection_reasons[r];

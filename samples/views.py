@@ -381,7 +381,7 @@ def verify_envelope(request, envelope_id):
 				'gender': s.patient.gender,
 				'dob': utils.local_date(s.patient.dob),
 				'treatment_initiation_date': utils.local_date(s.treatment_initiation_date),
-				'treatment_duration':"%s"%(s.treatment_duration),
+				'treatment_duration':"%s"%(s.treatment_duration) if s.treatment_duration else "",
 				'sample_creator': s.created_by.username,
 				'created_at': utils.local_date(s.created_at),
 			})
@@ -407,7 +407,8 @@ def save_verify(request):
 	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
 	s.locator_category = r.get('locator_category', '')
 	s.locator_position = r.get('locator_position', '')
-	s.treatment_duration = r.get('treatment_duration')
+	tx = r.get('treatment_duration')
+	s.treatment_duration = tx if tx else None
 	s.verified = 1
 	s.save()
 
@@ -421,7 +422,7 @@ def save_verify(request):
 	v.accepted = True if accepted == 1 else False
 
 	if(v.accepted==False):
-		v.rejection_reason_id = r.get('rejection_reason_id', None)
+		v.rejection_reason_id = r.get('rejection_reason_id')
 	else:
 		v.rejection_reason_id = None
 
