@@ -463,25 +463,19 @@
 		$("#id_other_regimen").attr("readonly","true");
 
 		$("#id_envelope_number").keypress(function(e){
-			var c = e.which;
-			if(c!=0){
-				return c > 47 && c < 58?true:false;
-			}
+			if(e.which==45||e.which==189){ return true;}
+			return pick_num(e);
 		});
 
 		$("#id_locator_position").keypress(function(e){
-			var c = e.which;
-			if(c!=0){
-				return c > 47 && c < 58?true:false;
-			}
+			return pick_num(e);
 		});	
 
 		$("#id_age").keypress(function(e){
-			var c = e.which;
-			if(c!=0){
-				return c > 47 && c < 58?true:false;
-			}
+			return pick_num(e);
 		});
+
+
 
 		//$("#anc_sect").hide();
 
@@ -628,6 +622,15 @@
 
     	
   	});
+	
+	function pick_num(e){
+		var c = e.which;
+		var ret = true;
+		if(c!=0 && c!=8){
+			ret = (c > 47 && c < 58)|| (c > 95 && c < 106)?true:false;
+		}
+		return ret;
+	}
 
 	function round1(val){
 		return Math.floor(val);
