@@ -238,7 +238,7 @@ def pending_envelopes(request):
 	ret = []
 	sample_type = request.GET.get('sample_type', '')
 	filter_params = Q(stage=2, sample_type=request.GET.get('sample_type', ''), sample_medical_lab=utils.user_lab(request))
-	envelopes = Envelope.objects.annotate(sample_count=models.Count('sample')).filter(filter_params)
+	envelopes = Envelope.objects.annotate(sample_count=models.Count('sample')).filter(filter_params).order_by('envelope_number')
 	for i,e in enumerate(envelopes):
 		ret.append({'pk':e.pk,'envelope_number':e.envelope_number,'sample_count':e.sample_count})
 	return HttpResponse(json.dumps(ret))
