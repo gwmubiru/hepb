@@ -699,13 +699,10 @@ ctrller.SampleController = function($scope,$http){
 	$scope.lphone = "{{ lab_tech_form.lphone.value|default:'' }}";
 
 
-	$scope.patHist = function($event){
-		var keyCode = $event.which || $event.keyCode;
-		if(keyCode == 9){
-			$http.get("/samples/patient_history/"+$scope.facility+"/?art_number="+$scope.art_number).success(function(data){
-				$scope.patient_history = data;
-			});
-		}		
+	$scope.patHist = function(){
+		$http.get("/samples/patient_history/"+$scope.facility+"/?art_number="+$scope.art_number).success(function(data){
+			$scope.patient_history = data;
+		});
 	}
 
 	$scope.getClinicians = function(){

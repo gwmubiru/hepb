@@ -41,7 +41,7 @@ class PatientForm(forms.ModelForm):
 		fields = ('art_number', 'other_id', 'gender', 'dob',)
 
 		widgets = {
-			'art_number': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'art_number', 'ng-keydown':'patHist($event)'}),
+			'art_number': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'art_number', 'ng-change':'patHist()'}),
 			'other_id': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
 			'gender': forms.Select(attrs=utils.ATTRS2),
 			'dob': forms.DateInput(attrs=utils.ATTRS_DATE),
