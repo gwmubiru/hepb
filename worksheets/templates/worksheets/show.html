@@ -28,7 +28,7 @@
 								<th>Rack ID</th>
 							</thead>
 							<tbody>
-								{% for s in worksheet.worksheetsample_set.all %}
+								{% for s in worksheet_samples %}
 								{% if forloop.counter0|divisibleby:5 %}
 								<tr><td colspan='6' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
 								{% endif %}
@@ -75,7 +75,7 @@
 						{% endfor %}
 					{% endif %}
 
-					{% for s in worksheet.worksheetsample_set.all %}
+					{% for s in worksheet_samples %}
 						{% with runner=forloop.counter|add:sample_pads %}
 						<div class="col-xs-1 vlbarcodes-wrapper">
 							{{ runner }}<br>
