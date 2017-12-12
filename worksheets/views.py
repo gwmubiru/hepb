@@ -313,5 +313,4 @@ class ListJson(BaseDatatableView):
 		qs = qs.filter(worksheet_medical_lab=utils.user_lab(self.request))
 		if machine_type:
 			qs = qs.filter(machine_type=machine_type, stage=1)
-			
 		return qs

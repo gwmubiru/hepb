@@ -33,6 +33,7 @@ $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
 		"serverSide": true,
+		"order": [[ 3, "desc" ]],
 		"ajax": "/worksheets/list_json/{% if machine_type %}?machine_type={{machine_type}}{% endif %}",
 	});
 });
