@@ -315,7 +315,7 @@
 					{{ clinician_form.cname.label_tag }}&nbsp;-<i>N/A if missing</i>
 					{{ clinician_form.cname }}
 					<div class='live_drpdwn' id="id_clinicians">
-						<div ng-repeat="c in clinicians| filter:cname "><a href='#' ng-click='setClinician(c)'><% c.name %></a></div>
+						<div ng-repeat="c in clinicians| filter:cname "><span style="cursor:pointer;" ng-click='setClinician(c)'><% c.name %></span></div>
 					</div>
 				</div>
 			</div>
@@ -332,7 +332,7 @@
 					{{ lab_tech_form.lname.label_tag }}&nbsp;-<i>N/A if missing</i>
 					{{ lab_tech_form.lname }}
 					<div class='live_drpdwn' id="id_lab_techs">
-						<div ng-repeat="l in lab_techs| filter:lname "><a href='#' ng-click='setLabTech(l)'><% l.name %></a></div>
+						<div ng-repeat="l in lab_techs| filter:lname "><span style="cursor:pointer;" ng-click='setLabTech(l)'><% l.name %></span></div>
 					</div>
 				</div>
 			</div>
@@ -708,12 +708,20 @@ ctrller.SampleController = function($scope,$http){
 	$scope.getClinicians = function(){
 		$http.get("/samples/clinicians/"+$scope.facility+"/").success(function(data){
 			$scope.clinicians = data;
+			if(data.length>0){
+				$scope.cname = data[0].name;
+				$scope.cphone = data[0].phone;
+			}
 		});
 	}
 
 	$scope.getLabTechs = function(){
 		$http.get("/samples/lab_techs/"+$scope.facility+"/").success(function(data){
 			$scope.lab_techs = data;
+			if(data.length>0){
+				$scope.lname = data[0].name;
+				$scope.lphone = data[0].phone;
+			}
 		});
 	}
 
