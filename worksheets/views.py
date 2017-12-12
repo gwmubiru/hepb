@@ -98,7 +98,7 @@ def attach_samples(request, worksheet_id):
 
 			if(Sample.objects.filter(envelope=sample.envelope, in_worksheet=False, verification__accepted=True).count()==0):
 				envelope = Envelope.objects.get(pk=sample.envelope.pk)
-				envelope.stage = 3;
+				envelope.stage = 3
 				envelope.save()
 
 			if Result.objects.filter(sample=sample).exists():
@@ -247,6 +247,8 @@ def delete(request, pk):
 	worksheet = Worksheet.objects.get(pk=pk)
 	for s in worksheet.samples.all():
 		s.in_worksheet = False
+		s.envelope.stage = 2
+		s.envelope.save()
 		s.save()
 		
 	worksheet.delete()
