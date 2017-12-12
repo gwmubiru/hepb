@@ -145,7 +145,7 @@
 				</div>
 				<br>{{ userid }}
 
-				<br><input type='submit' value='save and attach samples' class="btn btn-danger btn-submit "> 
+				<br><input id="id_submit" type='submit' value='save and attach samples' class="btn btn-danger btn-submit "> 
 				
 			</form>
 		</div>
@@ -160,6 +160,15 @@
 	var date_now = new Date();
 	var yr_now = date_now.getFullYear();
 	$( function() {
+		$("#id_submit").click(function(){
+			var sample_type = $("#id_sample_type").val();
+			if(sample_type==""){
+				alert("please select sample type");
+				return false;
+			}else{
+				return true;
+			}
+		})
 		$(".date").combodate({
     		format: "YYYY-MM-DD",
     		template: "D MMM YYYY",
