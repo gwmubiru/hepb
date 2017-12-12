@@ -315,7 +315,7 @@
 					{{ clinician_form.cname.label_tag }}&nbsp;-<i>N/A if missing</i>
 					{{ clinician_form.cname }}
 					<div class='live_drpdwn' id="id_clinicians">
-						<div ng-repeat="c in clinicians| filter:cname "><span style="cursor:pointer;" ng-click='setClinician(c)'><% c.name %></span></div>
+						<div ng-repeat="c in clinicians"><span style="cursor:pointer;" ng-click='setClinician(c)'><% c.name %></span></div>
 					</div>
 				</div>
 			</div>
@@ -332,7 +332,7 @@
 					{{ lab_tech_form.lname.label_tag }}&nbsp;-<i>N/A if missing</i>
 					{{ lab_tech_form.lname }}
 					<div class='live_drpdwn' id="id_lab_techs">
-						<div ng-repeat="l in lab_techs| filter:lname "><span style="cursor:pointer;" ng-click='setLabTech(l)'><% l.name %></span></div>
+						<div ng-repeat="l in lab_techs"><span style="cursor:pointer;" ng-click='setLabTech(l)'><% l.name %></span></div>
 					</div>
 				</div>
 			</div>
