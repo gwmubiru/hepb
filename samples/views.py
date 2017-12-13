@@ -475,11 +475,14 @@ def appendices_json(cat_id):
 	return json.dumps(ret)
 
 def pat_hist(request, facility_id):
+	ret = []
 	#ret = [{'art_number':art_number, 'test_date':'2017-01-01', 'result':'TND'}, {'art_number':art_number, 'test_date':'2017-04-01', 'result':'TND'}]
 	art_number = request.GET.get('art_number')
+	if art_number == '':
+		return HttpResponse(json.dumps(ret))
 	unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
-	samples = Sample.objects.filter( Q(patient__unique_id=unique_id)|Q(facility_id=facility_id,patient__art_number=art_number)).order_by('date_collected')
-	ret = []
+	samples = Sample.objects.filter( Q(patient__unique_id=unique_id)|Q(facility_id=facility_id,patient__art_number=art_number)).order_by('date_collected')[:2]
+	
 	for s in samples:
 		ret.append({
 				'form_number': s.form_number,				
