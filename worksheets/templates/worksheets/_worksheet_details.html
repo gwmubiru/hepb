@@ -1,0 +1,16 @@
+<table class="samples-table">
+	<tr>
+		<td>Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></td>
+		<td>Machine Type: <u>{{ worksheet.get_machine_type_display }}</u></td>
+	</tr>
+	<tr>
+		<td>Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></td>
+		<td>Date Created: <u>{{ worksheet.created_at | date:"Y-m-d" }}</u></td>
+	</tr>
+</table>
+
+<style type="text/css">
+	.samples-table{
+		width:800px;
+	}
+</style>

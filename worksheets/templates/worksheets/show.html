@@ -10,41 +10,37 @@
 	<div class="panel panel-default" style="overflow-y:auto">
 		<div class="panel-body">
 			<div class="worksheet" id="content" >
-				<div class="row" >
-					<div class="col-md-3">Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></div>
-					<div class="col-md-3">Machine Type: <u>{{ worksheet.get_machine_type_display }}</u></div>
-					<div class="col-md-3">Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></div>
-					<div class="col-md-3">Date Created: <u>{{ worksheet.created_at | date:"Y-m-d" }}</u></div>
-				</div>
+
+			{% include "worksheets/_worksheet_details.html" %}
 				<br>
 				{% if worksheet.machine_type == 'C' %}
-				<table class="table table-striped table-condensed table-bordered" id="samples-table" >
-							<thead>
-								<th>ART Number</th>
-								<th>Sample ID</th>
+					<table class="table table-striped table-condensed table-bordered samples-table" id="samples-table" >
+						<thead>	
+							<tr>
 								<th>Location ID</th>
 								<th>Form</th>
-								<th>Instrument ID</th>
+								<th>ART Number</th>
+								<th>Instrument/Tube ID</th>
 								<th>Rack ID</th>
-							</thead>
-							<tbody>
-								{% for s in worksheet_samples %}
-								{% if forloop.counter0|divisibleby:5 %}
-								<tr><td colspan='6' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
-								{% endif %}
+							</tr>
+						</thead>
+						<tbody>
+							{% for s in worksheet_samples %}
+							{% if forloop.counter0|divisibleby:5 %}
+							<tr><td colspan='6' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
+							{% endif %}
 
-								<tr>
-									<td>{{ s.sample.patient.art_number }}</td>
-									<td>{{ s.sample.vl_sample_id }}</td>
-									<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
-									<td>{{ s.sample.form_number }}</td>
-									<td>{{ s.instrument_id }}</td>
-									<td>{{ s.rack_id }}</td>
-								</tr>
+							<tr>
+								<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
+								<td>{{ s.sample.form_number }}</td>
+								<td>{{ s.sample.patient.art_number }}</td>							
+								<td>{{ s.instrument_id }}</td>
+								<td>{{ s.rack_id }}</td>
+							</tr>
 
-								{% endfor %}
-							</tbody>
-						</table>
+							{% endfor %}
+						</tbody>
+					</table>
 				{% else %}
 				
 				<div class="row wk-row">
@@ -107,7 +103,6 @@
             $(this).barcode(val, "code128",{showHRI: false,posX: 4});
         });
 
-      })
-
+      });
 	</script>
 {% endblock %}
