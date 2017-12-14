@@ -311,8 +311,12 @@ class ListJson(BaseDatatableView):
 			return super(ListJson, self).render_column(row, column)
 
 	def filter_queryset(self, qs):
+		search = self.request.GET.get(u'search[value]', None)
 		machine_type = self.request.GET.get('machine_type')
 		qs = qs.filter(worksheet_medical_lab=utils.user_lab(self.request))
+
+		if search:
+			qs = qs.filter(worksheet_reference_number__icontains=search)
 		if machine_type:
 			qs = qs.filter(machine_type=machine_type, stage=1)
 		return qs
