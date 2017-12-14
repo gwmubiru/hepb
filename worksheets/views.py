@@ -140,14 +140,14 @@ def list(request):
 
 def show(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
-	worksheet_samples = worksheet.worksheetsample_set.all().order_by('pk')
+	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
 	sample_pads = 11 if worksheet.include_calibrators else 3
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
 	return render(request, 'worksheets/show.html', context)
 
 def vlprint(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
-	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope","sample__locator_position")
+	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
 	sample_pads = 11 if worksheet.include_calibrators else 3
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
 	return render(request, 'worksheets/vlprint.html', context)
