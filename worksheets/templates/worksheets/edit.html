@@ -13,9 +13,8 @@
 
 			{% include "worksheets/_worksheet_details.html" %}
 				<br>
+				<form action="{% url 'worksheets:edit' worksheet.pk %}" method="post" role="form">
 				{% if worksheet.machine_type == 'C' %}
-				<a class="btn btn-danger" href="{% url 'worksheets:edit' worksheet.id %}">Edit</a>
-				<br><br>
 					<table class="table table-striped table-condensed table-bordered samples-table" id="samples-table" >
 						<thead>	
 							<tr>
@@ -24,6 +23,7 @@
 								<th>ART Number</th>
 								<th>Instrument/Tube ID</th>
 								<th>Rack ID</th>
+								<th>...</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -36,8 +36,20 @@
 								<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
 								<td>{{ s.sample.form_number }}</td>
 								<td>{{ s.sample.patient.art_number }}</td>							
-								<td>{{ s.instrument_id }}</td>
-								<td>{{ s.rack_id }}</td>
+								<td>
+									<input id="instrument{{ forloop.counter0 }}" type="text" name="instrument_id" value="{{ s.instrument_id }}">
+									<input id="pk{{ forloop.counter0 }}" type="hidden" name="pk" value="{{ s.pk }}">
+								</td>
+								{% if forloop.counter0|divisibleby:5 %}
+								<td rowspan="5" >						
+									<input id="rack{{ forloop.counter0 }}" type="text" name="rack_id" value="{{ s.rack_id|default:"" }}">
+								</td>
+								<td rowspan="5" >									
+									<span class="btn btn-danger btn-xs update" index="{{ forloop.counter0 }}">Update</span>	
+									<br><br>
+									<span style="display:none" id="saved{{ forloop.counter0 }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;<span class='x' >x</span></span>
+								</td>
+								{% endif %}
 							</tr>
 
 							{% endfor %}
@@ -92,6 +104,7 @@
 				</div>
 
 				{% endif %}
+			</form>
 			</div>
 			<br>
 			<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a> -->
@@ -100,11 +113,54 @@
 	</div>
 	<script type="text/javascript">
 	 $(function() {
+	 	 $(".x").on("click", function(){
+		 	$(this).parent().hide();
+		 });
 		$(".vlbarcodes").each(function (index){
             var val = $(this).attr("value");
             $(this).barcode(val, "code128",{showHRI: false,posX: 4});
         });
 
+        $(".update").click(function(){
+        	//alert("we are saving from row"+$(this).attr('index'));
+        	var index = $(this).attr('index');
+        	var params = {};
+        	params.csrfmiddlewaretoken = "{{ csrf_token }}";
+        	params.rack_id = $("#rack"+index).val();
+        	var x = 1;
+        	for (var i = index; i < index+5; i++) {
+        		if(x==1){
+        			params.instrument1 = $("#instrument"+i).val();
+        			params.pk1 = $("#pk"+i).val();
+        		}else if(x==2){
+        			params.instrument2 = $("#instrument"+i).val();
+        			params.pk2 = $("#pk"+i).val();
+        		}else if(x==3){
+        			params.instrument3 = $("#instrument"+i).val();
+        			params.pk3 = $("#pk"+i).val();
+        		}else if(x==4){
+        			params.instrument4 = $("#instrument"+i).val();
+        			params.pk4 = $("#pk"+i).val();
+        		}else if(x==5){
+        			params.instrument5 = $("#instrument"+i).val();
+        			params.pk5 = $("#pk"+i).val();
+        		}        		
+        		x++;
+        		// params.pk+i = $("#pk"+i).val();
+        	};
+        	//console.log(params);
+        	$.post("/worksheets/edit/{{ worksheet.pk }}/", params).done(function(data) {
+		 		$("#saved"+index).show();	    
+			  });
+	        });
+    
+
       });
 	</script>
+
+	<style type="text/css">
+	td{
+		vertical-align: center;
+	}
+	</style>
 {% endblock %}

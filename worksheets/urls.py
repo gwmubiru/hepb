@@ -8,6 +8,7 @@ urlpatterns  = [
 	url(r'^create/(?P<machine_type>[A|R|C])$', login_required(views.create), name='create'),
 	url(r'^attach_samples/(?P<worksheet_id>[0-9]+)/$', login_required(views.attach_samples), name='attach_samples'),
 	url(r'^show/(?P<worksheet_id>[0-9]+)/$', login_required(views.show), name='show'),
+	url(r'^edit/(?P<worksheet_id>[0-9]+)/$', login_required(views.edit), name='edit'),
 	url(r'^vlprint/(?P<worksheet_id>[0-9]+)/$', login_required(views.vlprint), name='vlprint'),
 	url(r'^list/$', login_required(views.list), name='list'),
 	url(r'^pdf/(?P<worksheet_id>[0-9]+)/$', login_required(views.generate_pdf), name='pdf'),

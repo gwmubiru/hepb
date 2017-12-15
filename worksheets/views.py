@@ -145,6 +145,26 @@ def show(request, worksheet_id):
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
 	return render(request, 'worksheets/show.html', context)
 
+def edit(request, worksheet_id):
+	if request.method == 'POST':
+		pst = request.POST
+		rack_id = pst.get('rack_id')
+		for x in xrange(1,6):
+			pk = pst.get('pk%s'%x)
+			instrument_id = pst.get('instrument%s'%x)
+			if pk and instrument_id:
+				ws = WorksheetSample.objects.get(pk=pk)
+				ws.instrument_id = instrument_id 
+				ws.rack_id = rack_id
+				ws.save()
+		return HttpResponse("saved")
+	else:
+		worksheet = Worksheet.objects.get(pk=worksheet_id)
+		worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
+		sample_pads = 11 if worksheet.include_calibrators else 3
+		context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
+		return render(request, 'worksheets/edit.html', context)
+
 def vlprint(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
