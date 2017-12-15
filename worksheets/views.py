@@ -190,11 +190,13 @@ def authorize_results(request, worksheet_id):
 			result.repeat_test = 1
 		elif choice == 'invalid':
 			result.result_alphanumeric = 'FAILED'
+			result.repeat_test = 2
 			result.suppressed = 3
 			result.authorised = True
 			result.authorised_by_id = request.user
 			result.authorised_at = timezone.now()
 		else:
+			result.repeat_test = 2
 			result.authorised = True
 			result.authorised_by_id = request.user
 			result.authorised_at = timezone.now()

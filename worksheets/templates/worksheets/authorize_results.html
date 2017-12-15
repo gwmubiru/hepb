@@ -66,17 +66,13 @@
 							<td>{{ sample.result.result_alphanumeric }}</td>
 							<td>{{ sample.result.get_suppressed_display }}</td>
 							<td>
-								{% if sample.result.authorised == 1 %}
-									Authorised
-								{% elif sample.result.repeat_test == 1 %}
-									Rescheduled
-								{% else %}
-									{% if sample.result.repeat_test == 2 %}								
-									<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='release'> Release</label>
-									{% endif %}
-									<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='reschedule'> Reschedule</label>
-									<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='invalid'> Invalid</label>
+								
+								{% if sample.result.repeat_test == 2 and sample.result.result_alphanumeric != 'FAILED' %}								
+								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='release' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric != 'FAILED' %} checked {% endif %}> Authorize</label>
 								{% endif %}
+								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='reschedule' {% if sample.result.repeat_test == 1 %} checked {% endif %}> Reschedule</label>
+								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='invalid' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric == 'FAILED' %} checked {% endif %}> Invalid</label>
+								
 							</td>
 							<td><span id="saved{{ sample.result.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;<span class='x' >x</span></span></td>
 						</tr>
