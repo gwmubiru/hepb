@@ -1,4 +1,4 @@
-import csv, pandas, io, json, math, os
+import csv, pandas, io, json, math, os, StringIO as SI
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
@@ -31,19 +31,26 @@ from . import utils as result_utils
 # 	fr.test_by = 2
 # 	fr.save()
 def get_anomalies(request, worksheet_id):
-	#return HttpResponse(request.FILES['results_file'])
+	#return HttpResponse(SI.StringIO(request.FILES['results_file'].read()))
 	uploaded_file = request.FILES['results_file']
-	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	ext = os.path.splitext(uploaded_file.name)[1]
+
+	tmp_name = "/tmp/%s"%uploaded_file.name
+	with open(tmp_name, 'wb+') as destination:
+		for chunk in uploaded_file.chunks():
+			destination.write(chunk)
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
+	
 	if worksheet.machine_type == 'R' or worksheet.machine_type == 'C':
 		if not utils.eq(ext, '.csv'):
 			return HttpResponse("<b>Expecting a .csv, but we are getting %s</b>"%ext)
-		reader = pandas.read_csv(uploaded_file, sep=',')
+		reader = pandas.read_csv(tmp_name, sep=',')
 		sample_ids = tuple(reader["Sample ID"])
 	else:
 		if not utils.eq(ext, '.txt'):
 			return HttpResponse("<b>Expecting a .txt, but we are getting %s</b>"%ext)
-		reader = pandas.read_csv(uploaded_file, sep='\t', skiprows=20)
+		reader = pandas.read_csv(tmp_name, sep='\t', skiprows=20)
+
 		sample_ids = tuple(reader["SAMPLE ID"])
 
 	duplicates = set(["%s"%x for x in sample_ids if x and not utils.isnan(x) and sample_ids.count(x) > 1])
@@ -59,7 +66,7 @@ def get_anomalies(request, worksheet_id):
 
 	duplicates_str = "<b>Duplicates:</b> %s" %(', '.join(duplicates)) if duplicates else ""
 	non_samples_str = "<b>Samples not in this worksheet:</b> %s" %(', '.join(non_samples_set)) if non_samples_set else ""
-
+	destination.close()
 	return HttpResponse("%s <br> %s" %(duplicates_str, non_samples_str))
 
 
@@ -95,45 +102,45 @@ def handle_files(form, worksheet, user):
 	#return HttpResponse(form.cleaned_data.get('results_file'))
 	results_file = form.cleaned_data.get('results_file')
 	multiplier = form.cleaned_data.get('multiplier')
+	tmp_name = "/tmp/%s"%results_file.name
 
-	if form.is_valid():
-		if worksheet.machine_type == 'R':
-			reader = pandas.read_csv(results_file, sep=',')
-			for row in reader.iterrows():
-				# try:
-				index, data = row
-				result = data["Result"]
-				vl_sample_id = data["Sample ID"]
-				vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
-				sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
-				if sample:
-					#repeat = result_utils.repeat_test('R', result, '')
-					store_result('R', sample, result, multiplier, user)
-					ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
-					if ws:
-						ws.stage = 2
-						ws.save()
-				# except:
-				# 	pass			
-				
-		else:			
-			reader = pandas.read_csv(results_file, sep='\t', skiprows=20)	
-			for row in reader.iterrows():
-				# try:
-				index, data = row
-				result = data.get("RESULT")
-				vl_sample_id = data.get("SAMPLE ID")
-				vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
-				sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
-				if sample:
-					#repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
-					store_result('A', sample,result, multiplier, user)
-					ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
-					if ws:
-						ws.stage = 2
-						ws.save()
-				# except:
-				# 	pass
+	if worksheet.machine_type == 'R':
+		reader = pandas.read_csv(tmp_name, sep=',')
+		for row in reader.iterrows():
+			# try:
+			index, data = row
+			result = data["Result"]
+			vl_sample_id = data["Sample ID"]
+			vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
+			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
+			if sample:
+				#repeat = result_utils.repeat_test('R', result, '')
+				store_result('R', sample, result, multiplier, user)
+				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
+				if ws:
+					ws.stage = 2
+					ws.save()
+			# except:
+			# 	pass			
+			
+	else:			
+		reader = pandas.read_csv(tmp_name, sep='\t', skiprows=20)	
+		for row in reader.iterrows():
+			# try:
+			index, data = row
+			result = data.get("RESULT")
+			vl_sample_id = data.get("SAMPLE ID")
+			vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
+			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
+			if sample:
+				#repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
+				store_result('A', sample,result, multiplier, user)
+				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
+				if ws:
+					ws.stage = 2
+					ws.save()
+			# except:
+			# 	pass
 
 @permission_required('worksheets.add_worksheet', login_url='/login/')
 def upload(request, worksheet_id):
@@ -143,7 +150,9 @@ def upload(request, worksheet_id):
 		if form.is_valid():			
 			upload = form.save(commit=False)
 			upload.uploaded_by = request.user
-			upload.multiplier = form.cleaned_data.get('multiplier')								
+			upload.multiplier = form.cleaned_data.get('multiplier')	
+			# results_file = form.cleaned_data.get('results_file')
+			# return HttpResponse(results_file.name)							
 
 			#f = request.FILES['results_file']
 			#return HttpResponse(upload.results_file)
