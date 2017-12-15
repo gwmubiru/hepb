@@ -312,6 +312,7 @@ class ListJson(BaseDatatableView):
 		if column == 'pk':
 			url0 = "/worksheets/show/{0}".format(row.pk)
 			url1 = "javascript:windPop(\"/worksheets/vlprint/{0}\")".format(row.pk)
+			url2 = "/worksheets/edit/{0}".format(row.pk)
 			#url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
 			url3 = "/results/cobas_upload/?type=C" if row.machine_type=='C' else "/results/upload/{0}".format(row.pk) 
 			url4 = "/worksheets/delete/{0}".format(row.pk)
@@ -322,6 +323,7 @@ class ListJson(BaseDatatableView):
 				links = utils.dropdown_links([
 					{"label":"view", "url":url0},
 					{"label":"Print", "url":url1},
+					{"label":"Edit", "url":url2},
 					{"label":"Upload Results", "url": url3},
 					{"label":"Delete", "url":url4},
 				])
