@@ -24,12 +24,16 @@
 								<th>ART Number</th>
 								<th>Instrument/Tube ID</th>
 								<th>Rack ID</th>
+								{% if request.GET.show_results %}
+								<th>Result</th>
+								<th>Processed Result</th>
+								{% endif %}
 							</tr>
 						</thead>
 						<tbody>
 							{% for s in worksheet_samples %}
 							{% if forloop.counter0|divisibleby:5 %}
-							<tr><td colspan='6' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
+							<tr><td colspan='7' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
 							{% endif %}
 							<tr>
 								<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
@@ -37,6 +41,22 @@
 								<td>{{ s.sample.patient.art_number }}</td>							
 								<td>{{ s.instrument_id }}</td>
 								<td>{{ s.rack_id }}</td>
+								{% if request.GET.show_results %}
+									<td>
+										{% if s.sample_run == 1 %}
+											{{ s.sample.result.result1 }}	
+										{% elif s.sample_run == 2 %}
+											{{ s.sample.result.result2 }}
+										{% elif s.sample_run == 3 %}
+											{{ s.sample.result.result3 }}	
+										{% elif s.sample_run == 4 %}
+											{{ s.sample.result.result4 }}
+										{% elif s.sample_run == 5 %}
+											{{ s.sample.result.result5 }}							
+										{% endif %}
+									</td>
+									<td>{{ s.sample.result.result_alphanumeric }}</td>
+								{% endif %}
 							</tr>
 							{% endfor %}
 						</tbody>
@@ -55,7 +75,7 @@
 								<th>Form</th>
 								<th>ART Number</th>			
 								<th>Result</th>
-								<th>Final Result</th>
+								<th>Processed Result</th>
 							</tr>
 						</thead>
 						<tbody>
