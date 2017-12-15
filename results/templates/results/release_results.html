@@ -77,15 +77,14 @@
 		</div>
 	</div>
 	<script type="text/javascript">
+	var num_pending_release = $('.r').length;
+	var num_released_currently = 0;
 	 $(function() {
 	 	var oTable = $('#samples-table').dataTable({
 			"processing": true,
 			"paging":false,
 			"order": [[ 0, "asc" ]],
 		});
-
-	 	var num_pending_release = $('.r').length;
-	 	var num_released_currently = 0;
         $(".status").hide();
         $(".comments").hide();
       });
