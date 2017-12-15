@@ -176,7 +176,7 @@ def cobas_upload(request):
 		if form.is_valid():
 			upload = form.save(commit=False)
 			upload.cobas_uploaded_by = request.user
-
+			uploaded_file = form.cleaned_data.get('results_file')
 			tmp_name = "/tmp/%s"%uploaded_file.name
 			with open(tmp_name, 'wb+') as destination:
 				for chunk in uploaded_file.chunks():
