@@ -161,7 +161,8 @@ def upload(request, worksheet_id):
 			worksheet.save()
 			upload.save()
 
-			return redirect('worksheets:list')
+			#return redirect('worksheets:show',worksheet_id)
+			return redirect('/worksheets/show/%d/?show_results=saved' %worksheet.pk)
 
 
 	form = UploadForm(initial={'multiplier':1, 'worksheet': worksheet})
@@ -176,7 +177,12 @@ def cobas_upload(request):
 			upload = form.save(commit=False)
 			upload.cobas_uploaded_by = request.user
 
-			reader = pandas.read_csv(upload.results_file, sep=',')
+			tmp_name = "/tmp/%s"%uploaded_file.name
+			with open(tmp_name, 'wb+') as destination:
+				for chunk in uploaded_file.chunks():
+					destination.write(chunk)
+
+			reader = pandas.read_csv(tmp_name, sep=',')
 			for row in reader.iterrows():
 				# try:
 				index, data = row

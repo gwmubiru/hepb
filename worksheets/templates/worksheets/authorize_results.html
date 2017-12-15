@@ -1,8 +1,13 @@
 {% extends "home/layout.html" %}
 {% load staticfiles %}
 
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
 {% block js %}
 	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
 {% endblock %}
 
 {% block content %}	
@@ -23,7 +28,7 @@
 						<th>Location&nbsp;ID&nbsp;&nbsp;</th>
 						<th>Form</th>
 						<th>ART&nbsp;Number</th>
-						<th>Instrument&nbsp;ID</th>
+						{% if worksheet.machine_type == 'C' %}<th>Instrument&nbsp;ID</th>{% endif %}
 						<th>Machine Result</th>
 						<th>Result</th>
 		                <th>Suppressed?</th>
@@ -39,7 +44,9 @@
 							<td>{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}</td>
 							<td>{{ sample.form_number }}</td>
 							<td>{{ sample.patient.art_number }}</td>
+							{% if worksheet.machine_type == 'C' %}
 							<td>{{ sample.worksheetsample_set.first.instrument_id }}</td>
+							{% endif %}
 
 							<td>
 								{% if sample.result.result5 %}
@@ -82,6 +89,11 @@
 	</div>
 	<script type="text/javascript">
 	 $(function() {
+	 	var oTable = $('#samples-table').dataTable({
+			"processing": true,
+			"paging":false,
+			"order": [[ 2, "asc" ]],
+		});
 		$(".vlbarcodes").each(function (index){
             var val = $(this).attr("value");
             $(this).barcode(val, "code128",{showHRI: false,posX: 4});

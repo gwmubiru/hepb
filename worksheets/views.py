@@ -316,6 +316,8 @@ class ListJson(BaseDatatableView):
 			#url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
 			url3 = "/results/cobas_upload/?type=C" if row.machine_type=='C' else "/results/upload/{0}".format(row.pk) 
 			url4 = "/worksheets/delete/{0}".format(row.pk)
+			url5 = "/worksheets/show/{0}/?show_results=1".format(row.pk)
+			
 
 			if machine_type:
 				links = "<a href='%s'>upload</a>" %url3
@@ -326,6 +328,7 @@ class ListJson(BaseDatatableView):
 					{"label":"Edit", "url":url2},
 					{"label":"Upload Results", "url": url3},
 					{"label":"Delete", "url":url4},
+					{"label":"view with results", "url":url5},
 				])
 
 			return links

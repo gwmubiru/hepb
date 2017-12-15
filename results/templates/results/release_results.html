@@ -1,8 +1,13 @@
 {% extends "home/layout.html" %}
 {% load staticfiles %}
 
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
 {% block js %}
 	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
 {% endblock %}
 
 {% block content %}	
@@ -73,6 +78,12 @@
 	</div>
 	<script type="text/javascript">
 	 $(function() {
+	 	var oTable = $('#samples-table').dataTable({
+			"processing": true,
+			"paging":false,
+			"order": [[ 0, "asc" ]],
+		});
+
 	 	var num_pending_release = $('.r').length;
 	 	var num_released_currently = 0;
         $(".status").hide();
