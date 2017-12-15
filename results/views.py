@@ -193,7 +193,7 @@ def cobas_upload(request):
 				if ws:
 					sample = ws.sample
 					#repeat = 3 if result_utils.eq(result, 'invalid') else 2
-					store_result('C', sample, result, 1, request.user)
+					store_result('C', sample, result, form.cleaned_data.get('multiplier'), request.user)
 					ws.stage = 2
 					ws.save()
 					if(WorksheetSample.objects.filter(worksheet=ws.worksheet,stage=1).count()==0):
