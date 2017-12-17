@@ -21,6 +21,11 @@
 		You reached end of envelope
 	</span>
 	{% endif %}
+	{% if request.GET.reverse_approval%}
+	<span id="completed" class="alert alert-success vl-alert" role="alert">
+		{{request.GET.reverse_approval}}
+	</span>
+	{% endif %}
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
 		<thead>
 			<tr>
@@ -87,7 +92,9 @@
 								</tr>
 								{% if approvals %} 
 								<tr>
-									<td colspan=2><a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">change</a>
+									<td colspan="2" style="text-align:center">
+										<a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">change</a>
+										<a class="btn btn-xs btn-danger" href="/samples/reverse_approval/{{ s.verification.pk }}/?search_val={{ request.GET.search_val}}">reverse approval</a>
 									</td></tr>
 								{% endif %}
 							</table>								

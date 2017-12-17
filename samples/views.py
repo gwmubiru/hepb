@@ -611,6 +611,22 @@ def edit_dispatch(request, dispatch_id):
 		}
 		return render(request, "samples/edit_dispatch.html", context)
 
+def reverse_approval(request, verification_id):
+	#/samples/search/?search_val=1602-1267&approvals=1&env_complete=1
+	verification = Verification.objects.filter(pk=verification_id).first()
+	sample = verification.sample
+	ra = "Reverve approval failed"
+	if sample.in_worksheet:
+		ra = "Reverve approval not possible because the sample is already in a worksheet"
+	else:
+		if verification:
+			sample.verified = False
+			sample.save()
+			verification.delete()
+			ra = "Reverve approval successful"
+	
+	return redirect("/samples/search/?search_val=%s&approvals=1&reverse_approval=%s"%(request.GET.get("search_val"), ra))
+
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""
 	data_quality = {}

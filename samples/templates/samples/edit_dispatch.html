@@ -1,0 +1,146 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+{% endblock %}
+
+
+{% block content %}	
+
+<div class="page-title">generate request forms</div>
+<div class="panel panel-default">
+<div class="row panel-body">
+	<form action="{% url 'samples:edit_dispatch' dispatch.pk %}" method="post" role="form">
+		{% csrf_token %}
+		<table  class="table table-condensed table-bordered">
+			<tr>
+				<td width="20%">Reference Number:</td>
+				<td>{{ dispatch.ref_number }}</td>
+			</tr>
+
+			<tr>
+				<td>Serial Numbers:</td>
+				<td>{{ first }} - {{ last }}</td>
+			</tr>
+			<tr>				
+				<td>Dispatch date:</td>
+				<td>{{ dispatch.dispatched_at }}</td>
+			</tr>
+			<tr>				
+				<td>Facility:</td>
+				<td>{{ facility_select | safe}}	</td>
+			</tr>
+			<tr>				
+				<td>District:</td>
+				<td id="id_district"></td>
+			</tr>
+			<tr>				
+				<td>Hub:</td>
+				<td id="id_hub"></td>
+			</tr>
+			
+		</table>
+		
+		<br>
+		<input type="submit" value="Save" class="btn btn-danger">
+	</form>
+</div>
+</div>
+	
+
+<script type="text/javascript">
+	var date_now = new Date();
+
+	$( function() {
+		$("#id_facility").val({{ dispatch.facility_id }});
+		set_district_hub(); 
+		$("#id_facility").select2({	
+    		placeholder: "Select facility", 
+    		allowClear: true,
+    		width: "30%",
+    		tags: "true",	
+    	});
+
+
+
+    	$(".date").combodate({
+    		format: "YYYY-MM-DD HH:mm:ss",
+    		template: "D / MMM / YYYY   H : m : s",
+
+    		minYear: 1900,
+    		maxYear: date_now.getFullYear(),
+    		value: date_now,
+    	});
+
+    	$(".day").each(function( index ) {
+    		$(this).find(":selected").prependTo($(this));
+    	});
+
+    	$("#id_facility").change(function(){
+    		set_district_hub();    		    		
+    	});
+
+    	$("#id_start").change(function(){
+    		ok =  isNumber($(this).val());
+    		if(ok==false){
+    			alert('expecting a number for start from');
+    		}
+    	});
+  	});
+
+
+	function set_district_hub(){
+		var facility_id = $('#id_facility').val();
+		if(facility_id!=''){
+			var url =  "/samples/get_district_hub/"+facility_id+"/";
+			$.get(url, function(data, status){
+				var json_data = JSON.parse(data);
+				$("#id_district").html(json_data.district);
+				$("#id_hub").html(json_data.hub);
+			});	
+		}
+					
+	}
+
+	function isNumber(n) {
+		return !isNaN(parseFloat(n)) && isFinite(n);
+	}
+
+//422551
+</script>
+
+
+<style type="text/css">
+    .x{
+    	color: rgb(210, 190, 220);
+    	cursor: pointer;
+    	font-size: 18px;
+    }
+
+    .form-group.required label:before, .form-inline.required label:before {
+	  content:"*";
+	  color:red;
+	}
+
+	.day{
+		width:10px;
+	}
+
+	.form-group, .form-inline{
+		margin-bottom: 4px;
+	}
+
+	.form-group > label,.form-inline > label{
+		font-size: 14px;
+	}
+</style>
+{% endblock %}
