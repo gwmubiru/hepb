@@ -463,7 +463,8 @@
 		$("#id_other_regimen").attr("readonly","true");
 
 		$("#id_envelope_number").keypress(function(e){
-			if(e.which==45||e.which==189){ return true;}
+			//alert(e.which);
+			if(e.which==45||e.which==189||e.which==118){ return true;}
 			return pick_num(e);
 		});
 
@@ -617,17 +618,14 @@
 		// $("#id_cname").focusout(function(){ $("#id_clinicians").hide() });
 		$("#id_cname").focus(function(){ $("#id_clinicians").show() });
 		$("#id_lname").focus(function(){ $("#id_lab_techs").show() });
-
-
-
-    	
   	});
 	
 	function pick_num(e){
-		var c = e.which;
+		var c = e.which||e.keyCode;
+		//alert(c);
 		var ret = true;
-		if(c!=0 && c!=8){
-			ret = (c > 47 && c < 58)|| (c > 95 && c < 106)?true:false;
+		if(c!=0 && c!=8 && c!=9){
+			ret = c > 47 && c < 58?true:false;
 		}
 		return ret;
 	}
