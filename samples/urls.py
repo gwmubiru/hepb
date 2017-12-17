@@ -34,4 +34,5 @@ urlpatterns  = [
 	url(r'^envelope_list_json/$', login_required(data_table_views.envelope_list_json), name='envelope_list_json'),
 	url(r'^generate_forms/$', login_required(views.generate_forms), name="generate_forms"),
 	url(r'^forms/$', login_required(views.forms), name="forms"),
+	url(r'^edit_dispatch/(?P<dispatch_id>[0-9]+)/$', login_required(views.edit_dispatch), name="edit_dispatch"),
 ]

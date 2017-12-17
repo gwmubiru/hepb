@@ -591,6 +591,25 @@ def forms(request):
 
 	return render(request, "samples/forms.html", {'forms':forms})
 
+def edit_dispatch(request, dispatch_id):
+	dispatch = ClinicalRequestFormsDispatch.objects.get(pk=dispatch_id)
+	if  request.method == 'POST':
+		pst = request.POST
+		dispatch.facility_id = pst.get('facility_id')
+		dispatch.save()
+		return redirect("/samples/forms/?ref_number=%s"%dispatch.ref_number)
+	else:
+		forms = dispatch.clinicalrequestform_set.all().order_by('form_number')		
+		facilities = Facility.objects.all()
+		facility_select = utils.select2("facility_id", {'k_col':'id', 'v_col':'facility', 'items':facilities.values() }, "", {'id':'id_facility'})
+
+		context = {
+			'first':forms.first().form_number,
+			'last':forms.last().form_number,
+			'dispatch':dispatch,
+			'facility_select':facility_select,
+		}
+		return render(request, "samples/edit_dispatch.html", context)
 
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""
