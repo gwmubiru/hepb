@@ -1,25 +1,53 @@
 from django.contrib import admin
 
 from .models import *
+class VLAdmin(object):
+	actions = ('merge',)
+	
+	def has_delete_permission(self, request, obj=None):
+		return False
 
-class FacilityAdmin(admin.ModelAdmin):
+	def merge(self, request, queryset):
+		main = queryset[0]
+		tail = queryset[1:]
+
+		related = main._meta.get_all_related_objects()
+		valnames = dict()
+
+		for r in related:
+			valnames.update({r.get_accessor_name():r.field.name})
+
+		for t in tail:
+			for access_name, field_name in valnames.iteritems():
+				update_candidates = getattr(t, access_name).all()
+				for candidate in update_candidates:
+					setattr(candidate, field_name, main)
+					candidate.save()
+			t.delete()
+
+		self.message_user(request, "All merged to %s." %main)
+
+class FacilityAdmin(VLAdmin, admin.ModelAdmin):
 	list_display = ('facility','district','hub','dhis2_name', 'dhis2_uid',)
 	search_fields = ('facility', 'district__district',)
 
-class AppendixAdmin(admin.ModelAdmin):
+class AppendixCategoryAdmin(VLAdmin, admin.ModelAdmin):
+	pass
+
+class AppendixAdmin(VLAdmin, admin.ModelAdmin):
 	search_fields = ('appendix',)
 
-class DistrictAdmin(admin.ModelAdmin):
+class DistrictAdmin(VLAdmin, admin.ModelAdmin):
 	search_fields = ('district',)
 
-class HubAdmin(admin.ModelAdmin):
+class HubAdmin(VLAdmin, admin.ModelAdmin):
 	search_fields = ('hub',)
 
-class UserProfileAdmin(admin.ModelAdmin):
+class UserProfileAdmin(VLAdmin, admin.ModelAdmin):
 	list_display = ('user','phone','medical_lab',)
 	search_fields = ('user__username', 'user__email',)
 # Register your models here.
-admin.site.register(AppendixCategory)
+admin.site.register(AppendixCategory, AppendixCategoryAdmin)
 admin.site.register(Appendix, AppendixAdmin)
 admin.site.register(Region)
 admin.site.register(Ip)
@@ -30,3 +58,6 @@ admin.site.register(Facility, FacilityAdmin)
 admin.site.register(IpFacilitySupport)
 admin.site.register(MedicalLab)
 admin.site.register(UserProfile, UserProfileAdmin)
+
+admin.site.disable_action('delete_selected')
+#admin.site.disable_action('delete_link')
