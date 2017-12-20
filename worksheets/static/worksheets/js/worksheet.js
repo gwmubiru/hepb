@@ -22,7 +22,7 @@ ctrller.worksheetSamplesController = function($scope,$http){
 	});
 
 	*/
-	$http.get("/worksheets/pending_samples?repeat=1").success(function(data){
+	$http.get("/worksheets/pending_samples?repeat=1&sample_type="+st).success(function(data){
 		$scope.repeat_samples = data;
 	});
 
@@ -41,9 +41,16 @@ ctrller.worksheetSamplesController = function($scope,$http){
 	$scope.getSamples = function($event,type){
 		var keyCode = $event.which || $event.keyCode;
 		if(keyCode == 13){
-			var append = (type=='sample')?"sample_search="+$scope.sample_search:"envelope_number="+$scope.envelope_number;
+			var append = (type=='sample'||type=='repeat_sample')?"sample_search="+$scope.sample_search:"envelope_number="+$scope.envelope_number;
+			if(type=='repeat_sample'){
+				append = "repeat_sample_search="+$scope.repeat_sample_search
+			}
 			$http.get("/worksheets/pending_samples?"+append).success(function(data){
-				$scope.samples = data;
+				if (type=='repeat_sample'){
+					$scope.repeat_samples = data;
+				}else{
+					$scope.samples = data;
+				}
 			});
 		}
 		

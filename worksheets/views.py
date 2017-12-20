@@ -223,16 +223,24 @@ def _get_pending_samples():
 
 def pending_samples(request):	
 	repeat = request.GET.get('repeat')
+	sample_type = request.GET.get('sample_type')
 	if repeat:
-		samples = Sample.objects.filter(result__repeat_test = True)[:50]
+		fltrs = {'result__repeat_test':True}
+		if sample_type:
+			fltrs.update({'sample_type':sample_type})
+
+		samples = Sample.objects.filter(**fltrs)[:100]
 	else:
 		sample_search = request.GET.get('sample_search')
 		env_pk = request.GET.get('env_pk')
+		repeat_sample_search = request.GET.get('repeat_sample_search')
 		filters = {'verified':True, 'verification__accepted':True}
 		if env_pk:
 			filters.update({'envelope':env_pk})
 		elif sample_search:
 			filters.update({'form_number':sample_search})
+		elif repeat_sample_search:
+			filters.update({'form_number':repeat_sample_search, 'result__repeat_test':True})
 
 		samples = Sample.objects.filter(**filters)
 		samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:200]
