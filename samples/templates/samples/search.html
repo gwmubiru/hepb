@@ -63,36 +63,63 @@
 				<td>
 					{% if s.verified %} 
 						<span style="display:none" id="verify_details{{ s.pk }}">
-							<table class="table table-bordered table-condensed">
+							<table class="table table-bordered table-condensed table-striped">
 								<tr>
-									<td><b>Status:</b></td>
-									<td>
-										{% if s.verification.accepted %} accepted {% else %} rejected {% endif %}
-									</td>
-								</tr>
-								{% if not s.verification.accepted %}
-								<tr>
-									<td><b>Rejection reason:</b></td>
-									<td>{{ s.verification.rejection_reason.appendix }}</td>
-								</tr>							
-								{% endif %}
-
-								<tr>
-									<td><b>Approved by:</b></td>
-									<td>{{ s.verification.verified_by}}</td>
+									<th>Stage</th>
+									<th  width="30%">Value</th>
+									<th>By</th>
+									<th>Date</th>
 								</tr>
 								<tr>
-									<td><b>Approved on:</b></td>
-									<td>{{ s.verification.created_at | date:'Y-m-d'}}</td>
-								</tr>	
-
-								<tr>
-									<td><b>Created by:</b></td>
+									<td>Created</td>
+									<td></td>
 									<td>{{ s.created_by}}</td>
+									<td>{{ s.created_at }}</td>
 								</tr>
+								<tr>
+									<td>Approval</td>
+									<td>{% if s.verification.accepted %} Accepted {% else %} Rejected {% endif %}</td>
+									<td>{{ s.verification.verified_by }}</td>
+									<td>{{ s.verification.created_at }}</td>
+								</tr>
+								{% for sw in s.worksheet_set.all %} 
+								<tr>
+									<td>Worksheet</td>
+									<td>{{ sw.worksheet_reference_number }}</td>
+									<td>{{ sw.generated_by }}</td>
+									<td>{{ sw.created_at }}</td>
+								</tr>								
+								{% endfor %}
+								<tr>
+									<td>Processed Result</td>
+									<td>{{ s.result.result_alphanumeric }}</td>
+									<td></td>
+									<td></td>
+								</tr>
+								<tr>
+									<td>Authorised?</td>
+									<td>{% if s.result.authorised %} Yes {% else %} No {% endif %}</td>
+									<td>{{ s.result.authorised_by }}</td>
+									<td>{{ s.result.authorised_at }}</td>
+								</tr>
+
+								<tr>
+									<td>Released?</td>
+									<td>{% if s.result.resultsqc.released%} Yes {% else %} No {% endif %}</td>
+									<td>{{ s.result.resultsqc.released_by }}</td>
+									<td>{{ s.result.resultsqc.released_at }}</td>
+								</tr>
+
+								<tr>
+									<td>Dispatched?</td>
+									<td>{% if s.resultsdispatch %} Yes {% else %} No {% endif %}</td>
+									<td>{{ s.resultsdispatch.dispatched_by }}</td>
+									<td>{{ s.resultsdispatch.dispatched_date }}</td>
+								</tr>
+
 								{% if approvals %} 
 								<tr>
-									<td colspan="2" style="text-align:center">
+									<td colspan="4" style="text-align:center">
 										<a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">change</a>
 										<a class="btn btn-xs btn-danger" href="/samples/reverse_approval/{{ s.verification.pk }}/?search_val={{ request.GET.search_val}}">reverse approval</a>
 									</td></tr>
@@ -143,7 +170,7 @@
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Approval Details</h4>
+        <h4 class="modal-title">Stage Details</h4>
       </div>
       <div class="modal-body">
         <p id="approval_details"></p>
