@@ -67,8 +67,10 @@
 							<td>{{ sample.result.get_suppressed_display }}</td>
 							<td>
 								
-								{% if sample.result.repeat_test == 2 and sample.result.result_alphanumeric != 'FAILED' %}								
-								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='release' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric != 'FAILED' %} checked {% endif %}> Authorize</label>
+								{% if sample.result.repeat_test == 2 or sample.result.repeat_test == 0 %}	
+									{% if sample.result.result_alphanumeric != 'FAILED' %}							
+									<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='release' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric != 'FAILED' %} checked {% endif %}> Authorize</label>
+									{% endif %}
 								{% endif %}
 								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='reschedule' {% if sample.result.repeat_test == 1 %} checked {% endif %}> Reschedule</label>
 								<label><input type='radio' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='invalid' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric == 'FAILED' %} checked {% endif %}> Invalid</label>
