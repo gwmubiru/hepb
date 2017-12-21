@@ -229,7 +229,7 @@ def pending_samples(request):
 		if sample_type:
 			fltrs.update({'sample_type':sample_type})
 
-		samples = Sample.objects.filter(**fltrs)[:100]
+		samples = Sample.objects.filter(**fltrs)
 	else:
 		sample_search = request.GET.get('sample_search')
 		env_pk = request.GET.get('env_pk')
@@ -243,8 +243,8 @@ def pending_samples(request):
 			filters.update({'form_number':repeat_sample_search, 'result__repeat_test':True})
 
 		samples = Sample.objects.filter(**filters)
-		samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:200]
 	ret=[]
+	samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:200]
 
 	for i,s in enumerate(samples):
 		ret.append({
