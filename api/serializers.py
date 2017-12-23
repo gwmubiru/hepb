@@ -7,7 +7,7 @@ from backend.models import Appendix, District, Hub, Facility, UserProfile
 class AppendixSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Appendix
-		fields = ('appendix',)
+		fields = ('code', 'appendix',)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -103,6 +103,7 @@ class SampleSerializer(serializers.ModelSerializer):
 	rejectedsamplesrelease = RejectedSamplesReleaseSerializer(read_only=True)
 	facility = FacilityMinSerializer(read_only=True)
 	current_regimen = AppendixSerializer(read_only=True)
+	treatment_line = AppendixSerializer(read_only=True)
 
 	class Meta:
 		model = Sample
