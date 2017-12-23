@@ -60,31 +60,31 @@ class Command(BaseCommand):
 		for r in self.old_samples:
 			#print r.get('treatmentStatusID')
 			sid = r.get('sid')
-			# try:
-			p = Patient.objects.filter(pk=r.get('pid')).first()
-			if p:
-				#p.created_at = dt.datetime.strptime(r.get('pcreated'), "%Y-%m-%d %H:%M:%S")
-				p.created_at = r.get('pcreated')
-				p.save()
+			try:
+				p = Patient.objects.filter(pk=r.get('pid')).first()
+				if p:
+					#p.created_at = dt.datetime.strptime(r.get('pcreated'), "%Y-%m-%d %H:%M:%S")
+					p.created_at = r.get('pcreated')
+					p.save()
 
-			s = Sample.objects.filter(pk=sid).first()
-			if s:
-				#dt.datetime.strptime("2016-09-09 10:00:01", '%Y-%m-%d %H:%M:%S')
-				#s.created_at = dt.datetime.strptime(r.get('screated'), "%Y-%m-%d %H:%M:%S")
-				s.created_at = r.get('screated')
-				receiptDate= r.get('receiptDate')
-				if receiptDate==None:
-					s.date_received = s.created_at
-				else:
-					s.date_received = utils.get_date(r, 'receiptDate')
-				s.save()
+				s = Sample.objects.filter(pk=sid).first()
+				if s:
+					#dt.datetime.strptime("2016-09-09 10:00:01", '%Y-%m-%d %H:%M:%S')
+					#s.created_at = dt.datetime.strptime(r.get('screated'), "%Y-%m-%d %H:%M:%S")
+					s.created_at = r.get('screated')
+					receiptDate= r.get('receiptDate')
+					if receiptDate==None:
+						s.date_received = s.created_at
+					else:
+						s.date_received = utils.get_date(r, 'receiptDate')
+					s.save()
 
-				v = Verification.objects.filter(sample=s).first()
-				if v:
-					#v.created_at = dt.datetime.strptime(r.get('vcreated'), "%Y-%m-%d %H:%M:%S")
-					v.created_at = r.get('vcreated')
-					v.save()
+					v = Verification.objects.filter(sample=s).first()
+					if v:
+						#v.created_at = dt.datetime.strptime(r.get('vcreated'), "%Y-%m-%d %H:%M:%S")
+						v.created_at = r.get('vcreated')
+						v.save()
 
-			print "updated %s" %sid
-			# except :
-			# 	print "Failed %s" %sid
+				print "updated %s" %sid
+			except :
+				print "Failed %s" %sid
