@@ -2,30 +2,30 @@ from django.contrib import admin
 
 from .models import *
 class VLAdmin(object):
-	actions = ('merge',)
+	#actions = ('merge',)
 	
 	def has_delete_permission(self, request, obj=None):
 		return False
 
-	def merge(self, request, queryset):
-		main = queryset[0]
-		tail = queryset[1:]
+	# def merge(self, request, queryset):
+	# 	main = queryset[0]
+	# 	tail = queryset[1:]
 
-		related = main._meta.get_all_related_objects()
-		valnames = dict()
+	# 	related = main._meta.get_all_related_objects()
+	# 	valnames = dict()
 
-		for r in related:
-			valnames.update({r.get_accessor_name():r.field.name})
+	# 	for r in related:
+	# 		valnames.update({r.get_accessor_name():r.field.name})
 
-		for t in tail:
-			for access_name, field_name in valnames.iteritems():
-				update_candidates = getattr(t, access_name).all()
-				for candidate in update_candidates:
-					setattr(candidate, field_name, main)
-					candidate.save()
-			t.delete()
+	# 	for t in tail:
+	# 		for access_name, field_name in valnames.iteritems():
+	# 			update_candidates = getattr(t, access_name).all()
+	# 			for candidate in update_candidates:
+	# 				setattr(candidate, field_name, main)
+	# 				candidate.save()
+	# 		t.delete()
 
-		self.message_user(request, "All merged to %s." %main)
+	# 	self.message_user(request, "All merged to %s." %main)
 
 class FacilityAdmin(VLAdmin, admin.ModelAdmin):
 	list_display = ('facility','district','hub','dhis2_name', 'dhis2_uid',)

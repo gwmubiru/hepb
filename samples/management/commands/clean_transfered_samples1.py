@@ -26,16 +26,27 @@ class Command(BaseCommand):
 
 	def __get_samples(self):
 
+		# sql = """SELECT s.id AS sid, p.id AS pid, p.created AS pcreated, 
+		# 		s.created as screated, v.created AS vcreated, v.id AS vid, s.receiptDate
+		# 		FROM vl_samples AS s
+		# 		LEFT JOIN vl_patients AS p ON s.patientID=p.id
+		# 		LEFT JOIN vl_samples_verify AS v ON s.id=v.sampleID
+		# 		WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND migrated = 'YES' GROUP BY s.id
+		# 		"""
+
+		# cursor = connections['old_db'].cursor()
+		# cursor.execute(sql, [self.create_year, self.creat_month])
+
 		sql = """SELECT s.id AS sid, p.id AS pid, p.created AS pcreated, 
 				s.created as screated, v.created AS vcreated, v.id AS vid, s.receiptDate
 				FROM vl_samples AS s
 				LEFT JOIN vl_patients AS p ON s.patientID=p.id
 				LEFT JOIN vl_samples_verify AS v ON s.id=v.sampleID
-				WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND migrated = 'YES' GROUP BY s.id
+				WHERE facilityID =2537 AND migrated = 'YES' GROUP BY s.id
 				"""
 
 		cursor = connections['old_db'].cursor()
-		cursor.execute(sql, [self.create_year, self.creat_month])
+		cursor.execute(sql)
 		self.old_samples = utils.dictfetchall(cursor)
 
 	def __appendices(self):
