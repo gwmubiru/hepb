@@ -21,10 +21,14 @@ class Command(BaseCommand):
 
 		if int(self.create_year)==2017 and int(self.create_month)>3:
 			print "Enter period before 2017 March"
-			return False;
+			return False
 		self.old_results = []
-		for x in xrange(0,5):
-			self.__save_results()
+		if self.single==1:
+			for x in xrange(0,5):
+				self.__save_results()
+		else:
+			for x in xrange(0,3):
+				self.__save_results2()
 
 	def __get_roche_results(self):
 		sql = """SELECT s.id AS sid, res_r.Result AS result, fctr.factor, res_r.created AS test_date, res_r.createdby As test_by,
@@ -58,6 +62,42 @@ class Command(BaseCommand):
 		cursor.execute(sql, [self.create_year, self.create_month])
 		self.old_results = utils.dictfetchall(cursor)
 
+	def __get_roche_results2(self):
+
+		sql = """SELECT s.id AS sid,
+			    	   GROUP_CONCAT(DISTINCT res_r.Result, '||', fctr_r.factor, '||', res_r.created, '||', res_r.createdby SEPARATOR '::') AS concat_result,
+			    	   res_o.result AS override_result, res_o.created AS ocreated,
+			    	   prt.created AS date_printed, prt.createdby AS printed_by
+			    FROM vl_samples AS s
+			    INNER JOIN vl_results_roche AS res_r ON s.vlSampleID=res_r.sampleID
+			    LEFT JOIN vl_results_override AS res_o ON s.vlSampleID=res_o.sampleID
+			    LEFT JOIN vl_logs_printedresults AS prt ON s.id=prt.sampleID
+			    LEFT JOIN vl_results_multiplicationfactor AS fctr_r ON res_r.worksheetID=fctr_r.worksheetID
+			    WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND s.migrated = 'YES' AND in_worksheet = 1 AND result_migrated=0
+			    AND res_r.single=0   GROUP BY s.id LIMIT 20000"""
+
+		cursor = connections['old_db'].cursor()
+		cursor.execute(sql, [self.create_year, self.create_month])
+		self.old_results = utils.dictfetchall(cursor)
+
+	def __get_abbott_results2(self):
+
+		sql = """SELECT s.id AS sid,
+			    	   GROUP_CONCAT(DISTINCT res_a.result, '||', fctr_a.factor, '||', res_a.created, '||', res_a.createdby SEPARATOR '::') AS concat_result,
+			    	   res_o.result AS override_result, res_o.created AS ocreated,
+			    	   prt.created AS date_printed, prt.createdby AS printed_by
+			    FROM vl_samples AS s
+			    INNER JOIN vl_results_abbott AS res_a ON s.vlSampleID=res_a.sampleID
+			    LEFT JOIN vl_results_override AS res_o ON s.vlSampleID=res_o.sampleID
+			    LEFT JOIN vl_logs_printedresults AS prt ON s.id=prt.sampleID
+			    LEFT JOIN vl_results_multiplicationfactor AS fctr_a ON res_a.worksheetID=fctr_a.worksheetID
+			    WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND s.migrated = 'YES' AND in_worksheet = 1 AND result_migrated=0
+			    AND res_a.single=0 GROUP BY s.id LIMIT 20000"""
+
+		cursor = connections['old_db'].cursor()
+		cursor.execute(sql, [self.create_year, self.create_month])
+		self.old_results = utils.dictfetchall(cursor)
+
 	def __save_results(self):
 		if self.machine_type == 'roche':
 			self.__get_roche_results()
@@ -66,6 +106,32 @@ class Command(BaseCommand):
 
 		for r in self.old_results:
 			try:
+				self.__save_result(r)
+				connections['old_db'].cursor().execute("UPDATE vl_samples SET result_migrated=1 WHERE id=%s"%r.get('sid'))
+				print "saved %s" %r.get('sid')
+			except:
+				print "Failed %s" %r.get('sid')
+
+	def __save_results2(self):
+		if self.machine_type == 'roche':
+			self.__get_roche_results2()
+		else:
+			self.__get_abbott_results2()
+
+		#print self.old_results
+
+		for r in self.old_results:
+			try:
+				concat_result = r.get('concat_result','')
+				s_results = concat_result.split('::')
+				latest_result_params = s_results[-1]
+				latest_result = latest_result_params.split("||")
+				r.update({
+					'result':latest_result[0], 
+					'factor':latest_result[1],
+					'test_date':latest_result[2],
+					'test_by':latest_result[3],
+					})
 				self.__save_result(r)
 				connections['old_db'].cursor().execute("UPDATE vl_samples SET result_migrated=1 WHERE id=%s"%r.get('sid'))
 				print "saved %s" %r.get('sid')
