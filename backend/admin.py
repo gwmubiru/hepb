@@ -1,6 +1,24 @@
 from django.contrib import admin
 
 from .models import *
+
+class ReadOnlyAdmin(object):
+	"""Disables all editing capabilities."""
+
+	def __init__(self, *args, **kwargs):
+		super(ReadOnlyAdmin, self).__init__(*args, **kwargs)
+		self.readonly_fields = self.model._meta.get_all_field_names()
+
+	def has_add_permission(self, request):
+		return False
+
+	def has_delete_permission(self, request, obj=None):
+		return False
+
+	def save_model(self, request, obj, form, change):
+		return False
+
+
 class VLAdmin(object):
 	#actions = ('merge',)
 	
@@ -47,9 +65,11 @@ class UserProfileAdmin(VLAdmin, admin.ModelAdmin):
 	list_display = ('user','phone','medical_lab',)
 	search_fields = ('user__username', 'user__email',)
 
-class DeleteLogAdmin(VLAdmin, admin.ModelAdmin):
+class DeleteLogAdmin(VLAdmin, ReadOnlyAdmin, admin.ModelAdmin):
+	fields = ('section', 'ref_number', 'delete_reason', 'deleted_by', 'deleted_at', 'data',)
 	list_display = ('section', 'ref_number', 'delete_reason', 'deleted_by', 'deleted_at', )
 	search_fields = ('ref_number',)
+	show_fields = ('ref_number',)
 
 # Register your models here.
 admin.site.register(AppendixCategory, AppendixCategoryAdmin)
