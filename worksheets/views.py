@@ -1,5 +1,6 @@
 import json
 import os.path
+from django.core.serializers import serialize
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
@@ -16,6 +17,7 @@ from django.db import models
 from django.core import serializers
 
 from home import utils
+from backend.models import DeleteLog
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample
 from samples.models import Sample, Envelope
@@ -280,15 +282,27 @@ def pending_envelopes(request):
 	return HttpResponse(json.dumps(ret))
 
 def delete(request, pk):
-	worksheet = Worksheet.objects.get(pk=pk)
-	for s in worksheet.samples.all():
-		s.in_worksheet = False
-		s.envelope.stage = 2
-		s.envelope.save()
-		s.save()
+	if request.method == 'POST':
+		worksheet = Worksheet.objects.get(pk=pk)
+		delete_reason = request.POST.get('delete_reason')
+		delete_log = DeleteLog()
+		delete_log.ref_number = worksheet.worksheet_reference_number
+		delete_log.section = "worksheets"
+		delete_log.delete_reason = delete_reason
+		delete_log.data = "{worksheet:%s, worksheet_samples:%s}"%(serialize('json', [worksheet]), serialize('json', worksheet.worksheetsample_set.all()))
+		delete_log.deleted_by = request.user
+		delete_log.save()		
 		
-	worksheet.delete()
-	return redirect('worksheets:list')
+		for s in worksheet.samples.all():
+			s.in_worksheet = False
+			s.envelope.stage = 2
+			s.envelope.save()
+			s.save()
+
+		worksheet.delete()
+		return HttpResponse("Successfully deleted")
+	else:
+		return HttpResponse("Deleting failed")
 
 def reg_info(request, machine_type):
 	context = { 'machine_type':machine_type}
@@ -329,7 +343,8 @@ class ListJson(BaseDatatableView):
 			url2 = "/worksheets/edit/{0}".format(row.pk)
 			#url2 = "javascript:windPop(\"/worksheets/pdf/{0}\")".format(row.pk)
 			url3 = "/results/cobas_upload/?type=C" if row.machine_type=='C' else "/results/upload/{0}".format(row.pk) 
-			url4 = "/worksheets/delete/{0}".format(row.pk)
+			#url4 = "/worksheets/delete/{0}".format(row.pk)
+			url4 = "javascript:deleteWorksheet(\"{0}\", \"{1}\")".format(row.pk, row.worksheet_reference_number)
 			url5 = "/worksheets/show/{0}/?show_results=1".format(row.pk)
 			
 

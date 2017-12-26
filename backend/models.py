@@ -179,3 +179,19 @@ class UserProfile(models.Model):
 	class Meta:
 		db_table = 'backend_user_profiles'
 		verbose_name_plural = "User Profiles"
+
+
+class DeleteLog(models.Model):
+	ref_number = models.CharField(max_length=64)
+	section = models.CharField(max_length=64)
+	delete_reason = models.CharField(max_length=128)
+	data = models.TextField()
+	deleted_by = models.ForeignKey(User, related_name='deleted_by')
+	deleted_at = models.DateTimeField(auto_now_add=True)
+
+	def __str__(self):
+		return "%s (%s)" %(self.section, self.ref_number)
+
+	class Meta:
+		db_table = 'backend_delete_logs'
+		verbose_name_plural = "Logs of Deletes"

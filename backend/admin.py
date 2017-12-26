@@ -46,6 +46,11 @@ class HubAdmin(VLAdmin, admin.ModelAdmin):
 class UserProfileAdmin(VLAdmin, admin.ModelAdmin):
 	list_display = ('user','phone','medical_lab',)
 	search_fields = ('user__username', 'user__email',)
+
+class DeleteLogAdmin(VLAdmin, admin.ModelAdmin):
+	list_display = ('section', 'ref_number', 'delete_reason', 'deleted_by', 'deleted_at', )
+	search_fields = ('ref_number',)
+
 # Register your models here.
 admin.site.register(AppendixCategory, AppendixCategoryAdmin)
 admin.site.register(Appendix, AppendixAdmin)
@@ -57,7 +62,9 @@ admin.site.register(HubRider)
 admin.site.register(Facility, FacilityAdmin)
 admin.site.register(IpFacilitySupport)
 admin.site.register(MedicalLab)
+admin.site.register(DeleteLog, DeleteLogAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
+
 
 admin.site.disable_action('delete_selected')
 #admin.site.disable_action('delete_link')
