@@ -84,6 +84,7 @@
 			}else{
 				var form = $('form')[0];
 				form.submit();
+				//alert("all good");
 			}
 		});
 
@@ -96,7 +97,7 @@
 		var part1 = ref_number.slice(0,4);
 		var part2 = ref_number.slice(4,7);
 		var part3 = ref_number.slice(7,11);
-		return !isNaN(part1) && !isNaN(part3) && wtypes.indexOf(part2)!=-1 && ref_number.length >= 11
+		return !isNaN(part1) && !isNaN(part3) && wtypes.indexOf(part2)!=-1 && ref_number.length >= 11 && part1.length==4 && part3.length==4
 	}
 
 	</script>
