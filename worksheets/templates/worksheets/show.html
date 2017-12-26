@@ -154,11 +154,13 @@
 
 					{% endif %}
 
+					<br>
+					<a class="btn btn-danger" href="javascript:windPop('/worksheets/vlprint/{{ worksheet.pk }}/{% if request.GET.show_results %}?show_results=1{% endif %}')">Print</a>
+
 				</div>
-			<br>
-			<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a> -->
+						<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a> -->
 			<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:vlprint' worksheet.id %}')">Print</a> -->
-			<a class="btn btn-danger" href="javascript:windPop('/worksheets/vlprint/{{ worksheet.pk }}/{% if request.GET.show_results %}?show_results=1{% endif %}')">Print</a>
+			
 		</div>
 	</div>
 	<script type="text/javascript">

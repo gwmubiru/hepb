@@ -79,6 +79,10 @@ def attach_samples(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	if request.method == 'POST':
 		# pass
+		ref_number = request.POST.get('ref_number')
+		if ref_number!=worksheet.worksheet_reference_number:
+			worksheet.worksheet_reference_number = ref_number
+			worksheet.save()
 		attached_samples = request.POST.getlist('samples')
 		worksheet_samples = []
 		

@@ -31,7 +31,7 @@ def create_worksheet_ref_number(worksheet_type, sample_type):
 	w = Worksheet.objects.filter(created_at__year=utils.year(), created_at__month=utils.month()).last()
 
 	if w:
-		num = int(w.worksheet_reference_number[7:])
+		num = int(w.worksheet_reference_number[7:11])
 
 	num = str(num+1)
 	num = num.zfill(4)

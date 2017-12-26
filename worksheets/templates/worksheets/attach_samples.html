@@ -26,7 +26,11 @@
 				<span ng-init="w_sample_type='{{ worksheet.sample_type }}'	"></span>
 				<div class="row" >
 					<div class="col-md-4" >
-						<label>Worksheet Ref Number:</label><u>{{ worksheet.worksheet_reference_number }}</u>
+						<label>Worksheet Ref Number:</label>
+						<input type="text" value="{{ worksheet.worksheet_reference_number }}" name="ref_number" id="ref_number">
+						<br><span style="margin-left:160px" class='sm-label'>Append 'R' for repeat samples</span>
+
+						
 					</div>
 					<div class="col-md-3" ng-init="machine_type='{{ worksheet.machine_type }}'">
 						<label>Machine Type:</label> <u>{{ worksheet.get_machine_type_display }}</u>
@@ -71,13 +75,29 @@
         })
 
         $("#submit").click(function(){
+
         	//console.log("dedede");
-			var form = $('form')[0];
-			form.submit();
+        	var ref_number = $("#ref_number").val();
+        	var valid_ref_number = validRefNumber(ref_number);
+			if (!valid_ref_number){
+				alert("Invalid Reference number");
+			}else{
+				var form = $('form')[0];
+				form.submit();
+			}
 		});
 
         //$(".sample").prop("checked", "true")
       })
+
+	function validRefNumber(ref_number){
+		//"1712C8P0015";	
+		var wtypes = ['ABD','ABP','CTD','CTP','C8D','C8P'];
+		var part1 = ref_number.slice(0,4);
+		var part2 = ref_number.slice(4,7);
+		var part3 = ref_number.slice(7,11);
+		return !isNaN(part1) && !isNaN(part3) && wtypes.indexOf(part2)!=-1 && ref_number.length >= 11
+	}
 
 	</script>
 
