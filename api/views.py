@@ -18,6 +18,7 @@ from django.db.models import Q
 @api_view(['GET'])
 def samples(request):
 	if request.method == 'GET':
+		some_date = request.GET.get('date')
 		date_from = request.GET.get('date_from')
 		date_to = request.GET.get('date_to')
 		year = request.GET.get('year')
@@ -30,6 +31,8 @@ def samples(request):
 							Q(result__created_at__date=date_today)|\
 							Q(result__resultsqc__released_at__date=date_today)
 			samples = Sample.objects.filter(latest_filter)
+		elif some_date:
+			samples = Sample.objects.filter(created_at__date=some_date)
 		elif date_from and date_to:
 			samples = Sample.objects.filter(created_at__gte=date_from, created_at__lte=date_to)
 		elif year and month:
