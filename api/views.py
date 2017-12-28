@@ -24,9 +24,18 @@ def samples(request):
 		year = request.GET.get('year')
 		month = request.GET.get('month')
 		changes_today = request.GET.get('changes_today')
-		if changes_today:
+		latest_hours = request.GET.get('latest_hours')
+		if latest_hours:
+			time_to = dt.datetime.today()
+			time_fro = time_to-dt.timedelta(hours=int(latest_hours))
+			latest_filter = Q(created_at__gte=time_fro, created_at__lte=time_to)|\
+							Q(verification__created_at__gte=time_fro, verification__created_at__lte=time_to)|\
+							Q(result__created_at__gte=time_fro, result__created_at__lte=time_to)|\
+							Q(result__resultsqc__released_at__gte=time_fro, result__resultsqc__released_at__lte=time_to)
+			samples = Sample.objects.filter(latest_filter)
+		elif changes_today:
 			date_today = dt.date.today()
-			latest_filter = Q(created_at__date=date_today)|\
+			latest_filter = Q(created_at__=date_today)|\
 							Q(verification__created_at__date=date_today)|\
 							Q(result__created_at__date=date_today)|\
 							Q(result__resultsqc__released_at__date=date_today)
