@@ -1,3 +1,4 @@
+import datetime as dt
 from django.shortcuts import render
 
 from rest_framework import status
@@ -21,19 +22,24 @@ def samples(request):
 		date_to = request.GET.get('date_to')
 		year = request.GET.get('year')
 		month = request.GET.get('month')
-		if date_from and date_to:
+		changes_today = request.GET.get('changes_today')
+		if changes_today:
+			date_today = dt.date.today()
+			latest_filter = Q(created_at__date=date_today)|\
+							Q(verification__created_at__date=date_today)|\
+							Q(result__created_at__date=date_today)|\
+							Q(result__resultsqc__released_at__date=date_today)
+			samples = Sample.objects.filter(latest_filter)
+		elif date_from and date_to:
 			samples = Sample.objects.filter(created_at__gte=date_from, created_at__lte=date_to)
 		elif year and month:
 			samples = Sample.objects.filter(created_at__year=year, created_at__month=month)
 		else:
 			#samples = Sample.objects.filter(pk=329760)
-			samples = Sample.objects.all()
+			samples = Sample.objects.all().order_by("-pk")[:100]
 			
-		if samples.count()>150000:
-			ret = {'Too many records'}
-		else:
-			serializer = SampleSerializer(samples, many=True, read_only=True)
-			ret = serializer.data		
+		serializer = SampleSerializer(samples, many=True, read_only=True)
+		ret = serializer.data		
 		return Response(ret)
 
 @api_view(['GET'])

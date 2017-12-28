@@ -75,7 +75,7 @@ class ResultSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Result
-		fields = ('result_numeric','result_alphanumeric','suppressed','method', 'test_by', 'test_date','resultsqc',)
+		fields = ('result_numeric','result_alphanumeric','get_suppressed_display','method', 'test_by', 'test_date','resultsqc',)
 
 class ResultsDispatchSerializer(serializers.ModelSerializer):
 	
@@ -104,12 +104,14 @@ class SampleSerializer(serializers.ModelSerializer):
 	facility = FacilityMinSerializer(read_only=True)
 	current_regimen = AppendixSerializer(read_only=True)
 	treatment_line = AppendixSerializer(read_only=True)
+	treatment_indication = AppendixSerializer(read_only=True)
 
 	class Meta:
 		model = Sample
 		fields = (
 			'pk',
 			'patient',
+			'patient_unique_id',
 			'envelope',
 			'locator_category',
 			'locator_position',
@@ -120,10 +122,11 @@ class SampleSerializer(serializers.ModelSerializer):
 			'other_regimen',
 			'treatment_line',
 			'treatment_initiation_date',
-			'pregnant',
+			'treatment_indication',
+			'get_pregnant_display',
 			'anc_number',
-			'breast_feeding',
-			'active_tb_status',
+			'get_breast_feeding_display',
+			'get_active_tb_status_display',
 			'date_collected',
 			'date_received',
 			'sample_type',
@@ -131,4 +134,5 @@ class SampleSerializer(serializers.ModelSerializer):
 			'result',
 			'rejectedsamplesrelease',
 			'resultsdispatch',
+			'created_at',
 			)
