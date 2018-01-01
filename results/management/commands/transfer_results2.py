@@ -28,7 +28,7 @@ class Command(BaseCommand):
 			    INNER JOIN vl_facility_printing AS fp ON s.id=fp.sample_id
 			    INNER JOIN vl_samples_worksheetcredentials AS w ON rr.worksheet_id=w.id
 			    WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND s.migrated = 'YES' AND result_migrated=0
-			    GROUP BY s.id HAVING COUNT(s.id)=1 LIMIT 20000"""
+			    GROUP BY s.id LIMIT 20000"""
 
 		cursor = connections['old_db'].cursor()
 		cursor.execute(sql, [self.create_year, self.create_month])
