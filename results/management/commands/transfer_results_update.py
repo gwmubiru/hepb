@@ -17,8 +17,7 @@ class Command(BaseCommand):
 		self.create_year = options['period'][0]
 		self.create_month = options['period'][1]
 		self.old_results = []
-		for x in xrange(0,5):
-			self.__save_results()
+		self.__save_results()
 
 	def __get_results(self):
 		
@@ -28,7 +27,7 @@ class Command(BaseCommand):
 			    INNER JOIN vl_facility_printing AS fp ON s.id=fp.sample_id
 			    INNER JOIN vl_samples_worksheetcredentials AS w ON rr.worksheet_id=w.id
 			    WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND s.migrated = 'YES'
-			    GROUP BY s.id LIMIT 20000"""
+			    GROUP BY s.id"""
 
 		cursor = connections['old_db'].cursor()
 		cursor.execute(sql, [self.create_year, self.create_month])
