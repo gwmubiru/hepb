@@ -33,9 +33,10 @@ class Command(BaseCommand):
 
 	def __generate_report(self):
 		num_days = calendar.monthrange(self.year, self.month)[1]
-		file_name = "media/reports/%s%s.csv"%(self.year,format(self.month,'02'))
+		file_name = "%s%s.csv"%(self.year,format(self.month,'02'))
+		file_path = "media/reports/%s"%file_name
 		df = pd.DataFrame([], columns=self.__get_headers())
-		df.to_csv(file_name, index=False, header=self.__get_headers(), mode='a')
+		df.to_csv(file_path, index=False, header=self.__get_headers(), mode='a')
 		for day in range(1, num_days+1):
 			date = dt.date(self.year, self.month, day)
 			samples = Sample.objects.filter(created_at__date=date)
@@ -97,12 +98,12 @@ class Command(BaseCommand):
 						])
 
 			df = pd.DataFrame(output)			
-			df.to_csv(file_name, index=False, header=False, mode='a')
+			df.to_csv(file_path, index=False, header=False, mode='a', encoding='utf-8')
 			print "generated for %s"%date
-			
-		zf = zipfile.ZipFile('%s.zip'%file_name, mode='w', compression=zipfile.ZIP_DEFLATED)
+
+		zf = zipfile.ZipFile('%s.zip'%file_path, mode='w', compression=zipfile.ZIP_DEFLATED)
 		try:
-			zf.write(file_name)
+			zf.write(file_path, arcname=file_name)
 		finally:
 			zf.close()
 

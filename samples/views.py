@@ -632,7 +632,7 @@ def download(request, path):
 	file_path = os.path.join(settings.MEDIA_ROOT, path)
 	if os.path.exists(file_path):
 		with open(file_path, 'rb') as fh:
-			response = HttpResponse(fh.read(), content_type="application/csv")
+			response = HttpResponse(fh.read(), content_type="application//x-zip-compressed")
 	 	 	response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
 	 	 	return response
 	else:
