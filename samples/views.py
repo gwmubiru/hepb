@@ -1,5 +1,6 @@
-import json
+import json, os
 from datetime import date as dt
+from django.conf import settings
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
@@ -627,6 +628,15 @@ def reverse_approval(request, verification_id):
 	
 	return redirect("/samples/search/?search_val=%s&approvals=1&reverse_approval=%s"%(request.GET.get("search_val"), ra))
 
+def download(request, path):
+	file_path = os.path.join(settings.MEDIA_ROOT, path)
+	if os.path.exists(file_path):
+		with open(file_path, 'rb') as fh:
+			response = HttpResponse(fh.read(), content_type="application/csv")
+	 	 	response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+	 	 	return response
+	else:
+		return HttpResponse("report missing")
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""
 	data_quality = {}

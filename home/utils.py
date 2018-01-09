@@ -220,3 +220,9 @@ def compare_dates(**kwargs):
 		else:
 			ret = False
 	return ret
+
+def getattr_ornone(obj, attr):
+	if hasattr(obj, attr):
+		return getattr(obj, attr)
+	else:
+		return None

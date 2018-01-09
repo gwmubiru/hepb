@@ -36,4 +36,5 @@ urlpatterns  = [
 	url(r'^forms/$', login_required(views.forms), name="forms"),
 	url(r'^edit_dispatch/(?P<dispatch_id>[0-9]+)/$', login_required(views.edit_dispatch), name="edit_dispatch"),
 	url(r'^reverse_approval/(?P<verification_id>[0-9]+)/$', login_required(views.reverse_approval), name="reverse_approval"),
+	url(r'^download/(?P<path>.*)$',login_required(views.download), name="download"),
 ]
