@@ -36,7 +36,7 @@ class Command(BaseCommand):
 		file_name = "%s%s.csv"%(self.year,format(self.month,'02'))
 		file_path = "media/reports/%s"%file_name
 		df = pd.DataFrame([], columns=self.__get_headers())
-		df.to_csv(file_path, index=False, header=self.__get_headers(), mode='a')
+		df.to_csv(file_path, index=False, header=self.__get_headers(), mode='w')
 		for day in range(1, num_days+1):
 			date = dt.date(self.year, self.month, day)
 			samples = Sample.objects.filter(created_at__date=date)
@@ -91,10 +91,11 @@ class Command(BaseCommand):
 						status,
 						verification_date,
 						rejection_reason,
+						'Y' if result else 'N',
 						'Y' if authorised else 'N',
-						result.result_alphanumeric if authorised else '',
-						result.get_suppressed_display() if authorised else '',
-						result.test_date if authorised else ''
+						result.result_alphanumeric if result else '',
+						result.get_suppressed_display() if result else '',
+						result.test_date if result else ''
 						])
 
 			df = pd.DataFrame(output)			
@@ -141,7 +142,8 @@ class Command(BaseCommand):
 				'Status',
 				'Approval Date',
 				'Rejection Reason',
-				'Test completed?',
+				'Tested',
+				'Passed Lab QC?',
 				'Result',
 				'Suppressed',
 				'Test Date'
