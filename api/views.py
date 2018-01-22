@@ -24,11 +24,11 @@ def samples(request):
 		year = request.GET.get('year')
 		month = request.GET.get('month')
 		changes_today = request.GET.get('changes_today')
-		latest_hours = request.GET.get('latest_hours')
-		if latest_hours:
+		latest_minutes = request.GET.get('latest_minutes')
+		if latest_minutes:
 			time_to = dt.datetime.today()
 			#time_fro = time_to-dt.timedelta(hours=int(latest_hours))
-			time_fro = time_to-dt.timedelta(minutes=10)
+			time_fro = time_to-dt.timedelta(minutes=int(latest_minutes))
 			latest_filter = Q(created_at__gte=time_fro, created_at__lte=time_to)|\
 							Q(verification__created_at__gte=time_fro, verification__created_at__lte=time_to)|\
 							Q(result__test_date__gte=time_fro, result__test_date__lte=time_to)|\
