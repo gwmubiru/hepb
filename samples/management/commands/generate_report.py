@@ -64,8 +64,8 @@ class Command(BaseCommand):
 						s.form_number,
 						"%s%s/%s"%(s.locator_category, s.envelope.envelope_number, s.locator_position),
 						s.facility.facility,
-						s.facility.district.district if hasattr(s.facility, 'district') else None,
-						s.facility.hub.hub if hasattr(s.facility, 'hub') else None,
+						self.__get_district(s.facility),
+						self.__get_hub(s.facility),
 						s.date_collected,
 						s.date_received,
 						s.get_sample_type_display(),
@@ -108,6 +108,17 @@ class Command(BaseCommand):
 		finally:
 			zf.close()
 
+	def __get_hub(self, facility):		
+		if hasattr(facility, 'hub'):
+			return utils.getattr_ornone(facility.hub, 'hub')
+		else:
+			return ""
+
+	def __get_district(self, facility):		
+		if hasattr(facility, 'district'):
+			return utils.getattr_ornone(facility.district, 'district')
+		else:
+			return ""
 
 
 	def __get_headers(self):
