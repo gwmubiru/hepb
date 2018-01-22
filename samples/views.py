@@ -482,7 +482,7 @@ def pat_hist(request, facility_id):
 	if art_number == '':
 		return HttpResponse(json.dumps(ret))
 	unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
-	samples = Sample.objects.filter( Q(patient__unique_id=unique_id)|Q(facility_id=facility_id,patient__art_number=art_number)).order_by('date_collected')[:2]
+	samples = Sample.objects.filter( Q(patient__unique_id=unique_id)|Q(facility_id=facility_id,patient__art_number=art_number)).order_by('-date_collected')[:3]
 	
 	for s in samples:
 		ret.append({
@@ -616,15 +616,15 @@ def reverse_approval(request, verification_id):
 	#/samples/search/?search_val=1602-1267&approvals=1&env_complete=1
 	verification = Verification.objects.filter(pk=verification_id).first()
 	sample = verification.sample
-	ra = "Reverve approval failed"
-	if sample.in_worksheet:
-		ra = "Reverve approval not possible because the sample is already in a worksheet"
+	ra = "Reverse approval failed"
+	if sample.in_worksfeet:
+		ra = "Reverse approval not possible because the sample is already in a worksheet"
 	else:
 		if verification:
 			sample.verified = False
 			sample.save()
 			verification.delete()
-			ra = "Reverve approval successful"
+			ra = "Reverse approval successful"
 	
 	return redirect("/samples/search/?search_val=%s&approvals=1&reverse_approval=%s"%(request.GET.get("search_val"), ra))
 
