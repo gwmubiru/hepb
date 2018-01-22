@@ -82,6 +82,12 @@
 									<td>{{ s.verification.verified_by }}</td>
 									<td>{{ s.verification.created_at }}</td>
 								</tr>
+								{% if not s.verification.accepted %}
+								<tr>
+									<td>Rejection Reason</td>
+									<td colspan="3">{{ s.verification.rejection_reason.appendix }}</td>
+								</tr>
+								{% else %}
 								{% for sw in s.worksheet_set.all %} 
 								<tr>
 									<td>Worksheet</td>
@@ -116,6 +122,7 @@
 									<td>{{ s.resultsdispatch.dispatched_by }}</td>
 									<td>{{ s.resultsdispatch.dispatched_date }}</td>
 								</tr>
+								{% endif %}
 
 								{% if approvals %} 
 								<tr>
