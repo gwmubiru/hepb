@@ -24,9 +24,9 @@ class Command(BaseCommand):
 		
 		sql = """SELECT s.id AS sid, rr.*, fp.*, fp.id AS fpid, rr.created AS auth_at, rr.createdby AS auth_by, w.machineType, w.createdby AS test_by
 			    FROM vl_samples AS s
-			    INNER JOIN vl_results_released AS rr ON s.id=rr.sample_id
-			    INNER JOIN vl_facility_printing AS fp ON s.id=fp.sample_id
-			    INNER JOIN vl_samples_worksheetcredentials AS w ON rr.worksheet_id=w.id
+			    LEFT JOIN vl_results_released AS rr ON s.id=rr.sample_id
+			    LEFT JOIN vl_facility_printing AS fp ON s.id=fp.sample_id
+			    LEFT JOIN vl_samples_worksheetcredentials AS w ON rr.worksheet_id=w.id
 			    WHERE YEAR(s.created)=%s AND MONTH(s.created)=%s AND s.migrated = 'YES' AND result_migrated=0
 			    GROUP BY s.id LIMIT 20000"""
 
