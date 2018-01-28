@@ -1,5 +1,5 @@
-import json, os
-from datetime import date as dt
+import json, os, glob, calendar
+from datetime import date as dt, datetime as dtime
 from django.conf import settings
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
@@ -629,7 +629,7 @@ def reverse_approval(request, verification_id):
 	return redirect("/samples/search/?search_val=%s&approvals=1&reverse_approval=%s"%(request.GET.get("search_val"), ra))
 
 def download(request, path):
-	file_path = os.path.join(settings.MEDIA_ROOT, path)
+	file_path = os.path.join(settings.MEDIA_ROOT, "reports/%s"%path)
 	if os.path.exists(file_path):
 		with open(file_path, 'rb') as fh:
 			response = HttpResponse(fh.read(), content_type="application//x-zip-compressed")
@@ -637,6 +637,19 @@ def download(request, path):
 	 	 	return response
 	else:
 		return HttpResponse("report missing")
+
+def reports(request):
+	#reports = os.listdir("media/reports/")
+	reports = []
+	for r in glob.glob("media/reports/*.zip"):
+		stats = os.stat(r)
+		last_modified = dtime.fromtimestamp(stats.st_mtime)
+		size = round(stats.st_size/1000000.0,1)
+		report = os.path.basename(r)
+		period = "%s, %s" %(calendar.month_abbr[int(report[4:6])], report[0:4])
+		reports.append({'report':report, 'period':period, 'last_modified':last_modified, 'size':size})
+	return render(request,'samples/reports.html', {'reports': reports})
+
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""
 	data_quality = {}
