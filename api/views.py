@@ -1,5 +1,7 @@
-import datetime as dt
+import datetime as dt, json
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 
 from rest_framework import status
 # from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -9,7 +11,7 @@ from rest_framework.response import Response
 # from rest_framework.permissions import IsAuthenticated
 
 from samples.models import Sample
-from results.models import ResultsQC
+from results.models import ResultsQC, ResultsDispatch
 from backend.models import Facility
 from api.serializers import ResultsQCSerializer, FacilitySerializer, SampleSerializer
 
@@ -72,3 +74,29 @@ def facilities(request):
 		serializer = FacilitySerializer(facilities, many=True, read_only=True)
 		return Response(serializer.data)
 
+@api_view(['POST'])
+@csrf_exempt
+def update_dispatch_details(request):
+	if request.method == 'POST':
+		#return HttpResponse(request.POST.get('a'))
+		samples_str = request.POST.get('samples')
+		samples = json.loads(samples_str) if samples_str else []
+		for s in samples:
+			pk = s.get('pk')
+			if pk:
+				defaults = {
+					"dispatch_type":s.get('dispatch_type'), 
+					"dispatch_date":s.get('dispatch_date'),
+					"dispatched_by":s.get('dispatched_by'),
+					}
+				ResultsDispatch.objects.get_or_create(sample_id=int(pk), defaults=defaults)
+		return HttpResponse("update complete")
+
+
+
+# class ResultsDispatch(models.Model):
+# 	sample = models.OneToOneField(samples.Sample, on_delete=models.CASCADE)
+# 	dispatch_type = models.CharField(max_length=1, null=True, choices=( ('P', 'Printed'),('D', 'Downloaded') ))
+# 	dispatch_date = models.DateTimeField(null=True)
+# 	dispatched_by = models.CharField(max_length=128, null=True)
+			
