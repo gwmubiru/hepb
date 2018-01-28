@@ -48,13 +48,22 @@ class Command(BaseCommand):
 				age = then_date.year-dob.year if then_date and dob else ""
 					
 				result = utils.getattr_ornone(s, 'result')
+				data_qc = utils.getattr_ornone(result, 'resultsqc')
+				data_qc_at = data_qc.released_at if data_qc else ""
+
+				rdata_qc = utils.getattr_ornone(s, 'rejectedsamplesrelease')
+				rdata_qc_at = rdata_qc.released_at if rdata_qc else ""
+
+				dispatch = utils.getattr_ornone(s, 'resultsdispatch')
+				dispatched_at = dispatch.dispatch_date if dispatch else ''
+
 				authorised = result.authorised if result else False
 				approval = utils.getattr_ornone(s, 'verification')
 				accepted = approval.accepted if approval else 'pending'
 				if accepted == True:
 					status = 'accepted'
 				elif accepted == False:
-					status = 'rejeced'
+					status = 'rejected'
 				else:
 					status = ''
 				verification_date = approval.created_at if approval else ''
@@ -95,7 +104,12 @@ class Command(BaseCommand):
 						'Y' if authorised else 'N',
 						result.result_alphanumeric if result else '',
 						result.get_suppressed_display() if result else '',
-						result.test_date if result else ''
+						result.test_date if result else '',
+						result.authorised_at if result else '',
+						data_qc_at,
+						rdata_qc_at,
+						dispatched_at,
+						s.created_at,
 						])
 
 			df = pd.DataFrame(output)			
@@ -157,5 +171,10 @@ class Command(BaseCommand):
 				'Passed Lab QC?',
 				'Result',
 				'Suppressed',
-				'Test Date'
+				'Test Date',
+				'Lab QC date',
+				'Data QC date',
+				'Data QC date for Rejects',
+				'Date dispatched',
+				'Date Record Captured'
 				]
