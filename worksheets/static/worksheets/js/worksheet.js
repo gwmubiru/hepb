@@ -129,7 +129,7 @@ ctrller.worksheetSamplesController = function($scope,$http){
 				sample_obj.prop('checked', false);
 				return false;
 			}else{
-				if($scope.selected_samples.indexOf(sample)==-1){
+				if(sampleExists(sample)==false){
 					$scope.selected_samples.push(sample);
 					sample_obj.prop('checked', true);
 				}
@@ -164,6 +164,19 @@ ctrller.worksheetSamplesController = function($scope,$http){
 		}
 
 		return ret;		
+	}
+
+	sampleExists = function(sample){
+		ret = false;
+		for(var i in $scope.selected_samples){ 
+			var s = $scope.selected_samples[i];
+			if (sample.form_number==s.form_number){
+				ret = true;
+				break;
+			}
+		}
+		return ret;
+
 	}
 
 
