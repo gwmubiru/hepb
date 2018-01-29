@@ -14,5 +14,6 @@ urlpatterns  = [
 	url(r'^api', login_required(views.api), name='api'),
 	url(r'^anomalies/(?P<worksheet_id>[0-9]+)/$', login_required(views.get_anomalies), name='anomalies'),
 	url(r'^intervene_list/$', login_required(views.intervene_list), name='intervene_list'),
+	url(r'^reschedule/(?P<result_pk>[0-9]+)/$', login_required(views.reschedule), name='reschedule')
 	#url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
 ]

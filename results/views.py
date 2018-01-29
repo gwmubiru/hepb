@@ -278,6 +278,18 @@ def intervene_list(request):
 	intervene_results = ResultsQC.objects.filter(released=False)[:500]
 	return render(request, 'results/intervene_list.html', {'intervene_results':intervene_results})
 
+def reschedule(request, result_pk):
+	resultsqc = ResultsQC.objects.filter(result_id=result_pk).first()
+	if resultsqc:
+		resultsqc.result.repeat_test = 1
+		resultsqc.result.authorised = False
+		resultsqc.result.save()
+		resultsqc.delete()
+		return HttpResponse(1)
+	else:
+		return HttpResponse(0)
+
+
 def api(request):	
 	ret=[]
 	results = Result.objects.all()

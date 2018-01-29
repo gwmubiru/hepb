@@ -21,6 +21,7 @@
 	                <th>Result</th>
 	                <th>Suppressed?</th>
 	                <th>Created by</th>
+	                <th></th>
 			    </thead>			
 				<tbody>
 					{% for i in intervene_results %}
@@ -31,6 +32,7 @@
 						<td>{{ i.result.result_alphanumeric }}</td>
 						<td>{{ i.result.get_suppressed_display }}</td>
 						<th>{{ i.result.sample.created_by }}</th>
+						<th><a href="#" class="reschedule" result-pk="{{i.result.pk}}">Reschedule</a></th>
 					</tr>
 					{% endfor %}
 				</tbody>
@@ -45,6 +47,21 @@ $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
 	});
+
+	$(".reschedule").on("click", function(){
+		var that = $(this);
+		var result_pk = $(this).attr('result-pk');
+		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk};
+		$.post("/results/reschedule/"+result_pk+"/", params).done(function(data) {
+			if(data==1){
+				that.parent().html("Rescheduled");
+			}else{
+				that.parent().html("Failed");
+			}
+			
+		});
+	});
+	
 });
 </script>
 {% endblock %}
