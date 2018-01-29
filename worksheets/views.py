@@ -328,6 +328,12 @@ def reg_info(request, machine_type):
 
 	return render(request, 'worksheets/reg_info.html', context)
 
+def get_instrument_id(request):
+	instrument_id = request.GET.get('instrument_id')
+	ws = WorksheetSample.objects.filter(instrument_id=instrument_id).first()
+
+	return HttpResponse(1) if ws else HttpResponse(0)
+
 	
 class ListJson(BaseDatatableView):
 	model = Worksheet

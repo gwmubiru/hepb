@@ -141,15 +141,29 @@ ctrller.worksheetSamplesController = function($scope,$http){
 	}
 
 	setInstrumentID = function(sample){
-		if($scope.instrument_ids.indexOf(sample.val()) == -1){
-			$scope.instrument_ids.push(sample.val());
-			return true;
-		}else{
+		var exists = 0;
+		$.ajax({
+			'async': false,
+			'type': "GET",
+			'global': false,
+			'url': "/worksheets/get_instrument_id/?instrument_id="+sample.val(),
+			'success': function (data) { exists = data; }
+		});
+
+		if(exists==1){
+			alert(sample.val()+" exists in the database");
+			sample.val("");
+			ret = false;
+		}else if($scope.instrument_ids.indexOf(sample.val()) != -1){
 			alert(sample.val()+" already scanned");
-			sample.val('');
-			return false;
+			sample.val("");
+			ret =false;
+		}else{
+			$scope.instrument_ids.push(sample.val());
+			ret = true;
 		}
-		
+
+		return ret;		
 	}
 
 
