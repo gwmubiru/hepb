@@ -617,7 +617,7 @@ def reverse_approval(request, verification_id):
 	verification = Verification.objects.filter(pk=verification_id).first()
 	sample = verification.sample
 	ra = "Reverse approval failed"
-	if sample.in_worksfeet:
+	if sample.in_worksheet:
 		ra = "Reverse approval not possible because the sample is already in a worksheet"
 	else:
 		if verification:
