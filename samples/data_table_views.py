@@ -73,10 +73,13 @@ class ListJson(BaseDatatableView):
 		if search:
 			#f_cond = Q(facility__facility__icontains=search)
 			#h_cond = Q(facility__hub__hub__icontains=search)
-			fn_cond = Q(form_number=search)
-			loc_cond = sample_utils.locator_cond(search)
-			#st_cond = Q(sample_type=search[0])
-			qs_params = fn_cond | loc_cond if loc_cond else fn_cond
+			if  search.isdigit() or search[:-1].isdigit():
+				return qs.filter(form_number=search)
+			else:
+				fn_cond = Q(form_number__icontains=search)
+				loc_cond = sample_utils.locator_cond(search)
+				#st_cond = Q(sample_type=search[0])
+				qs_params = fn_cond | loc_cond if loc_cond else fn_cond
 
 		#qs_params = qs_params & Q(envelope__sample_medical_lab=utils.user_lab(self.request))
 		verified = self.request.GET.get('verified')
