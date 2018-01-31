@@ -82,7 +82,7 @@ class ListJson(BaseDatatableView):
 		verified = self.request.GET.get('verified')
 		qs_params = Q(verified=int(verified)) if verified=='0' or verified=='1' else qs_params
 		if qs_params:
-			return qs.filter(qs_params)
+			return qs.filter(qs_params).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('-envelope__envelope_number','lposition_int')
 		else:
 			return qs.all().extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('-envelope__envelope_number','lposition_int')
 		#return qs.filter(envelope__sample_medical_lab=utils.user_lab(self.request))
