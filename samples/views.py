@@ -549,10 +549,13 @@ def search(request):
 			env = Envelope.objects.filter(sample_utils.env_cond(search)).first()
 			samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
 		else:
-			fn_cond = Q(form_number__icontains=search)
-			loc_cond = sample_utils.locator_cond(search)
-			cond = fn_cond | loc_cond if loc_cond else fn_cond
-			samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+			if search.isdigit() or search[:-1].isdigit():
+				samples = Sample.objects.filter(form_number=search)
+			else:
+				fn_cond = Q(form_number__icontains=search)
+				loc_cond = sample_utils.locator_cond(search)
+				cond = fn_cond | loc_cond if loc_cond else fn_cond
+				samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
 	else:
 		samples = None
 	return render(request, 'samples/search.html', {'samples':samples, 'approvals':approvals})
