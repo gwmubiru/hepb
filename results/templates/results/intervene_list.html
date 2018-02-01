@@ -46,22 +46,21 @@
 $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
-	});
+	});	
+});
 
-	$(".reschedule").on("click", function(){
-		var that = $(this);
-		var result_pk = $(this).attr('result-pk');
-		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk};
-		$.post("/results/reschedule/"+result_pk+"/", params).done(function(data) {
-			if(data==1){
-				that.parent().html("Rescheduled");
-			}else{
-				that.parent().html("Failed");
-			}
-			
-		});
+$(".reschedule").on("click", function(){
+	var that = $(this);
+	var result_pk = $(this).attr('result-pk');
+	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk};
+	$.post("/results/reschedule/"+result_pk+"/", params).done(function(data) {
+		if(data==1){
+			that.parent().html("Rescheduled");
+		}else{
+			that.parent().html("Failed");
+		}
+		
 	});
-	
 });
 </script>
 {% endblock %}
