@@ -7,7 +7,7 @@ from backend.models import Appendix, District, Hub, Facility, UserProfile
 class AppendixSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Appendix
-		fields = ('code', 'appendix',)
+		fields = ('code', 'appendix','tag',)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
