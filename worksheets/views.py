@@ -230,7 +230,13 @@ def _get_pending_samples():
 def pending_samples(request):	
 	repeat = request.GET.get('repeat')
 	sample_type = request.GET.get('sample_type')
-	if repeat:
+	stats = request.GET.get('stats')
+
+	if stats:
+		rsc = Sample.objects.filter(result__repeat_test=1, sample_type=sample_type).count()
+		psc = Sample.objects.filter(verified=True, verification__accepted=True, in_worksheet=False, result__pk=None).count()
+		return HttpResponse(json.dumps({'repeat_samples_count':rsc, 'pending_samples_count':psc}))
+	elif repeat:
 		fltrs = {'result__repeat_test':True}
 		if sample_type:
 			fltrs.update({'sample_type':sample_type})
@@ -250,7 +256,7 @@ def pending_samples(request):
 
 		samples = Sample.objects.filter(**filters)
 	ret=[]
-	samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:200]
+	samples = samples.extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('envelope__envelope_number', 'lposition_int')[:300]
 
 	for i,s in enumerate(samples):
 		ret.append({

@@ -12,6 +12,8 @@ ctrller.worksheetSamplesController = function($scope,$http){
 	$scope.current_env = '';
 	$scope.instrument_ids = [];
 	$scope.scanned_racks = [];
+	$scope.repeat_samples_count = "";
+	$scope.pending_samples_count = "";
 
 	$http.get("/worksheets/pending_envelopes?sample_type="+st).success(function(data){
 		$scope.pending_envelopes = data;
@@ -24,6 +26,11 @@ ctrller.worksheetSamplesController = function($scope,$http){
 	*/
 	$http.get("/worksheets/pending_samples?repeat=1&sample_type="+st).success(function(data){
 		$scope.repeat_samples = data;
+	});
+
+	$http.get("/worksheets/pending_samples?stats=1&sample_type="+st).success(function(data){
+		$scope.repeat_samples_count = "("+data.repeat_samples_count+")";
+		$scope.pending_samples_count = "("+data.pending_samples_count+")";
 	});
 
 	$scope.getEnvSamples = function(pk){		
