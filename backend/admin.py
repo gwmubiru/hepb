@@ -1,13 +1,17 @@
 from django.contrib import admin
+from django.core.serializers import serialize
 
 from .models import *
+from samples.models import Sample, LabTech, Clinician, ClinicalRequestFormsDispatch
+
 
 class ReadOnlyAdmin(object):
 	"""Disables all editing capabilities."""
 
 	def __init__(self, *args, **kwargs):
 		super(ReadOnlyAdmin, self).__init__(*args, **kwargs)
-		self.readonly_fields = self.model._meta.get_all_field_names()
+		#self.readonly_fields = self.model._meta.get_all_field_names()
+		self.readonly_fields = map(lambda f: f.attname, self.model._meta.get_fields())
 
 	def has_add_permission(self, request):
 		return False
@@ -20,8 +24,6 @@ class ReadOnlyAdmin(object):
 
 
 class VLAdmin(object):
-	#actions = ('merge',)
-	
 	def has_delete_permission(self, request, obj=None):
 		return False
 
@@ -46,8 +48,71 @@ class VLAdmin(object):
 	# 	self.message_user(request, "All merged to %s." %main)
 
 class FacilityAdmin(VLAdmin, admin.ModelAdmin):
+	actions = ('merge',)
 	list_display = ('facility','district','hub','dhis2_name', 'dhis2_uid',)
 	search_fields = ('facility', 'district__district',)
+
+	def merge(self, request, queryset):
+		facility0 = queryset[0]
+		facility1 = queryset[1]
+
+		samples = Sample.objects.filter(facility=facility1)
+		for sample in samples:
+			sample.facility = facility0
+			sample.save()
+
+		facility_ips = IpFacilitySupport.objects.filter(facility=facility1)
+		for facility_ip in facility_ips:
+			facility_ip.facility = facility0
+			facility_ip.save()
+
+		dispatched_forms = ClinicalRequestFormsDispatch.objects.filter(facility=facility1)
+		for dispatched_form in dispatched_forms:
+			dispatched_form.facility = facility0
+			dispatched_form.save()
+
+		lab_techs = LabTech.objects.filter(facility=facility1)
+		for lab_tech in lab_techs:
+			lab_tech.lname = self.new_lname(facility0, "%s."%lab_tech.lname)  
+			lab_tech.facility = facility0
+			lab_tech.save()
+
+		clinicians = Clinician.objects.filter(facility=facility1)
+		for clinician in clinicians:
+			clinician.cname = self.new_cname(facility0,"%s."%clinician.cname)
+			clinician.facility = facility0
+			clinician.save()
+
+		
+
+		delete_log = DeleteLog()
+		delete_log.ref_number = facility1.pk
+		delete_log.section = "facilities"
+		delete_log.delete_reason = " %s (%s) merged to %s (%s)"%(facility1.pk, facility1.facility, facility0.pk, facility0.facility)
+		delete_log.data = "%s"%serialize('json', [facility1]) 
+		delete_log.deleted_by = request.user
+		delete_log.save()	
+
+		facility1.delete()
+
+		self.message_user(request, "All merged to %s." %facility0)
+
+	def new_cname(self, facility, cname):
+		while(True):
+			exists = Clinician.objects.filter(facility=facility, cname=cname).exists()
+			if exists:
+				cname = "%s "%cname
+			else:
+				return cname
+
+	def new_lname(self, facility, lname):
+		while(True):
+			exists = LabTech.objects.filter(facility=facility, lname=lname).exists()
+			if exists:
+				lname = "%s "%lname
+			else:
+				return lname
+
 
 class AppendixCategoryAdmin(VLAdmin, admin.ModelAdmin):
 	pass
