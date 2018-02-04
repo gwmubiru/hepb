@@ -234,7 +234,7 @@ def pending_samples(request):
 
 	if stats:
 		rsc = Sample.objects.filter(result__repeat_test=1, sample_type=sample_type).count()
-		psc = Sample.objects.filter(verified=True, verification__accepted=True, in_worksheet=False, result__pk=None).count()
+		psc = Sample.objects.filter(verified=True, verification__accepted=True, in_worksheet=False, result__pk=None, sample_type=sample_type).count()
 		return HttpResponse(json.dumps({'repeat_samples_count':rsc, 'pending_samples_count':psc}))
 	elif repeat:
 		fltrs = {'result__repeat_test':True}
