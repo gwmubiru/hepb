@@ -71,6 +71,12 @@ class EnvelopeForm(forms.ModelForm):
 				),
 		}
 
+	def clean(self):
+		cleaned_data = self.cleaned_data
+		env_number = self.cleaned_data.get('envelope_number')
+		if len(env_number) != 9:
+			self.add_error('envelope_number', "Invalid envelope number. Right format is YYMM-XXXX")
+
 class PatientPhoneForm(forms.ModelForm):
 	class Meta:
 		model = PatientPhone
@@ -171,6 +177,14 @@ class SampleForm(forms.ModelForm):
 		locator_category = cleaned_data.get('locator_category')
 		date_collected = cleaned_data.get('date_collected')
 		date_received = cleaned_data.get('date_received')
+		locator_position = cleaned_data.get('locator_position')
+		sample_type = cleaned_data.get('sample_type')
+
+		if sample_type=='D' and len(locator_position)!=2:
+			self.add_error('locator_position', 'Length of 2 for sample position expected for DBS')
+		elif sample_type=='P' and len(locator_position)!=3:
+			self.add_error('locator_position', 'Length of 3 for sample position expected for Plasma')
+
 
 		pk = self.instance.pk
 
