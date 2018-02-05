@@ -53,4 +53,14 @@ class WorksheetSample(models.Model):
 	rack_id = models.CharField(max_length=64, null=True, blank=True)
 
 	class Meta:
-		db_table = 'vl_worksheet_samples'	
+		db_table = 'vl_worksheet_samples'
+
+
+class WorksheetPrinting(models.Model):
+	worksheet = models.OneToOneField(Worksheet, on_delete=models.CASCADE)
+	worksheet_printed_by = models.ForeignKey(User, related_name='worksheet_printed_by')
+	printed_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		db_table = 'vl_worksheet_printing'

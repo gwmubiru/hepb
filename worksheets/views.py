@@ -19,7 +19,7 @@ from django.core import serializers
 from home import utils
 from backend.models import DeleteLog
 from .forms import WorksheetForm,AttachSamplesForm
-from .models import Worksheet,WorksheetSample
+from .models import Worksheet,WorksheetSample, WorksheetPrinting
 from samples.models import Sample, Envelope
 from results.models import Result
 from . import utils as worksheet_utils
@@ -176,6 +176,7 @@ def vlprint(request, worksheet_id):
 	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
 	sample_pads = 11 if worksheet.include_calibrators else 3
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
+	WorksheetPrinting.objects.update_or_create(worksheet=worksheet, defaults={'worksheet_printed_by': request.user})	
 	return render(request, 'worksheets/vlprint.html', context)
 
 @permission_required('results.add_result', login_url='/login/')
