@@ -29,8 +29,9 @@
 						<th>Form</th>
 						<th>ART&nbsp;Number</th>
 						{% if worksheet.machine_type == 'C' %}<th>Instrument&nbsp;ID</th>{% endif %}
-						<th>Machine Result</th>
-						<th>Result</th>
+						<th>&nbsp;</th>
+						<th>Machine Result (latest)</th>
+						<th>Result (latest)</th>
 		                <th>Suppressed?</th>
 		                <th style="width:250px">Choose</th>
 		                <td/>
@@ -49,6 +50,20 @@
 							{% endif %}
 
 							<td>
+								<span id="results_list{{ forloop.counter }}" style="display:none">
+								<table  class="table table-bordered table-condensed table-striped" >
+									<tr><td>Result 1:</td><td>{{ sample.result.result1 }}</td></tr>
+									<tr><td>Result 2:</td><td>{{ sample.result.result2 }}</td></tr>
+									<tr><td>Result 3:</td><td>{{ sample.result.result3 }}</td></tr>
+									<tr><td>Result 4:</td><td>{{ sample.result.result4 }}</td></tr>
+									<tr><td>Result 5:</td><td>{{ sample.result.result5 }}</td></tr>
+								</table>
+								</span>
+								
+								<a href="#" class="results_list glyphicon glyphicon-list-alt" data-toggle="modal" data-target="#myModal" style="text-decoration:none;" r_id="{{ forloop.counter }}"></a>
+							</td>
+
+							<td>
 								{% if sample.result.result5 %}
 									{{ sample.result.result5 }}
 								{% elif sample.result.result4 %}
@@ -63,6 +78,7 @@
 									N/A
 								{% endif %}
 							</td>
+							
 							<td>{{ sample.result.result_alphanumeric }}</td>
 							<td>{{ sample.result.get_suppressed_display }}</td>
 							<td>
@@ -85,6 +101,27 @@
 			</div>
 		</div>
 	</div>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Results list for the sample</h4>
+      </div>
+      <div class="modal-body">
+        <p id="results_list_show"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 	<script type="text/javascript">
 	 $(function() {
 	 	var oTable = $('#samples-table').dataTable({
@@ -92,10 +129,6 @@
 			"paging":false,
 			"order": [[ 2, "asc" ]],
 		});
-		$(".vlbarcodes").each(function (index){
-            var val = $(this).attr("value");
-            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
-        });
 
         $(".status").hide();
       });
@@ -117,9 +150,19 @@
 	 	//alert($(this).val());
 
 	 });
+
+	 
+
 	 $(".x").on("click", function(){
 	 	$(this).parent().hide();
 	 });
+
+	 $(document).ready(function() {
+		$(".results_list").click(function(){
+			var r_id = $(this).attr('r_id');
+			$("#results_list_show").html($("#results_list"+r_id).html());
+		});
+	});
 	</script>
 
 {% endblock %}

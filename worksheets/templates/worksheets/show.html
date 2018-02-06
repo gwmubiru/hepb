@@ -26,7 +26,7 @@
 								<th>Rack ID</th>
 								{% if request.GET.show_results %}
 								<th>Result</th>
-								<th>Processed Result</th>
+								<!-- <th>Processed Result</th> -->
 								{% endif %}
 							</tr>
 						</thead>
@@ -55,7 +55,7 @@
 											{{ s.sample.result.result5 }}							
 										{% endif %}
 									</td>
-									<td>{{ s.sample.result.result_alphanumeric }}</td>
+									<!-- <td>{{ s.sample.result.result_alphanumeric }}</td> -->
 								{% endif %}
 							</tr>
 							{% endfor %}
