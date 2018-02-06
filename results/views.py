@@ -183,7 +183,7 @@ def cobas_upload(request):
 					destination.write(chunk)
 
 			reader = pandas.read_csv(tmp_name, sep=',')
-			worksheets_set = set()
+			#worksheets_set = set()
 			for row in reader.iterrows():
 				# try:
 				index, data = row
@@ -197,16 +197,19 @@ def cobas_upload(request):
 					store_result('C', sample, result, form.cleaned_data.get('multiplier'), request.user)
 					ws.stage = 2
 					ws.save()
-					worksheets_set.add(ws.worksheet.pk)
+					ws.worksheet.stage = 2
+					ws.worksheet.save()
+
+					#worksheets_set.add(ws.worksheet.pk)
 					# if(WorksheetSample.objects.filter(worksheet=ws.worksheet,stage=1).count()==0):
 					# 	ws.worksheet.stage = 2
 					# 	ws.worksheet.save()
 
-			for w_id in worksheets_set:
-				 if(WorksheetSample.objects.filter(worksheet_id=w_id,stage=1).count()==0):
-				 	worksheet = Worksheet.objects.get(pk=w_id)
-				 	worksheet.stage = 2
-				 	worksheet.save()
+			# for w_id in worksheets_set:
+			# 	 if(WorksheetSample.objects.filter(worksheet_id=w_id,stage=1).count()==0):
+			# 	 	worksheet = Worksheet.objects.get(pk=w_id)
+			# 	 	worksheet.stage = 2
+			# 	 	worksheet.save()
 
 			upload.save()
 				
