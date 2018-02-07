@@ -4,11 +4,12 @@ from django.http import HttpResponse
 from django.utils import timezone
 
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.decorators import permission_required
 
 from home import utils
 from .forms import UploadForm, CobasUploadForm
-from worksheets.models import Worksheet,WorksheetSample
+from worksheets.models import Worksheet,WorksheetSample, MACHINE_TYPES
 from samples.models import Sample
 from .models import Result,ResultsQC
 from . import utils as result_utils
@@ -237,11 +238,15 @@ def worksheet_results(request, worksheet_id):
 
 @permission_required('results.add_resultsqc', login_url='/login/')
 def release_list(request, machine_type):
-	# auth_count = models.Count(models.Case(models.When(worksheetsample__stage__gte=3, then=1)))
-	# samples_count = models.Count('worksheetsample')
-	# worksheets = Worksheet.objects.annotate(sc=samples_count,ac=auth_count).filter(ac=samples_count, machine_type=machine_type)
-	worksheets = Worksheet.objects.filter(stage=3, machine_type=machine_type)
-	return render(request,'results/release_list.html',{'worksheets':worksheets})
+	tab = request.GET.get('tab')
+	if tab=='released':
+		filters = Q(stage=4, machine_type=machine_type)
+	else:
+		filters = Q(stage=3, machine_type=machine_type)
+
+	worksheets = Worksheet.objects.filter(filters)
+	context = {'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)}
+	return render(request,'results/release_list.html',context)
 
 @permission_required('results.add_resultsqc', login_url='/login/')
 def release_results(request, worksheet_id):
