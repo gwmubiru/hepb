@@ -98,7 +98,16 @@
 								{% endfor %}
 								<tr>
 									<td>Processed Result</td>
-									<td>{{ s.result.result_alphanumeric }}</td>
+									<td>
+										{{ s.result.result_alphanumeric }}
+										{% if s.result.repeat_test == 0 %}
+											(Already rescheduled)
+										{% elif s.result.repeat_test == 1 %}
+											(Ready to be rescheduled)
+										{% elif s.result.repeat_test == 3 %}
+											(Can be rescheduled in Auth window)
+										{% endif %}
+									</td>
 									<td></td>
 									<td></td>
 								</tr>
