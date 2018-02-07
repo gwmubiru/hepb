@@ -411,7 +411,7 @@ class ListJson(BaseDatatableView):
 		qs = qs.filter(worksheet_medical_lab=utils.user_lab(self.request))
 
 		if tab=='pending_p':
-			qs = qs.filter(worksheetprinting__isnull=False)
+			qs = qs.filter(worksheetprinting__isnull=True)
 		elif tab=='pending_r':
 			qs = qs.filter(stage=1)
 
