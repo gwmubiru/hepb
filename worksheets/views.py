@@ -369,8 +369,8 @@ def get_instrument_id(request):
 	
 class ListJson(BaseDatatableView):
 	model = Worksheet
-	columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at','stage', 'pk']
-	order_columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at','stage', '']
+	columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at','stage', 'printed','pk']
+	order_columns = ['worksheet_reference_number', 'machine_type', 'sample_type', 'created_at','stage', 'worksheetprinting.pk','']
 	max_display_length = 500
 
 	def render_column(self, row, column):
@@ -399,13 +399,21 @@ class ListJson(BaseDatatableView):
 				])
 
 			return links
+		elif column == 'printed':
+			return "yes" if hasattr(row, 'worksheetprinting') else "no"
 		else:
 			return super(ListJson, self).render_column(row, column)
 
 	def filter_queryset(self, qs):
+		tab = self.request.GET.get('tab')
 		search = self.request.GET.get(u'search[value]', None)
 		machine_type = self.request.GET.get('machine_type')
 		qs = qs.filter(worksheet_medical_lab=utils.user_lab(self.request))
+
+		if tab=='pending_p':
+			qs = qs.filter(worksheetprinting__isnull=False)
+		elif tab=='pending_r':
+			qs = qs.filter(stage=1)
 
 		if search:
 			qs = qs.filter(worksheet_reference_number__icontains=search)

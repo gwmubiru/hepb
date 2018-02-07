@@ -15,18 +15,33 @@
 <div class="page-title">Worksheets</div>
 
 <div class="panel panel-default">
-	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
-		<thead>
-			<tr>
-				<th>Worksheet Ref Number</th>
-				<th>Machine Type</th>
-				<th>Sample Type</th>
-				<th>Date Created</th>
-				<th>Stage</th>				
-				<th />
-			</tr>
-		</thead>
-	</table><br><br>
+	<ul id="tabs_a" class="nav nav-tabs">
+	    <li {% if request.GET.tab == 'all' %}class='active'{% endif %}>
+	    	<a href="?tab=all">All</a>
+	    </li>
+	    <li {% if request.GET.tab == 'pending_p' %}class='active'{% endif %}>
+	    	<a href="?tab=pending_p">Pending Printing</a>
+	    </li>
+	    <li {% if request.GET.tab == 'pending_r' %}class='active'{% endif %}>
+	    	<a href="?tab=pending_r">Pending Results</a>
+	    </li>
+	</ul>
+	<div class="tab-content">
+		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+			<thead>
+				<tr>
+					<th>Worksheet Ref Number</th>
+					<th>Machine Type</th>
+					<th>Sample Type</th>
+					<th>Date Created</th>
+					<th>Stage</th>
+					<th>Printed?</th>				
+					<th />
+				</tr>
+			</thead>
+		</table><br><br>
+	</div>
+	
 </div>
 <div id="myModal" class="modal fade" role="dialog">
   <div class="modal-dialog">
@@ -56,7 +71,7 @@ $(document).ready(function() {
 		"processing": true,
 		"serverSide": true,
 		"order": [[ 3, "desc" ]],
-		"ajax": "/worksheets/list_json/{% if machine_type %}?machine_type={{machine_type}}{% endif %}",
+		"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}{% endif %}&tab={{request.GET.tab}}",
 	});
 });
 

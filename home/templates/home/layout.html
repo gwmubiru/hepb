@@ -119,11 +119,11 @@
                             <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
                             <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
                             <li class="dropdown-headers">Upload Result</li>
-                            <li><a href="/worksheets/list/?type=A">For Abbott</a></li>
-                            <li><a href="/worksheets/list/?type=R">For Roche CAP/CTM</a></li>
-                            <li><a href="/results/cobas_upload/?type=C">For Cobas 8800</a></li>
+                            <li><a href="/worksheets/list/?type=A&tab=pending_r">For Abbott</a></li>
+                            <li><a href="/worksheets/list/?type=R&tab=pending_r">For Roche CAP/CTM</a></li>
+                            <li><a href="/results/cobas_upload/?type=C&tab=pending_r">For Cobas 8800</a></li>
                             <li class="dropdown-headers">Lists</li>
-                            <li><a href="{% url 'worksheets:list' %}">View all</a></li> 
+                            <li><a href="/worksheets/list/?tab=all">View all</a></li> 
                         </ul>
                     </li>
                     {% endif %}
