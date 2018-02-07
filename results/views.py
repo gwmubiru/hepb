@@ -244,7 +244,7 @@ def release_list(request, machine_type):
 	else:
 		filters = Q(stage=3, machine_type=machine_type)
 
-	worksheets = Worksheet.objects.filter(filters)
+	worksheets = Worksheet.objects.filter(filters)[:1000]
 	context = {'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)}
 	return render(request,'results/release_list.html',context)
 
