@@ -19,7 +19,7 @@ from django.core import serializers
 from home import utils
 from backend.models import DeleteLog
 from .forms import WorksheetForm,AttachSamplesForm
-from .models import Worksheet,WorksheetSample, WorksheetPrinting
+from .models import Worksheet,WorksheetSample, WorksheetPrinting, MACHINE_TYPES
 from samples.models import Sample, Envelope
 from results.models import Result
 from . import utils as worksheet_utils
@@ -185,13 +185,48 @@ def authorize_list(request, machine_type):
 	# has_results_count = models.Count(models.Case(models.When(worksheetsample__stage=2, then=1)))
 	# samples_count = models.Count('worksheetsample')
 	# worksheets = Worksheet.objects.annotate(sc=samples_count,hrc=has_results_count).filter(hrc=samples_count, machine_type=machine_type)
-	worksheets = Worksheet.objects.filter(stage=2, machine_type=machine_type)
-	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets})
+	tab = request.GET.get('tab')
+	if tab=='authorised':
+		filters = Q(stage=3, machine_type=machine_type)
+	else:
+		filters = Q(stage=2, machine_type=machine_type)
+
+	worksheets = Worksheet.objects.filter(filters)
+	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)})
 
 @permission_required('results.add_result', login_url='/login/')
 def authorize_results(request, worksheet_id):
+	# sample_result, sr_created = Result.objects.get_or_create(sample=sample)
+	# result_dict = result_utils.get_result(result, multiplier)
+	# sample_result.repeat_test = result_dict.get('repeat_test')
+	# sample_result.result_numeric = result_dict.get('numeric_result')
+	# sample_result.result_alphanumeric = result_dict.get('alphanumeric_result')
+	# sample_result.suppressed = result_dict.get('suppressed')
+	# sample_result.method = machine_type
+	# sample_result.test_date = timezone.now()
+	# sample_result.test_by = user
+
+	# sample_result.save()
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	if request.method == 'POST':
-		result = Result.objects.get(pk=request.POST.get('result_pk'))
+		push_worksheet = request.POST.get('push_worksheet')
+		if push_worksheet=='1':
+			worksheet.stage = 3
+			worksheet.save()
+			return redirect("/worksheets/authorize_list/%s/"%worksheet.machine_type)
+		sample_id = request.POST.get('sample_pk')
+		result = Result.objects.filter(sample_id=sample_id).first()
+		if not result:
+			result = Result()
+			result.sample_id = sample_id
+			result.result1 = 'Invalid'
+			result.result_numeric = 0
+			result.result_alphanumeric = 'Failed'
+			result.suppressed = 3
+			result.method = worksheet.machine_type
+			result.test_date = timezone.now()
+			result.test_by = request.user
+
 		choice = request.POST.get('choice')
 		if choice == 'reschedule':
 			result.repeat_test = 1
@@ -209,7 +244,6 @@ def authorize_results(request, worksheet_id):
 			result.authorised_at = timezone.now()
 
 		result.save()
-		worksheet = Worksheet.objects.get(pk=worksheet_id)
 		ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=result.sample).first()
 		ws.stage = 4 if choice == 'reschedule' else 3
 		ws.save()
@@ -220,7 +254,6 @@ def authorize_results(request, worksheet_id):
 
 		return HttpResponse("saved")
 	else:
-		worksheet = Worksheet.objects.get(pk=worksheet_id)
 		sample_pads = 11 if worksheet.include_calibrators else 3
 		context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 		return render(request, 'worksheets/authorize_results.html', context)
