@@ -196,17 +196,6 @@ def authorize_list(request, machine_type):
 
 @permission_required('results.add_result', login_url='/login/')
 def authorize_results(request, worksheet_id):
-	# sample_result, sr_created = Result.objects.get_or_create(sample=sample)
-	# result_dict = result_utils.get_result(result, multiplier)
-	# sample_result.repeat_test = result_dict.get('repeat_test')
-	# sample_result.result_numeric = result_dict.get('numeric_result')
-	# sample_result.result_alphanumeric = result_dict.get('alphanumeric_result')
-	# sample_result.suppressed = result_dict.get('suppressed')
-	# sample_result.method = machine_type
-	# sample_result.test_date = timezone.now()
-	# sample_result.test_by = user
-
-	# sample_result.save()
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	if request.method == 'POST':
 		push_worksheet = request.POST.get('push_worksheet')
@@ -214,6 +203,7 @@ def authorize_results(request, worksheet_id):
 			worksheet.stage = 3
 			worksheet.save()
 			return redirect("/worksheets/authorize_list/%s/"%worksheet.machine_type)
+
 		sample_id = request.POST.get('sample_pk')
 		result = Result.objects.filter(sample_id=sample_id).first()
 		if not result:
@@ -226,10 +216,12 @@ def authorize_results(request, worksheet_id):
 			result.method = worksheet.machine_type
 			result.test_date = timezone.now()
 			result.test_by = request.user
+			result.save()
 
 		choice = request.POST.get('choice')
 		if choice == 'reschedule':
 			result.repeat_test = 1
+			result.authorised = False
 		elif choice == 'invalid':
 			result.result_alphanumeric = 'FAILED'
 			result.repeat_test = 2

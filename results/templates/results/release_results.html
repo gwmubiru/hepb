@@ -14,6 +14,8 @@
 	<span class="page-title">WORKSHEET</span>		
 	<div class="panel panel-default" style="overflow-y:auto">
 		<div class="panel-body">
+			<form action="/results/release_results/{{ worksheet.pk }}/" method="post" role="form">	
+			{% csrf_token %}	
 			<div class="worksheet" id="content" >
 				<div class="row" >
 					<div class="col-md-4">Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></div>
@@ -58,22 +60,25 @@
 								{% elif s.sample.result.resultsqc.released == 0 %}
 									Retained
 								{% else %}
-									<label><input type='radio' name='choices{{ s.sample.result.pk }}' class='choices r' result-pk="{{ s.sample.result.pk }}" value='release'> Release</label>
-									<label><input type='radio' name='choices{{ s.sample.result.pk }}' class='choices' result-pk="{{ s.sample.result.pk }}" value='retain'> Retain</label>
+									<label><input type='radio' required='true' name='choices{{ s.sample.result.pk }}' class='choices r' result-pk="{{ s.sample.result.pk }}" value='release'> Release</label>
+									<label><input type='radio' required='true' name='choices{{ s.sample.result.pk }}' class='choices' result-pk="{{ s.sample.result.pk }}" value='retain'> Retain</label>
 									<div class="comments" id="comments_sect{{ s.sample.result.pk }}" >
-									<input type="text"  name='comments{{ s.sample.result.pk }}' placeholder="comments" id="comment{{ s.sample.result.pk }}" value="">
-									<span class="btn btn-primary btn-xs comments_save" result-pk="{{ s.sample.result.pk }}">save</span>
+									<input type="text"  name='comments{{ s.sample.result.pk }}' placeholder="comments" id="comment{{ s.sample.result.pk }}" class="comments_input" result-pk="{{ s.sample.result.pk }}" value="">
+									<!-- <span class="btn btn-primary btn-xs comments_save" result-pk="{{ s.sample.result.pk }}">save</span> -->
 									</div>
 								{% endif %}
 							</td>
-							<td><span id="saved{{ s.sample.result.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;<span class='x' >x</span></span></td>
+							<td><span id="saved{{ s.sample.result.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;</span></td>
 						</tr>
 						{% endif %}
 						
 						{% endfor %}
 					</tbody>
 				</table>
+				<input type="hidden" name="push_worksheet" value='1'>
+				<input type='submit' value='Save and push to next stage' class='btn btn-sm btn-danger'><br><br><br>
 			</div>
+			</form>
 		</div>
 	</div>
 	<script type="text/javascript">
@@ -102,7 +107,7 @@
 
 	 });
 
-	 $(".comments_save").on("click", function(){
+	 $(".comments_input").on("change", function(){
 	 	var result_pk = $(this).attr('result-pk');
 	 	var comments = $("#comment"+result_pk).val();
 	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk, choice: 'retain', comments:comments};
@@ -115,10 +120,7 @@
 	 		params.completed = 'yes';
 	 	}
 	 	$.post("/results/release_results/{{ worksheet.pk }}/", params).done(function( data ) {
-		    $("#saved"+params.result_pk).show();	
-		    if(data=='completed'){
-	 			alert("Worksheet Authorization complete");
-	 		}	
+		    $("#saved"+params.result_pk).show();
 		  });
 	 }
 	 $(".x").on("click", function(){

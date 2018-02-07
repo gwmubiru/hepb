@@ -250,7 +250,14 @@ def release_list(request, machine_type):
 
 @permission_required('results.add_resultsqc', login_url='/login/')
 def release_results(request, worksheet_id):
+	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	if request.method == 'POST':
+		push_worksheet = request.POST.get('push_worksheet')
+		if push_worksheet=='1':
+			worksheet.stage = 4
+			worksheet.save()
+			return redirect("/results/release_list/%s/"%worksheet.machine_type)
+
 		result = Result.objects.get(pk=request.POST.get('result_pk'))
 		choice = request.POST.get('choice')
 		released = True if choice == 'release' else False
@@ -270,14 +277,12 @@ def release_results(request, worksheet_id):
 		ws.save()
 
 		if(completed=='yes'):
-			worksheet = Worksheet.objects.get(pk=worksheet_id)
 			worksheet.stage = 4
 			worksheet.save()
 			return HttpResponse("completed")
 			
 		return HttpResponse("saved")
 	else:
-		worksheet = Worksheet.objects.get(pk=worksheet_id)
 		sample_pads = 11 if worksheet.include_calibrators else 3
 		context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 		return render(request, 'results/release_results.html', context)
