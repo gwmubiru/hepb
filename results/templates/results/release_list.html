@@ -27,6 +27,7 @@
 		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
 			<thead>
 				<tr>
+					<td>#</td>
 					<th>Worksheet Ref Number</th>
 					<th>Machine Type</th>
 					<th>Sample Type</th>
@@ -36,6 +37,7 @@
 			<tbody>
 				{% for worksheet in worksheets %}
 				<tr>
+					<td>{{ forloop.counter }}</td>
 					<td><a href="{% url 'results:release_results' worksheet.id %}">{{ worksheet.worksheet_reference_number }}</a></td>
 					<td>{{ worksheet.get_machine_type_display }}</td>
 					<td>{{ worksheet.get_sample_type_display }}</td>
@@ -52,7 +54,6 @@ $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
 		"paging":false,
-		"order": [[ 0, "desc" ]],
 	});
 });
 </script>
