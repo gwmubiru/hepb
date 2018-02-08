@@ -20,6 +20,7 @@
 	                <th>Comments</th>
 	                <th>Result</th>
 	                <th>Suppressed?</th>
+	                <th>Retained by</th>
 	                <th>Created by</th>
 	                <th></th>
 			    </thead>			
@@ -31,6 +32,7 @@
 						<td>{{ i.comments }}</td>
 						<td>{{ i.result.result_alphanumeric }}</td>
 						<td>{{ i.result.get_suppressed_display }}</td>
+						<td>{{ i.released_by }}</td>
 						<th>{{ i.result.sample.created_by }}</th>
 						<th><a href="#" class="reschedule" result-pk="{{i.result.pk}}">Reschedule</a></th>
 					</tr>

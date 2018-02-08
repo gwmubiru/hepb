@@ -18,7 +18,7 @@
 					<th>Location&nbsp;ID</th>
 	                <th>Form&nbsp;Number</th>
 	                <th>Comments</th>
-	               
+	                <th>Retained by</th>	               
 	                <th>Created by</th>
 			    </thead>			
 				<tbody>
@@ -27,6 +27,7 @@
 						<td>{{ i.sample.locator_category }}{{  i.sample.envelope.envelope_number }}/{{  i.sample.locator_position }}</td>
 						<td><a href="/samples/edit/{{ i.sample.pk }}?intervene=rejects">{{ i.sample.form_number }}</a></td>
 						<td>{{ i.comments }}</td>
+						<td>{{ i.reject_released_by }}</td>
 						<th>{{ i.sample.created_by }}</th>
 					</tr>
 					{% endfor %}
