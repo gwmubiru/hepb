@@ -326,10 +326,14 @@ def delete(request, pk):
 		delete_log.save()		
 		
 		for s in worksheet.samples.all():
-			s.in_worksheet = False
-			s.envelope.stage = 2
-			s.envelope.save()
-			s.save()
+			if hasattr(s, 'result'):
+				s.result.repeat_test = 1 if s.result.repeat_test==0 else 2
+				s.result.save()
+			else:
+				s.in_worksheet = False
+				s.envelope.stage = 2
+				s.envelope.save()
+				s.save()
 
 		worksheet.delete()
 		return HttpResponse("Successfully deleted")
