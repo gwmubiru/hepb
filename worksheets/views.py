@@ -327,7 +327,7 @@ def delete(request, pk):
 		
 		for s in worksheet.samples.all():
 			if hasattr(s, 'result'):
-				s.result.repeat_test = 1 if s.result.repeat_test==0 else 2
+				s.result.repeat_test = 1
 				s.result.save()
 			else:
 				s.in_worksheet = False
