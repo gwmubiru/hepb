@@ -41,7 +41,7 @@
 					<tbody>
 						{% for sample in worksheet.samples.all %}
 						
-						<tr {% if sample.result.repeat_test == 3 or sample.result.repeat_test == 1 %} style = "background:#F5A9A9;" {% endif %} {% if sample.result.pk == '' %} style = "background:#d7af0d;" {% endif %}>
+						<tr {% if sample.result.repeat_test == 3 or sample.result.repeat_test == 1 or sample.result.repeat_test == 0 %} style = "background:#F5A9A9;" {% endif %} {% if sample.result.pk == '' %} style = "background:#d7af0d;" {% endif %}>
 							<td>{{ forloop.counter }} </td>
 							<td>{{ sample.vl_sample_id }}</td>
 							<td>{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}</td>
