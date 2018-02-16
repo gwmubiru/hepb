@@ -319,3 +319,68 @@ def api(request):
 				'art_number': s.patient.art_number,
 			})
 	return HttpResponse(json.dumps(ret))
+
+def authorize_sample(request):
+	if request.method == 'POST':
+		sample_pk = request.POST.get('sample_pk')
+		search = request.POST.get('search')
+		if sample_pk:
+			result = Result.objects.filter(sample_id=sample_pk).first()
+			choice = request.POST.get('choice')
+			if choice == 'reschedule':
+				result.repeat_test = 1
+				result.authorised = False
+			elif choice == 'invalid':
+				result.result_alphanumeric = 'FAILED'
+				result.repeat_test = 2
+				result.suppressed = 3
+				result.authorised = True
+				result.authorised_by_id = request.user
+				result.authorised_at = timezone.now()
+			else:
+				result.repeat_test = 2
+				result.authorised = True
+				result.authorised_by_id = request.user
+				result.authorised_at = timezone.now()
+
+			result.save()
+
+			return HttpResponse("saved")
+		else:
+			search = search.strip()
+			samples = Sample.objects.filter(form_number=search)	
+			context = {'samples':samples}	
+	else:
+		context = {}
+		
+
+	return render(request, 'results/authorize_sample.html', context)
+
+def release_sample(request):
+	if request.method == 'POST':
+		result_pk = request.POST.get('result_pk')
+		search = request.POST.get('search')
+		if result_pk:
+			result = Result.objects.get(pk=result_pk)
+			choice = request.POST.get('choice')
+			released = True if choice == 'release' else False
+			comments = request.POST.get('comments')
+			completed = request.POST.get('completed')
+			other_params = {
+				'released': released,
+				'comments': comments,
+				'released_by': request.user,
+				'released_at': timezone.now(),
+			}
+			rqc, rqc_created = ResultsQC.objects.update_or_create(result=result, defaults=other_params)
+
+			return HttpResponse("saved")
+		else:
+			search = search.strip()
+			samples = Sample.objects.filter(form_number=search)	
+			context = {'samples':samples}	
+	else:
+		context = {}
+		
+
+	return render(request, 'results/release_sample.html', context)

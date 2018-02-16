@@ -1,0 +1,141 @@
+{% extends "home/layout.html" %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">release sample</span>		
+	<div class="panel panel-default" style="overflow-y:auto">
+		<div class="panel-body">
+			<form action="#" method="post" role="form">	
+			{% csrf_token %}	
+			<div class="worksheet" id="content" >
+				<div class="form-inline">
+					<input name="search" type="text" class="form-control input-sm" placeholder="Search..." style="width:200px">
+					<input type="submit" value="Search" class="btn btn-danger btn-sm">
+				</div>
+				<br>
+				<table class="table table-striped table-condensed table-bordered" id="samples-table" >
+					<thead>
+						<th>Location&nbsp;ID&nbsp;&nbsp;&nbsp;</th>
+		                <th width="1%">Form Number</th>
+		                <th>Facility</th>
+		                <th>District</th>                
+		                <th>Art Number</th>
+		                <th>Other ID</th>
+		                <th>Gender</th>
+		                <th width="1%">Date&nbsp;of collection&nbsp;&nbsp;&nbsp;</th>
+		                <th width="1%">Date&nbsp;received at CHPL</th>
+		                <th>Result</th>
+		                <th>Choose</th>
+		                <th/>
+					</thead>
+					<tbody>
+						{% for sample in samples %}					
+						<tr>
+							<td>{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}</td>
+							<td>{{ sample.form_number }}</td>
+							<td>{{ sample.facility.facility }}</td>
+							<td>{{ sample.facility.district.district }} </td>
+							<td>{{ sample.patient.art_number }}</td>
+							<td>{{ sample.patient.other_id }}</td>
+							<td>{{ sample.patient.get_gender_display }}</td>
+							<td>{{ sample.date_collected | date:"Y-m-d" }}</td>
+							
+							<td>{{ sample.date_received | date:"Y-m-d" }}</td>
+							<td>{% if sample.result.repeat_test == 0 %}	
+								Rescheduled in a worksheet
+								{% elif sample.result.repeat_test == 1 %}	
+								Ready to be rescheduled
+								{% elif sample.result.repeat_test == 3 %}	
+								Could be rescheduled in Auth window
+								{% else %}
+								{{ sample.result.result_alphanumeric }}
+								{% endif %}
+							</td>
+							
+							<td>
+								{% if sample.result.repeat_test == 2 %}	
+									{% if sample.result.resultsqc.released == 1 %}
+										Released
+									{% elif sample.result.resultsqc.released == 0 %}
+										Retained
+									{% else %}
+										<label><input type='radio' required='true' name='choices{{ sample.result.pk }}' class='choices r' result-pk="{{ sample.result.pk }}" value='release'> Release</label>
+										<label><input type='radio' required='true' name='choices{{ sample.result.pk }}' class='choices' result-pk="{{ sample.result.pk }}" value='retain'> Retain</label>
+										<div class="comments" id="comments_sect{{ sample.result.pk }}" >
+										<input type="text"  name='comments{{ sample.result.pk }}' placeholder="comments" id="comment{{ sample.result.pk }}" class="comments_input" result-pk="{{ sample.result.pk }}" value="">
+										<!-- <span class="btn btn-primary btn-xs comments_save" result-pk="{{ sample.result.pk }}">save</span> -->
+										</div>
+									{% endif %}
+								{% else %}
+								Not yet ready for release
+								{% endif %}
+							</td>
+							<td><span id="saved{{ sample.result.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;</span></td>
+						</tr>
+						
+						
+						{% endfor %}
+					</tbody>
+				</table>
+				<a href="#" class="btn btn-danger btn-sm">Save</a>
+			</div>
+			</form>
+		</div>
+	</div>
+	<script type="text/javascript">
+	var num_pending_release = $('.r').length;
+	var num_released_currently = 0;
+	 $(function() {
+	 	var oTable = $('#samples-table').dataTable({
+			"processing": true,
+			"paging":false,
+			"order": [[ 0, "asc" ]],
+		});
+        $(".status").hide();
+        $(".comments").hide();
+      });
+
+	 $(".choices").on("click",function(){
+	 	var choice = $(this).val();
+	 	var result_pk = $(this).attr('result-pk');
+	 	if(choice == 'release'){
+	 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk, choice: choice};
+	 		saveDetails(params);
+	 		$('#comments_sect'+result_pk).hide();
+	 	}else{
+	 		$('#comments_sect'+result_pk).show();
+	 	} 	
+
+	 });
+
+	 $(".comments_input").on("change", function(){
+	 	var result_pk = $(this).attr('result-pk');
+	 	var comments = $("#comment"+result_pk).val();
+	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk, choice: 'retain', comments:comments};
+	 	saveDetails(params);
+	 });
+
+	 saveDetails = function(params){
+	 	num_released_currently = num_released_currently+1;
+	 	if(num_released_currently == num_pending_release){
+	 		params.completed = 'yes';
+	 	}
+	 	$.post("/results/release_sample/", params).done(function( data ) {
+		    $("#saved"+params.result_pk).show();
+		  });
+	 }
+	 $(".x").on("click", function(){
+	 	$(this).parent().hide();
+	 });
+	</script>
+
+{% endblock %}
