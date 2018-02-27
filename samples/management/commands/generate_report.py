@@ -70,6 +70,7 @@ class Command(BaseCommand):
 				verification_date = approval.created_at if approval else ''
 				rejection_reason = utils.getattr_ornone(approval.rejection_reason, 'appendix') if approval else ''
 
+				w_info = self.__get_worksheets_info(s)
 				output.append([
 						s.form_number,
 						"%s%s/%s"%(s.locator_category, s.envelope.envelope_number, s.locator_position),
@@ -111,6 +112,8 @@ class Command(BaseCommand):
 						self.__local_date(rdata_qc_at),
 						self.__local_date(dispatched_at),
 						self.__local_date(s.created_at),
+						w_info.get('ref_numbers'),
+						w_info.get('first_added'),
 						])
 
 			df = pd.DataFrame(output)			
@@ -177,22 +180,29 @@ class Command(BaseCommand):
 				'Data QC date',
 				'Data QC date for Rejects',
 				'Date dispatched',
-				'Date Record Captured'
+				'Date Record Captured',
+				'Worksheet(s)',
+				'Date first added to Worksheet',
 				]
+	def __get_worksheets_info(self, s):
+		worksheets = s.worksheet_set.all()
+		ref_numbers = '/'.join([w.worksheet_reference_number for w in worksheets])
+		first_added = self.__local_date(worksheets[0].created_at) if len(worksheets) > 0 else ''
+		return {'ref_numbers':ref_numbers, 'first_added':first_added}
 
 	def __local_date(self, date_val):
 		format = "%d-%b-%Y"
 		ret = ''
-		# try:
-		if hasattr(date_val, 'strftime'):
-			ret = date_val.strftime(format)
-		elif date_val:
-			#date_obj = dt.datetime.strptime(date_val,"%Y-%m-%d")
-			date_obj = parser.parse(date_val)
-			ret = date_obj.strftime(format)
-		else:
-			ret = ""
-		# except:
-		# 	ret = ''
+		try:
+			if hasattr(date_val, 'strftime'):
+				ret = date_val.strftime(format)
+			elif date_val:
+				#date_obj = dt.datetime.strptime(date_val,"%Y-%m-%d")
+				date_obj = parser.parse(date_val)
+				ret = date_obj.strftime(format)
+			else:
+				ret = ""
+		except:
+			ret = ''
 
 		return ret;
