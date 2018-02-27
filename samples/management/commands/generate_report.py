@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import connections
 from home import utils
 from samples.models import Sample
+from dateutil import parser
 
 class Command(BaseCommand):
 	help = "Reconcile VL sample IDs to begin from 1 for month"
@@ -75,16 +76,16 @@ class Command(BaseCommand):
 						s.facility.facility,
 						self.__get_district(s.facility),
 						self.__get_hub(s.facility),
-						s.date_collected,
-						s.date_received,
+						self.__local_date(s.date_collected),
+						self.__local_date(s.date_received),
 						s.get_sample_type_display(),
 						s.patient.art_number,
 						s.patient.other_id,
 						s.patient_unique_id,
 						s.patient.gender,
-						dob,
+						self.__local_date(dob),
 						age,
-						s.treatment_initiation_date,
+						self.__local_date(s.treatment_initiation_date),
 						s.get_treatment_duration_display(),
 						utils.getattr_ornone(s.current_regimen, 'appendix'),
 						s.other_regimen,
@@ -98,18 +99,18 @@ class Command(BaseCommand):
 						utils.getattr_ornone(s.tb_treatment_phase, 'appendix'),
 						utils.getattr_ornone(s.arv_adherence, 'appendix'),
 						status,
-						verification_date,
+						self.__local_date(verification_date),
 						rejection_reason,
 						'Y' if result else 'N',
 						'Y' if authorised else 'N',
 						result.result_alphanumeric if result else '',
 						result.get_suppressed_display() if result else '',
-						result.test_date if result else '',
-						result.authorised_at if result else '',
-						data_qc_at,
-						rdata_qc_at,
-						dispatched_at,
-						s.created_at,
+						self.__local_date(result.test_date) if result else '',
+						self.__local_date(result.authorised_at) if result else '',
+						self.__local_date(data_qc_at),
+						self.__local_date(rdata_qc_at),
+						self.__local_date(dispatched_at),
+						self.__local_date(s.created_at),
 						])
 
 			df = pd.DataFrame(output)			
@@ -178,3 +179,20 @@ class Command(BaseCommand):
 				'Date dispatched',
 				'Date Record Captured'
 				]
+
+	def __local_date(self, date_val):
+		format = "%d-%b-%Y"
+		ret = ''
+		# try:
+		if hasattr(date_val, 'strftime'):
+			ret = date_val.strftime(format)
+		elif date_val:
+			#date_obj = dt.datetime.strptime(date_val,"%Y-%m-%d")
+			date_obj = parser.parse(date_val)
+			ret = date_obj.strftime(format)
+		else:
+			ret = ""
+		# except:
+		# 	ret = ''
+
+		return ret;
