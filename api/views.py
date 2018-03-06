@@ -28,7 +28,14 @@ def samples(request):
 		month = request.GET.get('month')
 		changes_today = request.GET.get('changes_today')
 		latest_minutes = request.GET.get('latest_minutes')
-		if latest_minutes:
+		updated_date = request.GET.get('updated_date')
+		start = request.GET.get('start')
+		length = request.GET.get('length')
+		if updated_date: 
+			start = int(start)
+			length = int(length)
+			samples = Sample.objects.filter(updated_at__date=updated_date)[start:start+length]
+		elif latest_minutes:
 			time_to = dt.datetime.today()
 			#time_fro = time_to-dt.timedelta(hours=int(latest_hours))
 			time_fro = time_to-dt.timedelta(minutes=int(latest_minutes))
