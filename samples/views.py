@@ -424,6 +424,8 @@ def save_verify(request):
 
 	if(v.accepted==False):
 		v.rejection_reason_id = r.get('rejection_reason_id')
+		if not v.rejection_reason_id:
+			return HttpResponse("rejection reason required for rejected samples")
 	else:
 		v.rejection_reason_id = None
 
