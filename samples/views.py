@@ -634,7 +634,8 @@ def reverse_approval(request, verification_id):
 	return redirect("/samples/search/?search_val=%s&approvals=1&reverse_approval=%s"%(request.GET.get("search_val"), ra))
 
 def download(request, path):
-	file_path = os.path.join(settings.MEDIA_ROOT, "reports/%s"%path)
+	folder = "reports/drug_resistance" if request.GET.get('dr') else "reports"
+	file_path = os.path.join(settings.MEDIA_ROOT, "%s/%s"%(folder,path))
 	if os.path.exists(file_path):
 		with open(file_path, 'rb') as fh:
 			response = HttpResponse(fh.read(), content_type="application//x-zip-compressed")
@@ -645,8 +646,9 @@ def download(request, path):
 
 def reports(request):
 	#reports = os.listdir("media/reports/")
+	path = "media/reports/drug_resistance/" if request.GET.get('dr') else "media/reports/"
 	reports = []
-	for r in glob.glob("media/reports/*.zip"):
+	for r in glob.glob("%s*.zip"%path):
 		stats = os.stat(r)
 		last_modified = dtime.fromtimestamp(stats.st_mtime)
 		size = round(stats.st_size/1000000.0,1)

@@ -35,14 +35,21 @@ class Command(BaseCommand):
 	def __generate_report(self):
 		num_days = calendar.monthrange(self.year, self.month)[1]
 		file_name = "%s%s.csv"%(self.year,format(self.month,'02'))
+		file_name2 = "%s%s_DR.csv"%(self.year,format(self.month,'02'))
 		file_path = "media/reports/%s"%file_name
+		dr_file_path = "media/reports/drug_resistance/%s"%file_name2
+
 		df = pd.DataFrame([], columns=self.__get_headers())
 		df.to_csv(file_path, index=False, header=self.__get_headers(), mode='w')
+
+		dr_df = pd.DataFrame([], columns=self.__get_headers())
+		dr_df.to_csv(dr_file_path, index=False, header=self.__get_headers, mode='w')
 		for day in range(1, num_days+1):
 			date = dt.date(self.year, self.month, day)
 			samples = Sample.objects.filter(created_at__date=date)
 
 			output = []
+			dr_output = []
 			for s in samples:
 				then_date = s.date_collected if s.date_collected else s.date_received
 				dob = s.patient.dob
@@ -71,7 +78,7 @@ class Command(BaseCommand):
 				rejection_reason = utils.getattr_ornone(approval.rejection_reason, 'appendix') if approval else ''
 
 				w_info = self.__get_worksheets_info(s)
-				output.append([
+				sample_arr = [
 						s.form_number,
 						"%s%s/%s"%(s.locator_category, s.envelope.envelope_number, s.locator_position),
 						s.facility.facility,
@@ -114,17 +121,31 @@ class Command(BaseCommand):
 						self.__local_date(s.created_at),
 						w_info.get('ref_numbers'),
 						w_info.get('first_added'),
-						])
+						]
+				output.append(sample_arr)
+				if result:
+					if s.treatment_line_id==90 and result.suppressed==2 and s.viral_load_testing_id==99:
+						dr_output.append(sample_arr)
 
 			df = pd.DataFrame(output)			
 			df.to_csv(file_path, index=False, header=False, mode='a', encoding='utf-8')
+
+			if len(dr_output)>0:
+				dr_df = pd.DataFrame(dr_output)
+				dr_df.to_csv(dr_file_path, index=False, header=False, mode='a', encoding='utf-8')
+
 			print "generated for %s"%date
 
 		zf = zipfile.ZipFile('%s.zip'%file_path, mode='w', compression=zipfile.ZIP_DEFLATED)
+		dr_zf = zipfile.ZipFile('%s.zip'%dr_file_path, mode='w', compression=zipfile.ZIP_DEFLATED)
 		try:
 			zf.write(file_path, arcname=file_name)
+			dr_zf.write(dr_file_path, arcname=file_name2)
 		finally:
 			zf.close()
+			dr_zf.close()
+
+
 
 	def __get_hub(self, facility):		
 		if hasattr(facility, 'hub'):
@@ -205,4 +226,4 @@ class Command(BaseCommand):
 		except:
 			ret = ''
 
-		return ret;
+		return ret

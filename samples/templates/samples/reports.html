@@ -11,9 +11,9 @@
 	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
 {% endblock %}
 
-{% block content %}	
+{% block content %}
 
-<span class="page-title">Reports</span>
+<span class="page-title">{% if request.GET.dr %} Drug Resistance Samples {% else %} Reports {% endif %}</span>
 
 <div class="panel panel-default">
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
@@ -28,8 +28,8 @@
 		<tbody>
 			{% for r in reports %}
 			<tr>
-				<td><a href="/samples/download/{{ r.report }}">{{ r.report }}</a></td>
-				<td><a href="/samples/download/{{ r.report }}">{{ r.period }}</a></td>
+				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1{% endif %}">{{ r.report }}</a></td>
+				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1{% endif %}">{{ r.period }}</a></td>
 				<td>{{ r.last_modified }}</td>
 				<td>{{ r.size }}MB</td>
 			</tr>
