@@ -77,6 +77,8 @@ class Command(BaseCommand):
 				verification_date = approval.created_at if approval else ''
 				rejection_reason = utils.getattr_ornone(approval.rejection_reason, 'appendix') if approval else ''
 
+				dr_requested = self.__dr_requested(s)
+
 				w_info = self.__get_worksheets_info(s)
 				sample_arr = [
 						s.form_number,
@@ -121,10 +123,12 @@ class Command(BaseCommand):
 						self.__local_date(s.created_at),
 						w_info.get('ref_numbers'),
 						w_info.get('first_added'),
+						dr_requested,
 						]
 				output.append(sample_arr)
 				if result:
-					if s.treatment_line_id==90 and result.suppressed==2 and s.viral_load_testing_id==99:
+					vl_testing = (s.viral_load_testing_id==99 or s.viral_load_testing_id==94 or s.viral_load_testing_id==95)
+					if (s.treatment_line_id==90 and result.suppressed==2 and vl_testing) or dr_requested=='Y':
 						dr_output.append(sample_arr)
 
 			df = pd.DataFrame(output)			
@@ -204,12 +208,21 @@ class Command(BaseCommand):
 				'Date Record Captured',
 				'Worksheet(s)',
 				'Date first added to Worksheet',
+				'HIV DR Requested?',
 				]
 	def __get_worksheets_info(self, s):
 		worksheets = s.worksheet_set.all()
 		ref_numbers = '/'.join([w.worksheet_reference_number for w in worksheets])
 		first_added = self.__local_date(worksheets[0].created_at) if len(worksheets) > 0 else ''
 		return {'ref_numbers':ref_numbers, 'first_added':first_added}
+
+	def __dr_requested(self, s):
+		ret = 'N'
+		dr = utils.getattr_ornone(s, 'drugresistancerequest')
+		if dr:
+			ret = 'Y' if (dr.patient_on_rifampicin or dr.body_weight) else 'N'
+		return ret
+
 
 	def __local_date(self, date_val):
 		format = "%d-%b-%Y"
