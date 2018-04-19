@@ -58,7 +58,7 @@ def samples(request):
 		elif year and month:
 			samples = Sample.objects.filter(created_at__year=year, created_at__month=month)
 		elif pk:
-			samples = Sample.objects.filter(pk=int(pk))
+			samples = Sample.objects.filter(form_number=pk)
 		else:
 			#samples = Sample.objects.filter(pk=329760)
 			samples = Sample.objects.all().order_by("-pk")[:100]
