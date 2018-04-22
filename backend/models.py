@@ -140,6 +140,18 @@ class Facility(models.Model):
 		verbose_name_plural = 'Facilities'
 		ordering = ('facility',)
 
+class FacilityStats(models.Model):
+	facility = models.OneToOneField(Facility, on_delete=models.CASCADE)
+	num_pending_dispatch = models.PositiveIntegerField(default=0)
+	num_dispatched = models.PositiveIntegerField(default=0)
+	last_dispatched_at = models.DateTimeField(null=True)
+	
+	def __str__(self): #return facility as default
+		return self.facility
+	
+	class Meta:
+		db_table = 'backend_facility_stats'
+		verbose_name_plural = 'Facility Stats'
 
 		
 #Many to Many r/ship between facility and ips
