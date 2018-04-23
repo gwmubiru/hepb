@@ -124,6 +124,8 @@ class Command(BaseCommand):
 						w_info.get('ref_numbers'),
 						w_info.get('first_added'),
 						dr_requested,
+						s.facility.dhis2_name,
+						s.facility.dhis2_uid,
 						]
 				output.append(sample_arr)
 				if result:
@@ -209,6 +211,8 @@ class Command(BaseCommand):
 				'Worksheet(s)',
 				'Date first added to Worksheet',
 				'HIV DR Requested?',
+				'DHIS2 Facility Name',
+				'DHIS2 Facility Code',
 				]
 	def __get_worksheets_info(self, s):
 		worksheets = s.worksheet_set.all()
