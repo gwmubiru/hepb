@@ -83,8 +83,9 @@ class FacilityAdmin(VLAdmin, admin.ModelAdmin):
 			clinician.facility = facility0
 			clinician.save()
 
+		facility_stats = FacilityStats.objects.filter(facility=facility1)
+		facility_stats.delete()
 		
-
 		delete_log = DeleteLog()
 		delete_log.ref_number = facility1.pk
 		delete_log.section = "facilities"
