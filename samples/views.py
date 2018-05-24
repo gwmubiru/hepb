@@ -391,7 +391,7 @@ def verify_envelope(request, envelope_id):
 
 @permission_required('samples.add_verification', login_url='/login/')
 def save_verify(request):
-	r = request.GET
+	r = request.POST
 	p = Patient.objects.get(pk=r.get('patient_id'))
 	p.art_number = r.get('art_number', '')
 	p.other_id = r.get('other_id', '')
