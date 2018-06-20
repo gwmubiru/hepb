@@ -95,34 +95,34 @@ sudo vi vl.ini
 
 sudo vi /etc/init/uwsgi.conf
 
-		description "uWSGI application server in Emperor mode"
+	description "uWSGI application server in Emperor mode"
 
-		start on runlevel [2345]
-		stop on runlevel [!2345]
+	start on runlevel [2345]
+	stop on runlevel [!2345]
 
-		setuid user
-		setgid www-data
+	setuid user
+	setgid www-data
 
-		exec /usr/local/bin/uwsgi --emperor /etc/uwsgi/sites
+	exec /usr/local/bin/uwsgi --emperor /etc/uwsgi/sites
 
 
 
 sudo vi /etc/nginx/sites-available/viral_load2
 
-		server {
-		    listen 80;
-		    listen ip;
+	server {
+	    listen 80;
+	    listen ip;
 
-		    location = /favicon.ico { access_log off; log_not_found off; }
-		    location /static/ {
-		        root /home/user/firstsite;
-		    }
+	    location = /favicon.ico { access_log off; log_not_found off; }
+	    location /static/ {
+	        root /home/user/firstsite;
+	    }
 
-		    location / {
-		        include         uwsgi_params;
-		        uwsgi_pass      unix:/home/user/firstsite/firstsite.sock;
-		    }
-		}
+	    location / {
+	        include         uwsgi_params;
+	        uwsgi_pass      unix:/home/user/firstsite/firstsite.sock;
+	    }
+	}
 
 
 sudo ln -s /etc/nginx/sites-available/viral_load2 /etc/nginx/sites-enabled
@@ -133,6 +133,26 @@ sudo service nginx configtest
 sudo service nginx restart
 
 sudo service uwsgi start
+
+//if uwsgi fails to start, create -- /etc/systemd/system/uwsgi.service
+
+vi /etc/systemd/system/uwsgi.service 
+[Unit]
+Description=uWSGI Emperor service
+After=syslog.target
+
+[Service]
+ExecStart=/usr/local/bin/uwsgi --emperor /etc/uwsgi/sites
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
+
+
 
 
 ./manage.py collectstatic

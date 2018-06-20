@@ -103,7 +103,7 @@ def create(request):
 			sample.patient = patient
 			sample.patient_unique_id = patient.unique_id
 			sample.envelope = envelope
-			sample.vl_sample_id = sample_utils.create_sample_id()
+			#sample.vl_sample_id = sample_utils.create_sample_id()
 			sample.created_by = request.user
 
 			sample.sample_medical_lab = utils.user_lab(request)
