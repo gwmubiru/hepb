@@ -156,6 +156,10 @@
 
 					<br>
 					<a class="btn btn-danger" href="javascript:windPop('/worksheets/vlprint/{{ worksheet.pk }}/{% if request.GET.show_results %}?show_results=1{% endif %}')">Print</a>
+					{% if worksheet.machine_type == 'C' %}
+					<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/')">Print Barcodes</a>
+					<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/?multiple=1')">Print Barcodes (4 per row)</a>
+					{% endif %}
 
 				</div>
 						<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a> -->

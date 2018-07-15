@@ -20,5 +20,6 @@ urlpatterns  = [
 	url(r'^delete/(?P<pk>[0-9]+)/$', login_required(views.delete), name='delete'),
 	url(r'^reg_info/(?P<machine_type>[A|R|C])/$', login_required(views.reg_info), name='reg_info'),
 	url(r'^get_instrument_id/$', login_required(views.get_instrument_id), name='get_instrument_id'),
+	url(r'^barcodes/(?P<pk>[0-9]+)/$', login_required(views.barcodes), name='barcodes'),
 	#url(r'^(?P<pk>[0-9]+)/$', views.DetailView.as_view(), name='detail'),
 ]

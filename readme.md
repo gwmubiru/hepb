@@ -162,3 +162,19 @@ uwsgi --http :3333 --home /home/vl/Env/viral_load2 --chdir /home/vl/viral_load2 
 
 
 python manage.py createsuperuser
+
+
+
+
+DELIMITER //
+CREATE TRIGGER create_vl_sample_id
+BEFORE INSERT
+   ON vl_samples FOR EACH ROW
+
+BEGIN
+
+SET NEW.vl_sample_id = (SELECT CONCAT((SELECT IFNULL( (SELECT LPAD(SUBSTRING(vl_sample_id,1,6)+1,6,'0') FROM vl_samples WHERE MONTH(created_at)=MONTH(CURRENT_TIMESTAMP()) and YEAR(created_at)=YEAR(CURRENT_TIMESTAMP()) ORDER BY id DESC LIMIT 1), '000001')),"/", DATE_FORMAT(CURRENT_TIMESTAMP, "%y"),DATE_FORMAT(CURRENT_TIMESTAMP, "%m")) AS new_sample_id);
+
+END;//
+
+DELIMITER ;

@@ -1,4 +1,4 @@
-import json
+import json, base64
 import os.path
 from django.core.serializers import serialize
 from django.utils import timezone
@@ -16,13 +16,21 @@ from django.db.models import Q
 from django.db import models
 from django.core import serializers
 
-from home import utils
+from home import utils, mybarcode
 from backend.models import DeleteLog
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample, WorksheetPrinting, MACHINE_TYPES
 from samples.models import Sample, Envelope
 from results.models import Result
 from . import utils as worksheet_utils
+
+from reportlab.graphics.barcode import code39, code128, code93
+from reportlab.graphics.barcode import eanbc, qr, usps
+from reportlab.graphics.shapes import Drawing 
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import mm
+from reportlab.pdfgen import canvas
+from reportlab.graphics import renderPDF
 
 
 # Create your views here.
@@ -369,6 +377,18 @@ def get_instrument_id(request):
 	ws = WorksheetSample.objects.filter(instrument_id=instrument_id).first()
 
 	return HttpResponse(1) if ws else HttpResponse(0)
+
+def barcodes(request, pk):
+	worksheet = Worksheet.objects.get(pk=pk)
+	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
+	WorksheetPrinting.objects.update_or_create(worksheet=worksheet, defaults={'worksheet_printed_by': request.user})
+	return render(request, 'worksheets/barcodes.html', {'worksheet':worksheet, 'worksheet_samples':worksheet_samples})
+
+# def barcodes(request, pk):
+# 	#instantiate a drawing object
+# 	d = mybarcode.MyBarcodeDrawing("V1806-0001/002")
+# 	binaryStuff = d.asString('gif')
+# 	return HttpResponse(binaryStuff, 'image/gif')
 
 	
 class ListJson(BaseDatatableView):

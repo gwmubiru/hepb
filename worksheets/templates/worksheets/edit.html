@@ -109,6 +109,8 @@
 			<br>
 			<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a> -->
 			<a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:vlprint' worksheet.id %}')">Print</a>
+			<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/')">Print Barcodes</a>
+			<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/?multiple=1')">Print Barcodes (4 per row)</a>
 		</div>
 	</div>
 	<script type="text/javascript">

@@ -65,12 +65,14 @@
 								<th>
 									{% if worksheet.machine_type == 'C' %}
 										Instrument/Tube ID
-									{% else %} 
-										<label>
-											<input type='checkbox' id='check_all' ng-model="check_all" ng-change="setAll()"> 
-											<span id='check_all_label'>check all</span>
-										</label>
-									{% endif %}</th>
+									{% endif %}
+								</th>
+								<th>
+									<label>
+										<input type='checkbox' id='check_all' ng-model="check_all" ng-change="setAll()"> 
+										<span id='check_all_label'>check all</span>
+									</label>
+								</th>									
 							</thead>
 							<tbody>
 								 <tr ng-repeat="sample in samples" >
@@ -81,10 +83,11 @@
 				                    
 				                    <td>
 				                    	{% if worksheet.machine_type == 'C' %}
-				                    	<input ng-if="sample.in_worksheet==false && sample.sample_type==w_sample_type"  id="sss<% sample.index %>" tabindex="<% sample.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% sample.id %>" value="" ng-keypress="setSample($event, sample.index)" ng-model="sample.instrument_id">
-				                    	{% else %}
-				                    	<input ng-if="sample.in_worksheet==false && sample.sample_type==w_sample_type" id="sss<% sample.index %>" tabindex="<% sample.index %>" class="samples" type="checkbox" name="instrument<% sample.id %>" value="" ng-click="setSample($event, sample.index)" ng-model="sample.instrument_id">
+				                    	<input ng-if="sample.in_worksheet==false && sample.sample_type==w_sample_type"  id="ins<% sample.index %>" tabindex="<% sample.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% sample.id %>" value="" ng-keypress="setSampleIns($event, sample.index)" ng-model="sample.instrument_id">
 				                    	{% endif %}
+				                    </td>
+				                    <td>
+				                    	<input ng-if="sample.in_worksheet==false && sample.sample_type==w_sample_type" id="sss<% sample.index %>" tabindex="<% sample.index %>" class="samples" type="checkbox" name="instrument<% sample.id %>" value="" ng-click="setSample($event, sample.index)" ng-model="sample.checked">				                    	
 				                    	 <span ng-if="sample.in_worksheet==true">in worksheet</span>
 				                    	 <span ng-if="sample.sample_type!=w_sample_type">wrong sample type</span>
 				                    </td>
@@ -113,9 +116,8 @@
 						<th>Form</th>
 						{% if worksheet.machine_type == 'C' %}
 							<th>Instrument/Tube ID</th>
-						{% else %}
-						<th>Select</th>
 						{% endif %}
+						<th>Select</th>						
 					</thead>
 					<tbody>
 						 <tr ng-repeat="r in repeat_samples" >
@@ -123,13 +125,14 @@
 		                    <td class="ng-cloak"><% r.vl_sample_id %></td>
 		                    <td class="ng-cloak"><% r.locator_id %></td>
 		                    <td class="ng-cloak"><% r.form_number %></td>
-		                    <td>
+		                    
 		                    {% if worksheet.machine_type == 'C' %}
-		                    	<input id="rrr<% r.index %>" tabindex="<% r.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% r.id %>" value="" ng-keypress="setRepeatSample($event, r.index)" ng-model="r.instrument_id">
-		                    {% else %}
-		                    	<input id="rrr<% r.index %>" tabindex="<% r.index %>" class="samples" type="checkbox" name="instrument<% r.id %>" value="" ng-click="setRepeatSample($event, r.index)" ng-model="r.instrument_id">
-		                    {% endif %}
-
+		                    <td>
+		                    	<input id="rrr_ins<% r.index %>" tabindex="<% r.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% r.id %>" value="" ng-keypress="setRepeatSampleIns($event, r.index)" ng-model="r.instrument_id">
+		                    </td>
+		                   {% endif %}
+		                   <td>
+		                    	<input id="rrr<% r.index %>" tabindex="<% r.index %>" class="samples" type="checkbox" name="instrument<% r.id %>" value="" ng-click="setRepeatSample($event, r.index)" ng-model="r.checked">
 		                    </td>
 		                </tr> 
 					</tbody>
@@ -155,8 +158,9 @@
 		                    <td class="ng-cloak"><% s.vl_sample_id %></td>
 		                    <td class="ng-cloak"><% s.locator_id %></td>
 		                    <td class="ng-cloak"><% s.form_number %></td>
-		                    <td class="ng-cloak"><% s.instrument_id %>
-		                    	<input type="hidden" name="instrument<% s.id %>" value="<% s.instrument_id %>">
+		                    <td class="ng-cloak">
+		                    	<% s.instrument_id %>
+		                    	<input type="hidden" name="instrument<% s.id %>" value="<% s.instrument_id%>">
 		                    	<input type="hidden" name="samples" value="<% s.id %>">
 		                    	<input type="hidden" name="sample_rack<% s.id %>" value="<% rack_index %>">
 		                    </td>
