@@ -31,11 +31,8 @@
 	}
 
 	.single{
-		height: 1in;
+		height: 0.98in;
 	}
-
-	
-
 	</style>
 	<body>
 		<div id="content" >	
@@ -68,7 +65,7 @@
             var val = $(this).attr("value");
             $(this).barcode(val, "code128",{showHRI: true,posX: 4,barWidth: 1,barHeight:65});
         });
-         window.print();
-         window.onfocus=window.close();
+         // window.print();
+         // window.onfocus=window.close();
       });
 	</script>
