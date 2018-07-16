@@ -34,6 +34,7 @@
 		height: 1in;
 		margin-top: 0px;
 		margin-bottom: 0px;
+		padding: 10px;
 	}
 	</style>
 	<body>
@@ -49,7 +50,6 @@
 			{% for s in worksheet_samples %}
 				<div class="vlbarcodes single" value="{{ s.instrument_id }}"></div>				
 			{% endfor %}
-
 		{% endif %}	
 		</div>
 
@@ -65,7 +65,7 @@
 
         $(".single").each(function (index){
             var val = $(this).attr("value");
-            $(this).barcode(val, "code128",{showHRI: true,posX: 4,barWidth: 1,barHeight:65});
+            $(this).barcode(val, "code128",{showHRI: true,posX: 4,barWidth: 1,barHeight:70});
         });
          // window.print();
          // window.onfocus=window.close();
