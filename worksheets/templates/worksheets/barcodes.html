@@ -66,7 +66,7 @@
 
         $(".single").each(function (index){
             var val = $(this).attr("value");
-            $(this).barcode(val, "code128",{showHRI: true,posX: 4,barWidth: 1,barHeight:70});
+            $(this).barcode(val, "code128",{showHRI: true,posX: 4,barWidth: 1,barHeight:65});
         });
          window.print();
          window.onfocus=window.close();
