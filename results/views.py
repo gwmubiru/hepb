@@ -92,7 +92,7 @@ def store_result(machine_type, sample, result, multiplier, user, test_date):
 	sample_result.result_alphanumeric = result_dict.get('alphanumeric_result')
 	sample_result.suppressed = result_dict.get('suppressed')
 	sample_result.method = machine_type
-	sample_result.test_date = test_date 
+	sample_result.test_date = test_date.strftime("%Y-%m-%d %H:%M:%S.%f") 
 	sample_result.result_upload_date = timezone.now()
 	sample_result.test_by = user
 
