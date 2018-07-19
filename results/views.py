@@ -128,8 +128,8 @@ def handle_files(form, worksheet, user):
 			# 	pass			
 			
 	else:
-		reader0 = pandas.read_csv(tmp_name, sep='\t')
-		test_date = dt.strptime(reader0.iloc[5][1], '%d/%m/%Y  %I:%M:%S %p')	
+		reader0 = pandas.read_csv(tmp_name, sep='\t', skiprows=6, nrows=1, header=None)
+		test_date = dt.strptime(reader0.iloc[0][1], '%d/%m/%Y  %I:%M:%S %p')	
 		reader = pandas.read_csv(tmp_name, sep='\t', skiprows=20)	
 		for row in reader.iterrows():
 			# try:
