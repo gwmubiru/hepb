@@ -1,4 +1,5 @@
 import csv, pandas, io, json, math, os, StringIO as SI
+from datetime import datetime as dt, timedelta
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.utils import timezone
@@ -71,7 +72,7 @@ def get_anomalies(request, worksheet_id):
 	return HttpResponse("%s <br> %s" %(duplicates_str, non_samples_str))
 
 
-def store_result(machine_type, sample, result, multiplier, user):
+def store_result(machine_type, sample, result, multiplier, user, test_date):
 	result = 'failed' if utils.isnan(result) else result
 	sample_result, sr_created = Result.objects.get_or_create(sample=sample)
 	if sample_result.result1 == '':
@@ -91,7 +92,8 @@ def store_result(machine_type, sample, result, multiplier, user):
 	sample_result.result_alphanumeric = result_dict.get('alphanumeric_result')
 	sample_result.suppressed = result_dict.get('suppressed')
 	sample_result.method = machine_type
-	sample_result.test_date = timezone.now()
+	sample_result.test_date = test_date 
+	sample_result.result_upload_date = timezone.now()
 	sample_result.test_by = user
 
 	sample_result.save()
@@ -112,11 +114,12 @@ def handle_files(form, worksheet, user):
 			index, data = row
 			result = data["Result"]
 			vl_sample_id = data["Sample ID"]
+			test_date = dt.strptime(data['Detection End Date/Time'], '%Y/%m/%d  %H:%M:%S')
 			vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
 			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
 			if sample:
 				#repeat = result_utils.repeat_test('R', result, '')
-				store_result('R', sample, result, multiplier, user)
+				store_result('R', sample, result, multiplier, user, test_date)
 				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
 				if ws:
 					ws.stage = 2
@@ -124,7 +127,9 @@ def handle_files(form, worksheet, user):
 			# except:
 			# 	pass			
 			
-	else:			
+	else:
+		reader0 = pandas.read_csv(tmp_name, sep='\t')
+		test_date = dt.strptime(reader0.iloc[5][1], '%d/%m/%Y  %I:%M:%S %p')	
 		reader = pandas.read_csv(tmp_name, sep='\t', skiprows=20)	
 		for row in reader.iterrows():
 			# try:
@@ -135,7 +140,7 @@ def handle_files(form, worksheet, user):
 			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
 			if sample:
 				#repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
-				store_result('A', sample,result, multiplier, user)
+				store_result('A', sample,result, multiplier, user, test_date)
 				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
 				if ws:
 					ws.stage = 2
@@ -190,12 +195,13 @@ def cobas_upload(request):
 				index, data = row
 				result = data["Target 1"]
 				instrument_id = data["Sample ID"]
+				test_date = dt.strptime(data["Date/time"], '%d-%b-%Y  %I:%M:%S %p') + timedelta(hours=3)
 				#sample = Sample.objects.filter(vl_sample_id=vl_sample_id)[0].sample
 				ws = WorksheetSample.objects.filter(instrument_id=instrument_id).first()
 				if ws:
 					sample = ws.sample
 					#repeat = 3 if result_utils.eq(result, 'invalid') else 2
-					store_result('C', sample, result, form.cleaned_data.get('multiplier'), request.user)
+					store_result('C', sample, result, form.cleaned_data.get('multiplier'), request.user, test_date)
 					ws.stage = 2
 					ws.save()
 					ws.worksheet.stage = 2

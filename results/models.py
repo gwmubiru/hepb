@@ -26,7 +26,9 @@ class Result(models.Model):
 	result_numeric = models.IntegerField(null=True)
 	result_alphanumeric = models.TextField()
 	method = models.CharField(max_length=1, null=True, choices=METHOD_CHOICES)
+	result_upload_date = models.DateTimeField(null=True)
 	test_date = models.DateTimeField(null=True)
+
 	test_by = models.ForeignKey(User,null=True, related_name='test_by')
 
 	authorised = models.BooleanField(default=False)
