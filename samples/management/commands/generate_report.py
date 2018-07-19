@@ -80,6 +80,10 @@ class Command(BaseCommand):
 				dr_requested = self.__dr_requested(s)
 
 				w_info = self.__get_worksheets_info(s)
+
+				date_tested = self.__local_date(result.test_date) if result else ''
+				date_uploaded = self.__local_date(result.result_upload_date) if result else ''
+
 				sample_arr = [
 						s.form_number,
 						"%s%s/%s"%(s.locator_category, s.envelope.envelope_number, s.locator_position),
@@ -115,7 +119,7 @@ class Command(BaseCommand):
 						'Y' if authorised else 'N',
 						result.result_alphanumeric if result else '',
 						result.get_suppressed_display() if result else '',
-						self.__local_date(result.test_date) if result else '',
+						date_tested,
 						self.__local_date(result.authorised_at) if result else '',
 						self.__local_date(data_qc_at),
 						self.__local_date(rdata_qc_at),
@@ -126,6 +130,7 @@ class Command(BaseCommand):
 						dr_requested,
 						s.facility.dhis2_name,
 						s.facility.dhis2_uid,
+						date_uploaded if date_uploaded  else date_tested,
 						]
 				output.append(sample_arr)
 				if result:
@@ -213,6 +218,7 @@ class Command(BaseCommand):
 				'HIV DR Requested?',
 				'DHIS2 Facility Name',
 				'DHIS2 Facility Code',
+				'Date of Results Upload',
 				]
 	def __get_worksheets_info(self, s):
 		worksheets = s.worksheet_set.all()
