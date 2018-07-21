@@ -30,6 +30,14 @@
 					{{ form.multiplier.errors}}
 					{{ form.multiplier }}
 				</div>
+
+				<div class="form-group">
+					<label for="id_date_format">Date Format:</label>
+					<select class="form-control input-sm w-sm" name="date_format">
+						<option value="1">DD-MMM-YYYY Time (12HRS)</option>	
+						<option value="2">MM/DD/YYYY Time (24HRS)</option>						
+					</select>
+				</div>
 				{{ form.worksheet }}
 				<input type="submit" value="Upload" class="btn btn-danger btn-submit ">
 				
