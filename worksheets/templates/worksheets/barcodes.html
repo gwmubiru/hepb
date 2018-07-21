@@ -36,10 +36,33 @@
 		margin-bottom: 0px;
 		padding: 10px;
 	}
+
+	.wrksht-wrapper{
+		text-align: center;
+		width: 200px;
+	}
+
 	</style>
 	<body>
-		<div id="content" >	
-		{% if request.GET.multiple %}
+		<div id="content">	
+		{% if request.GET.worksheet %}
+			<div class="row">
+			{% for s in worksheet_samples %}
+				<div class="col-xs-1 wrksht-wrapper">
+					{{ runner }}<br>
+					<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.art_number }}<br>
+					<span class='sm-label'>Sample ID</span>: {{ s.sample.vl_sample_id }}<br>
+					<span class='sm-label'>Location ID</span>: 
+					{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}<br>
+					<span class='sm-label'>Form #</span>: {{ s.sample.form_number }}
+
+					<div class="wrksht" value="{{ s.instrument_id }}"></div>
+				</div>
+				{% if forloop.counter|divisibleby:5 %}</div><div class="row wk-row">{% endif %}		
+			{% endfor %}
+			</div>
+
+		{% elif request.GET.multiple %}
 			<div class="row">	
 			{% for s in worksheet_samples %}		
 				<div class="col-xs-1 vlbarcodes multiple" value="{{ s.instrument_id }}" {% if forloop.counter0|divisibleby:4 %} style="margin-left: -40px" {% endif %}></div>
@@ -66,6 +89,11 @@
         $(".single").each(function (index){
             var val = $(this).attr("value");
             $(this).barcode(val, "code128",{showHRI: true,posX: 4,barWidth: 1,barHeight:70});
+        });
+
+        $(".wrksht").each(function (index){
+            var val = $(this).attr("value");
+            $(this).barcode(val, "code128",{showHRI: false,posX: 4,barWidth: 1});
         });
          window.print();
          window.onfocus=window.close();
