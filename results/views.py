@@ -109,12 +109,12 @@ def handle_files(form, worksheet, user):
 
 	if worksheet.machine_type == 'R':
 		reader = pandas.read_csv(tmp_name, sep=',')
+		test_date = dt.strptime(reader.iloc[0]["Detection End Date/Time"], '%Y/%m/%d  %H:%M:%S')
 		for row in reader.iterrows():
 			# try:
 			index, data = row
 			result = data["Result"]
 			vl_sample_id = data["Sample ID"]
-			test_date = dt.strptime(data['Detection End Date/Time'], '%Y/%m/%d  %H:%M:%S')
 			vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
 			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
 			if sample:
