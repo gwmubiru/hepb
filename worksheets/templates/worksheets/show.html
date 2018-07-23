@@ -15,6 +15,10 @@
 				<br>
 				{% if worksheet.machine_type == 'C' %}
 				<a class="btn btn-danger" href="{% url 'worksheets:edit' worksheet.id %}">Edit</a>
+				
+				<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/?worksheet=1')">Print Worksheet</a>
+				<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/')">Print Barcodes</a>
+					
 				<br><br>
 					<table class="table table-striped table-condensed table-bordered samples-table" id="samples-table" >
 						<thead>	

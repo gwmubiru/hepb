@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load form_tags %}
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -49,7 +50,7 @@
 			<div class="row">
 			{% for s in worksheet_samples %}
 				<div class="col-xs-1 wrksht-wrapper">
-					{{ forloop.counter }}<br>
+				{% mod 5 forloop.counter %}<br>
 					<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.art_number }}<br>
 					<span class='sm-label'>Sample ID</span>: {{ s.sample.vl_sample_id }}<br>
 					<span class='sm-label'>Location ID</span>: 
@@ -58,7 +59,7 @@
 
 					<div class="wrksht" value="{{ s.instrument_id }}"></div>
 				</div>
-				{% if forloop.counter|divisibleby:5 %}</div><div class="row wk-row">{% endif %}		
+				{% if forloop.counter|divisibleby:5 %}</div><hr><div class="row">{% endif %}		
 			{% endfor %}
 			</div>
 

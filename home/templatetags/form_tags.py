@@ -149,4 +149,7 @@ def quick_stats(request, contenttype, when='today', who='me', extra=''):
 # 			qs = qs.filter(verified=verified)
 # 		return qs.filter(envelope__sample_medical_lab=utils.user_lab(self.request))
 
-
+@register.simple_tag
+def mod(num, val):
+	ans = val % num
+	return num if ans==0 else ans
