@@ -37,6 +37,17 @@
 					{{ form.multiplier.errors}}
 					{{ form.multiplier }}
 				</div>
+
+				{% if worksheet.machine_type == 'R' %}
+				<div class="form-group">
+					<label for="id_date_format">Date Format:</label>
+					<select class="form-control input-sm w-sm" name="date_format">
+						<option value="1">YYYY/MM/DD Time</option>	
+						<option value="2">MM/DD/YYYY Time</option>						
+					</select>
+				</div>
+				{% endif %}
+
 				{{ form.worksheet }}
 				<div id="id_anomalies"></div>
 				<input id="id_upload" type="submit" value="Upload" class="btn btn-danger btn-submit ">

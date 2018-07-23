@@ -101,7 +101,7 @@ def store_result(machine_type, sample, result, multiplier, user, test_date):
 	# if repeat==False:
 	# 	store_final_result(machine_type, sample, result)
 
-def handle_files(form, worksheet, user):
+def handle_files(form, worksheet, user, request):
 	#return HttpResponse(form.cleaned_data.get('results_file'))
 	results_file = form.cleaned_data.get('results_file')
 	multiplier = form.cleaned_data.get('multiplier')
@@ -109,7 +109,13 @@ def handle_files(form, worksheet, user):
 
 	if worksheet.machine_type == 'R':
 		reader = pandas.read_csv(tmp_name, sep=',')
-		test_date = dt.strptime(reader.iloc[0]["Detection End Date/Time"], '%Y/%m/%d  %H:%M:%S')
+		test_date = reader.iloc[0]["Detection End Date/Time"] 
+		date_format = request.POST.get('date_format')
+		if date_format=="1":
+			test_date = dt.strptime(test_date, '%Y/%m/%d  %H:%M:%S')
+		else:
+			test_date = dt.strptime(test_date, '%m/%d/%Y %H:%M')
+
 		for row in reader.iterrows():
 			# try:
 			index, data = row
@@ -162,7 +168,7 @@ def upload(request, worksheet_id):
 
 			#f = request.FILES['results_file']
 			#return HttpResponse(upload.results_file)
-			handle_files(form, worksheet, request.user)
+			handle_files(form, worksheet, request.user, request)
 			worksheet.stage = 2
 			worksheet.save()
 			upload.save()
