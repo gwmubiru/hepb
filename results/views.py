@@ -196,11 +196,11 @@ def cobas_upload(request):
 				result = data["Target 1"]
 				instrument_id = data["Sample ID"]
 				date_format = request.POST.get('date_format')
-				if date_format==1:
+				if date_format=="1":
 					start_date = dt.strptime(data["Date/time"], '%d-%b-%Y  %I:%M:%S %p')
 				else:
 					start_date = dt.strptime(data["Date/time"], '%m/%d/%Y %H:%M')
-					
+
 				test_date =  start_date + timedelta(hours=3)
 				#sample = Sample.objects.filter(vl_sample_id=vl_sample_id)[0].sample
 				ws = WorksheetSample.objects.filter(instrument_id=instrument_id).first()
