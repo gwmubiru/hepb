@@ -49,7 +49,7 @@
 			<div class="row">
 			{% for s in worksheet_samples %}
 				<div class="col-xs-1 wrksht-wrapper">
-					{{ runner }}<br>
+					{{ forloop.counter }}<br>
 					<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.art_number }}<br>
 					<span class='sm-label'>Sample ID</span>: {{ s.sample.vl_sample_id }}<br>
 					<span class='sm-label'>Location ID</span>: 
