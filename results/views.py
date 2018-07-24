@@ -113,8 +113,10 @@ def handle_files(form, worksheet, user, request):
 		date_format = request.POST.get('date_format')
 		if date_format=="1":
 			test_date = dt.strptime(test_date, '%Y/%m/%d  %H:%M:%S')
-		else:
+		elif date_format=="2":
 			test_date = dt.strptime(test_date, '%m/%d/%Y %H:%M')
+		else:
+			test_date = dt.strptime(test_date, '%d/%m/%Y %H:%M')
 
 		for row in reader.iterrows():
 			# try:
