@@ -50,6 +50,7 @@
 	    -ms-transform: rotate(90deg);
 	    transform: rotate(90deg);
 	    margin-top: 50px;
+	    margin-right: -35px;
 	    font-size: 30px;
 	}
 
@@ -59,6 +60,7 @@
 		{% if request.GET.worksheet %}
 			<div class="row">
 			{% for s in worksheet_samples %}
+				{% if forloop.counter0|divisibleby:5 %}<div class="col-xs-1 rack">{{ s.rack_id }}</div>{% endif %}
 				<div class="col-xs-1 wrksht-wrapper">
 				{% mod 5 forloop.counter %}<br>
 					<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.art_number }}<br>
@@ -69,7 +71,7 @@
 
 					<div class="wrksht" value="{{ s.instrument_id }}"></div>
 				</div>
-				{% if forloop.counter|divisibleby:5 %}<div class="col-xs-1 rack">{{ s.rack_id }}</div></div><hr><div class="row">{% endif %}		
+				{% if forloop.counter|divisibleby:5 %}</div><hr><div class="row">{% endif %}		
 			{% endfor %}
 			</div>
 
