@@ -43,6 +43,16 @@
 		width: 200px;
 	}
 
+	.rack{
+		-webkit-transform: rotate(90deg);
+	    -moz-transform: rotate(90deg);
+	    -o-transform: rotate(90deg);
+	    -ms-transform: rotate(90deg);
+	    transform: rotate(90deg);
+	    margin-top: 50px;
+	    font-size: 30px;
+	}
+
 	</style>
 	<body>
 		<div id="content">	
@@ -59,7 +69,7 @@
 
 					<div class="wrksht" value="{{ s.instrument_id }}"></div>
 				</div>
-				{% if forloop.counter|divisibleby:5 %}</div><hr><div class="row">{% endif %}		
+				{% if forloop.counter|divisibleby:5 %}<div class="col-xs-1 rack">{{ s.rack_id }}</div></div><hr><div class="row">{% endif %}		
 			{% endfor %}
 			</div>
 
@@ -96,7 +106,7 @@
             var val = $(this).attr("value");
             $(this).barcode(val, "code128",{showHRI: false,posX: 4,barWidth: 1});
         });
-         window.print();
-         window.onfocus=window.close();
+         /*window.print();
+         window.onfocus=window.close();*/
       });
 	</script>

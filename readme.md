@@ -7,8 +7,6 @@ $ sudo apt-get install libmysqlclient-dev build-essential autoconf libtool pkg-c
 
 $ sudo apt-get install python-pip
 
-$ 												sudo apt-get install libmysqlclient-dev
-
 $ sudo apt-get install nodejs
 
 $ sudo apt-get install npm
