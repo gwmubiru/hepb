@@ -13,7 +13,13 @@
 
 {% block content %}
 
-<span class="page-title">{% if request.GET.dr %} Drug Resistance Samples {% else %} Reports {% endif %}</span>
+<span class="page-title">
+{% if request.GET.dr %} Drug Resistance Samples
+{% elif request.GET.detectables %} Detectable Samples 
+{% else %} Reports 
+{% endif %}
+</span>
+
 
 <div class="panel panel-default">
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>

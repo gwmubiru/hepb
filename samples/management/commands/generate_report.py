@@ -1,4 +1,4 @@
-import datetime as dt, calendar, pandas as pd, zipfile
+import datetime as dt, calendar, pandas as pd, zipfile, time
 from django.core.management.base import BaseCommand, CommandError
 from django.db import connections
 from home import utils
@@ -8,13 +8,15 @@ from dateutil import parser
 class Command(BaseCommand):
 	help = "Reconcile VL sample IDs to begin from 1 for month"
 
-	def add_arguments(self, parser):
-		parser.add_argument('period', nargs='+')
-
 	def handle(self, *args, **options):
-		self.year = int(options['period'][0])
-		self.month = int(options['period'][1])
-		self.__generate_report()
+		for n in range(3):
+			now = time.localtime()
+			period = time.localtime(time.mktime((now.tm_year, now.tm_mon - n, 1, 0, 0, 0, 0, 0, 0)))[:2]
+			self.year = period[0]
+			self.month = period[1]
+			self.__generate_report()
+
+		
 
 	# FormNumber,LocationID,SampleID,Facility,
 	# District,Hub,IP,DateofCollection,
@@ -36,20 +38,28 @@ class Command(BaseCommand):
 		num_days = calendar.monthrange(self.year, self.month)[1]
 		file_name = "%s%s.csv"%(self.year,format(self.month,'02'))
 		file_name2 = "%s%s_DR.csv"%(self.year,format(self.month,'02'))
+		file_name3 = "%s%s_Detectables.csv"%(self.year,format(self.month,'02'))
+
 		file_path = "media/reports/%s"%file_name
 		dr_file_path = "media/reports/drug_resistance/%s"%file_name2
+		detectable_file_path = "media/reports/detectables/%s"%file_name3
 
 		df = pd.DataFrame([], columns=self.__get_headers())
 		df.to_csv(file_path, index=False, header=self.__get_headers(), mode='w')
 
 		dr_df = pd.DataFrame([], columns=self.__get_headers())
 		dr_df.to_csv(dr_file_path, index=False, header=self.__get_headers, mode='w')
+
+		dtctbls_df = pd.DataFrame([], columns=self.__get_headers())
+		dtctbls_df.to_csv(detectable_file_path, index=False, header=self.__get_headers(), mode='w')
+
 		for day in range(1, num_days+1):
 			date = dt.date(self.year, self.month, day)
 			samples = Sample.objects.filter(created_at__date=date)
 
 			output = []
 			dr_output = []
+			dtctbls_output = []
 			for s in samples:
 				then_date = s.date_collected if s.date_collected else s.date_received
 				dob = s.patient.dob
@@ -138,6 +148,9 @@ class Command(BaseCommand):
 					if (s.treatment_line_id==90 and result.suppressed==2 and vl_testing) or dr_requested=='Y':
 						dr_output.append(sample_arr)
 
+					if (result.result_numeric>0):
+						dtctbls_output.append(sample_arr)
+
 			df = pd.DataFrame(output)			
 			df.to_csv(file_path, index=False, header=False, mode='a', encoding='utf-8')
 
@@ -145,16 +158,23 @@ class Command(BaseCommand):
 				dr_df = pd.DataFrame(dr_output)
 				dr_df.to_csv(dr_file_path, index=False, header=False, mode='a', encoding='utf-8')
 
+			if len(dtctbls_output)>0:
+				dtctbls_df = pd.DataFrame(dtctbls_output)
+				dtctbls_df.to_csv(detectable_file_path, index=False, header=False, mode='a', encoding='utf-8')
+
 			print "generated for %s"%date
 
 		zf = zipfile.ZipFile('%s.zip'%file_path, mode='w', compression=zipfile.ZIP_DEFLATED)
 		dr_zf = zipfile.ZipFile('%s.zip'%dr_file_path, mode='w', compression=zipfile.ZIP_DEFLATED)
+		dtctbls_zf = zipfile.ZipFile('%s.zip'%detectable_file_path, mode='w', compression=zipfile.ZIP_DEFLATED)
 		try:
 			zf.write(file_path, arcname=file_name)
 			dr_zf.write(dr_file_path, arcname=file_name2)
+			dtctbls_zf.write(detectable_file_path, arcname=file_name3)
 		finally:
 			zf.close()
 			dr_zf.close()
+			dtctbls_zf.close()
 
 
 

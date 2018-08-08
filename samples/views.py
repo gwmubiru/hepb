@@ -646,7 +646,12 @@ def download(request, path):
 
 def reports(request):
 	#reports = os.listdir("media/reports/")
-	path = "media/reports/drug_resistance/" if request.GET.get('dr') else "media/reports/"
+	if request.GET.get('dr'):
+		path = "media/reports/drug_resistance/" 
+	elif request.GET.get('detectables'):
+		path = "media/reports/detectables/" 
+	else:
+		path = "media/reports/"
 	reports = []
 	for r in glob.glob("%s*.zip"%path):
 		stats = os.stat(r)
