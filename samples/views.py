@@ -634,7 +634,14 @@ def reverse_approval(request, verification_id):
 	return redirect("/samples/search/?search_val=%s&approvals=1&reverse_approval=%s"%(request.GET.get("search_val"), ra))
 
 def download(request, path):
-	folder = "reports/drug_resistance" if request.GET.get('dr') else "reports"
+	#folder = "reports/drug_resistance" if request.GET.get('dr') else "reports"
+	if request.GET.get('dr'):
+		folder = "reports/drug_resistance" 
+	elif request.GET.get('detectables'):
+		folder = "reports/detectables" 
+	else:
+		folder = "reports"
+
 	file_path = os.path.join(settings.MEDIA_ROOT, "%s/%s"%(folder,path))
 	if os.path.exists(file_path):
 		with open(file_path, 'rb') as fh:

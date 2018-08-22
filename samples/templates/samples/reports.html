@@ -34,8 +34,8 @@
 		<tbody>
 			{% for r in reports %}
 			<tr>
-				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1{% endif %}">{{ r.report }}</a></td>
-				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1{% endif %}">{{ r.period }}</a></td>
+				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1 {% elif request.GET.detectables %}?detectables=1 {% endif %}">{{ r.report }}</a></td>
+				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1 {% elif request.GET.detectables %}?detectables=1 {% endif %}">{{ r.period }}</a></td>
 				<td>{{ r.last_modified }}</td>
 				<td>{{ r.size }}MB</td>
 			</tr>
