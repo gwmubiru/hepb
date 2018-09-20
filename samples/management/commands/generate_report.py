@@ -148,7 +148,7 @@ class Command(BaseCommand):
 					if (s.treatment_line_id==90 and result.suppressed==2 and vl_testing) or dr_requested=='Y':
 						dr_output.append(sample_arr)
 
-					if (result.result_numeric>0):
+					if (result.result_numeric>0 and result.result_alphanumeric.find('<')==-1 ):
 						dtctbls_output.append(sample_arr)
 
 			df = pd.DataFrame(output)			
