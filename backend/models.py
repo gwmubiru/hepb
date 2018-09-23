@@ -207,3 +207,21 @@ class DeleteLog(models.Model):
 	class Meta:
 		db_table = 'backend_delete_logs'
 		verbose_name_plural = "Logs of Deletes"
+
+
+class DataEntryStats(models.Model):
+	user = models.OneToOneField(User, on_delete=models.CASCADE)
+	today = models.PositiveIntegerField(default=0)
+	yesterday = models.PositiveIntegerField(default=0)
+	this_week = models.PositiveIntegerField(default=0)
+	last_week = models.PositiveIntegerField(default=0)
+	this_month = models.PositiveIntegerField(default=0)
+	last_month = models.PositiveIntegerField(default=0)
+	updated_at = models.DateTimeField(auto_now=True)
+	
+	def __str__(self): #return todays as default
+		return "%s %s - %s" %(self.user.first_name, self.user.last_name, self.today)
+	
+	class Meta:
+		db_table = 'backend_data_entry_stats'
+		verbose_name_plural = 'Data Entry Stats'
