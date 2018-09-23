@@ -1,0 +1,60 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">Data Entry Stats</div>
+
+<div class="panel panel-default">
+	
+	<div class="tab-content">
+		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+			<thead>
+				<tr>
+					<td>#</td>
+					<th>User</th>
+					<th>Today</th>
+					<th>Yesterday</th>
+					<th>This Week</th>
+					<th>Last Week</th>
+					<th>This Month</th>
+					<th>Last Month</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for d in stats %}
+				<tr>
+					<td>{{ forloop.counter }}</td>
+					<td>{{ d.user.first_name}} {{ d.user.last_name }} ({{d.user.username}})</td>
+					<td>{{ d.today }}</td>
+					<td>{{ d.yesterday }}</td>
+					<td>{{ d.this_Week }}</td>
+					<td>{{ d.last_Week }}</td>
+					<td>{{ d.this_month }}</td>
+					<td>{{ d.last_Week }}</td>
+				</tr>
+				{% endfor %}
+				
+			</tbody>
+		</table>
+	</div>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"paging":false,
+	});
+});
+</script>
+
+{% endblock %}
