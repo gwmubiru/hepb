@@ -7,6 +7,7 @@ from django.db.models import Q
 
 from home import utils
 from samples.models import Sample, Verification
+from backend.models import DataEntryStats
 
 # Create your views here.
 @login_required
@@ -51,6 +52,9 @@ def quick_stats(request):
 			}
 		}
 	return HttpResponse(json.dumps(stats))
+
+def data_entry_stats(request):
+	return render(request, 'home/data_entry_stats.html', {'stats':DataEntryStats.objects.all()})
 
 def login_page(request):
 	return render(request, 'home/login.html')
