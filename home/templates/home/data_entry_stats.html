@@ -4,10 +4,12 @@
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.5.1/css/buttons.dataTables.min.css">
 {% endblock %}
 
 {% block js %}
 	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+	<script type="text/javascript" src='https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js'></script>
 {% endblock %}
 
 {% block content %}	
@@ -15,44 +17,44 @@
 <div class="page-title">Data Entry Stats</div>
 
 <div class="panel panel-default">
-	
-	<div class="tab-content">
-		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
-			<thead>
-				<tr>
-					<td>#</td>
-					<th>User</th>
-					<th>Today</th>
-					<th>Yesterday</th>
-					<th>This Week</th>
-					<th>Last Week</th>
-					<th>This Month</th>
-					<th>Last Month</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for d in stats %}
-				<tr>
-					<td>{{ forloop.counter }}</td>
-					<td>{{ d.user.first_name}} {{ d.user.last_name }} ({{d.user.username}})</td>
-					<td>{{ d.today }}</td>
-					<td>{{ d.yesterday }}</td>
-					<td>{{ d.this_week }}</td>
-					<td>{{ d.last_week }}</td>
-					<td>{{ d.this_month }}</td>
-					<td>{{ d.last_month }}</td>
-				</tr>
-				{% endfor %}
-				
-			</tbody>
-		</table>
-	</div>
+	<a href="/data_entry_stats/?csv=1" class='btn btn-default btn-sm'>Download CSV</a>
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>
+				<td>#</td>
+				<th>User</th>
+				<th>Today</th>
+				<th>Yesterday</th>
+				<th>This Week</th>
+				<th>Last Week</th>
+				<th>This Month</th>
+				<th>Last Month</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for d in stats %}
+			<tr>
+				<td>{{ forloop.counter }}</td>
+				<td>{{ d.user.first_name}} {{ d.user.last_name }} ({{d.user.username}})</td>
+				<td>{{ d.today }}</td>
+				<td>{{ d.yesterday }}</td>
+				<td>{{ d.this_week }}</td>
+				<td>{{ d.last_week }}</td>
+				<td>{{ d.this_month }}</td>
+				<td>{{ d.last_month }}</td>
+			</tr>
+			{% endfor %}
+			
+		</tbody>
+	</table>
+
 </div>
 <script type="text/javascript">
 $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
 		"processing": true,
 		"paging":false,
+		"buttons": ['copy', 'excel']
 	});
 });
 </script>

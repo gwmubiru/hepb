@@ -1,4 +1,4 @@
-import datetime as dt,json
+import datetime as dt,json, csv
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -54,7 +54,19 @@ def quick_stats(request):
 	return HttpResponse(json.dumps(stats))
 
 def data_entry_stats(request):
-	return render(request, 'home/data_entry_stats.html', {'stats':DataEntryStats.objects.all()})
+	stats = DataEntryStats.objects.all()
+	if request.GET.get('csv'):
+		response = HttpResponse(content_type='text/csv')
+		response['Content-Disposition'] = 'attachment; filename="data_entry_stats.csv"'
+		writer = csv.writer(response)
+		writer.writerow(['User', 'Today', 'Yesterday', 'This Week', 'Last Week', 'This Month', 'Last Month'])
+		for s in stats:
+			user ="%s %s (%s)" %(s.user.first_name, s.user.last_name, s.user.username)
+			writer.writerow([user, s.today, s.yesterday, s.this_week, s.last_week, s.this_month, s.last_month])
+
+		return response
+
+	return render(request, 'home/data_entry_stats.html', {'stats':stats})
 
 def login_page(request):
 	return render(request, 'home/login.html')
