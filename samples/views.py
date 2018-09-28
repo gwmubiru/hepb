@@ -392,36 +392,42 @@ def verify_envelope(request, envelope_id):
 @permission_required('samples.add_verification', login_url='/login/')
 def save_verify(request):
 	r = request.POST
-	p = Patient.objects.get(pk=r.get('patient_id'))
-	p.art_number = r.get('art_number', '')
-	p.other_id = r.get('other_id', '')
-	p.dob = utils.get_date(r, 'dob')
-	p.gender = r.get('gender', '')
-	p.save()
+	pat_edits = int(r.get('pat_edits'))
+	sample_edits = int(r.get('sample_edits'))
+	if(pat_edits>0):
+		p = Patient.objects.get(pk=r.get('patient_id'))
+		p.art_number = r.get('art_number', '')
+		p.other_id = r.get('other_id', '')
+		p.dob = utils.get_date(r, 'dob')
+		p.gender = r.get('gender', '')
+		p.save()
 
 	s = Sample.objects.get(pk=r.get('sample_id'))
-	facility_id = r.get('facility_id')
-	if facility_id:
-		s.facility_id = facility_id
-	s.form_number = r.get('form_number')
-	s.date_collected = utils.get_date(r, 'date_collected')
-	s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
-	s.locator_category = r.get('locator_category', '')
-	s.locator_position = r.get('locator_position', '')
-	tx = r.get('treatment_duration')
-	s.treatment_duration = tx if tx else None
-	s.verified = 1
-	s.save()
+	if sample_edits>0:
+		
+		facility_id = r.get('facility_id')
+		if facility_id:
+			s.facility_id = facility_id
+		s.form_number = r.get('form_number')
+		s.date_collected = utils.get_date(r, 'date_collected')
+		s.treatment_initiation_date = utils.get_date(r, 'treatment_initiation_date')
+		s.locator_category = r.get('locator_category', '')
+		s.locator_position = r.get('locator_position', '')
+		tx = r.get('treatment_duration')
+		s.treatment_duration = tx if tx else None
+		s.verified = 1
+		s.save()
 
 	if s.in_worksheet:
 		return HttpResponse("sample in worksheet already")
 
 	v = Verification.objects.filter(sample=s).first()
 	v = v if v else Verification()
+	v.pat_edits = pat_edits
+	v.sample_edits = sample_edits
 	v.sample = s
 	accepted = int(r.get('accepted',0))
 	v.accepted = True if accepted == 1 else False
-
 	if(v.accepted==False):
 		v.rejection_reason_id = r.get('rejection_reason_id')
 		if not v.rejection_reason_id:

@@ -30,12 +30,15 @@
 		<div class="panel-body col-lg-10">
 			<form action="" method="post" role="form" ng-submit="saveVerification()" onsubmit="return false">
 				{% csrf_token %}
+				<input type="hidden" id="pat_edits" name="pat_edits" value="0">
+				<input type="hidden" id="sample_edits" name="sample_edits" value="0">
+
 				<div class="row">
 					<div class="col-lg-5 panel panel-default sect0">
 						<span class='sub-title'>facility details</span>
 						<div class="form-group ng-cloak">
 							<label for="facility_id" style="font-size: 14px;">Facility:</label>
-							<select id="facility_id"  ng-model="sample.facility_id" class="form-control input-sm w-sm">
+							<select id="facility_id"  ng-model="sample.facility_id" class="form-control input-sm w-sm sample-field">
 								{% for f in facilities %}
 								<option value="{{ f.pk }}">{{ f.facility }}</option>
 								{% endfor %}								
@@ -59,15 +62,15 @@
 						<table class="vl-table ng-cloak" >
 							<tr>
 								<td>Form Number: </td>
-								<td> {% input "form_number" "" "{'ng-model': 'sample.form_number', 'class':'form-control input-sm'}" %}</td>
+								<td> {% input "form_number" "" "{'ng-model': 'sample.form_number', 'class':'form-control input-sm sample-field'}" %}</td>
 							</tr> 
 							<tr>
 								<td>Collection Date: </td>
-								<td>{% input "date_collected" "" "{'class':'form-control input-sm date-picker optional','ng-model': 'sample.date_collected'}" %}</td>
+								<td>{% input "date_collected" "" "{'class':'form-control input-sm date-picker optional sample-field','ng-model': 'sample.date_collected'}" %}</td>
 							</tr>
 							<tr>
 								<td>Sample Type: </td>
-								<td>{% select "locator_category" "{'D':'DBS', 'P':'Plasma'}" "" "{'class':'form-control input-sm w-xs','ng-model': 'sample.sample_type'}" %}</td>
+								<td>{% select "sample_type" "{'D':'DBS', 'P':'Plasma'}" "" "{'class':'form-control input-sm w-xs sample-field','ng-model': 'sample.sample_type'}" %}</td>
 							</tr>
 						</table>												
 						
@@ -80,15 +83,15 @@
 							<table class="vl-table ng-cloak">
 								<tr>
 									<td>ART Number:</td>
-									<td>{% input "art_number" "" "{'class':'form-control input-sm optional', 'ng-model': 'sample.art_number', 'ng-change':'patHist()'}" %}</td>
+									<td>{% input "art_number" "" "{'class':'form-control input-sm optional patient-field', 'ng-model': 'sample.art_number', 'ng-change':'patHist()'}" %}</td>
 								</tr>
 								<tr>
 									<td>Other ID</td>
-									<td>{% input "other_id" "" "{'class':'form-control input-sm optional', 'ng-model': 'sample.other_id'}" %}</td>
+									<td>{% input "other_id" "" "{'class':'form-control input-sm optional patient-field', 'ng-model': 'sample.other_id'}" %}</td>
 								</tr>
 								<tr>
 									<td>Gender:</td>
-									<td>{% select "gender" "{'M':'Male', 'F':'Female', 'X':'Missing Gender'}" "" "{'class':'form-control input-sm w-xs', 'ng-model': 'sample.gender'}" %}</td>
+									<td>{% select "gender" "{'M':'Male', 'F':'Female', 'X':'Missing Gender'}" "" "{'class':'form-control input-sm w-xs patient-field', 'ng-model': 'sample.gender'}" %}</td>
 								</tr>
 							</table>
 							
@@ -99,16 +102,16 @@
 							<table class="vl-table ng-cloak" >							
 								<tr>
 									<td>Date of Birth: </td>
-									<td>{% input "dob" "" "{'class':'form-control input-sm date-picker optional', 'ng-model': 'sample.dob'}" %}</td>
+									<td>{% input "dob" "" "{'class':'form-control input-sm date-picker optional patient-field', 'ng-model': 'sample.dob'}" %}</td>
 								</tr>
 								<tr>
 									<td>Treatment Initiation Date: </td>
-									<td>{% input "treatment_initiation_date" "" "{'class':'form-control input-sm date-picker  optional', 'ng-model': 'sample.treatment_initiation_date'}" %}</td>
+									<td>{% input "treatment_initiation_date" "" "{'class':'form-control input-sm date-picker optional sample-field', 'ng-model': 'sample.treatment_initiation_date'}" %}</td>
 								</tr>
 								<tr>
 									<td>Treatment Duration: </td>
 									<td ng-init="sample.treatment_duration">
-										{% select "treatment_duration" "{1:'6months', 2:'1-< 2yrs', 3:'2-< 5yrs', 4:'5yrs & above', 5:'Left Blank'}" "" "{'class':'form-control input-sm w-xs', 'ng-model': 'sample.treatment_duration'}" %}
+										{% select "treatment_duration" "{1:'6months', 2:'1-< 2yrs', 3:'2-< 5yrs', 4:'5yrs & above', 5:'Left Blank'}" "" "{'class':'form-control input-sm w-xs sample-field', 'ng-model': 'sample.treatment_duration'}" %}
 									</td>
 								</tr>
 							</table>
@@ -163,9 +166,9 @@
 
 							{% select "locator_category" "{'V':'V', 'R':'R'}" "" "{'ng-model': 'sample.locator_category'}" %}
 								
-							{% input "locator_envelope" "" "{'ng-model': 'sample.envelope_number'}" %} 
+							{% input "locator_envelope" "" "{'ng-model': 'sample.envelope_number', 'class':'sample-field'}" %} 
 							<span class="vl-slash">/</span>	
-							{% input "locator_position" "" "{'style':'width:52px', 'ng-model': 'sample.locator_position'}" %}
+							{% input "locator_position" "" "{'style':'width:52px', 'ng-model': 'sample.locator_position', 'class':'sample-field'}" %}
 
 						</div>
 					</div>
@@ -319,7 +322,19 @@ body{
 			});	
 		}
 
-    	})
+    	});
+
+    	
+    	$(".patient-field").change(function(){
+    		var oval=parseInt($("#pat_edits").val());
+    		$("#pat_edits").val(oval+1);
+    	});
+
+    	$(".sample-field").change(function(){
+    		var oval = parseInt($("#sample_edits").val());
+    		$("#sample_edits").val(oval+1);
+    	});
+
   	});
 
 function reasonsDropDown(nme,id){
@@ -373,21 +388,11 @@ ctrller.VerifyController = function($scope,$http){
 		$scope.patHist();		
 	});
 
-	$scope.saveApproval= function(){
-		$scope.sample.csrfmiddlewaretoken = "{{ csrf_token }}";
-		$.post("/eid_samples/save_approval/", $scope.sample).done(function( data ) {
-			if(data=="saved"){
-				$("#success").css("display","block");
-				setTimeout(function(){
-					$("#success").slideUp( "slow");
-				},1000);		
-			}else{
-				alert("verifying failed, reason:"+data);
-			}
-		  });
-	}
-
 	$scope.saveVerification= function(){
+		$scope.sample.sample_edits = $("#sample_edits").val();
+		$scope.sample.pat_edits = $("#pat_edits").val();
+		$("#sample_edits").val(0);
+		$("#pat_edits").val(0);
 		$scope.sample.csrfmiddlewaretoken = "{{ csrf_token }}";
 		if($scope.sample.accepted=='0'){
 			$scope.sample.rejection_reason_id = $('#rejection_reason_id').val();

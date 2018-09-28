@@ -177,8 +177,11 @@ class Verification(models.Model):
 	rejection_reason = models.ForeignKey(backend.Appendix, null=True, blank=True)
 	comments = models.CharField(max_length=128, null=True, blank=True)
 	verified_by = models.ForeignKey(User, related_name='verified_by')
+	pat_edits = models.PositiveSmallIntegerField(default=0)
+	sample_edits = models.PositiveSmallIntegerField(default=0)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+
 
 	class Meta:
 		db_table = 'vl_verifications'
