@@ -217,6 +217,12 @@ class DataEntryStats(models.Model):
 	last_week = models.PositiveIntegerField(default=0)
 	this_month = models.PositiveIntegerField(default=0)
 	last_month = models.PositiveIntegerField(default=0)
+	acc_today = models.PositiveIntegerField(default=0)
+	acc_yesterday = models.PositiveIntegerField(default=0)
+	acc_this_week = models.PositiveIntegerField(default=0)
+	acc_last_week = models.PositiveIntegerField(default=0)
+	acc_this_month = models.PositiveIntegerField(default=0)
+	acc_last_month = models.PositiveIntegerField(default=0)
 	updated_at = models.DateTimeField(auto_now=True)
 	
 	def __str__(self): #return todays as default

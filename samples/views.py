@@ -415,8 +415,9 @@ def save_verify(request):
 		s.locator_position = r.get('locator_position', '')
 		tx = r.get('treatment_duration')
 		s.treatment_duration = tx if tx else None
-		s.verified = 1
-		s.save()
+	
+	s.verified = 1
+	s.save()	
 
 	if s.in_worksheet:
 		return HttpResponse("sample in worksheet already")
