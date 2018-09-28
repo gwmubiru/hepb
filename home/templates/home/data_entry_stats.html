@@ -16,8 +16,17 @@
 
 <div class="page-title">Data Entry Stats</div>
 
-<div class="panel panel-default">
-	<a href="/data_entry_stats/?csv=1" class='btn btn-default btn-sm'>Download CSV</a>
+<ul id="tabs_a" class="nav nav-tabs">
+    <li  {% if request.GET.tab == 'data_entry' %}class='active'{% endif %}>
+    	<a href="?tab=data_entry">Data Entry</a>
+    </li>
+    <li {% if request.GET.tab == 'error_rates' %}class='active'{% endif %}>
+    	<a href="?tab=error_rates">Error Rates</a>
+    </li>
+   
+</ul>
+<div class="tab-content">
+	<a href="/data_entry_stats/?csv=1&tab={{ request.GET.tab }}" class='btn btn-default btn-sm'>Download CSV</a>
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
 		<thead>
 			<tr>
@@ -36,12 +45,21 @@
 			<tr>
 				<td>{{ forloop.counter }}</td>
 				<td>{{ d.user.first_name}} {{ d.user.last_name }} ({{d.user.username}})</td>
-				<td>{{ d.today }}</td>
-				<td>{{ d.yesterday }}</td>
-				<td>{{ d.this_week }}</td>
-				<td>{{ d.last_week }}</td>
-				<td>{{ d.this_month }}</td>
-				<td>{{ d.last_month }}</td>
+				{% if request.GET.tab == 'error_rates' %}	
+					<td>{{ d.acc_today }}</td>
+					<td>{{ d.acc_yesterday }}</td>
+					<td>{{ d.acc_this_week }}</td>
+					<td>{{ d.acc_last_week }}</td>
+					<td>{{ d.acc_this_month }}</td>
+					<td>{{ d.acc_last_month }}</td>
+				{% else %}
+					<td>{{ d.today }}</td>
+					<td>{{ d.yesterday }}</td>
+					<td>{{ d.this_week }}</td>
+					<td>{{ d.last_week }}</td>
+					<td>{{ d.this_month }}</td>
+					<td>{{ d.last_month }}</td>					
+				{% endif %}
 			</tr>
 			{% endfor %}
 			
