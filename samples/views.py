@@ -540,7 +540,7 @@ def release_rejects(request):
 		return HttpResponse("saved")
 	else:
 		date_rejected = request.GET.get('date_rejected',dt.today().strftime("%Y-%m-%d"))
-		rejects = Verification.objects.filter(accepted=False, created_at__date=date_rejected)
+		rejects = Verification.objects.filter(accepted=False, date_received__date=date_rejected)
 		return render(request, "samples/release_rejects.html", {'rejects':rejects, 'date_rejected':date_rejected})
 
 def intervene_list(request):

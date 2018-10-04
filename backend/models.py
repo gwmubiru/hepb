@@ -231,3 +231,14 @@ class DataEntryStats(models.Model):
 	class Meta:
 		db_table = 'backend_data_entry_stats'
 		verbose_name_plural = 'Data Entry Stats'
+
+class PerformanceStats(models.Model):
+	user = models.OneToOneField(User, on_delete=models.CASCADE)
+	year_month = models.PositiveIntegerField()
+	samples_captured = models.PositiveIntegerField(default=0)
+	errors_made = models.PositiveIntegerField(default=0)
+	samples_approved = models.PositiveIntegerField(default=0)
+	worksheets_created = models.PositiveIntegerField(default=0)
+	results_authorised = models.PositiveIntegerField(default=0)
+	results_released = models.PositiveIntegerField(default=0)
+	updated_at = models.DateTimeField(auto_now=True)
