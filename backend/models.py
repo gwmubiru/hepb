@@ -145,6 +145,7 @@ class FacilityStats(models.Model):
 	num_pending_dispatch = models.PositiveIntegerField(default=0)
 	num_dispatched = models.PositiveIntegerField(default=0)
 	last_dispatched_at = models.DateTimeField(null=True)
+	oldest_pending_printing = models.PositiveIntegerField(default=0)
 	
 	def __str__(self): #return facility as default
 		return self.facility
