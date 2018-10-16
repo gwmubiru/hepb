@@ -60,6 +60,8 @@ class ResultsDispatch(models.Model):
 	dispatch_type = models.CharField(max_length=1, null=True, choices=( ('P', 'Printed'),('D', 'Downloaded') ))
 	dispatch_date = models.DateTimeField(null=True)
 	dispatched_by = models.CharField(max_length=128, null=True)
+	received_at_facility = models.BooleanField(default=False)
+	date_received_at_facility = models.DateField(null=True, blank=True)
 
 	class Meta:
 		db_table = 'vl_results_dispatch'
