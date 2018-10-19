@@ -539,9 +539,16 @@ def release_rejects(request):
 		rsr, rsr_created = RejectedSamplesRelease.objects.update_or_create(sample=sample, defaults=other_params)			
 		return HttpResponse("saved")
 	else:
-		date_rejected = request.GET.get('date_rejected',dt.today().strftime("%Y-%m-%d"))
-		rejects = Verification.objects.filter(accepted=False, sample__date_received=date_rejected)
-		return render(request, "samples/release_rejects.html", {'rejects':rejects, 'date_rejected':date_rejected})
+		date_rejected_fro = request.GET.get('date_rejected_fro',dt.today().strftime("%Y-%m-01"))
+		date_rejected_to = request.GET.get('date_rejected_to',dt.today().strftime("%Y-%m-%d"))
+		released = request.GET.get('released', 'N')
+		rlsd = True if released=='Y' else None
+		rejects = Verification.objects.filter(accepted=False, sample__rejectedsamplesrelease__released=rlsd,  sample__date_received__gte=date_rejected_fro, sample__date_received__lte=date_rejected_to)
+		context = {	'rejects':rejects, 
+					'date_rejected_fro':date_rejected_fro, 
+					'date_rejected_to':date_rejected_to,
+					'released':released,}
+		return render(request, "samples/release_rejects.html", context)
 
 def intervene_list(request):
 	intervene_rejects = RejectedSamplesRelease.objects.filter(released=False)[:500]

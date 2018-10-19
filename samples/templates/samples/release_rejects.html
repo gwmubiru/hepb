@@ -17,7 +17,9 @@
 <div class="panel panel-default">
 	<form method='GET' action="{% url 'samples:release_rejects' %}">
 		<div class="form-inline">
-			{% input "date_rejected" date_rejected "{'class':'form-control input-sm w-sm', 'placeholder':'Date of rejection'}" %}
+			{% input "date_rejected_fro" date_rejected_fro "{'class':'date form-control input-sm w-sm', 'placeholder':'From'}" %} To 
+			{% input "date_rejected_to" date_rejected_to "{'class':'date form-control input-sm w-sm', 'placeholder':'To'}" %}
+			{% select "released" "{'N':'Pending', 'Y':'Released'}" released "{'class':'form-control input-sm sample-field'}" %}
 			<input type="submit" value="GO" class="btn btn-danger btn-sm">
 		</div>
 	</form>
@@ -82,7 +84,7 @@ $(document).ready(function() {
 });
 
 $(function(){
-	$( "#date_rejected" ).datepicker({
+	$( ".date" ).datepicker({
   		changeMonth: true,
   		changeYear: true,
   		dateFormat: "yy-mm-dd"
