@@ -74,6 +74,13 @@
 	</table>
 </div>
 <script type="text/javascript">
+
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"order": [[ 0, "asc" ]],
+	});
+});
+
 $(function(){
 	$( "#date_rejected" ).datepicker({
   		changeMonth: true,
