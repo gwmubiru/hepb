@@ -34,7 +34,7 @@
 				<th>Art Number</th>
 				<th>Other ID</th>
 				<th>Gender</th>
-				<th>Date of collection</th>
+				<th>Date released</th>
 				<th>Date received at CHPL</th>
 				<th>Rejection Reason</th>
 				<th>choose</th>
@@ -51,7 +51,7 @@
 				<td>{{ r.sample.patient.art_number }}</td>
 				<td>{{ r.sample.patient.other_id }}</td>
 				<td>{{ r.sample.patient.gender }}</td>
-				<td>{{ r.sample.date_collected }}</td>
+				<td>{{ r.sample.rejectedsamplesrelease.released_at }}</td>
 				<td>{{ r.sample.date_received }}</td>
 				<td>{{ r.rejection_reason }}</td>
 				<td>
