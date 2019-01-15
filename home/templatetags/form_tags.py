@@ -1,4 +1,4 @@
-import ast, datetime
+import ast, datetime, math
 from django.db.models import Q
 from django import template
 from django.utils.safestring import mark_safe
@@ -153,3 +153,11 @@ def quick_stats(request, contenttype, when='today', who='me', extra=''):
 def mod(num, val):
 	ans = val % num
 	return num if ans==0 else ans
+
+@register.filter
+def to_char(value):
+	chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+	pos = (value-1)%8
+	well = int(math.floor((value-1)/8))+1
+	return "(%s%s)"%(chars[pos], well)
+
