@@ -668,11 +668,12 @@ def download(request, path):
 def reports(request):
 	#reports = os.listdir("media/reports/")
 	if request.GET.get('dr'):
-		path = "media/reports/drug_resistance/" 
+		path = os.path.join(settings.MEDIA_ROOT, "reports/drug_resistance/")
 	elif request.GET.get('detectables'):
-		path = "media/reports/detectables/" 
+		path = os.path.join(settings.MEDIA_ROOT, "reports/detectables/")
 	else:
-		path = "media/reports/"
+		path = os.path.join(settings.MEDIA_ROOT, "reports/")
+
 	reports = []
 	for r in glob.glob("%s*.zip"%path):
 		stats = os.stat(r)
