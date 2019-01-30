@@ -647,6 +647,7 @@ def reverse_approval(request, verification_id):
 	
 	return redirect("/samples/search/?search_val=%s&approvals=1&reverse_approval=%s"%(request.GET.get("search_val"), ra))
 
+@permission_required('samples.view_reports', login_url='/login/')
 def download(request, path):
 	#folder = "reports/drug_resistance" if request.GET.get('dr') else "reports"
 	if request.GET.get('dr'):
@@ -665,6 +666,7 @@ def download(request, path):
 	else:
 		return HttpResponse("report missing")
 
+@permission_required('samples.view_reports', login_url='/login/')
 def reports(request):
 	#reports = os.listdir("media/reports/")
 	if request.GET.get('dr'):
