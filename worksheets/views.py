@@ -1,5 +1,6 @@
 import json, base64
 import os.path
+from django.conf import settings
 from django.core.serializers import serialize
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
@@ -60,7 +61,7 @@ def generate_pdf(request, worksheet_id):
 @permission_required('worksheets.add_worksheet', login_url='/login/')	
 def create(request, machine_type):
 	context = { 'machine_type':machine_type}
-	r_file = "media/regimen_info_%s.json"%machine_type
+	r_file = os.path.join(settings.MEDIA_ROOT, "regimen_info_%s.json"%machine_type)
 	if request.method == 'POST':
 		form = WorksheetForm(request.POST)
 		if form.is_valid():
@@ -349,8 +350,8 @@ def delete(request, pk):
 		return HttpResponse("Deleting failed")
 
 def reg_info(request, machine_type):
-	context = { 'machine_type':machine_type}
-	r_file = "media/regimen_info_%s.json"%machine_type
+	context = { 'machine_type':machine_type}	
+	r_file = os.path.join(settings.MEDIA_ROOT, "regimen_info_%s.json"%machine_type)
 	if request.method == 'POST':
 		posted_data = request.POST
 		posted_data._mutable = True
