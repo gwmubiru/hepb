@@ -15,7 +15,7 @@ class Command(BaseCommand):
 
 	def __generate_report(self):
 		file_name = "longitudinal_cohorts.csv"
-		file_path = "media/reports/%s"%file_name
+		file_path = "media/%s"%file_name
 		df = pd.DataFrame([], columns=self.__get_headers())
 		df.to_csv(file_path, index=False, header=self.__get_headers(), mode='w')
 		output = []

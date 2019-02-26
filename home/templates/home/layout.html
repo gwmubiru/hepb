@@ -173,7 +173,8 @@
                             <li><a href="{% url 'samples:generate_forms' %}">Generate forms</a></li>
                             <li><a href="{% url 'samples:reports' %}">Reports</a></li> 
                             <li><a href="{% url 'samples:reports' %}?detectables=1">Detectables</a></li>  
-                            <li><a href="{% url 'samples:reports' %}?dr=1">Drug Resistance Samples</a></li>  
+                            <li><a href="{% url 'samples:reports' %}?dr=1">Drug Resistance Samples</a></li>
+                            <li><a href="{% url 'samples:download' 'longitudinal_cohorts.csv.zip' %}?cohort=1">Cohorts for Jan '17 & Jun '18</a></li>  
                             <li><a href="{% url 'data_entry_stats' %}?tab=data_entry">Data Entry Performance</a></li>
                          </ul> 
                   </li>

@@ -654,6 +654,8 @@ def download(request, path):
 		folder = "reports/drug_resistance" 
 	elif request.GET.get('detectables'):
 		folder = "reports/detectables" 
+	elif request.GET.get('cohort'):	
+		folder = settings.MEDIA_ROOT
 	else:
 		folder = "reports"
 
