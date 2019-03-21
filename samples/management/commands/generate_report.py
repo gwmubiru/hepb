@@ -231,7 +231,7 @@ class Command(BaseCommand):
 				'Lab QC date',
 				'Data QC date',
 				'Data QC date for Rejects',
-				'Date dispatched',
+				'Date downloaded',
 				'Date Record Captured',
 				'Worksheet(s)',
 				'Date first added to Worksheet',
