@@ -148,7 +148,7 @@ def handle_files(form, worksheet, user, request):
 			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
 			if sample:
 				#repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
-				store_result('A', sample,result, multiplier, user, test_date, generated_by)
+				store_result('A', sample,result, multiplier, user, test_date, worksheet)
 				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
 				if ws:
 					ws.stage = 2
