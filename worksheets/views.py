@@ -1,6 +1,5 @@
 import json, base64
 import os.path
-from django.conf import settings
 from django.core.serializers import serialize
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
@@ -61,7 +60,7 @@ def generate_pdf(request, worksheet_id):
 @permission_required('worksheets.add_worksheet', login_url='/login/')	
 def create(request, machine_type):
 	context = { 'machine_type':machine_type}
-	r_file = os.path.join(settings.MEDIA_ROOT, "regimen_info_%s.json"%machine_type)
+	r_file = "media/regimen_info_%s.json"%machine_type
 	if request.method == 'POST':
 		form = WorksheetForm(request.POST)
 		if form.is_valid():
@@ -196,9 +195,9 @@ def authorize_list(request, machine_type):
 	# worksheets = Worksheet.objects.annotate(sc=samples_count,hrc=has_results_count).filter(hrc=samples_count, machine_type=machine_type)
 	tab = request.GET.get('tab')
 	if tab=='authorised':
-		filters = Q(stage=3, machine_type=machine_type)
+		filters = Q(stage=3, machine_type=machine_type,worksheet_medical_lab=utils.user_lab(request))
 	else:
-		filters = Q(stage=2, machine_type=machine_type)
+		filters = Q(stage=2, machine_type=machine_type,worksheet_medical_lab=utils.user_lab(request))
 
 	worksheets = Worksheet.objects.filter(filters)
 	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)})
@@ -350,8 +349,8 @@ def delete(request, pk):
 		return HttpResponse("Deleting failed")
 
 def reg_info(request, machine_type):
-	context = { 'machine_type':machine_type}	
-	r_file = os.path.join(settings.MEDIA_ROOT, "regimen_info_%s.json"%machine_type)
+	context = { 'machine_type':machine_type}
+	r_file = "media/regimen_info_%s.json"%machine_type
 	if request.method == 'POST':
 		posted_data = request.POST
 		posted_data._mutable = True

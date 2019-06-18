@@ -23,6 +23,7 @@ SAMPLES_LIMIT = 1000
 
 @permission_required('samples.add_sample', login_url='/login/')
 def create(request):
+	
 	saved_sample = request.GET.get('saved_sample')
 	PastRegimensFormSet = modelformset_factory(PastRegimens, form=PastRegimensForm, extra=5)
 	if request.method == 'POST':
@@ -105,9 +106,13 @@ def create(request):
 			sample.envelope = envelope
 			#sample.vl_sample_id = sample_utils.create_sample_id()
 			sample.created_by = request.user
-
 			sample.sample_medical_lab = utils.user_lab(request)
-			
+			envep_no = request.POST.get('envelope_number')
+			env_type = int(envep_no[-4:])
+			if (env_type >= 900 and env_type < 1000) or (env_type > 800 and env_type < 900):
+				sample.is_study_sample = 1
+			else:
+				sample.is_study_sample = 0
 			sample.save()
 
 			drug_resistance = drug_resistance_form.save(commit=False)
@@ -457,15 +462,15 @@ def verify_list(request):
 
 	if(verified=='0'):
 		context.update({
-			'pending': Sample.objects.filter(verified=False).count(),
-			'pending_dbs': Sample.objects.filter(verified=False, sample_type='D').count(),
-			'pending_plasma': Sample.objects.filter(verified=False, sample_type='P').count(),
+			'pending': Sample.objects.filter(verified=False,envelope__sample_medical_lab=request.user.userprofile.medical_lab_id).count(),
+			'pending_dbs': Sample.objects.filter(verified=False, sample_type='D',envelope__sample_medical_lab=request.user.userprofile.medical_lab_id).count(),
+			'pending_plasma': Sample.objects.filter(verified=False, sample_type='P',envelope__sample_medical_lab=request.user.userprofile.medical_lab_id).count(),
 			})
 	else:
 		context.update({
-			'completed': Sample.objects.filter(verified=True).count(),
-			'completed_dbs': Sample.objects.filter(verified=True, sample_type='D').count(),
-			'completed_plasma': Sample.objects.filter(verified=True, sample_type='P').count(),
+			'completed': Sample.objects.filter(verified=True,envelope__sample_medical_lab=request.user.userprofile.medical_lab_id).count(),
+			'completed_dbs': Sample.objects.filter(verified=True, sample_type='D',envelope__sample_medical_lab=request.user.userprofile.medical_lab_id).count(),
+			'completed_plasma': Sample.objects.filter(verified=True, sample_type='P',envelope__sample_medical_lab=request.user.userprofile.medical_lab_id).count(),
 			})
 
 
@@ -551,7 +556,7 @@ def release_rejects(request):
 		return render(request, "samples/release_rejects.html", context)
 
 def intervene_list(request):
-	intervene_rejects = RejectedSamplesRelease.objects.filter(released=False)[:500]
+	intervene_rejects = RejectedSamplesRelease.objects.filter(released=False,sample__envelope__sample_medical_lab=utils.user_lab(request))[:500]
 	return render(request, 'samples/intervene_list.html', {'intervene_rejects':intervene_rejects})
 
 def search(request):

@@ -102,13 +102,13 @@ def quick_stats(request, contenttype, when='today', who='me', extra=''):
 	quick_stat = ''
 	when_fltr = Q()
 	if when == 'today':
-		when_fltr = Q(created_at__range=utils.today_range())
+		when_fltr = Q(created_at__range=utils.today_range(),envelope__sample_medical_lab=utils.user_lab(request))
 	elif when == 'this_month':
-		when_fltr = Q(created_at__year=today.year, created_at__month=today.month)
+		when_fltr = Q(created_at__year=today.year, created_at__month=today.month,envelope__sample_medical_lab=utils.user_lab(request))
 	elif when == 'last_month':
-		when_fltr = Q(created_at__year=last_month.get('year'), created_at__month=last_month.get('month'))
+		when_fltr = Q(created_at__year=last_month.get('year'), created_at__month=last_month.get('month'),envelope__sample_medical_lab=utils.user_lab(request))
 	else:
-		when_fltr = Q()
+		when_fltr = Q(envelope__sample_medical_lab=utils.user_lab(request))
 
 	who_fltr = Q()
 	if who == 'me':

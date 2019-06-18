@@ -43,7 +43,7 @@ class PatientForm(forms.ModelForm):
 		widgets = {
 			'art_number': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'art_number', 'ng-change':'patHist()'}),
 			'other_id': forms.TextInput(attrs=utils.ATTRS_OPTIONAL),
-			'gender': forms.Select(attrs=utils.ATTRS2),
+			'gender': forms.Select(attrs=utils.ATTRS_OPTIONAL),
 			'dob': forms.DateInput(attrs=utils.ATTRS_DATE),
 		}
 
@@ -53,11 +53,40 @@ class PatientForm(forms.ModelForm):
 		}
 
 	def clean(self):
-		utils.non_future_dates(self, ['dob'])
+		utils.non_future_dates(self, ['dob','treatment_initiation_date'])
 		cld = self.cleaned_data
 		if cld.get('art_number') == '' and cld.get('other_id') == '' and cld.get('locator_category') != 'R':
 			self.add_error('art_number', 'Both ART number and Other ID are null, atleast one is required or reject')
+class PatientExistenceForm(forms.ModelForm):
+	class Meta:
+		model = Patient
 
+		fields = ('art_number',)
+
+		widgets = {
+			'art_number': forms.TextInput(attrs={'class':'form-control input-sm w-md', 'ng-model':'art_number', 'ng-change':'patHist()'}),
+		}
+
+		labels = {
+			'art_number':'Patient Clinic ID/ART #',
+		}
+	def clean(self):
+		cleaned_data = self.cleaned_data
+		
+class PatientExistsFacilityForm(forms.ModelForm):
+
+	class Meta:
+		model = Sample
+
+		fields = (
+			'facility',
+			)
+
+		widgets = {
+			'facility': forms.Select(attrs={'class':'form-control input-sm w-md', 'required':'true', 'ng-model':'facility'}),
+			}
+	def clean(self):
+		cleaned_data = self.cleaned_data
 
 class EnvelopeForm(forms.ModelForm):
 	class Meta:

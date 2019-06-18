@@ -113,6 +113,7 @@ class Sample(models.Model):
 	date_received = models.DateField()
 	treatment_duration = models.PositiveSmallIntegerField(choices=TX_DURATION_CHOICES, null=True, blank=True)
 	treatment_initiation_date = models.DateField(null=True, blank=True)
+	is_study_sample = models.BooleanField(default=False)
 	current_who_stage = models.PositiveSmallIntegerField(choices=WHO_STAGES, null=True, blank=True)
 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
 	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing')
@@ -136,6 +137,7 @@ class Sample(models.Model):
 	updated_by = models.ForeignKey(User, related_name='updated_by', null=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+
 
 
 	def __str__(self):

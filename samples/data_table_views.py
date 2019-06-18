@@ -30,7 +30,10 @@ class ListJson(BaseDatatableView):
 		edit_url = "/samples/edit/{0}".format(row.pk)
 		l = verify_url if verified else show_url
 		if column == 'facility':
-			return '{0}'.format(row.facility.facility)
+			if(row.is_study_sample):
+				return 'Study - '+'{0}'.format(row.facility.facility)
+			else:
+				return '{0}'.format(row.facility.facility)
 		elif column == 'facility.district':
 			return '%s' %(row.facility.district.district)
 		elif column == 'form_number':
@@ -81,9 +84,11 @@ class ListJson(BaseDatatableView):
 				#st_cond = Q(sample_type=search[0])
 				qs_params = fn_cond | loc_cond if loc_cond else fn_cond
 
-		#qs_params = qs_params & Q(envelope__sample_medical_lab=utils.user_lab(self.request))
+		#if self.request.user.pk > 1:
+			#qs_params = qs_params & Q(envelope__sample_medical_lab=utils.user_lab(self.request))
+		qs_params = qs_params & Q(envelope__sample_medical_lab=utils.user_lab(self.request))
 		verified = self.request.GET.get('verified')
-		qs_params = Q(verified=int(verified)) if verified=='0' or verified=='1' else qs_params
+		qs_params = Q(envelope__sample_medical_lab=utils.user_lab(self.request)) & Q(verified=int(verified)) if verified=='0' or verified=='1' else qs_params
 		if qs_params:
 			return qs.filter(qs_params).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('-envelope__envelope_number','lposition_int')
 		else:
@@ -118,7 +123,7 @@ class VerifyListJson(BaseDatatableView):
 
 def envelope_list_json(request):
 	r = request.GET
-	envelopes = __get_envelopes(r)
+	envelopes = __get_envelopes(r,request)
 	envelopes_data = envelopes.get('envelopes_data')
 	data = []
 	for e in envelopes_data:
@@ -136,19 +141,19 @@ def envelope_list_json(request):
 				"data":data,
 				}))
 
-def __get_envelopes(r):
+def __get_envelopes(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
-	filter_query = Q()
+	filter_query = Q(sample_medical_lab=utils.user_lab(request))
 
-	
-	s_count = models.Count('sample')
+	s_count = models.Count('sample',filter=Q(envelope__sample_medical_lab=utils.user_lab(request)))
 	p_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
 	c_count = models.Count(models.Case(models.When(sample__verified=True, then=1)))
 
 	data = Envelope.objects.annotate(s_count=s_count, p_count=p_count, c_count=c_count).filter(filter_query).order_by('-created_at')[start:start+length]
 
 	recordsTotal =  Envelope.objects.count()
+	#recordsTotal =  Envelope.objects.filter(sample_medical_lab=request.user.userprofile.medical_lab_id).count()
 	recordsFiltered = recordsTotal if not filter_query else Envelope.objects.filter(filter_query).count()
 	return {'envelopes_data':data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 

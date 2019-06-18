@@ -72,7 +72,7 @@ def get_anomalies(request, worksheet_id):
 	return HttpResponse("%s <br> %s" %(duplicates_str, non_samples_str))
 
 
-def store_result(machine_type, sample, result, multiplier, user, test_date, wk):
+def store_result(machine_type, sample, result, multiplier, user, test_date):
 	result = 'failed' if utils.isnan(result) else result
 	sample_result, sr_created = Result.objects.get_or_create(sample=sample)
 	if sample_result.result1 == '':
@@ -94,7 +94,7 @@ def store_result(machine_type, sample, result, multiplier, user, test_date, wk):
 	sample_result.method = machine_type
 	sample_result.test_date = test_date.strftime("%Y-%m-%d %H:%M:%S.%f") 
 	sample_result.result_upload_date = timezone.now()
-	sample_result.test_by = wk.generated_by
+	sample_result.test_by = user
 
 	sample_result.save()
 
@@ -127,7 +127,7 @@ def handle_files(form, worksheet, user, request):
 			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
 			if sample:
 				#repeat = result_utils.repeat_test('R', result, '')
-				store_result('R', sample, result, multiplier, user, test_date, worksheet)
+				store_result('R', sample, result, multiplier, user, test_date)
 				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
 				if ws:
 					ws.stage = 2
@@ -148,7 +148,7 @@ def handle_files(form, worksheet, user, request):
 			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
 			if sample:
 				#repeat = result_utils.repeat_test('A', result, data.get("FLAGS"))
-				store_result('A', sample,result, multiplier, user, test_date, worksheet)
+				store_result('A', sample,result, multiplier, user, test_date)
 				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
 				if ws:
 					ws.stage = 2
@@ -215,7 +215,7 @@ def cobas_upload(request):
 				if ws:
 					sample = ws.sample
 					#repeat = 3 if result_utils.eq(result, 'invalid') else 2
-					store_result('C', sample, result, form.cleaned_data.get('multiplier'), request.user, test_date, ws.worksheet)
+					store_result('C', sample, result, form.cleaned_data.get('multiplier'), request.user, test_date)
 					ws.stage = 2
 					ws.save()
 					ws.worksheet.stage = 2
@@ -260,9 +260,9 @@ def worksheet_results(request, worksheet_id):
 def release_list(request, machine_type):
 	tab = request.GET.get('tab')
 	if tab=='released':
-		filters = Q(stage=4, machine_type=machine_type)
+		filters = Q(stage=4, machine_type=machine_type,worksheet_medical_lab=utils.user_lab(request))
 	else:
-		filters = Q(stage=3, machine_type=machine_type)
+		filters = Q(stage=3, machine_type=machine_type,worksheet_medical_lab=utils.user_lab(request))
 
 	worksheets = Worksheet.objects.filter(filters).order_by("-pk")[:1000]
 	context = {'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)}
@@ -308,7 +308,7 @@ def release_results(request, worksheet_id):
 		return render(request, 'results/release_results.html', context)
 
 def intervene_list(request):
-	intervene_results = ResultsQC.objects.filter(released=False)[:500]
+	intervene_results = ResultsQC.objects.filter(released=False,result__sample__envelope__sample_medical_lab=utils.user_lab(request))[:500]
 	return render(request, 'results/intervene_list.html', {'intervene_results':intervene_results})
 
 def reschedule(request, result_pk):

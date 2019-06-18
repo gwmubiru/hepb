@@ -593,7 +593,13 @@
 		$("#id_envelope_number").on("change", function(){
 			var val = $(this).val().split("-");
 			var env_num = Number(val[1]);
-			var s_type =  (env_num<=800?'P':'D');
+			var s_type = '';
+			if((env_num <= 800) || (env_num > 899 && env_num < 1000)){
+				//plasma study samples === from 900 up to 999
+				s_type = 'P'; 
+			}else{
+				s_type = 'D';
+			}
 			$("#id_sample_type").val(s_type);
 			$("#sample_type").val(s_type);
 		});
