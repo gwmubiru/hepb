@@ -14,7 +14,9 @@
 
 			{% include "worksheets/_worksheet_details.html" %}
 				<br>
-				{% if worksheet.machine_type == 'C' %}
+			{% if request.GET.preview %}
+				{% include "worksheets/_preview.html" %}
+			{% elif worksheet.machine_type == 'C' %}
 				<a class="btn btn-danger" href="{% url 'worksheets:edit' worksheet.id %}">Edit</a>
 				<a class="btn btn-danger" href="javascript:windPop('/worksheets/vlprint/{{ worksheet.pk }}/{% if request.GET.show_results %}?show_results=1{% endif %}')">Print</a>				
 				<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/?worksheet=1')">Print Worksheet</a>

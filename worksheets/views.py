@@ -409,6 +409,7 @@ class ListJson(BaseDatatableView):
 			#url4 = "/worksheets/delete/{0}".format(row.pk)
 			url4 = "javascript:deleteWorksheet(\"{0}\", \"{1}\")".format(row.pk, row.worksheet_reference_number)
 			url5 = "/worksheets/show/{0}/?show_results=1".format(row.pk)
+			url6 = "/worksheets/show/{0}/?preview=1".format(row.pk)
 			
 
 			if machine_type:
@@ -421,6 +422,7 @@ class ListJson(BaseDatatableView):
 					{"label":"Upload Results", "url": url3},
 					{"label":"Delete", "url":url4},
 					{"label":"view with results", "url":url5},
+					{"label":"preview", "url":url6},
 				])
 
 			return links
