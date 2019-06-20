@@ -48,6 +48,11 @@ def get_anomalies(request, worksheet_id):
 			return HttpResponse("<b>Expecting a .csv, but we are getting %s</b>"%ext)
 		reader = pandas.read_csv(tmp_name, sep=',')
 		sample_ids = tuple(reader["Sample ID"])
+	elif worksheet.machine_type == 'H':
+		reader = pandas.read_csv(tmp_name, sep='\t')
+		if not utils.eq(ext, '.lis'):
+			return HttpResponse("<b>Expecting a .lis, but we are getting %s</b>"%ext)
+		sample_ids = tuple(reader["Specimen Barcode"])
 	else:
 		if not utils.eq(ext, '.txt'):
 			return HttpResponse("<b>Expecting a .txt, but we are getting %s</b>"%ext)
@@ -55,8 +60,8 @@ def get_anomalies(request, worksheet_id):
 
 		sample_ids = tuple(reader["SAMPLE ID"])
 
-	duplicates = set(["%s"%x for x in sample_ids if x and not utils.isnan(x) and sample_ids.count(x) > 1])
-	csv_samples_set = set(["%s"%x.strip() for x in sample_ids if x and not utils.isnan(x) and x not in ('HIV_LOPOS','HIV_NEG','HIV_HIPOS')])
+	duplicates = set(["%s"%x for x in sample_ids if x and not utils.isnan(x) and len(x)==11 and sample_ids.count(x) > 1])
+	csv_samples_set = set(["%s"%x.strip() for x in sample_ids if x and len(x)==11 and not utils.isnan(x) and x not in ('HIV_LOPOS','HIV_NEG','HIV_HIPOS')])
 
 	w_samples = WorksheetSample.objects.filter(worksheet=worksheet.pk)
 	w_samples_set = set([x.sample.vl_sample_id for x in w_samples])
@@ -133,7 +138,25 @@ def handle_files(form, worksheet, user, request):
 					ws.stage = 2
 					ws.save()
 			# except:
-			# 	pass			
+			# 	pass
+	elif worksheet.machine_type == 'H':
+		reader = pandas.read_csv(tmp_name, sep='\t')
+		test_date = reader.iloc[0]["Completion Time UTC"] 
+		test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
+
+		for row in reader.iterrows():
+			index, data = row
+			result = data['Interpretation 1'] if data['Interpretation 4']=='Valid' else 'Invalid'
+			vl_sample_id = data['Specimen Barcode']
+			vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
+			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
+
+			if sample:
+				store_result('H', sample, result, multiplier, user, test_date)
+				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
+				if ws:
+					ws.stage = 2
+					ws.save()
 			
 	else:
 		reader0 = pandas.read_csv(tmp_name, sep='\t', skiprows=6, nrows=1, header=None)

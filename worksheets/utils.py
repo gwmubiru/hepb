@@ -27,6 +27,8 @@ def create_worksheet_ref_number(worksheet_type, sample_type):
 		wt = 'CT'
 	elif worksheet_type == 'C':
 		wt = 'C8'	
+	elif worksheet_type == 'H':
+		wt = 'HL'
 
 	w = Worksheet.objects.filter(created_at__year=utils.year(), created_at__month=utils.month()).last()
 
@@ -44,6 +46,8 @@ def sample_limit(worksheet_type):
 		limit = 21
 	elif worksheet_type == 'C':
 		limit = 20
+	elif worksheet_type == 'H':
+		limit = 120
 	else:
 		limit = 21
 	return limit

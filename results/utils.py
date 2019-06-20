@@ -132,6 +132,7 @@ def get_result2(result, multiplier, machine_type):
 def get_numeric_result(result):
 	numeric_result = 0
 	result_new = result.replace('Copies / mL', '')
+	result_new = result_new.replace('detected', '')
 	result_new = result_new.replace(' ', '')
 	result_new = result_new.replace(',', '')
 	result_new = result_new.replace('>', '')

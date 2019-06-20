@@ -28,7 +28,7 @@
 						{{ form.machine_type }}
 					</div>
 				</div>
-				
+				{% if machine_type != 'H' %}
 				<div class="row">
 					<div class="form-group col-md-5">
 						{% if machine_type == 'R' %}
@@ -57,6 +57,7 @@
 					</div>
 				</div>
 
+
 				{% if machine_type != 'C' %}
 				<div class="row">
 					<div class="form-group col-md-5">
@@ -72,9 +73,11 @@
 					</div>
 				</div>
 				{% endif %}
+
+				{% endif %}
 				
 
-				{% if machine_type == 'A' %}
+				{% if machine_type == 'A' or machine_type == 'H' %}
 				<div class="row">
 					<div class="form-group col-md-5	">
 						{{ form.control.label_tag }}

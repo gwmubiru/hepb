@@ -11,7 +11,7 @@ import backend.models as backend
 #'awaiting_results','has_results','passed_lab_qc','passed_data_qc'
 
 # Create your models here.
-MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche CAP/CTM'), ('C', 'Cobas 8800') )
+MACHINE_TYPES = ( ('A', 'Abbott'), ('R', 'Roche CAP/CTM'), ('C', 'Cobas 8800'), ('H', 'Hologic') )
 STAGE_CHOICES = ( (1, 'awaiting_results'),(2, 'has_results'), (3, 'passed_lab_qc'), (4, 'passed_data_qc') )
 
 class Worksheet(models.Model):

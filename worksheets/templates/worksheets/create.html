@@ -40,7 +40,7 @@
 						{{ form.sample_type }}
 					</div>
 				</div>
-				
+				{% if machine_type != 'H' %}
 				<div class="row">
 					<div class="form-group col-md-5">
 						{% if machine_type == 'R' %}
@@ -68,6 +68,7 @@
 						<br>{{ form.sample_prep_expiry_date }}
 					</div>
 				</div>
+				
 
 				{% if machine_type != 'C' %}
 				<div class="row">
@@ -84,9 +85,11 @@
 					</div>
 				</div>
 				{% endif %}
+
+				{% endif %}
 				
 
-				{% if machine_type == 'A' %}
+				{% if machine_type == 'A' or machine_type == 'H' %}
 				<div class="row">
 					<div class="form-group col-md-5	">
 						{{ form.control.label_tag }}
@@ -113,13 +116,14 @@
 						{{ form.calibrator_expiry_date.errors }}
 						<br>{{ form.calibrator_expiry_date }}
 					</div>
-
+					{% if machine_type == 'A' %} 
 					<div class="form-group col-md-3">
 						<br>	
 						{{ form.include_calibrators.errors }}
 						{{ form.include_calibrators }}
 						{{ form.include_calibrators.label_tag }}				
 					</div>
+					{% endif %}
 				</div>
 
 				<div class="row">

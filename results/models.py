@@ -13,7 +13,12 @@ import worksheets.models as worksheets
 
 #track 
 class Result(models.Model):
-	METHOD_CHOICES = ( ('A', 'Abbott Real time HIV-1 PCR'), ('R', 'HIV-1 RNA PCR Roche'), ('C', 'HIV-1 RNA PCR Roche'))
+	METHOD_CHOICES = ( 
+						('A', 'Abbott Real time HIV-1 PCR'), 
+						('R', 'HIV-1 RNA PCR Roche'), 
+						('C', 'HIV-1 RNA PCR Roche'),
+						('H', 'HIV-1 RNA PCR Panther')
+					)
 	sample = models.OneToOneField(samples.Sample, on_delete=models.CASCADE)
 	repeat_test = models.PositiveSmallIntegerField(default=2,choices=( (1, 'YES'),(2, 'NO'), (3, 'PROPOSED') ))
 	result1 = models.TextField()
