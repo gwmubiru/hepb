@@ -1,5 +1,6 @@
 import json, base64
 import os.path
+from django.conf import settings
 from django.core.serializers import serialize
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
