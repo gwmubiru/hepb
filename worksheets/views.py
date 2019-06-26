@@ -60,7 +60,8 @@ def generate_pdf(request, worksheet_id):
 @permission_required('worksheets.add_worksheet', login_url='/login/')	
 def create(request, machine_type):
 	context = { 'machine_type':machine_type}
-	r_file = "media/regimen_info_%s.json"%machine_type
+	r_file = os.path.join(settings.MEDIA_ROOT, "regimen_info_%s.json"%machine_type)
+	#r_file = "media/regimen_info_%s.json"%machine_type
 	if request.method == 'POST':
 		form = WorksheetForm(request.POST)
 		if form.is_valid():

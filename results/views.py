@@ -60,8 +60,8 @@ def get_anomalies(request, worksheet_id):
 
 		sample_ids = tuple(reader["SAMPLE ID"])
 
-	duplicates = set(["%s"%x for x in sample_ids if x and not utils.isnan(x) and len(x)==11 and sample_ids.count(x) > 1])
-	csv_samples_set = set(["%s"%x.strip() for x in sample_ids if x and len(x)==11 and not utils.isnan(x) and x not in ('HIV_LOPOS','HIV_NEG','HIV_HIPOS')])
+	duplicates = set(["%s"%x for x in sample_ids if x and not utils.isnan(x) and len(str(x))==11 and sample_ids.count(x) > 1])
+	csv_samples_set = set(["%s"%x.strip() for x in sample_ids if x and len(str(x))==11 and not utils.isnan(x) and x not in ('HIV_LOPOS','HIV_NEG','HIV_HIPOS')])
 
 	w_samples = WorksheetSample.objects.filter(worksheet=worksheet.pk)
 	w_samples_set = set([x.sample.vl_sample_id for x in w_samples])
