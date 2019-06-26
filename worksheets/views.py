@@ -352,7 +352,8 @@ def delete(request, pk):
 
 def reg_info(request, machine_type):
 	context = { 'machine_type':machine_type}
-	r_file = "media/regimen_info_%s.json"%machine_type
+	r_file = os.path.join(settings.MEDIA_ROOT, "regimen_info_%s.json"%machine_type)
+	#r_file = "media/regimen_info_%s.json"%machine_type
 	if request.method == 'POST':
 		posted_data = request.POST
 		posted_data._mutable = True
