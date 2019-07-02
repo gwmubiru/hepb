@@ -124,6 +124,7 @@
 					{% else %}
 
 				<div class="row ">
+					{% if worksheet.machine_type != 'H' %}
 					<div class="col-xs-1 vlbarcodes-wrapper">
 						1
 						{% if worksheet.machine_type == 'A' %} {{ 1|to_char }} {% endif %}
@@ -144,7 +145,7 @@
 						<br>
 						HPC
 					</div>
-					
+					{% endif %}
 
 						{% if worksheet.include_calibrators %}
 							{% for i in "xxxxxxxx" %}

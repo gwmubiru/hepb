@@ -126,21 +126,10 @@ def attach_samples(request, worksheet_id):
 			
 		return redirect('worksheets:show',worksheet_id)
 	else:
-		#form = AttachSamplesForm()
 		sample_limit = worksheet_utils.sample_limit(worksheet.machine_type)
-		#sample_pads = 11 if worksheet.include_calibrators else 3
-		# samples = Sample.objects.filter(verification__accepted=True, in_worksheet=False).\
-		# 			extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).\
-		# 			order_by('envelope__envelope_number', 'lposition_int')
-		# repeat_samples = Sample.objects.filter(result__repeat_test = True)[:sample_limit]
-		# samples = Sample.objects.filter(in_worksheet=False).order_by('created_at')[:sample_limit]
-		# repeat_samples = Sample.objects.all()[:sample_limit]
 		context = {
-			#'samples': samples, 
 			'worksheet': worksheet,
 			'sample_limit': sample_limit,
-			# 'sample_pads': sample_pads,
-			# 'repeat_samples': repeat_samples, 
 			}
 		return render(request, 'worksheets/attach_samples.html', context)
 
@@ -157,7 +146,7 @@ def list(request):
 def show(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
-	sample_pads = 11 if worksheet.include_calibrators else 3
+	sample_pads = worksheet_utils.sample_pads(worksheet)
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
 	return render(request, 'worksheets/show.html', context)
 
@@ -177,14 +166,14 @@ def edit(request, worksheet_id):
 	else:
 		worksheet = Worksheet.objects.get(pk=worksheet_id)
 		worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
-		sample_pads = 11 if worksheet.include_calibrators else 3
+		sample_pads = worksheet_utils.sample_pads(worksheet)
 		context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
 		return render(request, 'worksheets/edit.html', context)
 
 def vlprint(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
-	sample_pads = 11 if worksheet.include_calibrators else 3
+	sample_pads = worksheet_utils.sample_pads(worksheet)
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
 	WorksheetPrinting.objects.update_or_create(worksheet=worksheet, defaults={'worksheet_printed_by': request.user})	
 	return render(request, 'worksheets/vlprint.html', context)
@@ -256,7 +245,7 @@ def authorize_results(request, worksheet_id):
 
 		return HttpResponse("saved")
 	else:
-		sample_pads = 11 if worksheet.include_calibrators else 3
+		sample_pads = worksheet_utils.sample_pads(worksheet)
 		context = {'worksheet': worksheet, 'sample_pads': sample_pads}
 		return render(request, 'worksheets/authorize_results.html', context)
 

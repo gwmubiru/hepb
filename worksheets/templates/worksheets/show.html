@@ -113,6 +113,7 @@
 					{% else %}	
 									
 					<div class="row wk-row">
+						 {% if worksheet.machine_type != 'H' %}
 						<div class="col-xs-1 vlbarcodes-wrapper">
 							1 {% if worksheet.machine_type == 'A' %} {{ 1|to_char }} {% endif %}<br>
 							Negative Control<br>
@@ -127,6 +128,7 @@
 							3{% if worksheet.machine_type == 'A' %} {{ 3|to_char }} {% endif %}<br>
 							HPC
 						</div>
+						{% endif %}
 
 						{% if worksheet.include_calibrators %}
 							{% for i in "xxxxxxxx" %}

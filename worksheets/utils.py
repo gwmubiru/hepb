@@ -51,3 +51,12 @@ def sample_limit(worksheet_type):
 	else:
 		limit = 21
 	return limit
+
+def sample_pads(worksheet):
+	if worksheet.machine_type == 'H':
+		i = 0
+	elif worksheet.include_calibrators:
+		i = 11
+	else:
+		i = 3
+	return i
