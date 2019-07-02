@@ -39,6 +39,7 @@
 					</select>
 				</div>
 				{{ form.worksheet }}
+				<input type="hidden" name="mtype" value="{{ request.GET.type }}">
 				<input type="submit" value="Upload" class="btn btn-danger btn-submit ">
 				
 			</form>

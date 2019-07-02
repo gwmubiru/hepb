@@ -138,26 +138,7 @@ def handle_files(form, worksheet, user, request):
 					ws.stage = 2
 					ws.save()
 			# except:
-			# 	pass
-	elif worksheet.machine_type == 'H':
-		reader = pandas.read_csv(tmp_name, sep='\t')
-		test_date = reader.iloc[0]["Completion Time UTC"] 
-		test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
-
-		for row in reader.iterrows():
-			index, data = row
-			result = data['Interpretation 1'] if data['Interpretation 4']=='Valid' else 'Invalid'
-			vl_sample_id = data['Specimen Barcode']
-			vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
-			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
-
-			if sample:
-				store_result('H', sample, result, multiplier, user, test_date)
-				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
-				if ws:
-					ws.stage = 2
-					ws.save()
-			
+			# 	pass			
 	else:
 		reader0 = pandas.read_csv(tmp_name, sep='\t', skiprows=6, nrows=1, header=None)
 		test_date = dt.strptime(reader0.iloc[0][1], '%d/%m/%Y  %I:%M:%S %p')	
@@ -211,6 +192,7 @@ def cobas_upload(request):
 	if(request.method == 'POST'):
 		form = CobasUploadForm(request.POST, request.FILES)
 		if form.is_valid():
+			
 			upload = form.save(commit=False)
 			upload.cobas_uploaded_by = request.user
 			uploaded_file = form.cleaned_data.get('results_file')
@@ -219,41 +201,29 @@ def cobas_upload(request):
 				for chunk in uploaded_file.chunks():
 					destination.write(chunk)
 
-			reader = pandas.read_csv(tmp_name, sep=',')
-			#worksheets_set = set()
-			for row in reader.iterrows():
-				# try:
-				index, data = row
-				result = data["Target 1"]
-				instrument_id = data["Sample ID"]
-				date_format = request.POST.get('date_format')
-				if date_format=="1":
-					start_date = dt.strptime(data["Date/time"], '%d-%b-%Y  %I:%M:%S %p')
-				else:
-					start_date = dt.strptime(data["Date/time"], '%m/%d/%Y %H:%M')
-
-				test_date =  start_date + timedelta(hours=3)
-				#sample = Sample.objects.filter(vl_sample_id=vl_sample_id)[0].sample
-				ws = WorksheetSample.objects.filter(instrument_id=instrument_id).first()
-				if ws:
-					sample = ws.sample
-					#repeat = 3 if result_utils.eq(result, 'invalid') else 2
-					store_result('C', sample, result, form.cleaned_data.get('multiplier'), request.user, test_date)
-					ws.stage = 2
-					ws.save()
-					ws.worksheet.stage = 2
-					ws.worksheet.save()
-
-					#worksheets_set.add(ws.worksheet.pk)
-					# if(WorksheetSample.objects.filter(worksheet=ws.worksheet,stage=1).count()==0):
-					# 	ws.worksheet.stage = 2
-					# 	ws.worksheet.save()
-
-			# for w_id in worksheets_set:
-			# 	 if(WorksheetSample.objects.filter(worksheet_id=w_id,stage=1).count()==0):
-			# 	 	worksheet = Worksheet.objects.get(pk=w_id)
-			# 	 	worksheet.stage = 2
-			# 	 	worksheet.save()
+			mtype = request.POST.get('mtype')
+			if mtype == 'H':
+				process_hologic(tmp_name, request)			
+			else:
+				reader = pandas.read_csv(tmp_name, sep=',')
+				for row in reader.iterrows():
+					index, data = row
+					result = data["Target 1"]
+					instrument_id = data["Sample ID"]
+					date_format = request.POST.get('date_format')
+					if date_format=="1":
+						start_date = dt.strptime(data["Date/time"], '%d-%b-%Y  %I:%M:%S %p')
+					else:
+						start_date = dt.strptime(data["Date/time"], '%m/%d/%Y %H:%M')
+					test_date =  start_date + timedelta(hours=3)
+					ws = WorksheetSample.objects.filter(instrument_id=instrument_id).first()
+					if ws:
+						sample = ws.sample
+						store_result('C', sample, result, form.cleaned_data.get('multiplier'), request.user, test_date)
+						ws.stage = 2
+						ws.save()
+						ws.worksheet.stage = 2
+						ws.worksheet.save()
 
 			upload.save()
 				
@@ -262,6 +232,30 @@ def cobas_upload(request):
 		form = CobasUploadForm(initial={'multiplier':1})
 
 	return render(request, 'results/cobas_upload.html', {'form': form})
+
+def process_hologic(tmp_name, request):
+	reader = pandas.read_csv(tmp_name, sep='\t')
+	test_date = reader.iloc[0]["Completion Time UTC"] 
+	test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
+
+	for row in reader.iterrows():
+		index, data = row
+		result = data['Interpretation 1'] if data['Interpretation 4']=='Valid' else 'Invalid'
+		vl_sample_id = data['Specimen Barcode']
+		vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
+		sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
+
+		if sample:
+			store_result('H', sample, result, 1, request.user, test_date)
+			ws = WorksheetSample.objects.filter(sample=sample).first()
+			if ws:
+				ws.stage = 2
+				ws.save()
+				ws.worksheet.stage = 2
+				ws.worksheet.save()
+
+	
+
 
 def list(request):
 	search_val = request.GET.get('search_val')

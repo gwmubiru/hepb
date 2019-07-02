@@ -98,7 +98,7 @@ class CobasResultsUpload(models.Model):
 
 	def clean(self):
 		file_name = self.results_file.name		
-		if file_name.endswith('.csv') is not True:
+		if file_name.endswith('.csv') is not True and file_name.endswith('.lis') is not True:
 			raise ValidationError(_("Expecting a csv file"))
 
 	class Meta:

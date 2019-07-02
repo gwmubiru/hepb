@@ -47,7 +47,7 @@ def sample_limit(worksheet_type):
 	elif worksheet_type == 'C':
 		limit = 20
 	elif worksheet_type == 'H':
-		limit = 120
+		limit = 94
 	else:
 		limit = 21
 	return limit
