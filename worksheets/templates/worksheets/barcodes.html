@@ -54,9 +54,35 @@
 	    font-size: 30px;
 	}
 
+	.a4_barcode_wrapper{
+		display: inline-block;
+		margin: 20px;
+		margin-bottom: 12px;
+		margin-top: 0px;
+	}
+
+	.a4_row{
+		text-align: center;
+	}
+
+	page {
+      display: block;
+      margin: 0 auto;
+      margin-bottom: 0.5cm;
+      padding: 5px;
+    }
+    page[size="A4"] {  
+      width: 21cm;
+      height: 29.7cm; 
+    }
+    page[size="A4"][layout="portrait"] {
+      width: 29.7cm;
+      height: 21cm;  
+    }
+
 	</style>
 	<body>
-		<div id="content">	
+		<page size="A4">
 		{% if request.GET.worksheet %}
 			<div class="row">
 			{% for s in worksheet_samples %}
@@ -74,6 +100,19 @@
 				{% if forloop.counter|divisibleby:5 %}</div><hr><div class="row">{% endif %}		
 			{% endfor %}
 			</div>
+		{% elif request.GET.a4 %}
+			<div class="row a4_row">
+				
+				{% for s in "....................................................................................." %}
+					<div class="a4_barcode_wrapper">
+						<div class="barcode_a4" value="3723840"></div>
+					</div>
+					{% if forloop.counter|divisibleby:5 %}
+						</div>
+						<div class="row a4_row">
+					{% endif %}		
+				{% endfor %}
+			</div>
 
 		{% elif request.GET.multiple %}
 			<div class="row">	
@@ -87,7 +126,7 @@
 				<div class="vlbarcodes single" value="{{ s.instrument_id }}"></div>				
 			{% endfor %}
 		{% endif %}	
-		</div>
+		</page>
 
 	</body>
 
@@ -108,7 +147,12 @@
             var val = $(this).attr("value");
             $(this).barcode(val, "code128",{showHRI: false,posX: 4,barWidth: 1});
         });
-         window.print();
-         window.onfocus=window.close();
+
+        $(".barcode_a4").each(function(index){
+        	var val = $(this).attr("value");
+            $(this).barcode(val, "code128",{showHRI: true,posX: 4,barWidth: 1,barHeight:35});
+        })
+         /*window.print();
+         window.onfocus=window.close();*/
       });
 	</script>
