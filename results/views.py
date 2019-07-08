@@ -236,7 +236,7 @@ def cobas_upload(request):
 def process_hologic(tmp_name, request):
 	reader = pandas.read_csv(tmp_name, sep='\t')
 	test_date = reader.iloc[0]["Completion Time UTC"] 
-	test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
+	test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p') if type(test_date) is str else timezone.now()
 
 	for row in reader.iterrows():
 		index, data = row
@@ -244,9 +244,11 @@ def process_hologic(tmp_name, request):
 		vl_sample_id = data['Specimen Barcode']
 		vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
 		sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
+		if not sample:
+			sample = Sample.objects.filter(pk=vl_sample_id).first()
 
 		if sample:
-			store_result('H', sample, result, 1, request.user, test_date)
+			store_result('H', sample, result, request.POST.get('multiplier'), request.user, test_date)
 			ws = WorksheetSample.objects.filter(sample=sample).first()
 			if ws:
 				ws.stage = 2
