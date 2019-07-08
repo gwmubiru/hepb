@@ -138,7 +138,26 @@ def handle_files(form, worksheet, user, request):
 					ws.stage = 2
 					ws.save()
 			# except:
-			# 	pass			
+			# 	pass	
+	elif worksheet.machine_type == 'H':
+		reader = pandas.read_csv(tmp_name, sep='\t')
+		test_date = reader.iloc[0]["Completion Time UTC"]
+		test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
+
+		for row in reader.iterrows():
+			index, data = row
+			result = data['Interpretation 1'] if data['Interpretation 4']=='Valid' else 'Invalid'
+			vl_sample_id = data['Specimen Barcode']
+			vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
+			sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
+
+			if sample:
+				store_result('H', sample, result, multiplier, user, test_date)
+				ws = WorksheetSample.objects.filter(worksheet=worksheet, sample=sample).first()
+				if ws:
+					ws.stage = 2
+					ws.save()
+
 	else:
 		reader0 = pandas.read_csv(tmp_name, sep='\t', skiprows=6, nrows=1, header=None)
 		test_date = dt.strptime(reader0.iloc[0][1], '%d/%m/%Y  %I:%M:%S %p')	
@@ -236,7 +255,7 @@ def cobas_upload(request):
 def process_hologic(tmp_name, request):
 	reader = pandas.read_csv(tmp_name, sep='\t')
 	test_date = reader.iloc[0]["Completion Time UTC"] 
-	test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p') if type(test_date) is str else timezone.now()
+	test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
 
 	for row in reader.iterrows():
 		index, data = row
@@ -244,11 +263,9 @@ def process_hologic(tmp_name, request):
 		vl_sample_id = data['Specimen Barcode']
 		vl_sample_id = vl_sample_id.strip() if type(vl_sample_id) is str else vl_sample_id
 		sample = Sample.objects.filter(vl_sample_id=vl_sample_id).first()
-		if not sample:
-			sample = Sample.objects.filter(pk=vl_sample_id).first()
 
 		if sample:
-			store_result('H', sample, result, request.POST.get('multiplier'), request.user, test_date)
+			store_result('H', sample, result, 1, request.user, test_date)
 			ws = WorksheetSample.objects.filter(sample=sample).first()
 			if ws:
 				ws.stage = 2
