@@ -56,12 +56,19 @@
 
 	.a4_barcode_wrapper{
 		display: inline-block;
-		margin: 20px;
-		margin-bottom: 0px;
+		margin: 17px;
+		margin-bottom: 10px;
 		margin-top: 0px;
-		height: 65px;
+		height: 42px;
 	}
-
+	
+	#first_row{
+		padding-top:10px;
+		margin-bottom:10px;
+	}
+	.row.other{
+		margin-top:11px; 
+	}
 	.a4_row{
 		text-align: center;
 	}
@@ -73,12 +80,12 @@
       padding: 5px;
     }
     page[size="A4"] {  
-      width: 21cm;
-      height: 29.7cm; 
+      width: 21.59cm;
+      height: 27.94cm; 
     }
     page[size="A4"][layout="portrait"] {
-      width: 29.7cm;
-      height: 21cm;  
+      width: 99.9cm;
+      height: 99.9cm;  
     }
 
 	</style>
@@ -102,7 +109,7 @@
 			{% endfor %}
 			</div>
 		{% elif request.GET.a4 %}
-			<div class="row a4_row">
+			<div class="row a4_row" id="first_row">
 				
 				{% for s in "....................................................................................." %}
 					<div class="a4_barcode_wrapper">
@@ -110,7 +117,7 @@
 					</div>
 					{% if forloop.counter|divisibleby:5 %}
 						</div>
-						<div class="row a4_row">
+						<div class="row a4_row other" id="row_{{ forloop.counter }}">
 					{% endif %}		
 				{% endfor %}
 			</div>
