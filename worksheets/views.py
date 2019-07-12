@@ -371,10 +371,12 @@ def get_instrument_id(request):
 	return HttpResponse(1) if ws else HttpResponse(0)
 
 def barcodes(request, pk):
+	bar_codes_list = worksheet_utils.bar_code_generator()
+	#return HttpResponse(bar_codes_list)
 	worksheet = Worksheet.objects.get(pk=pk)
 	worksheet_samples = worksheet.worksheetsample_set.all().order_by("sample__envelope__envelope_number","sample__locator_position")
 	WorksheetPrinting.objects.update_or_create(worksheet=worksheet, defaults={'worksheet_printed_by': request.user})
-	return render(request, 'worksheets/barcodes.html', {'worksheet':worksheet, 'worksheet_samples':worksheet_samples})
+	return render(request, 'worksheets/barcodes.html', {'worksheet':worksheet, 'worksheet_samples':worksheet_samples,'bar_codes_list':bar_codes_list})
 
 # def barcodes(request, pk):
 # 	#instantiate a drawing object

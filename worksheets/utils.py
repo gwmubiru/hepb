@@ -1,5 +1,5 @@
 from home import utils
-from worksheets.models import Worksheet
+from worksheets.models import Worksheet, WorksheetBarCode
 
 # def create_worksheet_ref_number(user):
 # 	num = 0
@@ -17,6 +17,35 @@ from worksheets.models import Worksheet
 # 	num = str(num+1)
 # 	num = num.zfill(4)
 # 	return "%s%s%s%s" %(utils.year('yy'), utils.month('mm'), initials.upper() , num)
+
+def bar_code_generator():
+	worksheet_bar_code = WorksheetBarCode.objects.latest('id')
+	batch_counter = worksheet_bar_code.batch_counter
+	bar_code_counter = worksheet_bar_code.bar_code_counter
+	batch_prefix = worksheet_bar_code.batch_prefix
+	codes_list = []
+	for i in range(85):
+		#increment the bar_code (0001 series) by 1
+		bar_code = (batch_prefix + (str(batch_counter).zfill(2)) +(str(bar_code_counter)).zfill(4))
+		bar_code_counter = bar_code_counter+1
+		#batch counter does not exceed 99
+		if(batch_counter == 99):
+			batch_counter = 1
+			batch_prefix = chr(ord(batch_prefix)+1)
+		if(bar_code_counter == 9999):
+			bar_code_counter = 1
+			batch_counter = batch_counter+1
+		codes_list.append(bar_code)
+	#truncate table and add the last generated bar codes
+	#have not seen django truncate equivalent but this delete() can work
+	WorksheetBarCode.objects.all().delete()
+	barcode = WorksheetBarCode()
+	barcode.batch_prefix = batch_prefix
+	barcode.batch_counter = batch_counter
+	barcode.bar_code_counter = bar_code_counter
+	barcode.bar_code = bar_code
+	barcode.save()
+	return codes_list
 
 def create_worksheet_ref_number(worksheet_type, sample_type):
 	num = 0
@@ -60,3 +89,5 @@ def sample_pads(worksheet):
 	else:
 		i = 3
 	return i
+def random_codes():
+	return 51254

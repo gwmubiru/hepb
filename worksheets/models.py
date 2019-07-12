@@ -64,3 +64,12 @@ class WorksheetPrinting(models.Model):
 
 	class Meta:
 		db_table = 'vl_worksheet_printing'
+
+class WorksheetBarCode(models.Model):
+	batch_prefix = models.CharField(max_length=1)
+	batch_counter = models.PositiveSmallIntegerField()
+	bar_code_counter = models.PositiveSmallIntegerField(default=1)
+	bar_code = models.CharField(max_length=7)
+
+	class Meta:
+		db_table = 'bar_code_batches'

@@ -123,9 +123,9 @@
 		{% elif request.GET.a4 %}
 			<div class="row a4_row" id="first_row">
 				
-				{% for s in "....................................................................................." %}
+				{% for s in bar_codes_list %}
 					<div class="a4_barcode_wrapper">
-						<div class="barcode_a4" value="3723840"></div>
+						<div class="barcode_a4" value="{{s}}"></div>
 					</div>
 					{% if forloop.counter|divisibleby:5 %}
 						</div>
