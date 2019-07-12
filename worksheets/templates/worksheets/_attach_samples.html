@@ -82,7 +82,7 @@
 				                    <td class="ng-cloak"><% sample.form_number %></td>
 				                    
 				                    <td>
-				                    	{% if worksheet.machine_type == 'C' %}
+				                    	{% if worksheet.machine_type == 'C' or worksheet.machine_type == 'H' %}
 				                    	<input ng-if="sample.in_worksheet==false && sample.sample_type==w_sample_type"  id="ins<% sample.index %>" tabindex="<% sample.index %>" class="form-control input-sm w-md samples" type="text" name="instrument<% sample.id %>" value="" ng-keypress="setSampleIns($event, sample.index)" ng-model="sample.instrument_id">
 				                    	{% endif %}
 				                    </td>
