@@ -91,14 +91,14 @@
 									{% endif %}
 								{% endif %}
 								<label>
-									<input type='radio' required='true'  name='choices{{ sample.pk }}' class='choices' sample-pk="{{ sample.pk }}" value='reschedule' {% if sample.result.repeat_test == 1 %} checked {% endif %}>{% if sample.result.pk == '' %}Invalidate&nbsp;&#38;&nbsp;Reschedule
+									<input type='radio' required='true'  name='choices{{ sample.pk }}' class='choices' sample-pk="{{ sample.pk }}" value='reschedule' repeat-status='{{ sample.result.repeat_test }}' {% if sample.result.repeat_test == 1 %} checked {% endif %}>{% if sample.result.pk == '' %}Invalidate&nbsp;&#38;&nbsp;Reschedule
 									{% else %}
 										Reschedule
 									{% endif %}
 
 								</label>
 								<label>
-									<input type='radio' required='true' name='choices{{ sample.pk }}' class='choices' sample-pk="{{ sample.pk }}" value='invalid' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric == 'FAILED' %} checked {% endif %}>{% if sample.result.pk == '' %}Invalidate&nbsp;&#38;&nbsp;Authorize
+									<input type='radio' required='true' name='choices{{ sample.pk }}' class='choices' sample-pk="{{ sample.pk }}" value='invalid' repeat-status='{{ sample.result.repeat_test }}' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric == 'FAILED' %} checked {% endif %}>{% if sample.result.pk == '' %}Invalidate&nbsp;&#38;&nbsp;Authorize
 									{% else %}
 										Invalid
 									{% endif %}
@@ -151,21 +151,18 @@
       });
 
 	 $(".choices").on("click",function(){
+	 	var choice = $(this).val();
+	 	var repeat_status = $(this).attr('repeat-status');
 	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk:$(this).attr('sample-pk'), choice:$(this).val()};
-	 	
-	 	$.post("/worksheets/authorize_results/{{ worksheet.pk }}/", params).done(function(data) {
-	 		$("#saved"+params.sample_pk).show();
-	 		// if(data=='completed'){
-	 			//alert(data);
-	 		// }		    
-		  });
-	 	
 
-	 // 	$("#success").on("click", function(){
-		// 	$("#success").slideUp("slow");
-		// });
-	 	//alert($(this).val());
+	 	if(repeat_status==2 && (choice=='reschedule' || choice=='invalid')){
+	 		var ans = confirm("Valid result. Do you really want to invalidate result?");
+	 		if(ans==false){
+	 			return false;
+	 		}
+	 	}
 
+	 	submit_auth(params);
 	 });
 
 	 
@@ -180,6 +177,11 @@
 		$("#results_list_show").html($("#results_list"+r_id).html());
 	});
 
+	function submit_auth(params){
+		$.post("/worksheets/authorize_results/{{ worksheet.pk }}/", params).done(function(data) {
+	 		$("#saved"+params.sample_pk).show();	    
+		 });
+	}
 	</script>
 
 	<style type="text/css">
