@@ -141,6 +141,7 @@ class Command(BaseCommand):
 						s.facility.dhis2_name,
 						s.facility.dhis2_uid,
 						date_uploaded if date_uploaded  else date_tested,
+						s.current_who_stage
 						]
 				output.append(sample_arr)
 				if result:
@@ -239,6 +240,7 @@ class Command(BaseCommand):
 				'DHIS2 Facility Name',
 				'DHIS2 Facility Code',
 				'Date of Results Upload',
+				'WHO Status',
 				]
 	def __get_worksheets_info(self, s):
 		worksheets = s.worksheet_set.all()

@@ -8,6 +8,7 @@ from django.db.models import Q
 from home import utils
 from samples.models import Sample, Verification
 from backend.models import DataEntryStats
+from backend.models import SampleApprovalStats
 
 # Create your views here.
 @login_required
@@ -71,6 +72,26 @@ def data_entry_stats(request):
 		return response
 
 	return render(request, 'home/data_entry_stats.html', {'stats':stats})
+
+def sample_approval_stats(request):
+	stats = SampleApprovalStats.objects.all()
+	if request.GET.get('csv'):
+		response = HttpResponse(content_type='text/csv')
+		response['Content-Disposition'] = 'attachment; filename="data_entry_stats.csv"'
+		writer = csv.writer(response)
+		writer.writerow(['User', 'Today', 'Yesterday', 'This Week', 'Last Week', 'This Month', 'Last Month'])
+		tab = request.GET.get('tab')
+		for s in stats:
+			user ="%s %s (%s)" %(s.user.first_name, s.user.last_name, s.user.username)
+			if tab=='error_rates':
+				writer.writerow([user, s.acc_today, s.acc_yesterday, s.acc_this_week, s.acc_last_week, s.acc_this_month, s.acc_last_month])
+			else:
+				writer.writerow([user, s.today, s.yesterday, s.this_week, s.last_week, s.this_month, s.last_month])
+
+		return response
+
+	return render(request, 'home/sample_approval_stats.html', {'stats':stats})
+
 
 def login_page(request):
 	return render(request, 'home/login.html')
