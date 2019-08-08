@@ -9,7 +9,7 @@ class Command(BaseCommand):
 	help = "Reconcile VL sample IDs to begin from 1 for month"
 
 	def handle(self, *args, **options):
-		for n in range(3):
+		for n in range(14):
 			now = time.localtime()
 			period = time.localtime(time.mktime((now.tm_year, now.tm_mon - n, 1, 0, 0, 0, 0, 0, 0)))[:2]
 			self.year = period[0]
@@ -93,7 +93,14 @@ class Command(BaseCommand):
 
 				date_tested = self.__local_date(result.test_date) if result else ''
 				date_uploaded = self.__local_date(result.result_upload_date) if result else ''
-
+				if s.current_who_stage == 1:
+					who_status = 'I'
+				elif s.current_who_stage == 2:
+					who_status = 'II',
+				elif s.current_who_stage == 3:
+					who_status = 'III'
+				else:
+					who_status = 'IV',
 				sample_arr = [
 						s.form_number,
 						"%s%s/%s"%(s.locator_category, s.envelope.envelope_number, s.locator_position),
@@ -141,7 +148,7 @@ class Command(BaseCommand):
 						s.facility.dhis2_name,
 						s.facility.dhis2_uid,
 						date_uploaded if date_uploaded  else date_tested,
-						s.current_who_stage
+						who_status,
 						]
 				output.append(sample_arr)
 				if result:
