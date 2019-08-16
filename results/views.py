@@ -97,7 +97,10 @@ def store_result(machine_type, sample, result, multiplier, user, test_date):
 	sample_result.result_alphanumeric = result_dict.get('alphanumeric_result')
 	sample_result.suppressed = result_dict.get('suppressed')
 	sample_result.method = machine_type
-	sample_result.test_date = test_date.strftime("%Y-%m-%d %H:%M:%S.%f") 
+	if(machine_type == 'H'):
+		sample_result.test_date = timezone.now()
+	else:
+		sample_result.test_date = test_date.strftime("%Y-%m-%d %H:%M:%S.%f") 
 	sample_result.result_upload_date = timezone.now()
 	sample_result.test_by = user
 
@@ -142,7 +145,8 @@ def handle_files(form, worksheet, user, request):
 	elif worksheet.machine_type == 'H':
 		reader = pandas.read_csv(tmp_name, sep='\t')
 		test_date = reader.iloc[0]["Completion Time UTC"]
-		test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
+		#test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
+		test_date = dt.strptime(test_date, '%d-%b-%y %H:%M:%S')
 
 		for row in reader.iterrows():
 			index, data = row
@@ -256,7 +260,7 @@ def process_hologic(tmp_name, request):
 	reader = pandas.read_csv(tmp_name, sep='\t')
 	test_date = reader.iloc[0]["Completion Time UTC"] 
 	#test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
-	test_date = dt.strptime(test_date, '%d-%M-%y %H:%i:%s')
+	test_date = dt.strptime(test_date, '%d-%b-%y %H:%M:%S')
 
 	for row in reader.iterrows():
 		index, data = row
