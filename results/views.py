@@ -255,7 +255,8 @@ def cobas_upload(request):
 def process_hologic(tmp_name, request):
 	reader = pandas.read_csv(tmp_name, sep='\t')
 	test_date = reader.iloc[0]["Completion Time UTC"] 
-	test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
+	#test_date = dt.strptime(test_date, '%m/%d/%Y %I:%M:%S %p')
+	test_date = dt.strptime(test_date, '%d-%M-%y %H:%i:%s')
 
 	for row in reader.iterrows():
 		index, data = row

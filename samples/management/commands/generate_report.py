@@ -4,12 +4,15 @@ from django.db import connections
 from home import utils
 from samples.models import Sample
 from dateutil import parser
+import logging
 
 class Command(BaseCommand):
 	help = "Reconcile VL sample IDs to begin from 1 for month"
-
+	l = logging.getLogger('django.db.backends')
+	l.setLevel(logging.DEBUG)
+	l.addHandler(logging.StreamHandler())
 	def handle(self, *args, **options):
-		for n in range(14):
+		for n in range(3):
 			now = time.localtime()
 			period = time.localtime(time.mktime((now.tm_year, now.tm_mon - n, 1, 0, 0, 0, 0, 0, 0)))[:2]
 			self.year = period[0]
@@ -96,11 +99,11 @@ class Command(BaseCommand):
 				if s.current_who_stage == 1:
 					who_status = 'I'
 				elif s.current_who_stage == 2:
-					who_status = 'II',
+					who_status = 'II'
 				elif s.current_who_stage == 3:
 					who_status = 'III'
 				else:
-					who_status = 'IV',
+					who_status = 'IV'
 				sample_arr = [
 						s.form_number,
 						"%s%s/%s"%(s.locator_category, s.envelope.envelope_number, s.locator_position),
