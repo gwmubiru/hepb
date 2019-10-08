@@ -1,0 +1,221 @@
+@font-face {
+    font-family: OpenSans;
+    src: url('fonts/fonts-open-sans/OpenSans-Regular.ttf');
+}
+
+body{
+	font-family: OpenSans;
+	font-size:12px;
+}
+.container.section{
+	border: solid 1px #D5D8DC;
+	padding-top: 4px;
+	padding-bottom: 5px;
+}
+h2.sub-section{
+	font-size: 16px;
+	font-weight: bold;
+}
+.required_asta{
+	color: #d9534f;
+}
+
+.input-xs{
+	height: 30px;
+	font-size: 11px;
+}
+
+.vl-slash{
+	font-size:24px;
+	vertical-align: bottom;
+}
+
+.sub-title{
+	color: #808080;
+	text-transform: uppercase;
+	text-decoration: underline;
+	font-size: 14px;
+}
+
+.page-title{
+	text-transform: uppercase;
+	font-weight: lighter;
+	font-size: 16px;
+	padding: 5px
+}
+
+.form-group > label,.form-inline > label{
+	font-weight: lighter;
+	font-size: 12px;
+}
+
+.hi-lite{
+	color: #d9534f;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+/*.nav>li>a{
+	color: #d9534f;
+}*/
+
+.vl-alert{
+	width:300px;
+	text-align:center;
+	padding:5px
+}
+
+.errorlist{
+	color: #d9534f;
+	font-size: 10px;
+}
+
+.btn-submit{
+	text-transform: uppercase;
+}
+
+.vlbarcodes-wrapper{
+	width: 160px;
+	height:145px;
+	text-align: center;
+	border: solid 1px #D5D8DC;
+	font-size: 9px;
+	padding: 0px;
+}
+
+.worksheet{
+	padding-left: 15px;
+	height: 100%;
+	width: 100%;	
+	
+}
+
+.worksheet-box{
+	height:400px;
+	overflow-y: auto;
+	overflow-x: hidden;
+	padding: 20px;
+	border: solid 4px #D5D8DC;
+	border-radius: 4px;
+}
+
+.sm-label{
+	color: #808080;
+}
+
+
+.print-container{
+	width: 1000px;
+	margin-left: 50px;
+	min-height: 1400px;
+}
+
+.print-header{
+	text-transform: uppercase;
+	font-size: 16px;
+	text-align: center;
+}
+
+.print-header-moh{
+	font-weight: bolder;
+}
+
+.print-ttl{
+	font-weight: bolder;
+	text-transform: uppercase;
+	/*background-color: #D8D8D8;*/
+	padding: 5px;
+	font-size: 16px;
+	width: 100%;
+	margin-top: 10px;
+}
+
+.print-sect{
+	font-size: 14px;
+	padding: 5px;
+	border: 2px solid #E8E8E8;
+	min-height: 75px;
+}
+
+.print-sect>table{
+	min-width: 60%;
+}
+
+.print-sect table td{
+	padding: 4px;
+}
+
+
+.print-val{
+	text-decoration: underline;
+}
+
+.print-check,.print-uncheck{
+	font-size: 20px;
+}
+
+
+page {
+  display: block;
+  margin: 0 auto;
+  margin-bottom: 0.5cm;
+  box-shadow: 0 0 0.5cm rgba(0,0,0,0.5);
+  padding: 5px;
+}
+page[size="A4"] {  
+  width: 21cm;
+  height: 29.7cm; 
+}
+page[size="A4"][layout="portrait"] {
+  width: 29.7cm;
+  height: 21cm;  
+}
+
+.printmm-container{
+	width: 20cm;
+}
+
+.wk-row{
+	width: 960px;
+}
+
+.tab-content {
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+}
+
+.x{
+	color: rgb(210, 190, 220);
+	cursor: pointer;
+	font-size: 18px;
+}
+
+.sm-label{
+	font-size:12px;
+	font-weight: bold;
+}
+
+.live_drpdwn{
+	max-height: 300px;
+	border: 1px solid  #D2B9D3;
+	background-color: rgba(221,225,236, 1);
+	position: absolute;
+	border-radius: 2px;
+	-webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+    width: 300px;
+    padding-left:5px;
+    overflow-y:auto;
+    z-index:99 !important;
+}
+ .form-signin .btn.btn-danger {
+    background-color: #3657d7;
+    border-color: #3657d7;
+}
+
+.form-signin .btn.btn-danger {
+    background-color: #3a55bd;
+    border-color: #3a55bd;
+}

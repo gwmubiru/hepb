@@ -1,0 +1,48 @@
+{% extends "home/layout.html" %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">intervention for rejected samples</span>		
+	<div class="panel panel-default" style="overflow-y:auto">
+		<div class="panel-body">
+			<table class="table table-condensed table-striped table-bordered" id="tab_id">
+				<thead>
+					<th>Location&nbsp;ID</th>
+	                <th>Form&nbsp;Number</th>
+	                <th>Comments</th>
+	                <th>Retained by</th>	               
+	                <th>Created by</th>
+			    </thead>			
+				<tbody>
+					{% for i in intervene_rejects %}
+					<tr>
+						<td>{{ i.sample.locator_category }}{{  i.sample.envelope.envelope_number }}/{{  i.sample.locator_position }}</td>
+						<td><a href="/samples/edit/{{ i.sample.pk }}?intervene=rejects">{{ i.sample.form_number }}</a></td>
+						<td>{{ i.comments }}</td>
+						<td>{{ i.reject_released_by }}</td>
+						<th>{{ i.sample.created_by }}</th>
+					</tr>
+					{% endfor %}
+				</tbody>
+			
+			</table>
+
+		</div>
+	</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+	});
+});
+</script>
+{% endblock %}

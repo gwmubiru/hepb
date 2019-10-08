@@ -1,0 +1,51 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">Previous and Current Results</div>
+
+<div class="panel panel-default">
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>			
+				<th>Facility</th>
+				<th>Form Number</th>			
+				<th>Date Collected</th>
+				<th>HepB No.</th>
+				<th>Other ID</th>
+				<th>Gender</th>	
+				<th>DOB</th>
+				<th>Result</th>	
+				<th>Test Date</th>	
+			</tr>
+		</thead>
+		<body>
+			{% for r in results %}
+			<tr>
+				<td>{{ r.facility }}</td>
+				<td>{{ r.form_number}}</td>
+				<td>{{ r.date_collected}}</td>
+				<td>{{ r.hep_number}}</td>
+				<td>{{ r.other_id}}</td>
+				<td>{{r.gender}}</td>
+				<td>{{r.dob}}</td>
+				<td>{{r.result}}</td>
+				<td>{{r.test_date}}
+			</tr>
+			{% endfor %}
+		</body>
+	</table>
+</div>
+
+{% endblock %}

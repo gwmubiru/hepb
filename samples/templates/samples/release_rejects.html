@@ -1,0 +1,125 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">release rejected samples</div>
+
+<div class="panel panel-default">
+	<form method='GET' action="{% url 'samples:release_rejects' %}">
+		<div class="form-inline">
+			{% input "date_rejected_fro" date_rejected_fro "{'class':'date form-control input-sm w-sm', 'placeholder':'From'}" %} To 
+			{% input "date_rejected_to" date_rejected_to "{'class':'date form-control input-sm w-sm', 'placeholder':'To'}" %}
+			{% select "released" "{'N':'Pending', 'Y':'Released'}" released "{'class':'form-control input-sm sample-field'}" %}
+			<input type="submit" value="GO" class="btn btn-danger btn-sm">
+		</div>
+	</form>
+	<br>
+	<table class='table table-condensed table-bordered table-striped table' id='tab_id'>
+		<thead>
+			<tr>
+				<th>Location ID</th>
+				<th>Form Number</th>
+				<th>Facility</th>
+				<th>District</th>
+				<th>Hep. Number</th>
+				<th>Other ID</th>
+				<th>Gender</th>
+				<th>Date of collection</th>
+				<th>Date received at CHPL</th>
+				<th>Rejection Reason</th>
+				<th>choose</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for r in rejects %}
+			<tr>
+				<td>{{ r.sample.locator_category }}{{ r.sample.envelope.envelope_number }}/{{ r.sample.locator_position }}</td>
+				<td>{{ r.sample.form_number }}</td>
+				<td>{{ r.sample.facility }}</td>
+				<td>{{ r.sample.facility.district }}</td>
+				<td>{{ r.sample.patient.hep_number }}</td>
+				<td>{{ r.sample.patient.other_id }}</td>
+				<td>{{ r.sample.patient.gender }}</td>
+				<td>{{ r.sample.date_collected }}</td>
+				<td>{{ r.sample.date_received }}</td>
+				<td>{{ r.rejection_reason }}</td>
+				<td>
+					{% if r.sample.rejectedsamplesrelease.released == 1 %}
+						Released
+					{% elif r.sample.rejectedsamplesrelease.released == 0 %}
+						Retained
+					{% else %}
+							<label><input type='radio' name='choices{{ r.sample.pk }}' class='choices' sample-pk="{{ r.sample.pk }}" value='release'> Release</label>
+							<label><input type='radio' name='choices{{ r.sample.pk }}' class='choices' sample-pk="{{ r.sample.pk }}" value='retain'> Retain</label>
+							<div class="comments" id="comments_sect{{ r.sample.pk }}" >
+							<input type="text"  name='comments{{ r.sample.pk }}' placeholder="comments" id="comment{{ r.sample.pk }}" value="">
+							<span class="btn btn-primary btn-xs comments_save" sample-pk="{{ r.sample.pk }}">save</span>
+							</div>
+					{% endif %}
+				</td>
+				<td><span id="saved{{ r.sample.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;<span class='x' >x</span></span></td>
+			</tr>
+			{% endfor %}
+			
+		</tbody>
+	</table>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"order": [[ 0, "asc" ]],
+		"paging":false,
+	});
+});
+
+$(function(){
+	$( ".date" ).datepicker({
+  		changeMonth: true,
+  		changeYear: true,
+  		dateFormat: "yy-mm-dd"
+    });
+     $(".status").hide();
+     $(".comments").hide();
+});
+
+$(".choices").on("click",function(){
+ 	var choice = $(this).val();
+ 	var sample_pk = $(this).attr('sample-pk');
+ 	if(choice == 'release'){
+ 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk, choice: 'release'};
+ 		saveDetails(params);
+ 		$('#comments_sect'+sample_pk).hide();
+ 	}else{
+ 		$('#comments_sect'+sample_pk).show();
+ 	} 
+});
+
+$(".comments_save").on("click", function(){
+	var sample_pk = $(this).attr('sample-pk');
+	var comments = $("#comment"+sample_pk).val();
+	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk, choice: 'retain', comments:comments};
+	saveDetails(params);
+});
+
+saveDetails = function(params){
+	$.post("/samples/release_rejects/", params).done(function( data ) {
+		$("#saved"+params.sample_pk).show();
+	});
+}
+
+$(".x").on("click", function(){
+	$(this).parent().hide();
+});
+</script>
+{% endblock %}

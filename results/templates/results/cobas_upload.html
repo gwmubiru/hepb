@@ -1,0 +1,62 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">Upload results</span>		
+	<div class="panel panel-default">
+		<div class="panel-body">
+			
+			<form action="{% url 'results:cobas_upload' %}" method="post" role="form" enctype="multipart/form-data">
+				{% csrf_token %}
+				<div class="form-group">
+					{{ form.reference_number.label_tag}}
+					{{ form.reference_number.errors}}
+					{{ form.reference_number }}
+				</div>
+				<div class="form-group">
+					{{ form.results_file.label_tag}}
+					{{ form.results_file.errors}}
+					{{ form.results_file }}
+				</div>
+
+				<div class="form-group">
+					{{ form.multiplier.label_tag}}
+					{{ form.multiplier.errors}}
+					{{ form.multiplier }}
+				</div>
+
+				<div class="form-group">
+					<label for="id_date_format">Date Format:</label>
+					<select class="form-control input-sm w-sm" name="date_format">
+						<option value="1">DD-MMM-YYYY Time (12HRS)</option>	
+						<option value="2">MM/DD/YYYY Time (24HRS)</option>						
+					</select>
+				</div>
+				{{ form.worksheet }}
+				<input type="submit" value="Upload" class="btn btn-danger btn-submit ">
+				
+			</form>
+		</div>
+	</div>
+	<script type="text/javascript">
+	/*var date_now = new Date();
+	var yr_now = date_now.getFullYear();
+	$( function() {
+		$(".date").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm",
+    		maxYear: yr_now+30,
+    		minYear: yr_now-1,
+    		yearDescending: false,    		
+    	});
+	})*/
+
+	</script>
+{% endblock %}

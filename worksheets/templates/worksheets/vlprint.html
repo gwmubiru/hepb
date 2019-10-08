@@ -1,0 +1,186 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	    <title>Viral Load</title>
+	    <link rel="Shortcut Icon" href='{% static "home/images/favicon.png" %}' />
+	    <link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>	 
+	    <link href='{% static "home/vendor/font-awesome-min/css/font-awesome.min.css" %}' rel="stylesheet" type="text/css">
+	    <link rel="stylesheet" href='{% static "home/css/app.css" %}'>
+
+	    <script type="text/javascript" src='{% static "home/vendor/jquery/dist/jquery.min.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/vendor/bootstrap/dist/js/bootstrap.min.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/js/app.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+
+	</head>
+	<style type="text/css">
+
+	#samples-table{
+		width:800px;
+	}
+
+	</style>
+	<body>
+		<div id="content" >
+
+			{% include "worksheets/_worksheet_details.html" %}			
+			<br>
+			{% if worksheet.machine_type == 'C' %}
+				<table class="table table-striped table-condensed table-bordered samples-table" id="samples-table" >
+					<thead>	
+						<th>#</th>						
+						<th>Location ID</th>
+						<th>Form</th>
+						<th>ART Number</th>
+						<th>Instrument/Tube ID</th>
+						<th>Rack ID</th>
+						{% if request.GET.show_results %}
+							<th>Result</th>
+							<th>Processed Result</th>
+						{% endif %}
+					</thead>
+					<tbody>
+						{% for s in worksheet_samples %}
+						{% if forloop.counter0|divisibleby:5 %}
+						<tr><td colspan='7' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
+						{% endif %}
+
+						<tr>
+							<td>{{ forloop.counter }}</td>
+							<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
+							<td>{{ s.sample.form_number }}</td>
+							<td>{{ s.sample.patient.hep_number }}</td>							
+							<td>{{ s.instrument_id }}</td>
+							<td>{{ s.rack_id }}</td>
+							{% if request.GET.show_results %}
+								<td>
+									{% if s.sample_run == 1 %}
+										{{ s.sample.result.result1 }}	
+									{% elif s.sample_run == 2 %}
+										{{ s.sample.result.result2 }}
+									{% elif s.sample_run == 3 %}
+										{{ s.sample.result.result3 }}	
+									{% elif s.sample_run == 4 %}
+										{{ s.sample.result.result4 }}
+									{% elif s.sample_run == 5 %}
+										{{ s.sample.result.result5 }}							
+									{% endif %}
+								</td>
+								<td>{{ s.sample.result.result_alphanumeric }}</td>
+							{% endif %}
+						</tr>
+
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				{% if request.GET.show_results %}
+						{% if request.GET.show_results == 'saved' %}
+							<span id="completed" class="alert alert-success vl-alert" role="alert">
+								Results successfully uploaded
+							</span><br><br>
+						{% endif %}
+					<table class="table table-striped table-condensed table-bordered " id="samples-table" >
+						<thead>	
+							<tr>
+								<th>Location ID</th>
+								<th>Form</th>
+								<th>ART Number</th>			
+								<th>Result</th>
+								<th>Processed Result</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for s in worksheet_samples %}
+							<tr>
+								<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
+								<td>{{ s.sample.form_number }}</td>
+								<td>{{ s.sample.patient.hep_number }}</td>							
+								<td>
+									{% if s.sample_run == 1 %}
+										{{ s.sample.result.result1 }}	
+									{% elif s.sample_run == 2 %}
+										{{ s.sample.result.result2 }}
+									{% elif s.sample_run == 3 %}
+										{{ s.sample.result.result3 }}	
+									{% elif s.sample_run == 4 %}
+										{{ s.sample.result.result4 }}
+									{% elif s.sample_run == 5 %}
+										{{ s.sample.result.result5 }}							
+									{% endif %}
+								</td>
+								<td>{{ s.sample.result.result_alphanumeric }}</td>
+								
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					{% else %}
+
+				<div class="row ">
+					<div class="col-xs-1 vlbarcodes-wrapper">
+						1<br>
+						Negative Control<br>
+						NC							
+					</div>
+					<div class="col-xs-1 vlbarcodes-wrapper">
+						2<br>
+						Positive Control<br>
+						PC
+					</div>
+					<div class="col-xs-1 vlbarcodes-wrapper">
+						3<br>
+						HPC
+					</div>
+					
+
+						{% if worksheet.include_calibrators %}
+							{% for i in "xxxxxxxx" %}
+								{% with runner=forloop.counter|add:3 %}
+								<div class="col-xs-1 vlbarcodes-wrapper">
+									{{ runner }}<br>
+									Calibrator
+								</div>
+								{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
+								{% endwith%}
+							{% endfor %}
+						{% endif %}
+
+						{% for s in worksheet_samples %}
+							{% with runner=forloop.counter|add:sample_pads %}
+							<div class="col-xs-1 vlbarcodes-wrapper">
+								{{ runner }}<br>
+								<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.hep_number }}<br>
+								<span class='sm-label'>Sample ID</span>: {{ s.sample.vl_sample_id }}<br>
+								<span class='sm-label'>Location ID</span>: 
+								{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}<br>
+								<span class='sm-label'>Form #</span>: {{ s.sample.form_number }}
+
+								<div class="vlbarcodes" value="{{ s.sample.vl_sample_id }}"></div>
+							</div>
+							{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
+							{% endwith %}
+							
+						{% endfor %}
+				</div>
+				{% endif %}
+				{% endif %}
+		</div>
+	</body>
+
+
+	<script type="text/javascript">
+	 $(function() {
+		$(".vlbarcodes").each(function (index){
+            var val = $(this).attr("value");
+            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
+        });
+         window.print();
+         window.onfocus=window.close();
+      });
+	</script>

@@ -1,0 +1,346 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">
+		attach samples 
+	</span>
+	<div class="panel panel-default" ng-app="worksheet_samples" ng-controller="worksheetSamplesController">
+		<div class="panel-body">
+			
+			<form action="{% url 'worksheets:attach_samples' worksheet.id %}" method="post" role="form">
+				{% csrf_token %}
+				<span ng-init="w_sample_type='{{ worksheet.sample_type }}'	"></span>
+				<div class="row" >
+					<div class="col-md-4" >
+						<label>Worksheet Ref Number:</label>
+						<input type="text" value="{{ worksheet.worksheet_reference_number }}" name="ref_number" id="ref_number">
+						<br><span style="margin-left:160px" class='sm-label'>Append 'R' for repeat samples</span>
+
+						
+					</div>
+					<div class="col-md-3" ng-init="machine_type='{{ worksheet.machine_type }}'">
+						<label>Machine Type:</label> <u>{{ worksheet.get_machine_type_display }}</u>
+					</div>
+					<div class="col-md-2" ng-init="sample_type='{{ worksheet.sample_type }}'">
+						<label>Sample Type:</label><u>{{ worksheet.get_sample_type_display }}</u>
+					</div>
+					<div class="col-md-3"><label>Date Created:</label> <u>{{ worksheet.created_at | date:"Y-m-d" }}</u></div>
+				</div>
+				<div class="row">
+					<div class="col-md-4 form-inline">I want to attach
+						<input type="text" class="form-control input-sm" ng-init="sample_limit={{ sample_limit }}" ng-model="sample_limit" value="" style="width:50px"> samples
+					</div>
+					<div class="col-md-4"></div>
+					<div class="col-md-4">
+						<div id='submit'><span ng-if="selected_samples.length==sample_limit && selected_samples.length!=0" class="btn btn-danger btn-submit ">save selected samples</span></div>
+					</div>
+				</div>
+				<br>
+				{% include "worksheets/_attach_samples.html" %}
+			</form>
+		</div>
+	</div>
+	<script type="text/javascript">
+	var st = "{{ worksheet.sample_type}}";
+	 $(function() {
+	 	$(".vlbarcodes").each(function (index){
+            var val = $(this).attr("value");
+            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
+        });
+
+        $('#select0').click(function(){
+        	$(".sample").attr("checked", false);
+        	var sample_number = $('#samples_number0').val();
+        	$(".sample").slice(0,sample_number).attr("checked", true);
+        })
+
+        $('#select1').click(function(){
+        	$(".repeat_sample").attr("checked", false);
+        	var sample_number = $('#samples_number1').val();
+        	$(".repeat_sample").slice(0,sample_number).attr("checked", true);
+        })
+
+        $("#submit").click(function(){
+
+        	//console.log("dedede");
+        	var ref_number = $("#ref_number").val();
+        	var valid_ref_number = validRefNumber(ref_number);
+			if (!valid_ref_number){
+				alert("Invalid Reference number");
+			}else{
+				var form = $('form')[0];
+				form.submit();
+				//alert("all good");
+			}
+		});
+
+        //$(".sample").prop("checked", "true")
+      })
+
+	function validRefNumber(ref_number){
+		//"1712C8P0015";	
+		var wtypes = ['ABD','ABP','CTD','CTP','C8D','C8P'];
+		var part1 = ref_number.slice(0,4);
+		var part2 = ref_number.slice(4,7);
+		var part3 = ref_number.slice(7,11);
+		return !isNaN(part1) && !isNaN(part3) && wtypes.indexOf(part2)!=-1 && ref_number.length >= 11 && part1.length==4 && part3.length==4
+	}
+
+	</script>
+
+	<script type="text/javascript">
+		
+		
+var app=angular.module('worksheet_samples', [], function($interpolateProvider) {
+        $interpolateProvider.startSymbol('<%');
+        $interpolateProvider.endSymbol('%>');
+    });
+
+ctrller={};
+ctrller.worksheetSamplesController = function($scope,$http){
+	$scope.Math = window.Math;
+	$scope.selected_samples = [];
+	$scope.pending_envelopes = [];
+	$scope.current_env = '';
+	$scope.instrument_ids = [];
+	$scope.scanned_racks = [];
+	$scope.repeat_samples_count = "";
+	$scope.pending_samples_count = "";
+	$scope.still_loading = true;
+
+	$http.get("/worksheets/pending_envelopes?sample_type="+st).success(function(data){
+		$scope.pending_envelopes = data;
+	});
+
+	/*$http.get("/worksheets/pending_samples/").success(function(data){
+		$scope.samples = data;
+	});
+
+	*/
+	$http.get("/worksheets/pending_samples?repeat=1&sample_type="+st).success(function(data){
+		$scope.repeat_samples = data;
+	});
+
+	$http.get("/worksheets/pending_samples?stats=1&sample_type="+st).success(function(data){
+		$scope.repeat_samples_count = "("+data.repeat_samples_count+")";
+		$scope.pending_samples_count = "("+data.pending_samples_count+")";
+		$scope.still_loading = false;
+	});
+
+	$scope.getEnvSamples = function(pk){		
+		$scope.current_env = pk;
+		$scope.envelope_number = "";
+		$http.get("/worksheets/pending_samples?env_pk="+pk).success(function(data){
+			$scope.samples = data;
+		});
+		$(".env_list").removeClass("active");
+		$('#env'+pk).addClass('active');
+	}
+
+
+
+	$scope.getSamples = function($event,type){
+		var keyCode = $event.which || $event.keyCode;
+		if(keyCode == 13){
+			var append = (type=='sample'||type=='repeat_sample')?"sample_search="+$scope.sample_search:"envelope_number="+$scope.envelope_number;
+			if(type=='repeat_sample'){
+				append = "repeat_sample_search="+$scope.repeat_sample_search
+			}
+			$http.get("/worksheets/pending_samples?"+append).success(function(data){
+				if (type=='repeat_sample'){
+					$scope.repeat_samples = data;
+				}else{
+					$scope.samples = data;
+				}
+			});
+		}
+		
+	}
+
+	/*$scope.setSample = function($event, i){
+		var keyCode = $event.which || $event.keyCode;
+		//if((keyCode == 13 && $scope.machine_type=='C') || $scope.machine_type!='C'){
+			//$scope.selected_samples.push($scope.samples[i]);
+			if(keyCode == 13 && $scope.machine_type=='C'){
+				st = setInstrumentID($("#ins"+i));
+				if(st==false){ return false;}
+				selectSample($scope.samples[i], $("#ins"+i));
+				var next_index = Number(i)+1;
+				$("#ins"+next_index).focus();
+			}else{
+				selectSample($scope.samples[i], $("#sss"+i));
+				var next_index = Number(i)+1;
+				$("#sss"+next_index).focus();
+			}
+			
+		//}		
+	}*/
+
+	$scope.setSample = function($event, i){
+		selectSample($scope.samples[i], $("#sss"+i));
+		var next_index = Number(i)+1;
+		$("#sss"+next_index).focus();	
+	}
+
+	$scope.setSampleIns = function($event, i){
+		var keyCode = $event.which || $event.keyCode;
+		if(keyCode == 13){
+			st = setInstrumentID($("#ins"+i));
+			if(st==false){ return false;}
+			selectSample($scope.samples[i], $("#ins"+i));
+			var next_index = Number(i)+1;
+			$("#ins"+next_index).focus();
+		}
+	}
+
+	/*$scope.setRepeatSample = function($event, i){
+		//console.log("in in in");
+		var keyCode = $event.which || $event.keyCode;
+		if((keyCode == 13 && $scope.machine_type=='C') || $scope.machine_type!='C'){
+			//console.log($scope.repeat_samples[i]);
+			if($scope.machine_type=='C'){
+				st = setInstrumentID($("#rrr"+i));
+				if(st==false){ return false;}
+			}
+			selectSample($scope.repeat_samples[i], $("#rrr"+i), true);
+			//$scope.selected_samples.push($scope.repeat_samples[i]);
+			var next_index = Number(i)+1;
+			$("#rrr"+next_index).focus();
+		}		
+	}*/
+
+	$scope.setRepeatSample = function($event, i){	
+		selectSample($scope.repeat_samples[i], $("#rrr"+i), true);
+		var next_index = Number(i)+1;
+		$("#rrr"+next_index).focus();		
+	}
+
+	$scope.setRepeatSampleIns = function($event, i){
+		var keyCode = $event.which || $event.keyCode;
+		if(keyCode == 13){
+			st = setInstrumentID($("#rrr_ins"+i));
+			if(st==false){ return false;}
+			selectSample($scope.repeat_samples[i], $("#rrr_ins"+i), true);
+			var next_index = Number(i)+1;
+			$("#rrr_ins"+next_index).focus();
+		}		
+	}
+
+	$scope.setAll = function(){
+		if($("#check_all").prop('checked')==true){
+			for(var i in $scope.samples){ 
+				selectSample($scope.samples[i], $("#sss"+i));
+			}
+		}
+		
+	}
+
+	$scope.removeSelectedSample = function(sample){
+		//console.log("gonna delete"+i);
+		index = $scope.selected_samples.indexOf(sample);
+		if(index!=-1){
+			$scope.selected_samples.splice(index, 1);
+		}
+	}
+
+	$scope.nextRack = function($event, rack_index){
+		var keyCode = $event.which || $event.keyCode;
+		if(keyCode == 13){
+			var rack_now = $("#racks"+rack_index);
+			if($scope.scanned_racks.indexOf(rack_now.val())==-1){
+				$scope.scanned_racks.push(rack_now.val());
+				var next_index = Number(rack_index)+1;
+				$("#racks"+next_index).focus();
+			}else{
+				alert("Rack "+rack_now.val()+" already scanned");
+				rack_now.val('');
+				return false;
+			}
+			
+		}		
+
+	}
+
+	selectSample = function(sample, sample_obj, repeat=false){
+		if((sample.in_worksheet!=true || repeat==true) && sample.sample_type==$scope.w_sample_type){
+			//console.log("re"+$scope.sample_limit+" kde"+$scope.selected_samples.length);
+			if($scope.selected_samples.length==$scope.sample_limit){
+				alert("required number reached");
+				sample_obj.prop('checked', false);
+				return false;
+			}else{
+				if(sampleExists(sample)==false){
+					$scope.selected_samples.push(sample);	
+					sample_obj.prop('checked', true);
+					if(sample.instrument_id==null){
+						sample.instrument_id = sample.locator_id;
+					}									
+				}
+			}
+			
+		}
+
+	}
+
+	setInstrumentID = function(sample){
+		var exists = 0;
+		$.ajax({
+			'async': false,
+			'type': "GET",
+			'global': false,
+			'url': "/worksheets/get_instrument_id/?instrument_id="+sample.val(),
+			'success': function (data) { exists = data; }
+		});
+
+		if(exists==1){
+			alert(sample.val()+" exists in the database");
+			sample.val("");
+			ret = false;
+		}else if($scope.instrument_ids.indexOf(sample.val()) != -1){
+			alert(sample.val()+" already scanned");
+			sample.val("");
+			ret =false;
+		}else{
+			$scope.instrument_ids.push(sample.val());
+			ret = true;
+		}
+
+		return ret;		
+	}
+
+	sampleExists = function(sample){
+		ret = false;
+		for(var i in $scope.selected_samples){ 
+			var s = $scope.selected_samples[i];
+			if (sample.form_number==s.form_number){
+				ret = true;
+				break;
+			}
+		}
+		return ret;
+
+	}
+
+
+}
+
+app.controller(ctrller);
+	</script>
+
+
+	<!-- <script type="text/javascript" src='{% static "worksheets/js/worksheet.js" %}'></script> -->
+{% endblock %}

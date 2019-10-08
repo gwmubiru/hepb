@@ -1,0 +1,202 @@
+{% extends "home/layout.html" %}
+{% load staticfiles %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">WORKSHEET</span>		
+	<div class="panel panel-default" style="overflow-y:auto">
+		<div class="panel-body">
+			<div class="worksheet" id="content" >
+
+			{% include "worksheets/_worksheet_details.html" %}
+				<br>
+				{% if worksheet.machine_type == 'C' %}
+				<a class="btn btn-danger" href="{% url 'worksheets:edit' worksheet.id %}">Edit</a>
+				<a class="btn btn-danger" href="javascript:windPop('/worksheets/vlprint/{{ worksheet.pk }}/{% if request.GET.show_results %}?show_results=1{% endif %}')">Print</a>				
+				<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/?worksheet=1')">Print Worksheet</a>
+				<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/')">Print Barcodes</a>
+					
+				<br><br>
+					<table class="table table-striped table-condensed table-bordered samples-table" id="samples-table" >
+						<thead>	
+							<tr>
+								<th>Location ID</th>
+								<th>Form</th>
+								<th>HepB Number</th>
+								<th>Instrument/Tube ID</th>
+								<th>Rack ID</th>
+								{% if request.GET.show_results %}
+								<th>Result</th>
+								<!-- <th>Processed Result</th> -->
+								{% endif %}
+
+							</tr>
+						</thead>
+						<tbody>
+							{% for s in worksheet_samples %}
+							{% if forloop.counter0|divisibleby:5 %}
+							<tr><td colspan='7' style='border-bottom: solid 1px;'>&nbsp;</td></tr>
+							{% endif %}
+							<tr>
+								<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
+								<td>{{ s.sample.form_number }}</td>
+								<td>{{ s.sample.patient.hep_number }}</td>							
+								<td>{{ s.instrument_id }}</td>
+								<td>{{ s.rack_id }}</td>
+								{% if request.GET.show_results %}
+									<td>
+										{% if s.sample_run == 1 %}
+											{{ s.sample.result.result1 }}	
+										{% elif s.sample_run == 2 %}
+											{{ s.sample.result.result2 }}
+										{% elif s.sample_run == 3 %}
+											{{ s.sample.result.result3 }}	
+										{% elif s.sample_run == 4 %}
+											{{ s.sample.result.result4 }}
+										{% elif s.sample_run == 5 %}
+											{{ s.sample.result.result5 }}							
+										{% endif %}
+									</td>
+									<!-- <td>{{ s.sample.result.result_alphanumeric }}</td> -->
+								{% endif %}
+							</tr>
+							{% endfor %}
+
+						</tbody>
+					</table>
+				{% else %}
+					{% if request.GET.show_results %}
+						{% if request.GET.show_results == 'saved' %}
+							<span id="completed" class="alert alert-success vl-alert" role="alert">
+								Results successfully uploaded
+							</span><br><br>
+						{% endif %}
+					<table class="table table-striped table-condensed table-bordered " id="samples-table" >
+						<thead>	
+							<tr>
+								<th>Location ID</th>
+								<th>Form</th>
+								<th>HepB Number</th>			
+								<th>Result</th>
+								<th>Processed Result</th>
+								{% if request.GET.print %}
+								<th>
+								</th>
+								{% endif %}
+							</tr>
+						</thead>
+						<tbody>
+							{% for s in worksheet_samples %}
+							<tr>
+								<td>{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}</td>
+								<td>{{ s.sample.form_number }}</td>
+								<td>{{ s.sample.patient.hep_number }}</td>							
+								<td>
+									{% if s.sample_run == 1 %}
+										{{ s.sample.result.result1 }}	
+									{% elif s.sample_run == 2 %}
+										{{ s.sample.result.result2 }}
+									{% elif s.sample_run == 3 %}
+										{{ s.sample.result.result3 }}	
+									{% elif s.sample_run == 4 %}
+										{{ s.sample.result.result4 }}
+									{% elif s.sample_run == 5 %}
+										{{ s.sample.result.result5 }}							
+									{% endif %}
+								</td>
+								<td>{{ s.sample.result.result_alphanumeric }}
+
+								</td>
+								{% if request.GET.print %}
+								<td>
+
+									<a class="btn btn-danger bw printed_{{s.sample.result.printed}}" href="{% url 'results:print_results' s.sample.result.id worksheet.id %}">
+
+									Print</a>
+								
+								</td>{% endif %} 
+								
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					{% else %}	
+									
+					<div class="row wk-row">
+						<div class="col-xs-1 vlbarcodes-wrapper">
+							1<br>
+							Negative Control<br>
+							NC							
+						</div>
+						<div class="col-xs-1 vlbarcodes-wrapper">
+							2<br>
+							Positive Control<br>
+							PC
+						</div>
+						<div class="col-xs-1 vlbarcodes-wrapper">
+							3<br>
+							HPC
+						</div>
+
+						{% if worksheet.include_calibrators %}
+							{% for i in "xxxxxxxx" %}
+								{% with runner=forloop.counter|add:3 %}
+								<div class="col-xs-1 vlbarcodes-wrapper">
+									{{ runner }}<br>
+									Calibrator
+								</div>
+								{% if runner|divisibleby:6 %}</div><div class="row">{% endif %}
+								{% endwith%}
+							{% endfor %}
+						{% endif %}
+
+						{% for s in worksheet_samples %}
+							{% with runner=forloop.counter|add:sample_pads %}
+							<div class="col-xs-1 vlbarcodes-wrapper">
+								{{ runner }}<br>
+								<span class='sm-label'>HepB ART #</span>: {{ s.sample.patient.hep_number }}<br>
+								<span class='sm-label'>Sample ID</span>: {{ s.sample.vl_sample_id }}<br>
+								<span class='sm-label'>Location ID</span>: 
+								{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}<br>
+								<span class='sm-label'>Form #</span>: {{ s.sample.form_number }}
+
+								<div class="vlbarcodes" value="{{ s.sample.vl_sample_id }}"></div>
+							</div>
+							{% if runner|divisibleby:6 %}</div><div class="row wk-row">{% endif %}
+							{% endwith %}
+							
+						{% endfor %}
+					</div>
+					{% endif %}
+
+					{% endif %}
+
+					<br>
+					{% if not request.GET.print %}
+					<a class="btn btn-danger" href="javascript:windPop('/worksheets/vlprint/{{ worksheet.pk }}/{% if request.GET.show_results %}?show_results=1{% endif %}')">Print</a>
+					{% endif %}
+					{% if worksheet.machine_type == 'C' %}
+					<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/?worksheet=1')">Print Worksheet</a>
+					<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/')">Print Barcodes</a>
+					<a class="btn btn-danger" href="javascript:windPop('/worksheets/barcodes/{{ worksheet.pk }}/?multiple=1')">Print Barcodes (4 per row)</a>
+					{% endif %}
+
+				</div>
+						<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:pdf' worksheet.id %}')">Download as PDF</a> -->
+			<!-- <a class="btn btn-danger" href="javascript:windPop('{% url 'worksheets:vlprint' worksheet.id %}')">Print</a> -->
+			
+		</div>
+	</div>
+	<script type="text/javascript">
+	 $(function() {
+		$(".vlbarcodes").each(function (index){
+            var val = $(this).attr("value");
+            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
+        });
+
+      });
+	</script>
+{% endblock %}

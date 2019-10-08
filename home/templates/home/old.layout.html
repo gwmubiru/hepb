@@ -1,0 +1,218 @@
+
+
+
+
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	    <title>Viral Load</title>
+	    <link rel="Shortcut Icon" href='{% static "home/images/favicon.png" %}' />
+
+	    <link rel="stylesheet" href='{% static "home/vendor/jquery-ui/themes/base/jquery-ui.min.css" %}'>
+	    <link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>	    
+
+	    <link href='{% static "home/vendor/metisMenu/dist/metisMenu.min.css" %}' rel="stylesheet">
+	    <link href='{% static "home/sb-admin-2/dist/css/timeline.css" %}' rel="stylesheet">
+	    <link href='{% static "home/sb-admin-2/dist/css/sb-admin-2.css" %}' rel="stylesheet">	    
+	   <!-- <link href="../bower_components/morrisjs/morris.css" rel="stylesheet"> -->
+	   <link href='{% static "home/vendor/font-awesome-min/css/font-awesome.min.css" %}' rel="stylesheet" type="text/css">
+
+	    <link rel="stylesheet" href='{% static "home/css/app.css" %}'>
+	    {% block css %}
+		{% endblock %}
+
+	    <script type="text/javascript" src='{% static "home/vendor/jquery/dist/jquery.min.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/vendor/bootstrap/dist/js/bootstrap.min.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/vendor/jquery-ui/jquery-ui.min.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/vendor/metisMenu/dist/metisMenu.min.js" %}'></script>
+
+	    <script type="text/javascript" src='{% static "home/sb-admin-2/dist/js/sb-admin-2.js" %}'></script>
+
+	    <script type="text/javascript" src='{% static "home/js/app.js" %}'></script>
+
+	    {% block js %}
+		{% endblock %}
+
+	</head>
+
+	<body>
+		<div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <a class="navbar-brand" href="index.html"> VIRAL LOAD TESTING</a>
+
+            </div>
+            <!-- /.navbar-header -->
+
+            <ul class="nav navbar-top-links navbar-right">
+            	<li> 
+            		<img src='{% static "home/images/ug.png" %}'  width="45" height="45">
+            	</li>
+ 
+                <!-- /.dropdown -->
+            </ul>
+            <!-- /.navbar-top-links -->
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                       
+                        <li>
+                            <a href="{% url 'home_page' %}"><i class="fa fa-home fa-fw"></i> Home</a>
+                        </li>
+                        
+
+                        {% if perms.samples %}
+
+                        <li>
+                            <a href="#"><i class="fa fa-folder-open fa-fw"></i> Samples<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="{% url 'samples:create' %}">Create</a>
+                                </li>
+                                <li>
+                                    <a href="{% url 'samples:list' %}">List</a>
+                                </li>
+                            </ul>
+                            
+                        </li>
+
+                        {% endif %}
+
+                        <li>
+                            <a href="{% url 'samples:verify_list' %}"><i class="fa fa-check-square-o fa-fw"></i> Verifications</a>
+                        </li>
+
+                         {% if perms.worksheets %}
+
+                        <li>
+                            <a href="#"><i class="fa fa-flask fa-fw"></i> Lab<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="#">Create Worksheet</a>
+                                    <ul class="nav nav-third-level">
+                                        <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
+                                        <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
+                                        <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
+                                    </ul>
+                                </li>
+                                <li><a href="{% url 'worksheets:list'  %}">List Worksheets</a></li>
+                                
+                                <li>
+                                    <a href="#">Authorize Results</a>
+                                     <ul class="nav nav-third-level">
+                                        <li><a href="{% url 'worksheets:authorize_list' 'A' %}">For Abbott</a></li>
+                                        <li><a href="{% url 'worksheets:authorize_list' 'R' %}">For Roche CAP/CTM</a></li>
+                                        <li><a href="{% url 'worksheets:authorize_list' 'C' %}">For Cobas 8800</a></li>
+                                    </ul>
+                                </li>
+                               
+                            </ul>
+                            
+                        </li>
+
+                        {% endif %}
+
+                        {% if perms.results %}
+
+                        <li>
+                            <a href="#"><i class="fa fa-file-o fa-fw"></i> Results Release<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li><a href="{% url 'results:release_list' 'A' %}">For Abbott</a></li>
+                                <li><a href="{% url 'results:release_list' 'R' %}">For Roche CAP/CTM</a></li>
+                                <li><a href="{% url 'results:release_list' 'C' %}">For Cobas 8800</a></li>
+                            </ul>
+                        </li>
+
+                        {% endif %}
+
+                        <li>
+                            <a href="#"><i class="fa fa-copy fa-fw"></i> Reports<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li>
+                                    <a href="#">Test Outcome Report</a>
+                                </li>
+                                <li>
+                                    <a href="#">List</a>
+                                </li>
+                            </ul>
+                            
+                        </li>
+
+                         <li class="sidebar-search">
+                            <div class="input-group custom-search-form">
+                                <input id="search_id" type="text" class="form-control" placeholder="Search...">
+                                <div class="input-group-btn">
+        							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        							<span class="caret"></span></button>
+							        <ul class="dropdown-menu dropdown-menu-right">
+    						            <li ><a class="search_link" href="{% url 'samples:list' %}" >Sample</a></li>
+    						            <li ><a class="search_link" href="{% url 'samples:verify_list' %}" >Verify</a></li>
+    						            <li ><a class="search_link" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
+                                        <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li>
+							        </ul>
+      							</div><!-- /btn-group -->
+                            </div>
+                            <!-- /input-group -->
+                        </li>   
+
+                        <li>
+                            <a href="{% url 'logout' %}"><i class="glyphicon glyphicon-log-out"></i> Logout</a>
+                        </li> 
+                      
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-static-side -->
+        </nav>
+
+        <!-- Page Content -->
+        <div id="page-wrapper">
+            <div class="container-fluid" >
+            	<div class="row">
+            		<div class="col-lg-11">
+                        {% block content %}
+                        {% endblock %}
+            		</div>
+            		<div class="col-lg-1"></div>
+
+            	</div>
+
+                        
+                   
+                <!-- /.row -->
+            </div>
+            <!-- /.container-fluid -->
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <script type="text/javascript">
+
+    $(function() {
+    	 $(".search_link").click(function(){
+    	 	var link = $(this).attr("href");
+    	 	var search_val = $("#search_id").val();
+    	 	window.location.href = link+"?search_val="+search_val;
+    	 	return false;
+    	 	//return window.location.assign(link+"?search_val="+search_val);
+    	 }); 
+    });
+    </script>
+	</body>
+</html>

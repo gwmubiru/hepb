@@ -1,0 +1,31 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+
+{% block content %}	
+	<span class="page-title">Worksheet Results</span>		
+	<div class="panel panel-default">
+		<div class="panel-body">
+
+			{% for sample in worksheet.samples.all %}
+			{% include "results/_sample_result.html" %}
+			{% endfor %}			
+		</div>
+	</div>
+	<script type="text/javascript">
+	/*var date_now = new Date();
+	var yr_now = date_now.getFullYear();
+	$( function() {
+		$(".date").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm",
+    		maxYear: yr_now+30,
+    		minYear: yr_now-1,
+    		yearDescending: false,    		
+    	});
+	})*/
+
+	</script>
+{% endblock %}

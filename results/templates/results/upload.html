@@ -1,0 +1,101 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">Upload results</span>		
+	<div class="panel panel-default">
+		<div class="panel-body">
+			
+			<form action="{% url 'results:upload' worksheet.pk %}" method="post" role="form" enctype="multipart/form-data" id="form">
+				{% csrf_token %}
+				<div class="form-inline">
+					<label>Ref number: </label> <u>{{ worksheet.worksheet_reference_number }}</u>
+				</div>
+
+				<div class="form-inline">
+					<label>Machine type: </label> <u>{{ worksheet.get_machine_type_display }}</u>
+				</div>
+
+				<div class="form-inline">
+					<label>Sample type: </label> <u>{{ worksheet.get_sample_type_display }}</u>
+				</div>
+
+				<div class="form-group">
+					{{ form.results_file.label_tag}}
+					{{ form.results_file.errors}}
+					{{ form.results_file }}
+				</div>
+
+				<div class="form-group">
+					{{ form.multiplier.label_tag}}
+					{{ form.multiplier.errors}}
+					{{ form.multiplier }}
+				</div>
+
+				{% if worksheet.machine_type == 'R' %}
+				<div class="form-group">
+					<label for="id_date_format">Date Format:</label>
+					<select class="form-control input-sm w-sm" name="date_format">
+						<option value="1">YYYY/MM/DD Time</option>	
+						<option value="2">MM/DD/YYYY Time</option>
+						<option value="3">DD/MM/YYYY Time</option>					
+					</select>
+				</div>
+				{% endif %}
+
+				{{ form.worksheet }}
+				<div id="id_anomalies"></div>
+				<input id="id_upload" type="submit" value="Upload" class="btn btn-danger btn-submit ">
+				
+			</form>
+		</div>
+	</div>
+	<script type="text/javascript">
+	$(function(){ $('#id_upload').hide(); })
+	$("#id_results_file").on("change", function(){
+		var form = $('form')[0];
+		var formData = new FormData(form);
+		formData.append('results_file', this.files[0]);
+		formData.append('csrfmiddlewaretoken', $("[name=csrfmiddlewaretoken]").val());
+		$.ajax({
+		   url : '/results/anomalies/{{ worksheet.pk }}/',
+		   type : 'POST',
+		   data : formData,
+		   processData: false,  // tell jQuery not to process the data
+		   contentType: false,  // tell jQuery not to set contentType
+		   success : function(data) {
+		       if(data==0){
+		       	$('#id_upload').show();
+		       	$("#id_anomalies").hide();
+		       }else{		       	 
+		       	$("#id_upload").hide();
+		       	var $el = $('#id_results_file');
+		       	$el.wrap('<form>').closest('form').get(0).reset();
+		       	$el.unwrap();	
+		       	$("#id_anomalies").html(data);       
+		       	//alert('the worksheet has duplicate samples');
+		       }
+		   }
+		});
+	});
+	/*var date_now = new Date();
+	var yr_now = date_now.getFullYear();
+	$( function() {
+		$(".date").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm",
+    		maxYear: yr_now+30,
+    		minYear: yr_now-1,
+    		yearDescending: false,    		
+    	});
+	})*/
+
+	</script>
+{% endblock %}

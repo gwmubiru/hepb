@@ -1,0 +1,148 @@
+{% load form_tags %}
+{% if perms.samples.add_verification %}
+<div class="row">
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+
+				<div class="stat_ico color_b"><i class="ion-ios7-people"></i></div>
+				<div class="stat_content">
+					<span class="stat_name" style="color:#e67e22">
+						Approval stats for everyone
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">						
+				<div class="stat_content">
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.approvals_everyone.all|number %>
+					</span>
+					<span class="stat_name">all</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+				
+				<div class="stat_content">
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.approvals_everyone.last_month|number %>
+					</span>
+					<span class="stat_name">last month</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-2 col-md-4" >
+		<div class="panel panel-default">
+			<div class="stat_box" >
+				
+				<div class="stat_content">
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.approvals_everyone.this_month|number %>
+					</span>
+					<span class="stat_name">this month</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+				
+				<div class="stat_content">
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.approvals_everyone.today|number %>
+					</span>
+					<span class="stat_name">today</span>
+				</div>
+			</div>
+		</div>
+	</div>	
+							
+</div>
+
+<div class="row">
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+
+				<div class="stat_ico color_b"><i class="ion-ios7-person"></i></div>
+				<div class="stat_content">
+					<span class="stat_name" style="color:#e67e22">
+						Approval stats for you
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">						
+				<div class="stat_content">
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.approvals_you.all|number %>
+					</span>
+					<span class="stat_name">all</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+				
+				<div class="stat_content">
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.approvals_you.last_month|number %>
+					</span>
+					<span class="stat_name">last month</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-2 col-md-4" >
+		<div class="panel panel-default">
+			<div class="stat_box" >
+				
+				<div class="stat_content">
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.approvals_you.this_month|number %>
+					</span>
+					<span class="stat_name">this month</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-2 col-md-4">
+		<div class="panel panel-default">
+			<div class="stat_box">
+				
+				<div class="stat_content">
+					<span class="stat_count">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.approvals_you.today|number %>
+					</span>
+					<span class="stat_name">today</span>
+				</div>
+			</div>
+		</div>
+	</div>	
+							
+</div>
+{% endif %}

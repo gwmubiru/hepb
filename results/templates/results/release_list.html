@@ -1,0 +1,61 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">Worksheets :: {{ machine_type }}</div>
+
+<div class="panel panel-default">
+	<ul id="tabs_a" class="nav nav-tabs">
+	    <li {% if request.GET.tab != 'released' %}class='active'{% endif %}>
+	    	<a href="?tab=pending">Pending</a>
+	    </li>
+	    <li {% if request.GET.tab == 'released' %}class='active'{% endif %}>
+	    	<a href="?tab=released">Released</a>
+	    </li>
+	</ul>
+	<div class="tab-content">
+		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+			<thead>
+				<tr>
+					<td>#</td>
+					<th>Worksheet Ref Number</th>
+					<th>Machine Type</th>
+					<th>Sample Type</th>
+					<th>Date Created</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for worksheet in worksheets %}
+				<tr>
+					<td>{{ forloop.counter }}</td>
+					<td><a href="{% url 'results:release_results' worksheet.id %}">{{ worksheet.worksheet_reference_number }}</a></td>
+					<td>{{ worksheet.get_machine_type_display }}</td>
+					<td>{{ worksheet.get_sample_type_display }}</td>
+					<td>{{ worksheet.created_at | date:"Y-m-d" }}</td>
+				</tr>
+				{% endfor %}
+				
+			</tbody>
+		</table>
+	</div>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"paging":false,
+	});
+});
+</script>
+
+{% endblock %}

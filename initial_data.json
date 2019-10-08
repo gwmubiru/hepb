@@ -1,0 +1,1144 @@
+[
+{
+    "model": "auth.group",
+    "pk": 1,
+    "fields": {
+        "name": "Data Entry",
+        "permissions": []
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 2,
+    "fields": {
+        "name": "Approvals",
+        "permissions": []
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 3,
+    "fields": {
+        "name": "Worksheets management",
+        "permissions": []
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 4,
+    "fields": {
+        "name": "Results Authorisation",
+        "permissions": []
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 5,
+    "fields": {
+        "name": "Results Release",
+        "permissions": []
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 6,
+    "fields": {
+        "name": "Intervention",
+        "permissions": []
+    }
+},
+{
+    "model": "auth.group",
+    "pk": 7,
+    "fields": {
+        "name": "Generate Forms",
+        "permissions": []
+    }
+},
+{
+    "model": "backend.appendixcategory",
+    "pk": 1,
+    "fields": {
+        "category": "ARV Adherence"
+    }
+},
+{
+    "model": "backend.appendixcategory",
+    "pk": 2,
+    "fields": {
+        "category": "Failure Reasons"
+    }
+},
+{
+    "model": "backend.appendixcategory",
+    "pk": 3,
+    "fields": {
+        "category": "ARV Regimens"
+    }
+},
+{
+    "model": "backend.appendixcategory",
+    "pk": 4,
+    "fields": {
+        "category": "Sample Rejection Reasons"
+    }
+},
+{
+    "model": "backend.appendixcategory",
+    "pk": 5,
+    "fields": {
+        "category": "TB Treatment Phase"
+    }
+},
+{
+    "model": "backend.appendixcategory",
+    "pk": 6,
+    "fields": {
+        "category": "Indication for Treatment Initiation"
+    }
+},
+{
+    "model": "backend.appendixcategory",
+    "pk": 7,
+    "fields": {
+        "category": "Treatment Line"
+    }
+},
+{
+    "model": "backend.appendixcategory",
+    "pk": 8,
+    "fields": {
+        "category": "Viral Load Tesing"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 1,
+    "fields": {
+        "appendix_category": 1,
+        "code": "1",
+        "appendix": "Good > 95%",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 2,
+    "fields": {
+        "appendix_category": 1,
+        "code": "2",
+        "appendix": "Fair 85 - 94%",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 3,
+    "fields": {
+        "appendix_category": 1,
+        "code": "3",
+        "appendix": "< 85%",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 4,
+    "fields": {
+        "appendix_category": 2,
+        "code": "1",
+        "appendix": "Virological",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 5,
+    "fields": {
+        "appendix_category": 2,
+        "code": "2",
+        "appendix": "Clinical",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 6,
+    "fields": {
+        "appendix_category": 2,
+        "code": "3",
+        "appendix": "Immunological",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 7,
+    "fields": {
+        "appendix_category": 2,
+        "code": "4",
+        "appendix": "N/A",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 8,
+    "fields": {
+        "appendix_category": 3,
+        "code": "1",
+        "appendix": "1c = AZT-3TC-NVP",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 9,
+    "fields": {
+        "appendix_category": 3,
+        "code": "2",
+        "appendix": "1d = AZT-3TC-EFV",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 10,
+    "fields": {
+        "appendix_category": 3,
+        "code": "3",
+        "appendix": "1e = TDF-3TC-NVP",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 11,
+    "fields": {
+        "appendix_category": 3,
+        "code": "4",
+        "appendix": "1f = TDF-3TC-EFV",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 12,
+    "fields": {
+        "appendix_category": 3,
+        "code": "5",
+        "appendix": "1g = TDF-FTC-NVP",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 13,
+    "fields": {
+        "appendix_category": 3,
+        "code": "6",
+        "appendix": "1h = TDF-FTC-EFV",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 14,
+    "fields": {
+        "appendix_category": 3,
+        "code": "7",
+        "appendix": "1i = ABC-3TC-EFV",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 15,
+    "fields": {
+        "appendix_category": 3,
+        "code": "8",
+        "appendix": "1j = ABC-3TC-NVP",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 16,
+    "fields": {
+        "appendix_category": 3,
+        "code": "11",
+        "appendix": "2b = TDF-3TC-LPV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 17,
+    "fields": {
+        "appendix_category": 3,
+        "code": "12",
+        "appendix": "2c = TDF-FTC-LPV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 18,
+    "fields": {
+        "appendix_category": 3,
+        "code": "13",
+        "appendix": "2e = AZT-3TC-LPV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 19,
+    "fields": {
+        "appendix_category": 3,
+        "code": "14",
+        "appendix": "2f = TDF-FTC-ATV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 20,
+    "fields": {
+        "appendix_category": 3,
+        "code": "15",
+        "appendix": "2g = TDF-3TC-ATV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 21,
+    "fields": {
+        "appendix_category": 3,
+        "code": "16",
+        "appendix": "2h = AZT-3TC-ATV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 22,
+    "fields": {
+        "appendix_category": 3,
+        "code": "17",
+        "appendix": "2i = ABC-3TC-LPV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 23,
+    "fields": {
+        "appendix_category": 3,
+        "code": "18",
+        "appendix": "2j = ABC-3TC-ATV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 24,
+    "fields": {
+        "appendix_category": 3,
+        "code": "19",
+        "appendix": "4a = d4T-3TC-NVP",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 25,
+    "fields": {
+        "appendix_category": 3,
+        "code": "20",
+        "appendix": "4b = d4T-3TC-EFV",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 26,
+    "fields": {
+        "appendix_category": 3,
+        "code": "21",
+        "appendix": "4c = AZT-3TC-NVP",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 27,
+    "fields": {
+        "appendix_category": 3,
+        "code": "22",
+        "appendix": "4d = AZT-3TC-EFV",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 28,
+    "fields": {
+        "appendix_category": 3,
+        "code": "23",
+        "appendix": "4e = ABC-3TC-NVP",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 29,
+    "fields": {
+        "appendix_category": 3,
+        "code": "24",
+        "appendix": "4f = ABC-3TC-EFV",
+        "tag": "1"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 30,
+    "fields": {
+        "appendix_category": 3,
+        "code": "25",
+        "appendix": "5d = TDF-3TC-LPV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 31,
+    "fields": {
+        "appendix_category": 3,
+        "code": "26",
+        "appendix": "5e = TDF-FTC-LPV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 32,
+    "fields": {
+        "appendix_category": 3,
+        "code": "27",
+        "appendix": "5g = AZT-ABC-LPV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 33,
+    "fields": {
+        "appendix_category": 3,
+        "code": "28",
+        "appendix": "5i = AZT-3TC-ATV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 34,
+    "fields": {
+        "appendix_category": 3,
+        "code": "29",
+        "appendix": "5j = ABC-3TC-LPV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 35,
+    "fields": {
+        "appendix_category": 3,
+        "code": "30",
+        "appendix": "5k = ABC-3TC-ATV/r",
+        "tag": "2"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 36,
+    "fields": {
+        "appendix_category": 3,
+        "code": "31",
+        "appendix": "Left Blank",
+        "tag": "4"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 37,
+    "fields": {
+        "appendix_category": 3,
+        "code": "71",
+        "appendix": "Other Regimen",
+        "tag": "5"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 38,
+    "fields": {
+        "appendix_category": 4,
+        "code": "1",
+        "appendix": "Specimen sent to CPHL Laboratory was  less than 0.75ml",
+        "tag": "P,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 39,
+    "fields": {
+        "appendix_category": 4,
+        "code": "2",
+        "appendix": "Specimen sent to CPHL was haemolysed",
+        "tag": "P,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 40,
+    "fields": {
+        "appendix_category": 4,
+        "code": "3",
+        "appendix": "Mismatching Specimen identifiers on request form and sample",
+        "tag": "P,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 41,
+    "fields": {
+        "appendix_category": 4,
+        "code": "4",
+        "appendix": "Well labeled DBS card without any blood spots",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 42,
+    "fields": {
+        "appendix_category": 4,
+        "code": "5",
+        "appendix": "Blood spots were collected onto a dirty/soiled DBS card,compromising the specimen integrity",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 43,
+    "fields": {
+        "appendix_category": 4,
+        "code": "6",
+        "appendix": "Sample not recieved at CPHL Lab(only the request form was recieved at the testing Lab)",
+        "tag": "P,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 44,
+    "fields": {
+        "appendix_category": 4,
+        "code": "7",
+        "appendix": "All Dry Blood Spots on the card were less than the required size i.e not filling the perforated area",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 45,
+    "fields": {
+        "appendix_category": 4,
+        "code": "8",
+        "appendix": "DBS sample sent on wrong Card",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 46,
+    "fields": {
+        "appendix_category": 4,
+        "code": "9",
+        "appendix": "Patient has been on ARVs for less than 6 months(doesn't qualify for Viral Load testing as per Algorithm)",
+        "tag": "P,eligibility"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 47,
+    "fields": {
+        "appendix_category": 4,
+        "code": "10",
+        "appendix": "Dry Blood sample sent with less than 2 spots",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 48,
+    "fields": {
+        "appendix_category": 4,
+        "code": "11",
+        "appendix": "DBS Sample older than 3 weeks,VL test can't be done on DBS older than 3 weeks.",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 49,
+    "fields": {
+        "appendix_category": 4,
+        "code": "12",
+        "appendix": "Mismatching ART number between sample and form",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 50,
+    "fields": {
+        "appendix_category": 4,
+        "code": "13",
+        "appendix": "Well labeled cryo viral container without any sample in it was sent to CPHL Lab",
+        "tag": "P,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 51,
+    "fields": {
+        "appendix_category": 4,
+        "code": "14",
+        "appendix": "Sample not recieved at CPHL Lab(only the request form was recieved at the testing Lab)",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 52,
+    "fields": {
+        "appendix_category": 4,
+        "code": "15",
+        "appendix": "Patient has been on ARVs for less than 6 months(doesn't qualify for Viral Load testing as per Algorithm)",
+        "tag": "D,eligibility"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 53,
+    "fields": {
+        "appendix_category": 4,
+        "code": "16",
+        "appendix": "Patient had viral load results above 1000cp/ml in less than 6 months ago (Refer to testing Algorithm)",
+        "tag": "D,eligibility"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 54,
+    "fields": {
+        "appendix_category": 4,
+        "code": "17",
+        "appendix": "Patient has wrong date of treatment initiation i.e date earlier than ART role out",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 55,
+    "fields": {
+        "appendix_category": 4,
+        "code": "18",
+        "appendix": "Patient has wrong date of treatment initiation i.e date earlier than ART role out",
+        "tag": "P,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 56,
+    "fields": {
+        "appendix_category": 4,
+        "code": "19",
+        "appendix": "Patient's date of treatment initiation not included on the form thus failed to determine VL testing eligibility",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 57,
+    "fields": {
+        "appendix_category": 4,
+        "code": "20",
+        "appendix": "Patient's date of treatment initiation not included on the form thus failed to determine VL testing eligibility",
+        "tag": "P,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 58,
+    "fields": {
+        "appendix_category": 4,
+        "code": "21",
+        "appendix": "Sample was sent in wrong container thus compromising the sample integrity",
+        "tag": "P,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 59,
+    "fields": {
+        "appendix_category": 4,
+        "code": "22",
+        "appendix": "Wrong sample type was sent to CPHL-Laboratories,Only Plasma and Dried Blood Spots(DBS) are required",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 60,
+    "fields": {
+        "appendix_category": 4,
+        "code": "23",
+        "appendix": "DBS sample was sent on non-perforated card(not able to get the right spot size during sample processing)",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 61,
+    "fields": {
+        "appendix_category": 4,
+        "code": "24",
+        "appendix": "DBS sample was wet and or had moulds thus compromising with the sample integrity",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 62,
+    "fields": {
+        "appendix_category": 4,
+        "code": "25",
+        "appendix": "Sample was sent in a damaged container",
+        "tag": "P,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 63,
+    "fields": {
+        "appendix_category": 4,
+        "code": "26",
+        "appendix": "Patient has not yet been initiated on ART(doesn't qualify for Viral Load testing as per Algorithm)",
+        "tag": "D,eligibility"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 64,
+    "fields": {
+        "appendix_category": 4,
+        "code": "27",
+        "appendix": "Patient has not yet been initiated on ART(doesn't qualify for Viral Load testing as per Algorithm)",
+        "tag": "P,eligibility"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 65,
+    "fields": {
+        "appendix_category": 4,
+        "code": "28",
+        "appendix": "Patient's dispatch form sent without patient's identifications(ART number or Other number)",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 66,
+    "fields": {
+        "appendix_category": 4,
+        "code": "29",
+        "appendix": "Patient's dispatch form sent without patient's identification(ART number or Other number)",
+        "tag": "P,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 67,
+    "fields": {
+        "appendix_category": 4,
+        "code": "30",
+        "appendix": "Two forms were sent for the same sample(only dispatched results for one form)",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 68,
+    "fields": {
+        "appendix_category": 4,
+        "code": "31",
+        "appendix": "Two forms were sent for the same sample(only dispatched results for one form)",
+        "tag": "P,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 69,
+    "fields": {
+        "appendix_category": 4,
+        "code": "32",
+        "appendix": "Recieved an empty DBS card",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 70,
+    "fields": {
+        "appendix_category": 4,
+        "code": "33",
+        "appendix": "Sample was delivered under wrong storage container thus compromising the sample integrity",
+        "tag": "P,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 71,
+    "fields": {
+        "appendix_category": 4,
+        "code": "34",
+        "appendix": "DBS card with presence of serum rings i.e improper drying(affecting the specimen integrity)",
+        "tag": "D,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 72,
+    "fields": {
+        "appendix_category": 4,
+        "code": "35",
+        "appendix": "DBS Card without ART and form number details(DBS card cannot be linked to request form)",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 73,
+    "fields": {
+        "appendix_category": 4,
+        "code": "36",
+        "appendix": "Patient has wrong date of treatment initiation i.e date is beyond the current calender date.",
+        "tag": "P,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 74,
+    "fields": {
+        "appendix_category": 4,
+        "code": "37",
+        "appendix": "Patient has wrong date of treatment initiation i.e date is beyond the current calendar date",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 75,
+    "fields": {
+        "appendix_category": 4,
+        "code": "38",
+        "appendix": "Patient had viral load results less than 1000cp/ml or Not Detected in less than 12 months ago.Refer to testing algorithm.",
+        "tag": "D,eligibility"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 76,
+    "fields": {
+        "appendix_category": 4,
+        "code": "39",
+        "appendix": "Plasma sample container without ART and form number details (sample cannot be linked to request form)",
+        "tag": "P,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 77,
+    "fields": {
+        "appendix_category": 4,
+        "code": "40",
+        "appendix": "Patient had viral load results less than 1000cp/ml or Not Detected in less than 12 months ago.Refer to testing algorithm.",
+        "tag": "P,eligibility"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 78,
+    "fields": {
+        "appendix_category": 4,
+        "code": "41",
+        "appendix": "Wrong sample type sent to CPHL-Laboratories,Only Plasma and Dried Blood Spots(DBS) are required",
+        "tag": "P,sample_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 79,
+    "fields": {
+        "appendix_category": 4,
+        "code": "42",
+        "appendix": "ART Number details are shared by different patients from the same facility.",
+        "tag": "P,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 80,
+    "fields": {
+        "appendix_category": 4,
+        "code": "43",
+        "appendix": "ART Number details are shared by different patients from the same facility.",
+        "tag": "D,data_quality"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 81,
+    "fields": {
+        "appendix_category": 4,
+        "code": "44",
+        "appendix": "Patient had viral load results above 1000cp/ml in less than 6 months ago (Refer to testing Algorithm)",
+        "tag": "P,eligibility"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 82,
+    "fields": {
+        "appendix_category": 5,
+        "code": "5",
+        "appendix": "Initiation Phase",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 83,
+    "fields": {
+        "appendix_category": 5,
+        "code": "6",
+        "appendix": "Continuation Phase",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 84,
+    "fields": {
+        "appendix_category": 6,
+        "code": "1",
+        "appendix": "PMTCT/Option B+",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 85,
+    "fields": {
+        "appendix_category": 6,
+        "code": "2",
+        "appendix": "Child Under 5",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 86,
+    "fields": {
+        "appendix_category": 6,
+        "code": "3",
+        "appendix": "CD4 < 500",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 87,
+    "fields": {
+        "appendix_category": 6,
+        "code": "4",
+        "appendix": "TB Infection",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 88,
+    "fields": {
+        "appendix_category": 6,
+        "code": "5",
+        "appendix": "Other",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 89,
+    "fields": {
+        "appendix_category": 7,
+        "code": "1",
+        "appendix": "First Line",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 90,
+    "fields": {
+        "appendix_category": 7,
+        "code": "2",
+        "appendix": "Second Line",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 91,
+    "fields": {
+        "appendix_category": 7,
+        "code": "4",
+        "appendix": "Left Blank",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 92,
+    "fields": {
+        "appendix_category": 7,
+        "code": "5",
+        "appendix": "Other Regimen",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 93,
+    "fields": {
+        "appendix_category": 8,
+        "code": "1",
+        "appendix": "Routine Monitoring",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 94,
+    "fields": {
+        "appendix_category": 8,
+        "code": "2",
+        "appendix": "Repeat Viral Load",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 95,
+    "fields": {
+        "appendix_category": 8,
+        "code": "3",
+        "appendix": "Suspected Treatment Failure",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 96,
+    "fields": {
+        "appendix_category": 8,
+        "code": "4",
+        "appendix": "Left Blank",
+        "tag": ""
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 97,
+    "fields": {
+        "appendix_category": 8,
+        "code": "5",
+        "appendix": "6 months after ART initiation",
+        "tag": "5"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 98,
+    "fields": {
+        "appendix_category": 8,
+        "code": "6",
+        "appendix": "12 months after ART initiation",
+        "tag": "6"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 99,
+    "fields": {
+        "appendix_category": 8,
+        "code": "7",
+        "appendix": "Repeat (after IAC)",
+        "tag": "7"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 100,
+    "fields": {
+        "appendix_category": 8,
+        "code": "8",
+        "appendix": "1st ANC For PMTCT",
+        "tag": "8"
+    }
+},
+{
+    "model": "backend.appendix",
+    "pk": 101,
+    "fields": {
+        "appendix_category": 8,
+        "code": "9",
+        "appendix": "CCLAD Entry",
+        "tag": "9"
+    }
+},
+{
+    "model": "backend.medicallab",
+    "pk": 1,
+    "fields": {
+        "lab_name": "CPHL",
+        "contact": "0773000000",
+        "address": "Butabika",
+        "email": "cphl@cphl.org"
+    }
+},
+{
+    "model": "backend.medicallab",
+    "pk": 2,
+    "fields": {
+        "lab_name": "Mildmay",
+        "contact": "0773000001",
+        "address": "Entebbe",
+        "email": "mildmay@cphl.org"
+    }
+}
+]

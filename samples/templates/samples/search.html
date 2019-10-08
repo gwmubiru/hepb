@@ -1,0 +1,216 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<span class="page-title">Samples</span>
+
+<div class="panel panel-default">
+	{%if request.GET.env_complete %}
+	<span id="completed" class="alert alert-success vl-alert" role="alert">
+		You reached end of envelope
+	</span>
+	{% endif %}
+	{% if request.GET.reverse_approval%}
+	<span id="completed" class="alert alert-success vl-alert" role="alert">
+		{{request.GET.reverse_approval}}
+	</span>
+	{% endif %}
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>
+				<th>#</th>
+				<th style="width:50px">Form #</th>
+				<th style="width:70px">Locator ID</th>	
+				<th>Pos</th>			
+				<th>Sample Type</th>				
+				<th>Date Collected</th>
+				<th>Initiation Date</th>
+				<th>Date Received</th>				
+				<th>Patient ART #</th>
+				<th>Other ID</th>
+				<th>District</th>
+				<th>Facility</th>
+				<th>Status</th>
+				<th>...</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for s in samples %}
+			<tr>
+				<td>{{ forloop.counter }}</td>				
+				<td>{{ s.form_number }}</td>
+				<td>{{s.locator_category}}{{s.envelope.envelope_number}}/{{s.locator_position}}</td>	
+				<td>{{ s.lposition_int }}</td>			
+				<td>{{ s.get_sample_type_display }}</td>				
+				<td>{{ s.date_collected | date:"Y-m-d" }}</td>
+				<td>{{ s.treatment_initiation_date | date:"Y-m-d"}}</td>
+				<td>{{ s.date_received | date:"Y-m-d"}}</td>				
+				<td>{{ s.patient.hep_number }}</td>
+				<td>{{ s.patient.other_id }}</td>
+				<td>{{ s.facility.district }}</td>
+				<td>{{ s.facility }}</td>
+				<td>
+					{% if s.verified %} 
+						<span style="display:none" id="verify_details{{ s.pk }}">
+							<table class="table table-bordered table-condensed table-striped">
+								<tr>
+									<th>Stage</th>
+									<th  width="30%">Value</th>
+									<th>By</th>
+									<th>Date</th>
+								</tr>
+								<tr>
+									<td>Created</td>
+									<td></td>
+									<td>{{ s.created_by}}</td>
+									<td>{{ s.created_at }}</td>
+								</tr>
+								<tr>
+									<td>Approval</td>
+									<td>{% if s.verification.accepted %} Accepted {% else %} Rejected {% endif %}</td>
+									<td>{{ s.verification.verified_by }}</td>
+									<td>{{ s.verification.created_at }}</td>
+								</tr>
+								{% if not s.verification.accepted %}
+								<tr>
+									<td>Rejection Reason</td>
+									<td colspan="3">{{ s.verification.rejection_reason.appendix }}</td>
+								</tr>
+								{% else %}
+								{% for sw in s.worksheet_set.all %} 
+								<tr>
+									<td>Worksheet</td>
+									<td>{{ sw.worksheet_reference_number }}</td>
+									<td>{{ sw.generated_by }}</td>
+									<td>{{ sw.created_at }}</td>
+								</tr>								
+								{% endfor %}
+								<tr>
+									<td>Processed Result</td>
+									<td>
+										{{ s.result.result_alphanumeric }}
+										{% if s.result.repeat_test == 0 %}
+											(Already rescheduled)
+										{% elif s.result.repeat_test == 1 %}
+											(Ready to be rescheduled)
+										{% elif s.result.repeat_test == 3 %}
+											(Can be rescheduled in Auth window)
+										{% endif %}
+									</td>
+									<td></td>
+									<td></td>
+								</tr>
+								<tr>
+									<td>Authorised?</td>
+									<td>{% if s.result.authorised %} Yes {% else %} No {% endif %}</td>
+									<td>{{ s.result.authorised_by }}</td>
+									<td>{{ s.result.authorised_at }}</td>
+								</tr>
+
+								<tr>
+									<td>Released?</td>
+									<td>{% if s.result.resultsqc.released%} Yes {% else %} No {% endif %}</td>
+									<td>{{ s.result.resultsqc.released_by }}</td>
+									<td>{{ s.result.resultsqc.released_at }}</td>
+								</tr>
+
+								<tr>
+									<td>Dispatched?</td>
+									<td>{% if s.resultsdispatch %} Yes {% else %} No {% endif %}</td>
+									<td>{{ s.resultsdispatch.dispatched_by }}</td>
+									<td>{{ s.resultsdispatch.dispatched_date }}</td>
+								</tr>
+								{% endif %}
+
+								{% if approvals %} 
+								<tr>
+									<td colspan="4" style="text-align:center">
+										<a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">change</a>
+										<a class="btn btn-xs btn-danger" href="/samples/reverse_approval/{{ s.verification.pk }}/?search_val={{ request.GET.search_val}}">reverse approval</a>
+									</td></tr>
+								{% endif %}
+							</table>								
+						</span>
+						<button type="button" class="btn btn-xs btn-danger approved" data-toggle="modal" data-target="#myModal" sample_id="{{ s.pk }}">
+							{% if s.verification.accepted %} accepted {% else %} rejected {% endif %}
+						</button>
+					{% else %} 
+						pending 
+					{% endif %} 
+				</td>
+				<td>
+					{% if approvals %} 
+						{% if s.verified %} 
+							<button type="button" class="btn btn-xs btn-danger approved" data-toggle="modal" data-target="#myModal" sample_id="{{ s.pk }}">approved</button>
+						{% else %} 
+							<a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">approve</a>
+						{% endif %} 
+					{% else %} 
+						<div class="btn-group">
+							<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+								Options 
+								<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu" role="menu">
+								<li>
+									<a href="/samples/show/{{ s.pk }}">view</a>
+								</li>
+								<li><a href="/samples/edit/{{ s.pk }}">edit</a></li>
+							</ul>
+						</div>
+					{% endif %} 
+				</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		
+	</table>
+</div>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Stage Details</h4>
+      </div>
+      <div class="modal-body">
+        <p id="approval_details"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"paging":false,
+		"order": [[ 3, "asc" ]],
+	});
+
+	$(".approved").click(function(){
+		var sample_id = $(this).attr('sample_id');
+		$("#approval_details").html($("#verify_details"+sample_id).html());		
+	});
+});
+</script>
+{% endblock %}

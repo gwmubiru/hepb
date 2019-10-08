@@ -1,0 +1,68 @@
+{% extends "home/layout.html" %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">results intervention</span>		
+	<div class="panel panel-default" style="overflow-y:auto">
+		<div class="panel-body">
+			<table class="table table-condensed table-striped table-bordered" id="tab_id">
+				<thead>
+					<th>Location&nbsp;ID</th>
+	                <th>Form&nbsp;Number</th>
+	                <th>Comments</th>
+	                <th>Result</th>
+	                <th>Suppressed?</th>
+	                <th>Retained by</th>
+	                <th>Created by</th>
+	                <th></th>
+			    </thead>			
+				<tbody>
+					{% for i in intervene_results %}
+					<tr>
+						<td>{{ i.result.sample.locator_category }}{{  i.result.sample.envelope.envelope_number }}/{{  i.result.sample.locator_position }}</td>
+						<td><a href="/samples/edit/{{ i.result.sample.pk }}?intervene=results">{{ i.result.sample.form_number }}</a></td>
+						<td>{{ i.comments }}</td>
+						<td>{{ i.result.result_alphanumeric }}</td>
+						<td>{{ i.result.get_suppressed_display }}</td>
+						<td>{{ i.released_by }}</td>
+						<th>{{ i.result.sample.created_by }}</th>
+						<th><a href="#" class="reschedule" result-pk="{{i.result.pk}}">Reschedule</a></th>
+					</tr>
+					{% endfor %}
+				</tbody>
+			
+			</table>
+
+		</div>
+	</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+	});	
+});
+
+$(".reschedule").on("click", function(){
+	var that = $(this);
+	var result_pk = $(this).attr('result-pk');
+	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk};
+	$.post("/results/reschedule/"+result_pk+"/", params).done(function(data) {
+		if(data==1){
+			that.parent().html("Rescheduled");
+		}else{
+			that.parent().html("Failed");
+		}
+		
+	});
+});
+</script>
+{% endblock %}

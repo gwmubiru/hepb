@@ -1,0 +1,56 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+
+<span class="page-title">
+{% if request.GET.dr %} Drug Resistance Samples
+{% elif request.GET.detectables %} Detectable Samples 
+{% else %} Reports 
+{% endif %}
+</span>
+
+
+<div class="panel panel-default">
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>
+				<th>Download</th>
+				<th>Period</th>
+				<th>Last Modified</th>
+				<th>Size</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for r in reports %}
+			<tr>
+				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1{% endif %}">{{ r.report }}</a></td>
+				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1{% endif %}">{{ r.period }}</a></td>
+				<td>{{ r.last_modified }}</td>
+				<td>{{ r.size }}MB</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		
+	</table>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"order": [[ 0, "desc" ]],
+	});
+});
+</script>
+{% endblock %}

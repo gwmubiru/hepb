@@ -1,0 +1,76 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<span class="page-title">approvals</span>
+
+<ul id="tabs_a" class="nav nav-tabs">
+    <li {% if verified == '0' %}class='active'{% endif %}>
+    	<a href="/samples/verify_list/?verified=0">Pending</a>
+    </li>
+    <li {% if verified == '1' %}class='active'{% endif %}>
+    	<a href="/samples/verify_list/?verified=1">Completed</a>
+    </li>
+    <li>
+    	<a href="/samples/envelope_list/">Envelopes/Boxes</a>
+    </li>
+
+</ul>
+<div id="my-tab-content" class="tab-content" style="min-height:400px">
+    <div class="tab-pane active" id="print"> 
+    	{% if verified == '0' %}
+    	<span class="badge badge-default">{{ pending }}</span>
+    	<span class="badge badge-default">DBS: {{ pending_dbs }}</span>
+    	<span class="badge badge-default">Plasma: {{ pending_plasma }}</span>
+    	{% else %}
+    	<span class="badge badge-default">{{ completed }}</span>
+    	<span class="badge badge-default">DBS: {{ completed_dbs }}</span>
+    	<span class="badge badge-default">Plasma: {{ completed_plasma }}</span>
+    	{% endif %}
+
+    	<br><br>
+		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+			<thead>
+				<tr>
+					<th style="width:50px">Form #</th>
+					<th style="width:70px">Locator ID</th>				
+					<th>Sample Type</th>				
+					<th>Date Collected</th>
+					<th>Initiation Date</th>
+					<th>Date Received</th>
+					<th>Name</th>				
+					<th>Hep Number</th>
+					<th>Other ID</th>
+					<th>District</th>
+					<th>Facility</th>
+					<th>Status</th>
+					<th>...</th>
+				</tr>
+			</thead>		
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"serverSide": true,
+		"order": [],
+		"searching": false,
+		"ajax": "/samples/list_json?verified={{ verified }}{% if global_search %}&global_search={{ global_search }}{% endif %}",
+	});
+});
+</script>
+{% endblock %}

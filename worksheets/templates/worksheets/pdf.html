@@ -1,0 +1,64 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    	<meta name="viewport" content="width=device-width, initial-scale=1">
+    	<title>Viral Load</title>
+		<link rel="Shortcut Icon" href='{% static "home/images/favicon.png" %}' />
+		<link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>	    
+		<link rel="stylesheet" href='{% static "home/css/app.css" %}'>
+		<script type="text/javascript" src='{% static "home/vendor/jquery/dist/jquery.min.js" %}'></script>
+		<script type="text/javascript" src='{% static "home/vendor/bootstrap/dist/js/bootstrap.min.js" %}'></script>	
+		<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	</head>
+
+	<body>
+		<span class="page-title">WORKSHEET</span>		
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<div id="content" >
+					<div class="row" >
+
+						<div class="col-md-4">Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></div>
+						<div class="col-md-4">Machine Type: <u>{{ worksheet.get_machine_type_display }}</u></div>
+						<div class="col-md-4">Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></div>
+					</div>
+					<br>
+					<div class="row ">
+						{% for sample in worksheet.samples.all %}
+							<div class="col-md-1 vlbarcodes-wrapper">
+								{{ forloop.counter }}<br>
+								<span class='sm-label'>Patient ART #</span>: {{ sample.patient.hep_number }}<br>
+								<span class='sm-label'>Sample ID</span>: {{ sample.vl_sample_id }}<br>
+								<span class='sm-label'>Location ID</span>: 
+								{{ sample.locator_category }}{{ sample.envelope.envelope_number }}{{ sample.locator_position }}<br>
+								<span class='sm-label'>Form #</span>: {{ sample.form_number }}
+
+								<div class="vlbarcodes" value="{{ sample.vl_sample_id }}"></div>
+							</div>
+							{% if forloop.counter|divisibleby:6 %}</div><div class="row">{% endif %}
+							
+						{% endfor %}
+					</div>
+				</div>
+			</div>
+		</div>
+		<style type="text/css">
+		.page-title{
+			font-size: 40px;
+		}
+
+		</style>
+		<script type="text/javascript">
+		 $(function() {
+			$(".vlbarcodes").each(function (index){
+	            var val = $(this).attr("value");
+	            $(this).barcode(val, "code128",{showHRI: false,posX: 4});
+	        });
+	      })
+
+		</script>
+	</body>
+</html>

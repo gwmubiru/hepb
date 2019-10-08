@@ -1,0 +1,38 @@
+<style>
+	/* basic positioning  the key/legends */
+.legend { list-style: none; }
+.legend li { float: left; margin-right: 10px; }
+.legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
+/* your colors */
+.legend .notprinted {background-color: #3a55bd;
+    border-color: #3a55bd; }
+.legend .printed { background-color: #5cb85c; border-color: #4cae4c; }
+#main_wrapper .btn.btn-danger.printed_1{
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+}
+</style>
+<table class="samples-table">
+	<tr>
+		<td>Worksheet Ref Number: <u>{{ worksheet.worksheet_reference_number }}</u></td>
+		<td>Machine Type: <u>{{ worksheet.get_machine_type_display }}</u></td>
+		<td></td>
+	</tr>
+	<tr>
+		<td>Sample Type: <u>{{ worksheet.get_sample_type_display }}</u></td>
+		<td>Date Created: <u>{{ worksheet.created_at | date:"Y-m-d" }}</u></td>
+		<td> 
+			<ul class="legend">
+				<li style="font-weight: bold; font-size: 12px;">Key</li>
+			    <li><span class="notprinted"></span> Not printed</li>
+			    <li><span class="printed"></span> Printed</li>
+			</ul>
+		</td>
+	</tr>
+</table>
+
+<style type="text/css">
+	.samples-table{
+		width:800px;
+	}
+</style> 

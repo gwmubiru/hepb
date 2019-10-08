@@ -1,0 +1,454 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+<div ng-app="verify" ng-controller="VerifyController" ng-init="envelope_id={{ envelope_id }}">
+	<div class="page-title">Sample Approval</div>
+	<div class="panel panel-default row">
+		
+		<div class='panel-body col-lg-2'>
+			
+			<div class="list-group ng-cloak" style="height: 800px;overflow-y: auto;margin-top:20px">
+				<a href="#" ng-repeat="s in vdata" ng-click="selectSample(s.sample_id)" class='list-group-item <% s.current %>'> 
+					<span ng-if="s.accepted=='0'" style="background-color:red">&nbsp;</span>
+					<span ng-if="s.accepted=='1'" style="background-color:green">&nbsp;</span>
+					<% s.locator_category %><% s.envelope_number %>/<% s.locator_position %>
+				</a>
+			</div>
+
+		</div>
+		<div class="panel-body col-lg-10">
+			<form action="" method="post" role="form" ng-submit="saveVerification()" onsubmit="return false">
+				{% csrf_token %}
+				<div class="row">
+					<div class="col-lg-5 panel panel-default sect0">
+						<span class='sub-title'>facility details</span>
+						<div class="form-group ng-cloak">
+							<label for="facility_id" style="font-size: 14px;">Facility:</label>
+							<select id="facility_id"  ng-model="sample.facility_id" class="form-control input-sm w-sm">
+								{% for f in facilities %}
+								<option value="{{ f.pk }}">{{ f.facility }}</option>
+								{% endfor %}								
+							</select>
+
+							<div style="padding-top:10px;">
+								District: <u id="id_district" style="min-width:100px;"><% sample.district %></u>
+								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								Hub: <u id="id_hub"><% sample.hub %></u>
+							</div>
+						</div>
+
+					</div>
+					
+
+					<div class="col-lg-5 panel panel-default sect1">
+						<!-- <div class="panel-heading">SAMPLE DETAILS</div> -->
+
+						<span class='sub-title'>sample details</span>
+						
+						<table class="vl-table ng-cloak" >
+							<tr>
+								<td>Form Number: </td>
+								<td> {% input "form_number" "" "{'ng-model': 'sample.form_number', 'class':'form-control input-sm'}" %}</td>
+							</tr> 
+							<tr>
+								<td>Collection Date: </td>
+								<td>{% input "date_collected" "" "{'class':'form-control input-sm date-picker optional','ng-model': 'sample.date_collected'}" %}</td>
+							</tr>
+							<tr>
+								<td>Sample Type: </td>
+								<td>{% select "locator_category" "{'D':'DBS', 'P':'Plasma'}" "" "{'class':'form-control input-sm w-xs','ng-model': 'sample.sample_type'}" %}</td>
+							</tr>
+						</table>												
+						
+					</div>
+				</div>
+				<div class="sect2  panel panel-default">
+					<span class="sub-title">patient information</span>
+					<div class="row">
+						<div class="col-lg-6">
+							<table class="vl-table ng-cloak">
+								<tr>
+									<td>Hep Number:</td>
+									<td>{% input "hep_number" "" "{'class':'form-control input-sm optional', 'ng-model': 'sample.hep_number', 'ng-change':'patHist()'}" %}</td>
+								</tr>
+								<tr>
+									<td>Other ID</td>
+									<td>{% input "other_id" "" "{'class':'form-control input-sm optional', 'ng-model': 'sample.other_id'}" %}</td>
+								</tr>
+								<tr>
+									<td>Gender:</td>
+									<td>{% select "gender" "{'M':'Male', 'F':'Female', 'X':'Missing Gender'}" "" "{'class':'form-control input-sm w-xs', 'ng-model': 'sample.gender'}" %}</td>
+								</tr>
+							</table>
+							
+
+						</div>
+
+						<div class='col-lg-6'>
+							<table class="vl-table ng-cloak" >							
+								<tr>
+									<td>Date of Birth: </td>
+									<td>{% input "dob" "" "{'class':'form-control input-sm date-picker optional', 'ng-model': 'sample.dob'}" %}</td>
+								</tr>
+								<tr>
+									<td>Treatment Initiation Date: </td>
+									<td>{% input "treatment_initiation_date" "" "{'class':'form-control input-sm date-picker  optional', 'ng-model': 'sample.treatment_initiation_date'}" %}</td>
+								</tr>
+								
+							</table>
+						</div>
+					</div>
+				</div>
+				<div class="row" ng-if="patient_history.length>1">
+					<div class="col-lg-10" style="font-size:8px">
+						<div style="font-size:10px">
+							<label>Patient history (last 3)</label>
+
+							<table  class="table table-striped table-condensed table-bordered ng-cloak">
+								<tr>
+									<th>Test Date</th>
+									<th>Result</th>
+									<th>Art #</th>
+									<th>DOB</th>
+									<th>Gender</th>
+									<th>Form #</th>
+									<!-- <th>Date Collected</th> -->								
+								</tr>
+								<tr ng-repeat="ph in patient_history">
+									<td><% ph.test_date %></td>
+									<td><% ph.result %></td>
+									<td><% ph.hep_number %></td>
+									<td><% ph.dob %></td>
+									<td><% ph.gender %></td>
+									<td><% ph.form_number %></td>	
+								</tr>
+							</table>
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-lg-4">
+						<div class="form-group">
+							<span class='hi-lite'>Choose Status:</span>
+							{% select "accepted" "{'1':'Accepted', '0':'Rejected'}" "0" "{'class':'form-control input-sm w-md', 'ng-model': 'sample.accepted'}" %}
+						</div>
+						<div ng-if="sample.accepted=='0'" class="form-group" id="reason_div">							
+						</div>
+						<div ng-if="sample.accepted=='0'" class="form-group" id="other_reasons">	
+													
+						</div>
+						<!-- <a ng-if="sample.accepted=='0'" href="#" id='add_reason'>add</a> -->
+
+					</div>
+					<div class="col-lg-4">
+						<div class="form-inline">
+							<span class='hi-lite'>Location/Rejection ID:</span><br>						
+
+							{% select "locator_category" "{'V':'V', 'R':'R'}" "" "{'ng-model': 'sample.locator_category'}" %}
+								
+							{% input "locator_envelope" "" "{'ng-model': 'sample.envelope_number'}" %} 
+							<span class="vl-slash">/</span>	
+							{% input "locator_position" "" "{'style':'width:52px', 'ng-model': 'sample.locator_position'}" %}
+
+						</div>
+					</div>
+					<div class="col-lg-3 ng-cloak" >
+						<div class="form-group">
+							<span class='hi-lite'>Created by:</span>
+							{% input "sample_creator"  "<% sample.sample_creator %> (on <% sample.created_at %>) " "{'disabled':'true', 'class':'form-control input-sm'}" %}
+						</div>
+					</div>
+					
+					
+				</div>		
+
+				
+				<div class="row">
+					<div class="col-lg-4">
+						<input type="submit" class="btn btn-danger" value="Save and move to next sample">
+					</div>
+					<div class="col-lg-4">
+						<span class="btn btn-danger" ng-click="skip()">
+							<span class="glyphicon glyphicon-step-forward" ></span>
+							Skip
+						</span>
+						<a class="btn btn-danger" href="/samples/search/?search_val=<% sample.envelope_number %>&approvals=1&search_env=1">
+							<span class="glyphicon glyphicon-list" ></span>
+			         	View list
+			         </a>
+					</div>
+					<div class="col-lg-4">
+						<div id="success" class="alert alert-success vl-alert" role="alert" style="display:none;">
+							Sample successfully approved
+						</div>
+						<div id="completed" class="alert alert-success vl-alert" role="alert" style="display:none;">
+							Envelope verification completed
+						</div>
+
+					</div>
+				</div>	
+
+
+
+			</form>
+
+			<!-- Modal -->
+			<div id="myModal" class="modal fade" role="dialog">
+			  <div class="modal-dialog">
+
+			    <!-- Modal content-->
+			    <div class="modal-content">
+			      <div class="modal-header">
+			        <button type="button" class="close" data-dismiss="modal">&times;</button>
+			        <h4 class="modal-title">Approval Details</h4>
+			      </div>
+			      <div class="modal-body">
+			        <p> 
+			        	Last position of envelope reached.
+			         <a class="btn btn-danger btn-xs" href="/samples/search/?search_val=<% sample.envelope_number %>&approvals=1&search_env=1">
+			         	View list
+			         </a>
+			     </p>
+			      </div>
+			      <div class="modal-footer">
+			        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			      </div>
+			    </div>
+
+			  </div>
+			</div>
+
+
+		</div>
+	</div>
+
+</div>
+<style type="text/css">
+body{
+	font-size: 14px;
+}
+
+.vl-table td{
+	padding: 2px;
+}
+.sect0{
+	margin-left: 10px;
+	min-height: 150px;
+	width: 450px;
+	margin-top: 20px;
+}
+
+.sect1{
+	margin-left: 20px;
+	min-height: 150px;
+	width: 450px;
+}
+
+.sect2{	
+	margin-left: -5px;
+	min-height: 150px;
+	width: 920px;
+	
+}
+</style>
+<script type="text/javascript"> 
+ var sample_id = {{ sample_id }};
+ var envelope_id = {{ envelope_id }};
+ var rejection_reasons = {{ rejection_reasons | safe }};
+ $( function() {
+ 		
+ 		$("#add_reason").hide();
+    	$( ".date-picker" ).datepicker({
+      		changeMonth: true,
+      		changeYear: true,
+      		dateFormat: "yy-mm-dd"
+    	});
+
+    	/*$("#facility_id").select2({	
+    		placeholder: "Select facility", 
+    		allowClear: true,
+    		width: "56%",
+    		tags: "true",
+    	});*/
+
+    	$(".optional").removeAttr('required');   
+
+    	$("#accepted").change(function(){
+    		if(this.value=='0'){
+    			var rjctn_rsns = "<label for='rejection_reason_id'>Reason </label>";
+    			rjctn_rsns += reasonsDropDown("rejection_reason_id", "rejection_reason_id");
+    			$("#reason_div").html(rjctn_rsns);
+    			$("#add_reason").show();
+
+    		}else{
+    			$("#reason_div").html("");
+    			$("#add_reason").hide();
+    			$("#other_reasons").html();
+    		}
+    	}) 	
+
+    	$("#add_reason").click(function(){
+    		addOtherReasons();
+    	})
+
+    	$("#facility_id").change(function(){
+    		var fid = $(this).val();
+    		if(fid!=''){
+			var url =  "/samples/get_district_hub/"+fid+"/";
+			$.get(url, function(data, status){
+				var json_data = JSON.parse(data);
+				$("#id_district").html(json_data.district);
+				$("#id_hub").html(json_data.hub);
+			});	
+		}
+
+    	})
+  	});
+
+function reasonsDropDown(nme,id){
+  var other_options="id='"+id+"' class='form-control input-sm w-md' ";
+  var slct = "<select name='"+nme+"' id='"+id+"' class='form-control input-sm w-md' required><option value=''>select</option>";
+  for (var r in rejection_reasons){
+  	slct += "<optgroup label="+r+">";
+  	var rrs = rejection_reasons[r];
+  	for(var i in rrs){
+  		slct += "<option value='"+i+"'>"+rrs[i]+"</option>";
+  	}
+  	slct += "</optgroup>";
+  }
+  return slct+"</select>";
+  //return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);
+}
+
+function checkOutcome() {
+	if(document.samples.outcome.value=='Rejected') {
+    var primary_reason="<span class='sm_txt'>primary reason:</span><br>"+reasonsDropDown("outcomeReasonsID","outcomeReasonsID");
+		var other_reason="<br><br><span class='sm_txt'>more reasons:</span><div id='other_reasons'></div><span class='add_item' onclick='addOtherReasons()'>add<span>";
+		document.getElementById("outcomeID").innerHTML=primary_reason+other_reason;
+
+    //document.getElementById("outcomeID").innerHTML="<span class='sm_txt'>primary reason:<span><br>"+reasonsDropDown();
+	} else {
+		document.getElementById("outcomeID").innerHTML="";
+	}
+}
+
+function addOtherReasons(){
+  var reasons="<div>"+reasonsDropDown("other_reasons[]","")+"</div><br>";
+  $("#other_reasons").append(reasons);
+}
+
+
+var app=angular.module('verify', [], function($interpolateProvider) {
+        $interpolateProvider.startSymbol('<%');
+        $interpolateProvider.endSymbol('%>');
+    });
+
+ctrller={};
+ctrller.VerifyController = function($scope,$http){
+	
+	$scope.vdata = {};
+	$scope.sample = {};
+	$scope.current_index =0;
+	
+	$http.get("/samples/verify_envelope/"+envelope_id).success(function(data){
+		$scope.vdata=data;
+		$scope.selectSample(sample_id);
+		$scope.patHist();		
+	});
+
+	$scope.saveApproval= function(){
+		$scope.sample.csrfmiddlewaretoken = "{{ csrf_token }}";
+		$.post("/eid_samples/save_approval/", $scope.sample).done(function( data ) {
+			if(data=="saved"){
+				$("#success").css("display","block");
+				setTimeout(function(){
+					$("#success").slideUp( "slow");
+				},1000);		
+			}else{
+				alert("verifying failed, reason:"+data);
+			}
+		  });
+	}
+
+	$scope.saveVerification= function(){
+		$scope.sample.csrfmiddlewaretoken = "{{ csrf_token }}";
+		if($scope.sample.accepted=='0'){
+			$scope.sample.rejection_reason_id = $('#rejection_reason_id').val();
+		}
+
+		$.post("/samples/save_verify/", $scope.sample).done(function(response) {
+			if(response=="saved"){
+				$scope.sample = $scope.vdata[$scope.nxt_sample];
+				$scope.move();
+				$("#success").css("display","block");
+				setTimeout(function(){
+					$("#success").slideUp( "slow");
+				},1000);		
+			}else{
+				alert("verifying failed, reason:"+response);
+				$scope.sample = $scope.vdata[$scope.current_index];
+			}
+		});
+	}
+
+	$scope.skip = function(){
+		$scope.sample = $scope.vdata[$scope.nxt_sample];
+		$scope.move();
+	}
+
+	$scope.move = function(){
+		if($scope.nxt_sample==0){
+			//$('#myModal').modal('show');
+			 window.location.href = "/samples/search/?search_val="+$scope.sample.envelope_number+"&approvals=1&env_complete=1"
+		}
+		$scope.vdata[$scope.current_index].current = '';
+		$scope.vdata[$scope.nxt_sample].current = 'active';
+		$scope.current_index = $scope.nxt_sample;
+		$scope.nxt_sample += 1;
+		$scope.nxt_sample = $scope.nxt_sample==$scope.vdata.length?0:$scope.nxt_sample;
+		$scope.patHist();
+
+		//console.log("next sample:"+$scope.nxt_sample)
+	}
+
+
+	$scope.selectSample = function(sample_id){
+		$scope.vdata[$scope.current_index].current = '';
+		for(var i in $scope.vdata){
+			if(sample_id == $scope.vdata[i].sample_id ){
+				$scope.vdata[i].current = 'active'; 
+				$scope.sample = $scope.vdata[i];
+				$scope.current_index = i;
+				$scope.nxt_sample = parseInt(i)+1;
+				$scope.nxt_sample = $scope.nxt_sample==$scope.vdata.length?0:$scope.nxt_sample;
+				//console.log("next index:-"+$scope.nxt_sample);
+				break;
+			}
+		}
+		$scope.patHist();
+	}
+
+	$scope.patHist = function(){
+		$scope.patient_history=[];
+		$http.get("/samples/patient_history/"+$scope.sample.facility_id+"/?art_number="+$scope.sample.hep_number).success(function(data){
+			$scope.patient_history = data;
+		});		
+	}
+
+}
+
+app.controller(ctrller);
+ </script>
+{% endblock %}

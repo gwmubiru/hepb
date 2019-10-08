@@ -1,0 +1,44 @@
+
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Hep B Viral Load</title>
+        <link rel="Shortcut Icon" href='{% static "home/images/favicon.png" %}' /> 
+
+	    <link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>	    
+	    <link rel="stylesheet" href='{% static "home/css/app.css" %}'>
+        <link rel="stylesheet" href='{% static "home/css/login.css" %}'>
+
+
+	    <script type="text/javascript" src='{% static "home/vendor/jquery/dist/jquery.min.js" %}'></script>
+	    <script type="text/javascript" src='{% static "home/vendor/bootstrap/dist/js/bootstrap.min.js" %}'></script>
+	    
+	</head>
+	
+	<body>
+		<br>
+		<div class="container">
+            <div class="card card-container">
+    		  <div class="top-part">
+    		  	<img src="{% static 'home/images/coat_of_arms.png' %}">
+    		  	<br><h4>Hep B VIRAL LOAD LIMS</h4>
+                <span class="login-error">{{ error_message }}</span>
+    		  </div>
+              
+    		  <form method="POST" action="{% url 'login_attempt' %}" class="form-signin">
+    		  	 {% csrf_token %}
+    		  	 <input name='username' type="text" id="inputUsername" class="form-control" placeholder="Username" required autofocus>
+                  
+                 <input name='password' type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+                  
+                <button class="btn btn-danger btn-lg " type="submit">LOG IN</button>
+    		  </form>
+            </div>
+		</div>
+	</body>
+</html>

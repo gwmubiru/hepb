@@ -1,0 +1,230 @@
+{% load form_tags %}
+{% load staticfiles %}
+<page size="A4">
+<!-- <div class="print-container"> -->
+	<div class="print-header">
+		<img src='{% static "home/images/ug.png" %}'  width="45" height="45">
+		<div class="print-header-moh">
+			ministry of health uganda<br>
+			national aids control program<br>
+		</div>
+
+	central public health laboratories<br>
+	
+	<u>viral load test results</u><br>
+	{{ sample.pk }}
+	</div>
+	<div class="row">
+		<div class="col-xs-6" >
+			<div class="print-ttl">facility details</div>
+			<div class="print-sect">
+				<table>
+					<tr>
+						<td>Name:</td>
+						<td class="print-val">{{ sample.facility }}</td>
+					</tr>
+					<tr>
+						<td>District:</td>
+						<td class="print-val">{{ sample.facility.district }} | Hub: {{ sample.facility.hub }} </td>
+					</tr>
+				</table>
+			</div>
+			
+		</div>
+		<div class="col-xs-6">
+			<div class="print-ttl">sample details</div>
+			<div class="print-sect">
+				<table>
+					<tr>
+						<td>Form #: </td>
+						<td class="print-val">{{ sample.form_number }}</td>
+					</tr>
+					<tr>
+						<td>Sample Type: </td>
+						<td class="print-val-check"> &nbsp; 
+							{% autoescape off %}
+							{% check_list sample.sample_type "{'D':'DBS', 'P': 'Plasma'}" %} 
+							{% endautoescape %}							
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="print-ttl">patient information</div>
+	<div class="print-sect">
+		<div class="row">
+			<div class="col-xs-6" >				
+				<table>
+					<tr>
+						<td>ART Number: &nbsp;</td>
+						<td class="print-val">{{ sample.patient.art_number }}</td>
+					</tr>
+					<tr>
+						<td>Other ID:</td>
+						<td class="print-val">{{ sample.patient.other_id}}</td>
+					</tr>
+					<tr>
+						<td>Gender:</td>
+						<td class="print-val-check">
+							{% autoescape off %}
+							{% check_list sample.patient.gender "{'M':'Male', 'F':'Female', 'L':'Left Blank'}" %} 
+							{% endautoescape %}	
+						</td>
+					</tr>
+				</table>
+				
+			</div>
+			<div class="col-xs-6">
+				
+				<table>
+					<tr>
+						<td>Date of Birth:</td>
+						<td class="print-val">{{ sample.patient.dob }}</td>
+					</tr>
+					<tr>
+						<td>Phone Number:</td>
+						<td class="print-val">
+							{% for phone in  sample.patient.patientphone_set.all %}
+							{{ phone.phone }},
+							{% endfor %}
+						</td>
+					</tr>
+				</table>
+				
+			</div>
+
+		</div>
+	</div>
+	<div class="print-ttl">sample test information</div>
+	<div class="print-sect">
+		<div class="row">
+			<div class="col-xs-6">
+				
+				<table>
+					<tr>
+						<td>Sample Collection Date: &nbsp; </td>
+						<td class="print-val">{{ sample.date_collected }}</td>
+					</tr>
+					<tr>
+						<td>Reception Date: &nbsp; </td>
+						<td class="print-val">{{ sample.date_received }}</td>
+					</tr>
+					<tr>
+						<td>Test Date: &nbsp; </td>
+						<td class="print-val">{{ sample.finalresult.test_date }}</td>
+					</tr>
+
+				</table>
+				
+			</div>
+
+			<div class="col-xs-6">
+				
+				<table>
+					<tr>
+						<td>Repeat Test:  &nbsp; </td>
+						<td>__</td>
+					</tr>
+					<tr>
+						<td>Sample Rejected:  &nbsp; </td>
+						<td>
+							{% autoescape off %}
+							{% check_list sample.verification.accepted "{0:'Yes', 1:'No'}" %} 
+							{% endautoescape %}
+						</td>
+					</tr>
+				</table>
+				
+			</div>
+
+		</div>
+			If rejected Reason: {{ sample.verification.rejection_reason }}
+	</div>
+	<?php if ($row_verify_outcome!="Rejected"){ ?>
+	<div class="print-ttl">viral load results</div>
+	<div class="print-sect">
+		<div class="row">
+			<div class="col-xs-9">
+				<table colspan="2">
+					<tr>
+						<td width="40%">Method Used: </td>
+						<td >{{ sample.finalresult.get_method_display}}</td>
+					</tr>
+
+					<tr>
+						<td>Location ID: </td>
+						<td>
+							{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}
+						</td>
+					</tr>
+
+					<tr>
+						<td>Viral Load Testing #: </td>
+						<td>{{ sample.vl_sample_id }}</td>
+					</tr>
+
+					<tr>
+						<td valign="top">Result of Viral Load: </td>
+						<td >{{ sample.finalresult.result_alphanumeric }}</td>
+					</tr>
+				</table>		
+				
+			</div>
+			<div class="col-xs-3">
+				{% if sample.finalresult.final_result == 1 %}
+				<img src='{% static "home/images/smiley.smile.gif" %}' width="150" height="150">
+				{% elif sample.finalresult.final_result == 2 %}
+				<img src='{% static "home/images/smiley.sad.gif" %}' width="150" height="150">
+				{% endif %}
+			</div>
+
+		</div>		 				
+
+	</div>
+
+
+	<div class="print-ttl">recommendations</div>
+	<div class="print-sect">
+		Suggested Clinical Action based on National Guidelines:<br>
+		<div style="margin-left:10px">
+			{% if sample.finalresult.final_result == 1 %}
+				Below 1,000 copies/mL: Patient is suppressing their viral load. <br>Please continue adherence counseling. Do another viral load after 12 months.				
+			{% elif sample.finalresult.final_result == 2 %}
+				Above 1,000 copies/mL: Patient has elevated viral load. <br>Please initiate intensive adherence counseling and conduct a repeat viral load test after six months
+			{% elif sample.finalresult.final_result == 3 %}
+				There is No Result Given. The Test Failed the Quality Control Criteria. We advise you send a a new sample
+			{% endif %}
+			
+		</div>
+	</div>
+	<?php } ?>
+
+	<br>
+	<div class="row">
+		<?php if ($row_verify_outcome!="Rejected"){ ?>
+		<div class="col-xs-2">
+			Lab Technologist: 
+		</div>
+		<div class="col-xs-3">
+			<img src="/images/signatures/<?=$signature ?>" height="50" width="100">
+			<hr>
+		</div>
+		<?php } ?>
+		<div class="col-xs-2">
+			Lab Manager: 
+		</div>
+		<div class="col-xs-3">
+			<img src="/images/signatures/signature.14.gif" height="50" width="100">
+			<hr>
+		</div>
+		<?php if ($row_verify_outcome!="Rejected"){ ?>
+		<div class="col-xs-2">
+			<div class="qrcode-output" value="<?="VL,$location_id,$suppressed,$now_s" ?>"></div>
+		</div>
+		<?php } ?>
+	</div>
+</page>
+<!-- </div> -->

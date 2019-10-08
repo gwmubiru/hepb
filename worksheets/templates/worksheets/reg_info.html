@@ -1,0 +1,170 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">capture regimen information</span>		
+	<div class="panel panel-default" ng-app="worksheet_samples" ng-controller="worksheetSamplesController">
+		<div class="panel-body">
+			
+			<form action="{% url 'worksheets:reg_info' machine_type %}" method="post" role="form">
+				{% csrf_token %}
+				<div class="row">
+					<div class="form-group col-md-5">
+						<div id="log"></div>
+						{{ form.machine_type.label_tag }}
+						{{ form.machine_type.errors }}
+						{{ form.machine_type }}
+					</div>
+				</div>
+				
+				<div class="row">
+					<div class="form-group col-md-5">
+						{% if machine_type == 'R' %}
+							<label for="id_sample_prep">HI2CAP</label>
+						{% elif machine_type == 'C' %}
+							<label for="id_sample_prep">Cobas HIV 1</label>
+						{% else %}
+							{{ form.sample_prep.label_tag }}
+						{% endif %}
+						
+						{{ form.sample_prep.errors }}
+						{{ form.sample_prep }}
+					</div>
+
+					<div class="form-inline col-md-4">
+						{% if machine_type == 'R' %}
+							<label for="id_sample_prep">HI2CAP expiry date</label>
+						{% elif machine_type == 'C' %}
+							<label for="id_sample_prep">Cobas HIV 1 expiry date</label>
+						{% else %}
+							{{ form.sample_prep_expiry_date.label_tag }}
+						{% endif %}
+						
+						{{ form.sample_prep_expiry_date.errors }}
+						<br>{{ form.sample_prep_expiry_date }}
+					</div>
+				</div>
+
+				{% if machine_type != 'C' %}
+				<div class="row">
+					<div class="form-group col-md-5">
+						{{ form.bulk_lysis_buffer.label_tag }}
+						{{ form.bulk_lysis_buffer.errors }}
+						{{ form.bulk_lysis_buffer }}
+					</div>
+
+					<div class="form-inline col-md-4">
+						{{ form.bulk_lysis_buffer_expiry_date.label_tag }}
+						{{ form.bulk_lysis_buffer_expiry_date.errors }}
+						<br>{{ form.bulk_lysis_buffer_expiry_date }}
+					</div>
+				</div>
+				{% endif %}
+				
+
+				{% if machine_type == 'A' %}
+				<div class="row">
+					<div class="form-group col-md-5	">
+						{{ form.control.label_tag }}
+						{{ form.control.errors }}
+						{{ form.control }}
+					</div>
+
+					<div class="form-inline col-md-4">
+						{{ form.control_expiry_date.label_tag }}
+						{{ form.control_expiry_date.errors }}
+						<br>{{ form.control_expiry_date }}
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="form-group col-md-5">
+						{{ form.calibrator.label_tag }}
+						{{ form.calibrator.errors }}
+						{{ form.calibrator }}
+					</div>
+
+					<div class="form-inline col-md-4">
+						{{ form.calibrator_expiry_date.label_tag }}
+						{{ form.calibrator_expiry_date.errors }}
+						<br>{{ form.calibrator_expiry_date }}
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="form-group col-md-5">
+						{{ form.amplication_kit.label_tag }}
+						{{ form.amplication_kit.errors }}
+						{{ form.amplication_kit }}
+					</div>
+
+					<div class="form-inline col-md-4">
+						{{ form.amplication_kit_expiry_date.label_tag }}
+						{{ form.amplication_kit_expiry_date.errors }}
+						<br>{{ form.amplication_kit_expiry_date }}
+					</div>
+				</div>
+
+				{% endif %}
+
+				
+				<br><input type='submit' value='save' class="btn btn-danger btn-submit "> 
+				
+			</form>
+		</div>
+	</div>
+	<style type="text/css">
+	.form-group,.form-inline{
+		margin-bottom: 0px;
+	}
+	</style>
+	<script type="text/javascript">
+	var date_now = new Date();
+	var yr_now = date_now.getFullYear();
+	$( function() {
+		$(".date").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm",
+    		maxYear: yr_now+30,
+    		minYear: yr_now-1,
+    		yearDescending: false,    		
+    	});
+
+    	$("#id_assay_date").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm",
+    		maxYear: yr_now+30,
+    		minYear: yr_now-1,
+    		yearDescending: false, 
+    		value: new Date(),
+    	});
+
+    	$("#id_machine_type").attr('readonly','true');
+
+    	/*var oTable = $('#samples-table').dataTable({
+			"processing": true,
+		});*/
+	});
+
+	/*$(".lab-tabs").on('click',function(){
+		$(this).addClass('active');
+		console.log("dedere");
+	});
+*/
+
+	</script>
+{% endblock %}

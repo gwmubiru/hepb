@@ -1,0 +1,165 @@
+{% extends "home/layout.html" %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">authorize sample</span>
+	<form action="#" method="post" role="form">	
+	{% csrf_token %}	
+	<div class="panel panel-default" style="overflow-y:auto">
+		<div class="panel-body">
+			<div class="worksheet" id="content" >
+				<div class="form-inline">
+					<input name="search" type="text" class="form-control input-sm" placeholder="Search..." style="width:200px">
+					<input type="submit" value="Search" class="btn btn-danger btn-sm">
+				</div>
+
+				
+				<br>
+				
+				<table class="table table-striped table-condensed table-bordered" id="samples-table" >
+					<thead>
+						<th>#</th>
+						<th>Sample&nbsp;ID</th>
+						<th>Location&nbsp;ID&nbsp;&nbsp;</th>
+						<th>Form</th>
+						<th>ART&nbsp;Number</th>
+						<th>&nbsp;</th>
+						<th>Machine Result&nbsp;(latest)</th>
+						<th>Result (latest)</th>
+		                <th>Suppressed?</th>
+		                <th style="width:250px">Choose</th>
+		                <td/>
+					</thead>
+					<tbody>
+						{% for sample in samples %}
+						
+						<tr {% if sample.result.repeat_test == 3 or sample.result.repeat_test == 1 or sample.result.repeat_test == 0 %} style = "background:#F5A9A9;" {% endif %} >
+							<td>{{ forloop.counter }} </td>
+							<td>{{ sample.vl_sample_id }}</td>
+							<td>{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}</td>
+							<td>{{ sample.form_number }}</td>
+							<td>{{ sample.patient.art_number }}</td>
+							<td>
+								<span id="results_list{{ forloop.counter }}" style="display:none">
+								<table  class="table table-bordered table-condensed table-striped" >
+									<tr><td>Result 1:</td><td>{{ sample.result.result1 }}</td></tr>
+									<tr><td>Result 2:</td><td>{{ sample.result.result2 }}</td></tr>
+									<tr><td>Result 3:</td><td>{{ sample.result.result3 }}</td></tr>
+									<tr><td>Result 4:</td><td>{{ sample.result.result4 }}</td></tr>
+									<tr><td>Result 5:</td><td>{{ sample.result.result5 }}</td></tr>
+								</table>
+								</span>
+								
+								<a href="#" class="results_list glyphicon glyphicon-list-alt" data-toggle="modal" data-target="#myModal" style="text-decoration:none;" r_id="{{ forloop.counter }}"></a>
+							</td>
+
+							<td>
+								{% if sample.result.result5 %}
+									{{ sample.result.result5 }}
+								{% elif sample.result.result4 %}
+									{{ sample.result.result4 }}
+								{% elif sample.result.result3 %}
+									{{ sample.result.result3 }}
+								{% elif sample.result.result2 %}
+									{{ sample.result.result2 }}
+								{% elif sample.result.result1 %}
+									{{ sample.result.result1 }}
+								{% else %}
+									N/A
+								{% endif %}
+							</td>
+							
+							<td>{% if sample.result.pk == '' %} N/A {% else %} 
+								{{ sample.result.result_alphanumeric }} {% endif %}</td>
+							<td>{{ sample.result.get_suppressed_display }}</td>
+							<td>
+								{% if sample.result.repeat_test == 0 %}
+								Already rescheduled in a worksheet
+								{% elif sample.result.resultsqc.released == True %}
+								 Released
+								{% elif sample.result.resultsqc.released == False %}
+								 Retained
+								{% elif sample.result.pk == '' %}
+								 No Result yet
+								{% else %}
+
+								{% if sample.result.repeat_test == 2 or sample.result.repeat_test == 0 %}	
+									{% if sample.result.result_alphanumeric != 'FAILED' %}							
+									<label><input type='radio' required='true' name='choices{{ sample.pk }}' class='choices' sample-pk="{{ sample.pk }}" value='release' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric != 'FAILED' %} checked {% endif %}> Authorize</label>
+									{% endif %}
+								{% endif %}
+								<label>
+									<input type='radio' required='true'  name='choices{{ sample.pk }}' class='choices' sample-pk="{{ sample.pk }}" value='reschedule' {% if sample.result.repeat_test == 1 %} checked {% endif %}>Reschedule
+								</label>
+								<label>
+									<input type='radio' required='true' name='choices{{ sample.pk }}' class='choices' sample-pk="{{ sample.pk }}" value='invalid' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric == 'FAILED' %} checked {% endif %}>
+										Invalid									
+								</label>
+								{% endif %}								
+							</td>
+							<td><span id="saved{{ sample.pk }}" class="status alert alert-success vl-alert" role="alert">saved</span></td>
+						</tr>
+						
+						{% endfor %}
+					</tbody>
+				</table>
+				
+			</div>
+		</div>
+	</div>
+</form>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Results list for the sample</h4>
+      </div>
+      <div class="modal-body">
+        <p id="results_list_show"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+	<script type="text/javascript">
+	 $(function() {
+
+        $(".status").hide();
+        //$(".missing_results").hide();
+      });
+
+	 $(".choices").on("click",function(){
+	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk:$(this).attr('sample-pk'), choice:$(this).val()};
+	 	
+	 	$.post("/results/authorize_sample/", params).done(function(data) {
+	 		$("#saved"+params.sample_pk).show();    
+		  });
+
+	 });
+	 
+	$(".results_list").click(function(){
+		var r_id = $(this).attr('r_id');
+		$("#results_list_show").html($("#results_list"+r_id).html());
+	});
+
+	</script>
+
+	<style type="text/css">
+	.missing_results{
+		background-color: #F5A9A9;
+	}
+	</style>
+
+{% endblock %}

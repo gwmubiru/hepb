@@ -1,0 +1,571 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+
+{% block content %}	
+<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Facility Details</h2>
+				</div>
+			</div>
+		</div>
+		<div class="container section">
+			<div class="row">
+				<div class="col-lg-4">
+					{{ sample_form.facility.label_tag }}<br>
+					{{ sample_form.facility }}
+				</div>
+				<div class="col-lg-4" style="padding-top: 24px;">
+					<label for="district">District:</label>
+					<u id="id_district" style="width: 100%">_____________________________________</u>
+				</div>
+				<div class="col-lg-4" style="padding-top: 24px;">
+					<label for="hub">Hub:</label>
+					<u id="id_hub" style="width: 100%">________________________________</u>
+				</div>
+				<div class="col-lg-4">
+				</div>
+			</div>
+		</div>
+		<!-- end section -->
+		<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section"></h2>
+				</div>
+			</div>
+		</div>
+	<div class="container section">
+		<div class="row">
+			
+			<div class="col-lg-4">
+				<div class="form-inline required">
+					
+					<label for="locator_envelope">Location/Rejection ID</label><br>
+					{{ sample_form.locator_category }}
+					{{ envelope_form.envelope_number }}
+					<span class="vl-slash">/</span>
+					{{ sample_form.locator_position }}
+
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group required">
+					{{ sample_form.form_number.label_tag}}
+					{{ sample_form.form_number}}
+				</div>
+			</div>
+			<div class="col-lg-4">
+
+				{% if sample_id %}
+				<div class="form-group">
+					<label for='sample_id'>VL Sample ID</label>
+					{% input 'vl_sample_id' vsi '{"disabled":"true"}' %}
+				</div>
+				{% endif %}
+			</div>
+		</div>
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ clinician_form.cname.label_tag }}&nbsp;-<i>N/A if missing</i>
+						{{ clinician_form.cname }}
+						
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ clinician_form.cphone.label_tag }}
+						{{ clinician_form.cphone }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-inline required">
+					{{ sample_form.clinician_request_date.label_tag }}<br>
+						<div id="dob_error"></div>
+					{{ sample_form.clinician_request_date }}
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end section -->
+		<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Patient Details</h2>
+				</div>
+			</div>
+		</div>
+		<div class="container section">
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ patient_form.name.label_tag }}
+						{{ patient_form.name }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-inline required">
+						{{ patient_form.dob.label_tag }}<br>
+						<div id="dob_error"></div>
+						{{ patient_form.dob }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ patient_form.hep_number.label_tag }}
+						{{ patient_form.hep_number }}
+					</div> 
+				</div>
+				<div class="col-lg-4">
+					<div class="form-inline">
+						<label for="id_age">If DOB Unknown, Age in years</label><br>
+						<input type="text" name="age" id="id_age" class="form-control input-sm" size="5" maxlength="3">
+						<select name="age_units" id="id_age_units" class="form-control input-sm">
+							<option value="Y" selected="true">Years</option>
+							<option value="M">Months</option>
+						</select>
+						&nbsp;
+						<input type="checkbox" name="null_dob"
+						{% if null_dob %} checked='true' {% endif %}
+						>&nbsp;Blank												
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ patient_form.other_id.label_tag }}
+						{{ patient_form.other_id }}
+					</div> 
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ patient_form.gender.label_tag }}
+						{{ patient_form.gender }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ phone_form.phone.label_tag }}
+						{{ phone_form.phone.errors }}
+						{{ phone_form.phone }}
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end section -->
+
+		<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Disease status/Co-Infections</h2>
+				</div>
+			</div>
+		</div>
+		<div class="container section">
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ preliminary_findings.hbeag_results.label_tag }}
+						{{ preliminary_findings.hbeag_results}}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ preliminary_findings.hiv_coinfected.label_tag }}
+						{{ preliminary_findings.hiv_coinfected}}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ preliminary_findings.hiv_hcv_coinfected.label_tag }}
+						{{ preliminary_findings.hiv_hcv_coinfected}}
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group ">
+						{{ preliminary_findings.hiv_hcv_tb_coinfected.label_tag }}
+						{{ preliminary_findings.hiv_hcv_tb_coinfected}}
+					</div>
+				</div>
+				<div class="col-lg-8">
+					<div class="form-group">
+						{{ preliminary_findings.hep_other_coinfections.label_tag }}
+						{{ preliminary_findings.hep_other_coinfections }}
+					</div>
+				</div>
+			</div>
+		</div>
+	<!-- end section -->
+	<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section">Preliminary Laboratory Findings</h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+		<div class="row" style="padding-top: 5px; margin-top: 5px;">
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="alt_value">ALT Value:</label>
+					{{ preliminary_findings.alt_value_1 }}
+					{{ preliminary_findings.alt_value_2 }}
+					{{ preliminary_findings.alt_value_3 }}
+					{{ preliminary_findings.alt_value_normal_range }}			
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="platelet_count">Platelet count:</label>
+					{{ preliminary_findings.platelet_count }}
+					{{ preliminary_findings.platelet_normal_range }}													
+				</div>
+			</div>
+		</div>
+
+		<div class="row" style="padding-top: 5px;margin-top: 5px;">
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="alt_value">AST Value:</label>
+					{{ preliminary_findings.ast_value_1 }}
+					{{ preliminary_findings.ast_value_2 }}
+					{{ preliminary_findings.ast_value_3 }}
+					{{ preliminary_findings.ast_value_normal_range}}
+																			
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="alt_value">AST/PLT ratio > 2:</label>
+					{{ preliminary_findings.ast_plt_ratio_greater_than_2 }}															
+				</div>
+			</div>
+		</div>
+
+		<div class="row" style="padding-top: 5px;margin-top: 5px;">
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="alt_value">Fatal Protein Value:</label>
+					{{ preliminary_findings.fetal_protein_value}}					
+					{{ preliminary_findings.fetal_protein_value_normal_range}}														
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="serum_creatinine">Serum Creatinine:</label>
+					{{ preliminary_findings.serum_creatinine}}
+					{{ preliminary_findings.serum_creatinine_normal_range}}													
+				</div>
+			</div>
+		</div>
+
+		<div class="row" style="padding-top: 5px;margin-top: 5px;">
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<div class="form-group">
+						{{ preliminary_findings.prem_other_findings.label_tag }}
+						{{ preliminary_findings.prem_other_findings }}
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+		<!-- end section -->
+		<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section">Treatment Information</h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="form-group required">
+				{{ sample_form.is_patient_on_treatment.label_tag }}
+				{{ sample_form.is_patient_on_treatment}}
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+				{{ sample_form.current_drug_name.label_tag }}
+				{{ sample_form.current_drug_name}}
+			</div>
+			</div>
+			
+		</div>
+		<div class="row" style="margin-top: 5px;">
+			<div class="col-lg-4">
+				<div class="form-inline">
+					{{ sample_form.treatment_initiation_date.label_tag }}<br>
+					{{ sample_form.treatment_initiation_date }}&nbsp;<input type="checkbox" name="null_treatment_initiation_date"
+					{% if null_treatment_initiation_date %} checked='true' {% endif %}
+					>&nbsp;Blank
+
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					{{ sample_form.treatment_indication.label_tag }}
+					{% checkbox  "treatment_indication" selected_treatment_ids  treatment_indication_options %}				
+				</div>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 5px;">
+			<div class="col-lg-4">
+				<div class="form-group">
+					<label for="id_age">If HBV/HIV Co-Infected, Regimen Type</label><br>
+					{{ sample_form.current_regimen }}			
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+							
+				</div>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 5px;">
+			<div class="col-lg-4">
+				<div class="form-group">
+					<label>Is patient pregnant?</label>
+					{{ sample_form.pregnant }}
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					<label>Is Patient Breastfeeding?</label>
+					{{ sample_form.breast_feeding }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end section -->
+		<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section">Treatment Information</h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+
+		<div class="row">
+			<div class="col-lg-4">
+				<label>Reason for VL</label>
+				{{sample_form.reason_for_vl}}
+			</div>
+		</div>
+		<h3 style="font-size: 13px; font-weight: bold; margin-bottom: 5px;">If Routine Monitoring</h3>
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="form-inline">
+					{{ sample_form.last_test_date.label_tag }}<br>
+					{{ sample_form.last_test_date }}							
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					{{ sample_form.last_value.label_tag }}
+					{{ sample_form.last_value }}
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					{{ sample_form.last_sample_type.label_tag }}
+					{{ sample_form.last_sample_type }}	
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end section -->
+	<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section">Sample Identification</h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="form-inline required">
+					<label>Date of Sample Collection</label><br>
+					{{ sample_form.date_collected }}													
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-inline required">
+					<label>Date of Sample Received at the Testing Lab</label><br>
+					{{ sample_form.date_received }}
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group required">
+					{{ sample_form.sample_type.label_tag }}
+					{{ sample_form.sample_type }}
+					<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_form.sample_type.value }}'>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end section -->
+	<!--Start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section"></h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="form-group required">
+					{{ lab_tech_form.lname.label_tag }}&nbsp;-<i>N/A if missing</i>
+					{{ lab_tech_form.lname }}
+					
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					{{ lab_tech_form.lphone.label_tag }}
+					{{ lab_tech_form.lphone }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end section -->
+	<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section"></h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+		<div class="row">
+			<div class="col-lg-4">
+				<input type="hidden" name="intervene" value="{{ intervene }}">
+		<a class="btn btn-danger" href="{% url 'samples:edit' sample_id %}">Edit</a>
+			</div>
+		</div>
+	</div>
+
+</form>
+	</div>
+
+</div>
+	
+
+<script type="text/javascript">
+	var date_now = new Date();
+	var now_s = date_now.getTime();
+	var facility_json = {};
+	var regimen_json = {};
+
+	$( function() {
+		set_district_hub();
+		set_age();		
+
+    	$(".date").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm",
+    		minYear: 1900,
+    		maxYear: date_now.getFullYear(),
+    	});
+
+    	$("input").each(function (index){
+            $(this).attr("disabled", true);
+        });
+
+        $("select").each(function (index){
+            $(this).attr("disabled", true);
+        });
+
+        $("radio").each(function (index){
+            $(this).attr("disabled", true);
+        });
+
+        $("#search_id").attr("disabled", false);    	
+
+  	});
+
+	function round1(val){
+		return Math.round(val);
+	}
+
+	function set_dob(){
+		var age = $("#id_age").val();
+		var units = $("#id_age_units").val();
+		if(units=='M'){
+			var age = age/12;
+		}
+		var age_s = age*365*24*3600*1000;
+		var dob_s = now_s-age_s;
+		var dob = new Date(dob_s);
+		$("#id_dob").combodate('setValue', dob);
+	}
+
+	function set_age(){
+		var dob = new Date($("#id_dob").val());
+		var dob_s = dob.getTime();
+		var yrs = (now_s-dob_s)/(365*24*3600*1000) || 0;
+		if(yrs<1){
+			var mths = yrs*12;
+			$("#id_age").val(round1(mths));
+			$("#id_age_units").val("M");
+		}else{
+			$("#id_age").val(round1(yrs));
+			$("#id_age_units").val("Y");
+		}
+	}
+
+	function set_district_hub(){
+		var facility_id = $('#id_facility').val();
+		if(facility_id!=''){
+			var url =  "/samples/get_district_hub/"+facility_id+"/";
+			$.get(url, function(data, status){
+				var json_data = JSON.parse(data);
+				$("#id_district").html(json_data.district);
+				$("#id_hub").html(json_data.hub);
+			});	
+		}
+					
+	}
+//422551
+
+</script>
+
+{% endblock %}

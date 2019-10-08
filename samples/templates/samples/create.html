@@ -1,0 +1,891 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+{% endblock %}
+
+
+{% block content %}	
+
+<h1 class="page-title">capture sample details</h1>
+<div class="panel panel-default">
+	<div class="row panel-body" ng-app="samples" ng-controller="SampleController">
+{% if sample %}
+	<div id="success" class="alert alert-success vl-alert" role="alert">
+		just saved: 
+		<a href="{% url 'samples:show' sample.pk %}">
+			{{sample.locator_category }}{{sample.envelope.envelope_number}}/{{sample.locator_position}} 
+			({{ sample.vl_sample_id }})</a>
+		&nbsp;&nbsp;
+		<span class='x' id='x'>x</span>
+	</div>
+	{% endif %}
+
+	
+	<form action="{% if sample_id %} 
+				    {% url 'samples:edit' sample_id  %}  
+				  {% else %} 
+				    {% url 'samples:create'  %} 
+				  {% endif %}" method="post" role="form">
+		{% csrf_token %}
+		<ul>
+		{% for field in envelope_form %}
+			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+		{% endfor %}
+		{% for field in sample_form %}
+			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+		{% endfor %}
+		{% for field in patient_form %}
+			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+		{% endfor %}
+		{% for field in clinician_form %}
+			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+		{% endfor %}
+		{% for field in lab_tech_form %}
+			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+		{% endfor %}
+		{% for field in preliminary_findings %}
+			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+		{% endfor %}	
+		
+		</ul>
+		<!-- start new section -->
+		
+	<div class="container section" >
+			<div class="row">
+			
+			<div class="col-lg-4">
+				<div class="form-inline required">
+					
+					<label for="locator_envelope">Location/Rejection ID</label><br>
+					{{ sample_form.locator_category }}
+					{{ envelope_form.envelope_number }}
+					<span class="vl-slash">/</span>
+					{{ sample_form.locator_position }}
+
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group required">
+					{{ sample_form.form_number.label_tag}}
+					{{ sample_form.form_number}}
+				</div>
+			</div>
+			<div class="col-lg-4">
+
+				{% if sample_id %}
+				<div class="form-group">
+					<label for='sample_id'>VL Sample ID</label>
+					{% input 'vl_sample_id' vsi '{"disabled":"true"}' %}
+				</div>
+				{% endif %}
+			</div>
+		</div>
+		<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group required" >
+					{{ sample_form.facility.label_tag }}<br>
+					{{ sample_form.facility }}
+				</div>
+				</div>
+				<div class="col-lg-4" style="padding-top: 24px;">
+					<label for="district">District:</label>
+					<u id="id_district" style="width: 100%">_____________________________________</u>
+				</div>
+				<div class="col-lg-4" style="padding-top: 24px;">
+					<label for="hub">Hub:</label>
+					<u id="id_hub" style="width: 100%">________________________________</u>
+				</div>
+				<div class="col-lg-4">
+				</div>
+			</div>
+		
+	</div>
+		<!-- end section -->
+		<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Patient Details</h2>
+				</div>
+			</div>
+		</div>
+		<div class="container section">
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ patient_form.name.label_tag }}
+						{{ patient_form.name }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-inline required">
+						{{ patient_form.dob.label_tag }}<br>
+						<div id="dob_error"></div>
+						{{ patient_form.dob }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-inline">
+						<label for="id_age">If DOB Unknown, Age in years</label><br>
+						<input type="text" name="age" id="id_age" class="form-control input-sm" size="5" maxlength="3">
+						<select name="age_units" id="id_age_units" class="form-control input-sm">
+							<option value="Y" selected="true">Years</option>
+							<option value="M">Months</option>
+						</select>
+						&nbsp;
+						<input type="checkbox" name="null_dob"
+						{% if null_dob %} checked='true' {% endif %}
+						>&nbsp;Blank												
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ patient_form.hep_number.label_tag }}
+						{{ patient_form.hep_number }}
+					</div> 
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ patient_form.other_id.label_tag }}
+						{{ patient_form.other_id }}
+					</div> 
+				</div>
+			</div>
+			<div class="row">
+				
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ patient_form.gender.label_tag }}
+						{{ patient_form.gender }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ phone_form.phone.label_tag }}
+						{{ phone_form.phone.errors }}
+						{{ phone_form.phone }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					
+				</div>
+			</div>
+		</div>
+		<!-- end section -->
+
+		<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Disease status/Co-Infections</h2>
+				</div>
+			</div>
+		</div>
+		<div class="container section">
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ preliminary_findings.hbeag_results.label_tag }}
+						{{ preliminary_findings.hbeag_results}}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ preliminary_findings.hiv_coinfected.label_tag }}
+						{{ preliminary_findings.hiv_coinfected}}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ preliminary_findings.hiv_hcv_coinfected.label_tag }}
+						{{ preliminary_findings.hiv_hcv_coinfected}}
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group ">
+						{{ preliminary_findings.hiv_hcv_tb_coinfected.label_tag }}
+						{{ preliminary_findings.hiv_hcv_tb_coinfected}}
+					</div>
+				</div>
+				<div class="col-lg-8">
+					<div class="form-group">
+						{{ preliminary_findings.hep_other_coinfections.label_tag }}
+						{{ preliminary_findings.hep_other_coinfections }}
+					</div>
+				</div>
+			</div>
+		</div>
+	<!-- end section -->
+	<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section">Preliminary Laboratory Findings</h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+		<div class="row" style="padding-top: 5px; margin-top: 5px;">
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="alt_value">ALT Value:</label>
+					{{ preliminary_findings.alt_value_1 }}
+					{{ preliminary_findings.alt_value_2 }}
+					{{ preliminary_findings.alt_value_3 }}
+					{{ preliminary_findings.alt_value_normal_range }}			
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="platelet_count">Platelet count:</label>
+					{{ preliminary_findings.platelet_count }}
+					{{ preliminary_findings.platelet_normal_range }}													
+				</div>
+			</div>
+		</div>
+
+		<div class="row" style="padding-top: 5px;margin-top: 5px;">
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="alt_value">AST Value:</label>
+					{{ preliminary_findings.ast_value_1 }}
+					{{ preliminary_findings.ast_value_2 }}
+					{{ preliminary_findings.ast_value_3 }}
+					{{ preliminary_findings.ast_value_normal_range }}
+																			
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-inline required">
+					<label class="form-inline" for="alt_value">AST/PLT ratio > 2:</label>
+					{{ preliminary_findings.ast_plt_ratio_greater_than_2 }}															
+				</div>
+			</div>
+		</div>
+
+		<div class="row" style="padding-top: 5px;margin-top: 5px;">
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="alt_value">Fatal Protein Value:</label>
+					{{ preliminary_findings.fetal_protein_value}}					
+					{{ preliminary_findings.fetal_protein_value_normal_range}}														
+				</div>
+			</div>
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<label class="form-inline" for="serum_creatinine">Serum Creatinine:</label>
+					{{ preliminary_findings.serum_creatinine}}
+					{{ preliminary_findings.serum_creatinine_normal_range}}													
+				</div>
+			</div>
+		</div>
+
+		<div class="row" style="padding-top: 5px;margin-top: 5px;">
+			<div class="col-lg-6">
+				<div class="form-inline">
+					<div class="form-group">
+						{{ preliminary_findings.prem_other_findings.label_tag }}
+						{{ preliminary_findings.prem_other_findings }}
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+		<!-- end section -->
+		<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section">Treatment Information</h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="form-group required">
+				{{ sample_form.is_patient_on_treatment.label_tag }}
+				{{ sample_form.is_patient_on_treatment}}
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+				{{ sample_form.current_drug_name.label_tag }}
+				{{ sample_form.current_drug_name}}
+			</div>
+			</div>
+			
+		</div>
+		<div class="row" style="margin-top: 5px;">
+			<div class="col-lg-4">
+				<div class="form-inline" id="tmt_initiation">
+					{{ sample_form.treatment_initiation_date.label_tag }}<br>
+					{{ sample_form.treatment_initiation_date }}
+
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+
+					{{ sample_form.treatment_indication.label_tag }}
+					{% checkbox  "treatment_indication" selected_treatment_ids  treatment_indication_options %}			
+				</div>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 5px;">
+			<div class="col-lg-4">
+				<div class="form-group">
+					<label for="id_age">If HBV/HIV Co-Infected, Regimen Type</label><br>
+					{{ sample_form.current_regimen }}		
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+							
+				</div>
+			</div>
+		</div>
+		<div class="row" style="margin-top: 5px;">
+			<div class="col-lg-4">
+				<div class="form-group">
+					<label>Is patient pregnant?</label>
+					{{ sample_form.pregnant }}
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					<label>Is Patient Breastfeeding?</label>
+					{{ sample_form.breast_feeding }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end section -->
+		<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section">Indication for Treatment</h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+
+		<div class="row">
+			<div class="col-lg-4">
+				<label>Reason for VL</label>
+				{{sample_form.reason_for_vl}}
+			</div>
+		</div>
+		<h3 style="font-size: 13px; font-weight: bold; margin-bottom: 5px;">If Routine Monitoring</h3>
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="form-inline" id="vl_last_date_container">
+					{{ sample_form.last_test_date.label_tag }}<br>
+					{{ sample_form.last_test_date }}							
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					{{ sample_form.last_value.label_tag }}
+					{{ sample_form.last_value }}
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					{{ sample_form.last_sample_type.label_tag }}
+					{{ sample_form.last_sample_type }}	
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end section -->
+	<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section">Sample Identification</h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="form-inline required">
+					<label>Date of Sample Collection</label><br>
+					{{ sample_form.date_collected }}													
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-inline required">
+					<label>Date of Sample Received at the Testing Lab</label><br>
+					{{ sample_form.date_received }}
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group required">
+					{{ sample_form.sample_type.label_tag }}
+					{{ sample_form.sample_type }}
+					<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_form.sample_type.value }}'>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end section -->
+	<!--Start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section"></h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+		<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ clinician_form.cname.label_tag }}&nbsp;-<i>N/A if missing</i>
+						{{ clinician_form.cname }}
+						<div class='live_drpdwn' id="id_clinicians">
+							<div ng-repeat="c in clinicians| filter:cname "><span style="cursor:pointer;" ng-click='setClinician(c)'><% c.name %></span></div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ clinician_form.cphone.label_tag }}
+						{{ clinician_form.cphone }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					
+				</div>
+			</div>
+		<div class="row">
+			<div class="col-lg-4">
+				<div class="form-group required">
+					{{ lab_tech_form.lname.label_tag }}&nbsp;-<i>N/A if missing</i>
+					{{ lab_tech_form.lname }}
+					<div class='live_drpdwn' id="id_lab_techs">
+						<div ng-repeat="l in lab_techs| filter:lname "><span style="cursor:pointer;" ng-click='setLabTech(l)'><% l.name %></span></div>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-4">
+				<div class="form-group">
+					{{ lab_tech_form.lphone.label_tag }}
+					{{ lab_tech_form.lphone }}
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- end section -->
+	<!-- start new section -->
+	<div class="container header-section">
+		<div class="row">
+			<div class="col-lg-12">
+				<h2 class="sub-section"></h2>
+			</div>
+		</div>
+	</div>
+	<div class="container section">
+		<div class="row">
+			<div class="col-lg-4">
+				<input type="hidden" name="intervene" value="{{ intervene }}">
+		<input type="submit" value="{% if sample_id %} Update {% if intervene %} and release {% endif %} {% else %} Save and get new form {% endif %}" class="btn btn-danger">
+			</div>
+		</div>
+	</div>
+
+</form>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+	var date_now = new Date();
+	//console.log(date_now.toDateString());
+	var now_s = date_now.getTime();
+	var regimen_json = {};
+
+	{% for regimen in regimens %}
+		var reg_id = "{{ regimen.id }}";
+		switch("{{regimen.tag}}"){
+			case "1":
+				regimen_json[reg_id] = "89";
+				break;
+			case "2":
+				regimen_json[reg_id] = "90";
+				break;
+			case "4":
+				regimen_json[reg_id] = "91";
+				break;
+			case "5":
+				regimen_json[reg_id] = "92";
+				break;
+			default:
+				regimen_json[reg_id] = "91";
+		}
+	{% endfor %}
+
+
+	$( function() {
+
+		$("#id_facility").val("{{ sample_form.facility.value|default:'' }}");
+
+		set_district_hub();
+		//set_age();
+		
+		$("#id_treatment_line").attr("readonly","true");
+		$("#id_anc_number").attr("readonly","true");
+		$("#id_sample_type").attr("disabled", "true");
+		$("#id_tb_treatment_phase").attr("disabled", "true");
+		$("#id_other_regimen").attr("readonly","true");
+
+		$("#id_envelope_number").keypress(function(e){
+			//alert(e.which);
+			if(e.which==45||e.which==189||e.which==118){ return true;}
+			return pick_num(e);
+		});
+
+		$("#id_locator_position").keypress(function(e){
+			return pick_num(e);
+		});	
+
+		$("#id_age").keypress(function(e){
+			return pick_num(e);
+		});
+
+
+
+		//$("#anc_sect").hide();
+
+    	/*$("#id_facility").select2({	
+    		placeholder: "Select facility", 
+    		allowClear: true,
+    		width: "58%",
+    	});*/
+
+    	//$(".optional").removeAttr('required');
+
+    	$(".date").combodate({
+    		format: "YYYY-MM-DD",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm w-xs",
+    		minYear: 1900,
+    		maxYear: date_now.getFullYear(),
+    	});
+
+    	$(".day").each(function( index ) {
+    		$(this).find(":selected").prependTo($(this));
+    	});
+
+    	$("#id_locator_position").change(function(){
+    		var val = $(this).val();
+    		$(this).val(pad(val, 2, '0', 1));
+    	});
+
+    	$("#id_facility").change(function(){
+    		set_district_hub();
+    		/*setTimeout(function(){
+    			$(".day").first().focus();
+    		},100);*/    		    		
+    	});
+
+    	$("#id_gender").change(function(){
+    		var gender = $(this).val();
+    		if(gender=="M"){
+    			$("#id_pregnant").attr("disabled","true");
+    			$("#id_breast_feeding").attr("disabled","true");
+    		}else{
+    			$("#id_pregnant").removeAttr("disabled");
+    			$("#id_breast_feeding").removeAttr("disabled");
+    		}
+    	});
+
+    	$("#id_pregnant").change(function(){
+    		var preggas = $(this).val();
+    		if(preggas=="Y"){
+    			$("#id_anc_number").removeAttr("readonly");
+    		}else{
+    			$("#id_anc_number").attr("readonly","true");
+    		}
+    	});
+    	//disable fields related to patient treatment based on selected value
+    	$("#id_is_patient_on_treatment").change(function(){
+    		var selected_option = $(this).val();
+    		if(selected_option=="Y"){
+    			$("#id_current_drug_name,  #tmt_initiation select").removeAttr("disabled");
+    			$(".treatment_indication").removeAttr("disabled");
+    		}else{
+    			$("#id_current_drug_name, .treatment_indication,#tmt_initiation select").attr("disabled","true");
+    			$(".treatment_indication").attr("disabled","true");
+    		}
+    	}).change();
+
+    	//disable fields related to patient hiv based on selected value
+    	$("#id_hiv_coinfected, #id_hiv_hcv_tb_coinfected").change(function(){
+    		var selected_option = $(this).val();
+    		if(selected_option=="Y"){
+    			$("#id_current_regimen").removeAttr("disabled");
+    			$("#hidden_current_regimen").attr('disabled','true');
+    		}else{
+    			$("#id_current_regimen").attr("disabled","true");
+    			$("#hidden_current_regimen").removeAttr('disabled');
+    		}
+    		$("#id_current_regimen").removeAttr("required");
+    	}).change();
+    	//disable fields related to last VL test date
+    	$("#id_reason_for_vl").change(function(){
+    		var selected_option = $(this).val();
+    		if(selected_option == 1){
+    			$("#vl_last_date_container select, #id_last_value, #id_last_sample_type").removeAttr("disabled");
+    		}else{
+    			$("#vl_last_date_container select, #id_last_value, #id_last_sample_type").attr("disabled","true");
+    		}
+    	}).change();
+
+    	$("#id_form_number").change(function(){
+    		var url =  "/samples/get_facility/"+$(this).val()+"/";
+    		$.get(url, function(data, status){
+    			if(data!=''){
+    				$('#id_facility').val(data).trigger('change');
+    			}    			
+    			//$('#id_facility').val(data);
+    		});
+		});
+
+		
+
+		$("#id_dob").change(function(){
+			//if(strtotime($(this).val())>0 && !valid_dob($(this).val())){ alert("invalid dob"); }			
+			set_age();			
+		});
+
+		$("#id_age").change(function(){
+			set_dob();			
+		});
+
+		$("#id_age_units").change(function(){
+			set_dob();			
+		});
+
+		$("#id_viral_load_testing").change(function(){
+			var vl_val = $(this).val();
+			var $vl_testing = $('input:radio[name=vl_testing]');
+
+			//console.log("dhejehd"+$vl_testing);
+			switch(vl_val){
+				case "93":
+					$vl_testing.filter('[value=routine]').prop('checked', true);
+					break;
+				case "94":
+					$vl_testing.filter('[value=repeat]').prop('checked', true);
+					break;
+				case "95":
+					$vl_testing.filter('[value=suspected]').prop('checked', true);
+					break;
+			}
+
+		});
+
+		$("#x").on("click", function(){
+			$("#success").slideUp("slow");
+		});
+
+		$("#id_envelope_number").on("change", function(){
+			var val = $(this).val().split("-");
+			var env_num = Number(val[1]);
+			var s_type =  (env_num<=999?'P':'D');
+			$("#id_sample_type").val(s_type);
+			$("#sample_type").val(s_type);
+		});
+
+		$("#id_active_tb_status").on("change", function(){
+			$val = $(this).val();
+			if($val == 'Y'){
+				$("#id_tb_treatment_phase").removeAttr("disabled");
+			}else{
+				$("#id_tb_treatment_phase").attr("disabled", "true");
+			}
+		});
+
+		/*$("#id_pregnant").on("change", function(){
+			var val = $(this).val();
+			if(val == 'Y'){
+				$('#anc_sect').show();
+			}else{
+				$('#anc_sect').hide();
+				$('#id_anc_number').val("");
+			}
+		});*/
+
+		// $("#id_cname").focusout(function(){ $("#id_clinicians").hide() });
+		$("#id_cname").focus(function(){ $("#id_clinicians").show() });
+		$("#id_lname").focus(function(){ $("#id_lab_techs").show() });
+  	});
+	
+	function pick_num(e){
+		var c = e.which||e.keyCode;
+		//alert(c);
+		var ret = true;
+		if(c!=0 && c!=8 && c!=9){
+			ret = c > 47 && c < 58?true:false;
+		}
+		return ret;
+	}
+
+	function round1(val){
+		return Math.floor(val);
+	}
+
+	function set_dob(){
+		var age = $("#id_age").val();
+		var units = $("#id_age_units").val();
+
+		if(units=='Y'){
+			now_y = date_now.getFullYear();
+			dob_y = now_y-age;
+			var dob = new Date(dob_y+"-01-01");
+		}else{
+			var age = age/12;
+			var age_s = age*365.2425*24*3600*1000;
+			var dob_s = now_s-age_s;
+			var dob = new Date(dob_s);
+		}	
+		$("#id_dob").combodate('setValue', dob);
+	}
+
+	function set_age(){
+		var dob = new Date($("#id_dob").val());
+		var dob_s = dob.getTime();
+		var yrs = (now_s-dob_s)/(365.2425*24*3600*1000) || 0;
+		if(yrs<1){
+			var mths = yrs*12;
+			$("#id_age").val(round1(mths));
+			$("#id_age_units").val("M");
+		}else{
+			$("#id_age").val(round1(yrs));
+			$("#id_age_units").val("Y");
+		}
+	}
+
+	function set_district_hub(){
+		var facility_id = $('#id_facility').val();
+		if(facility_id!=''){
+			var url =  "/samples/get_district_hub/"+facility_id+"/";
+			$.get(url, function(data, status){
+				var json_data = JSON.parse(data);
+				$("#id_district").html(json_data.district);
+				$("#id_hub").html(json_data.hub);
+			});	
+		}
+					
+	}
+
+//422551
+
+
+var app=angular.module('samples', [], function($interpolateProvider) {
+        $interpolateProvider.startSymbol('<%');
+        $interpolateProvider.endSymbol('%>');
+    });
+
+ctrller={};
+ctrller.SampleController = function($scope,$http){
+	
+	$scope.patient_history = [];
+	$scope.clinicians = [];
+	$scope.lab_techs = [];
+	$scope.facility = "{{ sample_form.facility.value|default:'' }}";
+	$scope.hep_number = "{{ patient_form.hep_number.value|default:'' }}";
+	$scope.cname = "{{ clinician_form.cname.value|default:'' }}";
+	$scope.cphone ="{{ clinician_form.cphone.value|default:'' }}";
+	$scope.lname = "{{ lab_tech_form.lname.value|default:'' }}";
+	$scope.lphone = "{{ lab_tech_form.lphone.value|default:'' }}";
+
+
+	$scope.patHist = function(){
+		$http.get("/samples/patient_history/"+$scope.facility+"/?hep_number="+$scope.hep_number).success(function(data){
+			$scope.patient_history = data;
+		});
+	}
+
+	$scope.getClinicians = function(){
+		$http.get("/samples/clinicians/"+$scope.facility+"/").success(function(data){
+			$scope.clinicians = data;
+			if(data.length>0){
+				$scope.cname = data[0].name;
+				$scope.cphone = data[0].phone;
+			}
+		});
+	}
+
+	$scope.getLabTechs = function(){
+		$http.get("/samples/lab_techs/"+$scope.facility+"/").success(function(data){
+			$scope.lab_techs = data;
+			if(data.length>0){
+				$scope.lname = data[0].name;
+				$scope.lphone = data[0].phone;
+			}
+		});
+	}
+
+	$scope.setClinician = function(c){
+		$scope.cname = c.name;
+		$scope.cphone = c.phone;
+		$("#id_clinicians").hide()
+	}
+
+	$scope.setLabTech = function(l){
+		$scope.lname = l.name;
+		$scope.lphone = l.phone;
+		$("#id_lab_techs").hide();
+	}
+}
+
+app.controller(ctrller);
+</script>
+
+
+<style type="text/css">
+    .x{
+    	color: rgb(210, 190, 220);
+    	cursor: pointer;
+    	font-size: 18px;
+    }
+
+    .form-group.required label:before, .form-inline.required label:before {
+	  content:"*";
+	  color:red;
+	}
+
+	.day{
+		width:10px;
+	}
+
+	.form-group, .form-inline{
+		margin-bottom: 4px;
+	}
+
+	.form-group > label,.form-inline > label{
+		font-size: 14px;
+	}
+</style>
+{% endblock %}

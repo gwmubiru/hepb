@@ -1,0 +1,56 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">approvals</div>
+<ul id="tabs_a" class="nav nav-tabs">
+    <li {% if verified == '0' %}class='active'{% endif %}>
+    	<a href="/samples/verify_list/?verified=0">Pending</a>
+    </li>
+    <li {% if verified == '1' %}class='active'{% endif %}>
+    	<a href="/samples/verify_list/?verified=1">Completed</a>
+    </li>
+    <li class="active">
+    	<a href="/samples/envelope_list/">Envelopes/Boxes</a>
+    </li>
+
+</ul>
+<div id="my-tab-content" class="tab-content" style="min-height:400px">
+    <div class="tab-pane active" id="print">
+		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+			<thead>
+				<tr>
+					<th>Envelope #</th>
+					<th># Samples </th>
+					<th># Pending </th>
+					<th># Completed </th>
+					<th>Date</th>
+					<th>...</th>
+				</tr>
+			</thead>
+			
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"serverSide": true,
+		"ajax": "/samples/envelope_list_json/",
+	});
+});
+</script>
+{% endblock %}
