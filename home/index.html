@@ -1,0 +1,46 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+<h1>Welcome, {{ request.user.username }}</h1>
+<div ng-app="vl_home" ng-controller="HomeController" class="ng-cloak">
+{% include "home/_sample_stats.html" %}
+{% include "home/_approval_stats.html" %}
+</div>
+
+<script type="text/javascript">
+var app=angular.module('vl_home', [], function($interpolateProvider) {
+    $interpolateProvider.startSymbol('<%');
+    $interpolateProvider.endSymbol('%>');
+ });
+
+ctrller={};
+ctrller.HomeController = function($scope,$http){
+	$scope.stats = {};
+	$scope.still_loading = true;
+	
+	$http.get("/quick_stats/").success(function(data){
+		$scope.stats=data;	
+		$scope.still_loading = false;	
+	});
+
+}
+
+app.controller(ctrller);
+</script>				
+<style type="text/css">
+.stat_name{
+	text-transform: uppercase;
+}
+
+.stat_box{
+	height: 70px;
+}
+</style>				
+
+{% endblock content %}

@@ -1,0 +1,617 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	<style>
+		.special_width,.input-sm {
+			width: 299px;
+		}
+	</style>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+
+{% block content %}	
+
+<div class="page-title">Receive sample</div>
+
+<div class="panel panel-default">
+{% if pending_reception_count > 0 %}
+<div id="success" class="alert alert-warning hidden" role="alert">
+		<h2 style="font-size:11px; margin-top: 0; padding-top: 0;">Envelopes with results</h2>
+		
+		<p><script type="text/javascript">
+			var pending_rect = new Array();
+		</script>
+			{% for e in pending_reception %}
+			<script type="text/javascript">
+				//pending_rect['{{e.envelope_number }}'] = '{{e.envelope_number }}';
+				pending_rect.push('{{e.envelope_number }}');
+			</script>
+			<span style="padding-right:5px;">{{ e.envelope_number }}</span>,
+			{% endfor %}
+			
+		</p>
+</div>
+{% endif %}
+<div class="row panel-body">
+	<div class="col-lg-4" style="border-right-style: dotted;">
+	{% if sample %}
+	<div id="success" class="alert alert-success vl-alert" role="alert">
+		Last received: 
+		<a href="{% url 'samples:edit_received' sample.pk %}">
+			{{sample.barcode }}</a>
+		&nbsp;&nbsp;
+		<span class='x' id='x'>x</span>
+	</div>
+	{% endif %}
+
+	
+	<form action=" {% url 'samples:receive_batch'  %}" method="post" id="receive_batch_form" role="form">
+		{% csrf_token %}
+		<ul>
+		
+		{% for field in sample_reception_form %}
+			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+		{% endfor %}
+			
+		
+		</ul>
+		<div class="row">
+			<div class="col-lg-6">
+				<div class="form-inline required">						
+					<label for="tracking_code">Tracking Code</label><br>					
+					<input class="form-control input-sm special_width" id="id_code" name="code" value="{{current_tr_code}}" required="true" type="text" style="width: 299px;">
+				</div>
+				<div class="form-group required">
+					{{ sample_reception_form.facility.label_tag }}<br>
+					{{ sample_reception_form.facility }}
+					<div style="padding-top:10px;">
+						District: <u id="id_district" style="min-width:100px;">_______________</u>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						Hub: <u id="id_hub">_______________</u>
+					</div>
+				</div>
+				<div class="form-inline required">
+					
+					<label for="locator_envelope">First Locator ID</label><br>
+					
+					<input type="text" name="envelope_number" id="envelope_number" class="hidden">
+					<input type="text" name="locator_position" id="locator_position" class="hidden">
+					<input type="text" name="tracking_code_id" id="tracking_code_id" value="{{request.GET.tracking_code_id}}" class="hidden">
+					<input type="text" name="date_received" id="date_received" value="" class="hidden">
+					<input type="text" name="envelope_id" id="envelope_id" value="{{request.GET.envelope_id}}" class="hidden">
+					<input type="text" name="current_tr_code" id="current_tr_code" value="{{request.GET.current_tr_code}}" class="hidden">
+					<input type="text" name="reception_id" id="reception_id" value="{{reception_id}}" class="hidden">
+					{{ sample_reception_form.barcode }}
+
+				</div>
+				<div class="form-group required">
+					{{ sample_reception_form.sample_type.label_tag }}
+					{{ sample_reception_form.sample_type }}
+					<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_reception_form.sample_type.value }}'>
+				</div>
+				<div class="form-inline required">
+					<label for="locator_envelope">Last Locator ID</label><br>
+					<input type="text" name="last_barcode" class="form-control input-sm special_width" required="required" style="width: 299px;" id="last_barcode">
+				</div>
+				<div class="form-group required">
+					<label for="number_of_samples">No. Samples:</label>
+					<br>
+					<input type="text" name="number_of_samples" id="number_of_samples" class="form-control input-sm special_width" >
+				</div>
+				<div id="rejection_reasons_container" class="form-inline ">
+					<select id="rej_res"></select>
+
+				</div>			
+				
+			</div>
+
+			
+		</div>
+		
+	</form>
+	</div>
+	<div class="col-lg-6">
+		<span class="sub-title hidden" id="sub-t">Generated Samples</span>
+		<div class="row" id="sub-t-b" style="margin-top:5px;">
+			<div class="row" id="generate_samples_container">
+				<div class="col-md-6" style="text-align:center">Locator ID</div>
+				<div class="col-md-3" style="text-align:center">Art Number</div>
+				<div class="col-md-1" style="text-align:center"></div>
+			</div>
+		</div>
+		<div class="form-inline required" id="locator_id_container" style="margin-top:5px;">
+							
+		
+		</div>
+		<br />
+		<input type="submit" value="Save and get new form" class="btn btn-danger hidden" id="submit_form">
+		
+	</div>
+	<div class="col-lg-2">
+		
+		{% if sample %}
+			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
+			{% for s in sample.envelope.sample_set.all|dictsort:"locator_position" %}
+				<span  style="margin-left:-60px">
+					{{ forloop.counter }}. 
+					
+					<a href="{% url 'samples:edit_received' s.pk %}">
+						{{s.barcode }}
+					</a>
+				</span><br>
+			{% endfor %}
+		{%endif%}
+	</div>
+	
+</div>
+</div>
+	
+
+<script type="text/javascript">
+	function isValueInArray(array,obj){
+	    for(var i = 0; i < array.length; i++) {
+	        if(obj === array[i]) {
+	            return true;
+	        }
+	    }
+	    return false;
+	}
+
+	var tr_code_id = 0;	
+	var number_of_boxes_pending_now = {{pending_reception_count}};
+	var min_no_envelopes_pending = {{min_no_envelopes_pending}};
+	var pending_rect = new Array();
+	{% for e in pending_reception %}
+		pending_rect.push('{{e.envelope_number }}');
+	{% endfor %}
+	$(document).ready(function() {	
+
+		$('#receive_form').bootstrapValidator({
+	       
+	        fields: {
+				
+				facility_id: {
+	                    validators: {
+	                        notEmpty: {
+	                            message: 'Please locator Id'
+	                        },
+	                         stringLength: {
+		                        min: 10,
+		                        max: 10,
+		                        message: 'Barcode must be 10 digits long'
+		                    }
+	                    }
+	                },
+	             code: {
+	                    validators: {
+	                        notEmpty: {
+	                            message: 'Please enter the tracking code'
+	                        }
+	                    }
+	                },
+                date_received: {
+                    validators: {
+                        notEmpty: {
+                            message: 'Please select the date of reception'
+                        }
+                    }
+                }
+			}//endo of validation rules
+	    });// close form validation function
+	
+	var date_now = new Date();
+	//console.log(date_now.toDateString());
+	var now_s = date_now.getTime();
+	var regimen_json = {};
+
+	
+		
+		$('#id_facility').select2();
+		$("#id_facility").val("{{ sample_reception_form.facility.value|default:'' }}");
+
+				
+		$("#id_sample_type").attr("disabled", "true");
+
+    	$(".date_d").combodate({
+    		format: "DD/MM/YYYY",
+    		template: "D MMM YYYY",
+    		customClass: "form-control input-sm w-xs",
+    		minYear: 1900,
+    		maxYear: date_now.getFullYear(),
+    	});
+
+    	$(".date").datepicker({
+			dateFormat: "yy-mm-dd",
+			maxDate: 0
+		});
+    	$("#id_facility").change(function(){
+    		set_district_hub();   		    		
+    	}).change();
+
+    	
+		$("#envelope_number").change(function(){
+			var val = $(this).val();
+			var env_num_str = val.substr(-4);
+			var env_num = Number(env_num_str);
+			var s_type = '';
+			if(env_num < 3000){
+				//plasma study samples === from 900 up to 999
+				s_type = 'P'; 
+			}else{
+				s_type = 'D';
+			}
+			$("#id_sample_type").val(s_type);
+			$("#sample_type").val(s_type);
+			var date_rec = '{{request.GET.date_received}}';
+			if(date_rec == ''){
+				var url =  "/samples/get_envelope_details/?envelope_number="+val+"&sample_type="+s_type+"&env_status_update=received";
+	    		$.get(url, function(data, status){
+					var data_arr = JSON.parse(data);
+					if (data_arr.envelope_id === ''){
+						alert('The evelope is not found, did you accession it?');
+						$("#id_barcode").val('');
+						$("#last_barcode").val('');
+						$("#number_of_samples").val('');
+
+					}else{
+						$("#envelope_id").val(data_arr.envelope_id);
+						$("#date_received").val(data_arr.date_received);
+					}
+					
+				});
+			}else{
+				$("#date_received").val(date_rec);
+			}
+		});
+
+		$("#id_barcode").change(function(){
+    		var barc = $(this).val();
+    		var year_month = barc.substring(0, 4);
+    		var env_number = barc.substring(4,8);
+    		var env_year = year_month +'-'+env_number;
+    		var locator_posn = barc.substr(barc.length - 2);
+    		var is_env_among_pending = isValueInArray(pending_rect,env_year);
+
+			/*if(Number(number_of_boxes_pending_now) > Number(min_no_envelopes_pending) && locator_posn == '01' && !is_env_among_pending){
+				alert('priority should be given to envelopes which already have results');
+				//$(this).val('');
+
+			}else{*/
+	    		$("#envelope_number").val(env_year).change();
+	    		$("#locator_position").val(locator_posn).change();
+	    		//also trigger change on number of samples to update generated sample barcodes
+	    		$('#number_of_samples').change();
+	    	//}
+
+    	});
+
+		$("#number_of_samples").change(function(){
+			var no_samples = $(this).val();
+    		var barc = $("#id_barcode").val();
+    		var loc_category = $("#id_locator_category").val();
+    		if(no_samples>0 && barc != ''){
+	    		var s_type = $("#sample_type").val();
+	    		var barcode_stem = barc.substring(0, 8);
+	    		var locator_posn = parseInt(barc.substr(barc.length - 2));
+	    		//compute the last barcode
+	    		var last_bac = parseInt(barc) + parseInt(no_samples)-1;
+	    		$("#last_barcode").val(last_bac);
+	    		var the_html = '';
+	    		for (let i = 0; i < no_samples; i++) {
+	    			var new_pos = i+locator_posn;
+	    			var max_no_loc_ids  = 20;
+	    			if(s_type == 'P'){
+	    				var max_no_loc_ids = 99;
+	    			}
+	    			if (new_pos < 10){
+	    				new_pos = '0'+new_pos;
+	    			}
+	    			if (new_pos <= max_no_loc_ids){
+	    				var new_bar = barcode_stem + new_pos;
+		    			var row = generateRow(i, new_bar,loc_category);		    			
+		    			the_html = the_html+row;
+	    			}
+				}
+				$("#locator_id_container").html(the_html);
+				$("#sub-t,#sub-t-b").removeClass('hidden');
+				$("#submit_form").removeClass('hidden');
+
+    		}
+    		//console.log(the_html);
+    		
+    	});
+
+    	$("#last_barcode").change(function(){
+    		var barc = $("#id_barcode").val();
+    		var last_bac = $(this).val();
+    		if(barc != '' && barc != 'undefined' && last_bac != '' && last_bac != 'undefined' ){
+    			var no_of_samples = (parseInt(last_bac) - parseInt(barc))+1;
+    			$('#number_of_samples').val(no_of_samples);
+    			$('#number_of_samples').change();
+
+    		}
+
+    	});
+    	$(".optional").removeAttr('required');   
+
+    	$("#id_locator_category,#sample_type").change(function(){
+    		var sample_type = $("#sample_type").val();
+    		var cat =  $("#id_locator_category").val();
+    		if(cat == 'R' && sample_type != '' && cat != ''){
+    			reasonsDropDown("rejection_reason_id", "rejection_reason_id",sample_type);
+    			$('#rejection_reasons_container').removeClass('hidden');
+    		}else{
+    			$("#rejection_reason_id").val();
+    			$('#rejection_reasons_container').addClass('hidden');
+    		}
+    		
+    	}).change(); 	
+
+    	$("#add_reason").click(function(){
+    		addOtherReasons();
+    	});
+
+    	$('#locator_id_container').on('change', '.artnumber', function(e){
+    		var $quan = $('#locator_id_container .artnumber');
+		    var ind = $quan.index(this);
+		    $quan.eq(ind + 1).focus();
+		    $quan = '';
+		    //submit the data now
+		    var tr_code = $("#id_code").val();
+			var facility_id = $("#id_facility").val();
+			var art_id = e.target.id;
+			var barc = $("#bar"+art_id).val();
+			var art_no = $(this).val();
+			var saved_id = $("#saved_barcode_id"+barc).val();
+			var barcodes = $(".barcode").map(function() {
+			    return $(this).val();			    
+			}).get();
+			var no_samples = parseInt($("#number_of_samples").val());
+			if(facility_id == '' || facility_id == undefined){
+				alert('Please select the facility');
+			}else{
+				var url =  "/samples/get_tracking_code_details/?code="+tr_code;
+				var currnt_url= window.location.origin;
+				
+				$.get(url, function(data, status){
+					var data_arr = JSON.parse(data);
+					tr_code_id = data_arr.tracking_code_id;			
+					var form = $('form')[0];
+					var form_data = new FormData(form);
+					var locator_posn = barc.substr(barc.length - 2);
+					form_data.append('the_barcode', barc);
+					form_data.append('reception_art_number', art_no);
+					form_data.append('the_position', locator_posn);
+					form_data.append('tracking_code_id', tr_code_id);
+					form_data.append('saved_id', saved_id);
+					//console.log(tr_code_id);
+					//return false;
+					$.ajax({
+					   url : '/samples/receive_batch/',
+					   type : 'POST',
+					   data : form_data,
+					   processData: false,  // tell jQuery not to process the data
+					   contentType: false,  // tell jQuery not to set contentType
+					   success : function(data) {
+					   	   console.log(data);
+					       var json_data = JSON.parse(data);
+					       var saved_sample	= json_data.saved_sample
+					       $("#saved_barcode_id"+json_data.s_barcode).val(saved_sample);			       
+					       //display success message
+					       $("#span"+json_data.s_barcode).removeClass('hidden');
+					       if(barcodes.length - ind == 1){
+					       		
+					       		window.location.replace(currnt_url+'/samples/receive_batch/?saved_sample='+saved_sample);
+					      }
+					   }
+					});
+					
+				});
+			}
+		});
+    	
+    	/*var $quan = $('#locator_id_container .artnumber');
+		$quan.on('keyup', function(e) {
+		    if (e.which === 9) {
+		    	alert('sdf');
+		        var ind = $quan.index(this);
+		        $quan.eq(ind + 1).focus()
+		    }
+		});*/
+    	$("#submit_form").click(function(e){
+        	e.preventDefault();
+        	var barcodes = $(".barcode").map(function() {
+			    return $(this).val();			    
+			}).get();
+			var art_numbers = $(".artnumber").map(function() {
+			    return $(this).val();			    
+			}).get();
+			//form.submit();
+			var tr_code = $("#id_code").val();
+			var facility_id = $("#id_facility").val();
+			if(facility_id == '' || facility_id == undefined){
+				alert('Please select the facility');
+			}else{
+				var url =  "/samples/get_tracking_code_details/?code="+tr_code;
+				var currnt_url= window.location.origin;
+				
+				$.get(url, function(data, status){
+					var data_arr = JSON.parse(data);
+					tr_code_id = data_arr.tracking_code_id;
+					for (let i = 0; i < barcodes.length; i++) {				
+						var form = $('form')[0];
+						var form_data = new FormData(form);
+						var barc = barcodes[i];
+						var art_no = art_numbers[i];
+						var locator_posn = barc.substr(barc.length - 2);
+						form_data.append('the_barcode', barc);
+						form_data.append('reception_art_number', art_no);
+						form_data.append('the_position', locator_posn);
+						form_data.append('tracking_code_id', tr_code_id);
+						form_data.append('sample_only', 3);
+		    
+						//console.log(tr_code_id);
+						//return false;
+						$.ajax({
+						   url : '/samples/receive_batch/',
+						   type : 'POST',
+						   data : form_data,
+						   processData: false,  // tell jQuery not to process the data
+						   contentType: false,  // tell jQuery not to set contentType
+						   success : function(data) {
+						   	   console.log(data);
+						       var json_data = JSON.parse(data);
+						       var saved_sample = json_data.saved_sample;
+
+						       if(i == (barcodes.length)-1){
+						       		//window.location.href = currnt_url+'?saved_sample='+saved_sample;
+						       		window.location.replace(currnt_url+'/samples/receive_batch/?saved_sample='+saved_sample);
+						       }
+						   }
+						});
+					}
+				});
+			}
+				        		
+		});
+		//currnt_url+'?saved_sample'
+
+  	});
+	
+	function generateRow(position, barcode,loc_category){
+		var input_str = '<div class="row"><div class="col-md-6"><select class="form-control input-sm w-xs" name="locator_category" required="true"><option value="V" selected="selected">V</option></select> <input type="text" name="locator_id" value="'+barcode+'" class="form-control input-sm wider barcode" id="bar'+position+'" required="required"><input type="text" name="saved_barcode_id"  class="hidden" id="saved_barcode_id'+barcode+'" ></div><div class = "col-md-3"><input type="text" name="art_number"  class="form-control input-sm wider artnumber" id="'+position+'" data-barccode="'+barcode+'" required="required"></div><div class ="col-md-1"><span id="span'+barcode+'" class="message_span hidden">saved</span></div></div></div>';
+		return input_str;
+
+	}
+	function reasonsDropDown(nme,id, sample_type){
+	  var url =  "/samples/get_rejection_reasons/?sample_type="+sample_type;
+		$.get(url, function(data){
+			var rejection_reasons = JSON.parse(JSON.parse(data));			
+			var other_options="id='"+id+"' class='form-control input-sm w-md' ";
+			  var slct = "<label for='rejection_reason_id'>Rejection Reason </label><br />";
+			  slct += "<select name='"+nme+"' id='"+id+"' class='form-control input-sm w-md' required style='width: 300px;'><option value=''>---------</option>";
+			  for (var r in rejection_reasons){	  	
+			  	slct += "<optgroup label="+r+">";
+			  	var rrs = rejection_reasons[r];
+			  	for(var i in rrs){
+			  		slct += "<option value='"+i+"'>"+rrs[i]+"</option>";
+			  	}
+			  	slct += "</optgroup>";
+			  }
+
+			  slct +="</select>";
+			  $("#rejection_reasons_container").html(slct);
+
+		});	
+	  //return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);
+	}
+
+
+
+	function addOtherReasons(){
+	  var reasons="<div>"+reasonsDropDown("other_reasons[]","")+"</div><br>";
+	  $("#other_reasons").append(reasons);
+	}
+
+	function pick_num(e){
+		var c = e.which||e.keyCode;
+		//alert(c);
+		var ret = true;
+		if(c!=0 && c!=8 && c!=9){
+			ret = c > 47 && c < 58?true:false;
+		}
+		return ret;
+	}
+
+	function round1(val){
+		return Math.floor(val);
+	}
+
+	
+	function set_district_hub(){
+		var facility_id = $('#id_facility').val();
+		//only get district and hub if value not 0, null, NaN or empty
+		if(!facility_id){
+			//do nothing
+		}else{ 
+			var url =  "/samples/get_district_hub/"+facility_id+"/";
+			$.get(url, function(data, status){
+				var json_data = JSON.parse(data);
+				$("#id_district").html(json_data.district);
+				$("#id_hub").html(json_data.hub);
+			});	
+		}
+					
+	}
+	
+	// calculation of no. of days between two date
+	//date formate - mm/dd/YYYY - 06/30/2019, 07/30/2019
+	function getDaysBetweenDates(start_date, end_date){
+	    // To set two dates to two variables
+	    var date1 = new Date(start_date);
+		var date2 = new Date(end_date);
+		  
+		// To calculate the time difference of two dates
+		var Difference_In_Time = date2.getTime() - date1.getTime();
+		  
+		// To calculate the no. of days between two dates
+		//alert(end_date.getDate());
+		return Difference_In_Time / (1000 * 3600 * 24);
+	}
+	//change date to mm/dd/YYYY
+	function convert(date){
+	  var datearray = date.split("/");
+	  var newdate = datearray[1] + '/' + datearray[0] + '/' + datearray[2];
+	  return newdate;
+	  
+	}
+
+	function getCurrentDate(){
+	  var current_datetime = new Date()
+	  var formatted_date =  (current_datetime.getMonth() + 1) + "/" + current_datetime.getDate() + "/" + current_datetime.getFullYear();
+	  return formatted_date;
+	}
+
+</script>
+
+
+<style type="text/css">
+    .x{
+    	color: rgb(210, 190, 220);
+    	cursor: pointer;
+    	font-size: 18px;
+    }
+
+    .form-group.required label:before, .form-inline.required label:before {
+	  content:"*";
+	  color:red;
+	}
+
+	.day{
+		width:10px;
+	}
+
+	.form-group, .form-inline{
+		margin-bottom: 4px;
+	}
+
+	.form-group > label,.form-inline > label{
+		font-size: 14px;
+	}
+	.wider.input-sm{
+		width: 210px;
+	}
+	.message_span{
+		color: #008000;
+	}
+</style>
+{% endblock %}

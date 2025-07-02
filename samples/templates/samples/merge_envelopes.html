@@ -1,0 +1,68 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+
+{% block content %}	
+
+	<div class="page-title">Merge Envelopes</div>
+	<div class="panel panel-default">
+		<div class="row panel-body">
+				
+			<form action="{% url 'samples:merge_envelopes'  %}" method="post" id="merge_samples" role="form">
+				{% csrf_token %}
+				
+				<div class="row">
+					<div class="col-md-4">
+						<div class="">						
+							<label for="source_envelope">Source Envelope</label><br>					
+							<input class="form-control" id="source_envelope" name="source_envelope" required="true" type="text" data-bv-field="source_envelope">
+						</div>
+
+					</div>
+					<div class="col-md-4">
+						<div class="">						
+							<label for="destination_envelope">Destination Envelope</label><br>					
+							<input class="form-control" id="destination_envelope" name="destination_envelope"  required="true" type="text" data-bv-field="destination_envelope">
+						</div>
+
+					</div>
+					<div class="col-md-2">
+						<input style="margin-top:25px;" type="submit" value="Save" class="btn btn-danger">
+					</div>
+					
+				</div>
+				<p class="row" id="info_row" style="margin-left:2px;">
+
+					Samples on <span id="s_env" style="font-weight: bold;"></span> will be moved to envelope <span id="d_env" style="font-weight: bold;"></span></p>
+			</form>
+			
+			
+		</div>
+	</div>
+		
+
+	<script type="text/javascript">
+		$(document).ready(function() {	
+			$("#source_envelope,#destination_envelope").change(function(){
+	    		//alert('this is the j');
+	    		var source_env = $("#source_envelope").val();
+	    		var destination_env = $("#destination_envelope").val();
+	    		$("#s_env").html(source_env);
+	    		$("#d_env").html(destination_env);
+	    	});
+		});
+		
+	</script>
+
+
+{% endblock %}

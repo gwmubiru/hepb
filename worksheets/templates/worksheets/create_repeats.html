@@ -1,0 +1,337 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	<style>
+		.special_width,.input-sm {
+			width: 299px;
+		}
+	</style>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+
+{% block content %}	
+
+<div class="page-title">New DBS Worksheet</div>
+<div class="panel panel-default">
+<div class="row panel-body">
+	
+	
+	<form action="/worksheets/manage_repeats/" method="post" role="form">	
+	{% csrf_token %}	
+		<div class="worksheet" id="content">
+			
+			<br>
+			<div class="row" style="padding-bottom:5px;">
+				<div class="col-md-3 form-inline">I want to attach
+					<input id="number_of_samples" type="text" class="form-control input-sm" value="{% if request.GET.sample_type == 'P' %} 99
+							{% else %} 100 {% endif %}" style="width:50px"> samples
+				</div>
+				<div class="col-md-4 form-inline">
+					{% if request.GET.sample_type == 'D' %} 
+					Starting Barcode
+					<input id="starting_barcode" type="text" class="form-control input-sm" value="" style="width:40%">
+					<input id="new_starting_barcode" type="text" class="form-control input-sm hidden" value="">
+					{% endif %}
+				</div>
+				<div class="col-md-2">
+					<span class="btn btn-sm btn-danger btn-submit hidden" id="submit">save selected samples</span>
+				</div>
+			</div>
+			<table class="table table-striped table-condensed table-bordered" id="samples-table" >
+				<thead>
+					<th>#</th>
+					<th>Barcode</th>
+					<th>Assign New Identifier</th>
+					
+					<th>
+						{% if request.GET.sample_type == 'D' %} 
+						<label class="hidden">
+							<input type="checkbox" id="check_all"> 
+							<span id='check_all_label'>Select all</span>
+						</label>
+						{% endif %}
+					</th>
+					
+				</thead>
+				<tbody>
+					<input type="text" name="worksheet_id" id="worksheet_id" value="{{worksheet_id}}" class="hidden">
+					<input type="text" name="worksheet_type" id="worksheet_type" value="{{request.GET.worksheet_type}}" class="hidden">
+					{% for s in samples %}
+					
+					<tr >
+						<td>{{ forloop.counter }} </td>
+						<td>{{ s.barcode }}</td>	
+						<td><input type="text" required='true' name='sample{{ s.id }}' s-pk="{{ s.id }}"  id="{{ s.id }}"  class="sample_repeats form-control submit_class"></td>
+						
+						<td>
+							 
+							<input type="checkbox" class="checked_samples sample_repeats" value="{{s.id}}" name="sample_ids" id="sample_{{s.id}}" data-barcode="{{s.lab_number}}">
+							
+						</td>
+						
+					</tr>
+					
+					{% endfor %}
+					
+				</tbody>
+			</table>
+		</div>
+
+	</form>
+	
+</div>
+</div>
+	
+<script type="text/javascript">
+	 $(function() {
+	 	$('#starting_barcode').change(function(){
+
+	 		$('#new_starting_barcode').val(this.value);
+	 		//if there are any selected samples reset the barcode value
+	 			$('.submit_class').each(function(i) { 
+	      if($(this).val() != '') {
+	      	var current_barcode = $('#new_starting_barcode').val();
+				  var barcode_stem = current_barcode.substring(0, 5);
+				  //console.log(barcode_stem);
+				  var locator_posn = parseInt(current_barcode.substr(current_barcode.length - 4));
+				  var new_pos = locator_posn+1;
+				  if (new_pos < 10){
+						new_pos = '000'+new_pos;
+					}else if(new_pos < 100){
+						new_pos = '00'+new_pos;
+					}else if(new_pos < 1000){
+						new_pos = '0'+new_pos;
+					}
+					//console.log(new_pos);
+					var new_barc = barcode_stem+new_pos;
+					
+					$(this).val(current_barcode);
+					$('#new_starting_barcode').val(new_barc);
+	      }
+	    });
+
+	 	});
+	 	
+
+        $(".status").hide();
+        //$(".missing_results").hide();
+
+        $('#check_all').click(function(){
+        	var starting_barcode = $('#starting_barcode').val();
+        	if($(this).is(':checked')){
+        		var max_no_samples = $('#number_of_samples').val();
+		        $('input[name="sample_ids"]').each(function() { 
+							//this.checked = true; 
+							//this.checked.click();
+							//$(this).click();
+							var sample_type = '{{request.GET.sample_type}}';
+							//add sampales only if the max is not reached
+							if($('input[type=checkbox]:checked').length <= max_no_samples) {
+								  var sample_id = $(this).val();
+								  $(this).attr('checked','checked');
+								  var current_barcode = $('#new_starting_barcode').val();
+								  var barcode_stem = current_barcode.substring(0, 5);
+								  //console.log(barcode_stem);
+								  var locator_posn = parseInt(current_barcode.substr(current_barcode.length - 4));
+								  var new_pos = locator_posn+1;
+								  if (new_pos < 10){
+										new_pos = '000'+new_pos;
+									}else if(new_pos < 100){
+										new_pos = '00'+new_pos;
+									}else if(new_pos < 1000){
+										new_pos = '0'+new_pos;
+									}
+									//console.log(new_pos);
+									var new_barc = barcode_stem+new_pos;
+									
+									$('#'+sample_id).val(current_barcode);
+									$('#new_starting_barcode').val(new_barc);
+									//disable all if the max number is reached				
+							}else{
+								//disable inputs and show the submit button when max is reached
+									//$(this).attr("disabled",true);
+									//$('#'+$(this).val()).attr("disabled",true);
+									$('#submit').removeClass('hidden');
+							}
+							
+
+						});
+					}else{
+						$('input[name="sample_ids"]').each(function() { 
+								$('#new_starting_barcode').val(starting_barcode);
+								var sample_id = $(this).val();
+								$(this).removeAttr('checked');
+								$('#submit').addClass('hidden');
+								$('#'+sample_id).val('');
+						});
+					}	//end check for whether check box is checked or not
+        });
+    });
+
+	 $('.checked_samples').click(function(){
+		  
+			//add sampales only if the max is not reached
+		  var sample_id = $(this).val();
+		  var sample_type = '{{request.GET.sample_type}}';
+		  if($(this).is(":checked")){
+			  $(this).attr('checked','checked');
+			  if(sample_type == 'D'){
+				  var current_barcode = $('#new_starting_barcode').val();
+				  var barcode_stem = current_barcode.substring(0, 5);
+				  //console.log(barcode_stem);
+				  var locator_posn = parseInt(current_barcode.substr(current_barcode.length - 4));
+				  var new_pos = locator_posn+1;
+				  if (new_pos < 10){
+						new_pos = '000'+new_pos;
+					}else if(new_pos < 100){
+						new_pos = '00'+new_pos;
+					}else if(new_pos < 1000){
+						new_pos = '0'+new_pos;
+					}
+					//console.log(new_pos);
+					var new_barc = barcode_stem+new_pos;
+					
+					$('#'+sample_id).val(current_barcode);
+					$('#'+sample_id).change();
+					$('#new_starting_barcode').val(new_barc);
+				}else{
+					//data-barcode
+					$('#'+sample_id).val($(this).attr("data-barcode"));
+					$(".submit_class").change();
+				}
+			}else{
+				$('#'+sample_id).val('');
+				$('#'+sample_id).change();
+				$(this).removeAttr('checked');
+			}			
+			
+		});
+	 //
+	$(".submit_class").on("change",function(){
+		var sample_type = '{{request.GET.sample_type}}';
+		var max_no_samples = $('#number_of_samples').val();
+	 	//now generate the next focus element
+	 	/*if(sample_type == 'P'){
+			var thisIndex = $(this).index('input:text');
+			var next = thisIndex + 1;
+			$('input:text').eq(next).focus();
+		}*/
+		var filled_sample_inputs = selectedSamples();
+		var no_cheched_boxes = $('input[type=checkbox]:checked').length;
+		if(no_cheched_boxes == max_no_samples || filled_sample_inputs == max_no_samples) {
+		//if($('input[type=checkbox]:checked').length == max_no_samples) {
+			//disable inputs and show the submit button when max is reached
+			$('.sample_repeats').each(function(i) { 
+				//console.log(i);
+	      if($(this).val() == '') {
+	            $(this).attr("disabled",true);
+	      }
+	    });
+	    $(".checked_samples").not(":checked").attr("disabled",true);
+			//$('#'+$(this).val()).attr("disabled",true);
+			$('#submit').removeClass('hidden');
+	 	}else{
+	 		//max number not reached, so enable all checkboxes and inputs and hide submit button
+	 		$('.sample_repeats').each(function(i) { 
+	        $(this).removeAttr("disabled");
+	    });
+	    $(".checked_samples").removeAttr("disabled");
+			//$('#'+$(this).val()).attr("disabled",true);
+			$('#submit').addClass('hidden');
+	 	}
+	 });
+
+	$('#submit').click(function(){
+
+		//$('#spiner').modal('show');
+		$('#spiner').modal({
+		  backdrop: true,
+		  show: true,
+		  keyboard: false
+		})
+		var worksheet_id = $("#worksheet_id").val();
+
+		$('.submit_class').each(function(i) {
+			var max_samples = parseInt($('#number_of_samples').val());
+			var barcode = $(this).val();
+
+			if(barcode != ''){
+				var params = {csrfmiddlewaretoken:"{{ csrf_token }}", s_pk:$(this).attr('s-pk'),post_type:'attach_sample',worksheet_id:worksheet_id,max_samples:max_samples,index_val:i,barcode:$(this).val(),worksheet_type:'{{request.GET.worksheet_type}}'};
+				//console.log(params);
+	        	submit_auth(params);
+			}else{
+				$('#number_of_samples').val(max_samples+1);
+			}
+			
+			
+			//window.open('URL')
+	        
+	    });
+	});
+	function submit_auth(params){
+		$.post("/worksheets/manage_repeats/", params).done(function(data) {
+			//var json_data = JSON.parse(data);
+	 		//$("#saved"+params.s_pk).show();
+	 		//alert(parseInt(params.index_val) +1);
+	 		if((parseInt(params.index_val) +1) == parseInt(params.max_samples)){
+					window.location.replace("/worksheets/show/"+params.worksheet_id);
+			}
+	 		//move cursor to next line
+	 		 
+		 });
+	}
+
+	function selectedSamples(){
+		var cnt = $('input.submit_class').filter(function() {
+		  return this.value.trim() != '';
+		}).length;
+		return cnt;	
+	}
+	
+	</script>
+
+	
+
+
+<style type="text/css">
+    .x{
+    	color: rgb(210, 190, 220);
+    	cursor: pointer;
+    	font-size: 18px;
+    }
+    .missing_results{
+		background-color: #F5A9A9;
+	}
+    .form-group.required label:before, .form-inline.required label:before {
+	  content:"*";
+	  color:red;
+	}
+
+	.day{
+		width:10px;
+	}
+
+	.form-group, .form-inline{
+		margin-bottom: 4px;
+	}
+
+	.form-group > label,.form-inline > label{
+		font-size: 14px;
+	}
+	.wider.input-sm{
+		width: 210px;
+	}
+	.message_span{
+		color: #008000;
+	}
+</style>
+{% endblock %}

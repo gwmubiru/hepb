@@ -1,6 +1,6 @@
 {% extends "home/layout.html" %}
 {% load form_tags %}
-{% load staticfiles %}
+{% load static %}
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
@@ -16,32 +16,21 @@
 
 {% block content %}	
 	<span class="page-title">
+		{% if stage == '10' %}
+		Eluded/Loaded Samples
+		{% else %}
 		attach samples 
+		{% endif %}
 	</span>
 	<div class="panel panel-default" ng-app="worksheet_samples" ng-controller="worksheetSamplesController">
 		<div class="panel-body">
 			
-			<form action="{% url 'worksheets:attach_samples' worksheet.id %}" method="post" role="form">
+			<form action="{% url 'worksheets:attach_samples' stage sample_type %}" method="post" role="form">
 				{% csrf_token %}
-				<span ng-init="w_sample_type='{{ worksheet.sample_type }}'	"></span>
-				<div class="row" >
-					<div class="col-md-4" >
-						<label>Worksheet Ref Number:</label>
-						<input type="text" value="{{ worksheet.worksheet_reference_number }}" name="ref_number" id="ref_number">
-						<br><span style="margin-left:160px" class='sm-label'>Append 'R' for repeat samples</span>
-
-						
-					</div>
-					<div class="col-md-3" ng-init="machine_type='{{ worksheet.machine_type }}'">
-						<label>Machine Type:</label> <u>{{ worksheet.get_machine_type_display }}</u>
-					</div>
-					<div class="col-md-2" ng-init="sample_type='{{ worksheet.sample_type }}'">
-						<label>Sample Type:</label><u>{{ worksheet.get_sample_type_display }}</u>
-					</div>
-					<div class="col-md-3"><label>Date Created:</label> <u>{{ worksheet.created_at | date:"Y-m-d" }}</u></div>
-				</div>
+				<span ng-init="w_sample_type='{{ sample_type }}'	"></span>
+				
 				<div class="row">
-					<div class="col-md-4 form-inline">I want to attach
+					<div class="col-md-4 form-inline">I want to select
 						<input type="text" class="form-control input-sm" ng-init="sample_limit={{ sample_limit }}" ng-model="sample_limit" value="" style="width:50px"> samples
 					</div>
 					<div class="col-md-4"></div>
@@ -55,7 +44,7 @@
 		</div>
 	</div>
 	<script type="text/javascript">
-	var st = "{{ worksheet.sample_type}}";
+	var st = "{{ sample_type}}";
 	 $(function() {
 	 	$(".vlbarcodes").each(function (index){
             var val = $(this).attr("value");
@@ -75,18 +64,10 @@
         })
 
         $("#submit").click(function(){
-
-        	//console.log("dedede");
-        	var ref_number = $("#ref_number").val();
-        	var valid_ref_number = validRefNumber(ref_number);
-			if (!valid_ref_number){
-				alert("Invalid Reference number");
-			}else{
-				var form = $('form')[0];
-				form.submit();
-				//alert("all good");
-			}
-		});
+        	var form = $('form')[0];
+		form.submit();
+        		
+	});
 
         //$(".sample").prop("checked", "true")
       })
@@ -286,7 +267,9 @@ ctrller.worksheetSamplesController = function($scope,$http){
 				if(sampleExists(sample)==false){
 					$scope.selected_samples.push(sample);	
 					sample_obj.prop('checked', true);
+					
 					if(sample.instrument_id==null){
+						//alert('required instrument id');
 						sample.instrument_id = sample.locator_id;
 					}									
 				}
@@ -337,10 +320,25 @@ ctrller.worksheetSamplesController = function($scope,$http){
 
 
 }
-
+$( function() {
+	$("#ref_number_seen").attr("disabled", "true");
+	$("#repeat_ws").click(function(){
+		var ref_val = $("#ref_number_seen").val();
+		if($(this).prop("checked")){
+			var new_ref_no = ref_val + 'R';
+			$("#ref_number_seen").val(new_ref_no);
+			$("#ref_number").val(new_ref_no);
+		}else{
+			var new_ref_no = ref_val.replace('R', '');
+			$("#ref_number_seen").val(new_ref_no);
+			$("#ref_number").val(new_ref_no);
+		}
+	});
+});
 app.controller(ctrller);
 	</script>
 
 
 	<!-- <script type="text/javascript" src='{% static "worksheets/js/worksheet.js" %}'></script> -->
 {% endblock %}
+

@@ -1,6 +1,6 @@
 {% extends "home/layout.html" %}
 {% load form_tags %}
-{% load staticfiles %}
+{% load static %}
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
@@ -12,6 +12,12 @@
 {% endblock %}
 
 {% block content %}	
+<style type="text/css">
+	#accepted.w-md{
+		width: 150px;
+	}
+	
+</style>
 <div ng-app="verify" ng-controller="VerifyController" ng-init="envelope_id={{ envelope_id }}">
 	<div class="page-title">Sample Approval</div>
 	<div class="panel panel-default row">
@@ -147,7 +153,7 @@
 				</div>
 
 				<div class="row">
-					<div class="col-lg-4">
+					<div class="col-lg-2">
 						<div class="form-group">
 							<span class='hi-lite'>Choose Status:</span>
 							{% select "accepted" "{'1':'Accepted', '0':'Rejected'}" "0" "{'class':'form-control input-sm w-md', 'ng-model': 'sample.accepted'}" %}
@@ -170,6 +176,15 @@
 							<span class="vl-slash">/</span>	
 							{% input "locator_position" "" "{'style':'width:52px', 'ng-model': 'sample.locator_position', 'class':'sample-field'}" %}
 
+						</div>
+					</div>
+					<div class="col-lg-3">
+						<div class="form-inline">
+							<span class='hi-lite'>Barcode:</span><br>						
+								
+							
+							
+							{% input "barcode" "" "{'ng-model': 'sample.barcode', 'ng-change': 'setApproval()', 'class':'form-control  sample-field optional'}" %}
 						</div>
 					</div>
 					<div class="col-lg-3 ng-cloak" >
@@ -352,17 +367,7 @@ function reasonsDropDown(nme,id){
   //return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);
 }
 
-function checkOutcome() {
-	if(document.samples.outcome.value=='Rejected') {
-    var primary_reason="<span class='sm_txt'>primary reason:</span><br>"+reasonsDropDown("outcomeReasonsID","outcomeReasonsID");
-		var other_reason="<br><br><span class='sm_txt'>more reasons:</span><div id='other_reasons'></div><span class='add_item' onclick='addOtherReasons()'>add<span>";
-		document.getElementById("outcomeID").innerHTML=primary_reason+other_reason;
 
-    //document.getElementById("outcomeID").innerHTML="<span class='sm_txt'>primary reason:<span><br>"+reasonsDropDown();
-	} else {
-		document.getElementById("outcomeID").innerHTML="";
-	}
-}
 
 function addOtherReasons(){
   var reasons="<div>"+reasonsDropDown("other_reasons[]","")+"</div><br>";
@@ -387,7 +392,9 @@ ctrller.VerifyController = function($scope,$http){
 		$scope.selectSample(sample_id);
 		$scope.patHist();		
 	});
-
+	$scope.setApproval = function(){
+		$scope.sample.accepted = '1';
+	}
 	$scope.saveVerification= function(){
 		$scope.sample.sample_edits = $("#sample_edits").val();
 		$scope.sample.pat_edits = $("#pat_edits").val();
@@ -408,6 +415,9 @@ ctrller.VerifyController = function($scope,$http){
 				},1000);		
 			}else{
 				alert("verifying failed, reason:"+response);
+				//rest barcode, accepted;
+				$scope.sample.barcode = '';
+				$scope.sample.accepted = '';
 				$scope.sample = $scope.vdata[$scope.current_index];
 			}
 		});

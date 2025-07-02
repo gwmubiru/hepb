@@ -1,0 +1,104 @@
+Collecting xhtml2pdf
+  Using cached xhtml2pdf-0.2.9-py3-none-any.whl (262 kB)
+Collecting pypdf>=3.1.0
+  Downloading pypdf-3.4.1-py3-none-any.whl (241 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 241.6/241.6 KB 350.9 kB/s eta 0:00:00
+Collecting pyHanko>=0.12.1
+  Downloading pyHanko-0.17.0-py3-none-any.whl (378 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 378.3/378.3 KB 1.1 MB/s eta 0:00:00
+Collecting reportlab>=3.5.53
+  Downloading reportlab-3.6.12-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.8/2.8 MB 1.5 MB/s eta 0:00:00
+Collecting svglib>=1.2.1
+  Downloading svglib-1.5.1.tar.gz (913 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 913.9/913.9 KB 1.9 MB/s eta 0:00:00
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting arabic-reshaper>=3.0.0
+  Using cached arabic_reshaper-3.0.0-py3-none-any.whl (20 kB)
+Collecting html5lib>=1.0.1
+  Downloading html5lib-1.1-py2.py3-none-any.whl (112 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 112.2/112.2 KB 2.9 MB/s eta 0:00:00
+Collecting pyhanko-certvalidator>=0.19.5
+  Using cached pyhanko_certvalidator-0.20.0-py3-none-any.whl (106 kB)
+Collecting python-bidi>=0.4.2
+  Using cached python_bidi-0.4.2-py2.py3-none-any.whl (30 kB)
+Collecting Pillow>=8.1.1
+  Downloading Pillow-9.4.0-cp37-cp37m-manylinux_2_28_x86_64.whl (3.4 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.4/3.4 MB 1.8 MB/s eta 0:00:00
+Collecting webencodings
+  Downloading webencodings-0.5.1-py2.py3-none-any.whl (11 kB)
+Collecting six>=1.9
+  Downloading six-1.16.0-py2.py3-none-any.whl (11 kB)
+Collecting cryptography>=3.3.1
+  Downloading cryptography-39.0.1-cp36-abi3-manylinux_2_28_x86_64.whl (4.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.2/4.2 MB 3.0 MB/s eta 0:00:00
+Collecting asn1crypto>=1.5.1
+  Downloading asn1crypto-1.5.1-py2.py3-none-any.whl (105 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 105.0/105.0 KB 1.3 MB/s eta 0:00:00
+Collecting pyyaml>=5.3.1
+  Downloading PyYAML-6.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl (596 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 596.3/596.3 KB 2.7 MB/s eta 0:00:00
+Collecting click>=7.1.2
+  Downloading click-8.1.3-py3-none-any.whl (96 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 96.6/96.6 KB 1.0 MB/s eta 0:00:00
+Collecting requests>=2.24.0
+  Downloading requests-2.28.2-py3-none-any.whl (62 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.8/62.8 KB 1.9 MB/s eta 0:00:00
+Collecting qrcode>=6.1
+  Downloading qrcode-7.4.2-py3-none-any.whl (46 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.2/46.2 KB 1.3 MB/s eta 0:00:00
+Requirement already satisfied: pytz>=2020.1 in /home/george/Vlenv/vl5/lib/python3.7/site-packages (from pyHanko>=0.12.1->xhtml2pdf) (2022.7.1)
+Collecting tzlocal>=2.1
+  Downloading tzlocal-4.2-py3-none-any.whl (19 kB)
+Collecting uritools>=3.0.1
+  Downloading uritools-4.0.1-py3-none-any.whl (10 kB)
+Collecting oscrypto>=1.1.0
+  Downloading oscrypto-1.3.0-py2.py3-none-any.whl (194 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 194.6/194.6 KB 1.9 MB/s eta 0:00:00
+Requirement already satisfied: typing_extensions>=3.10.0.0 in /home/george/Vlenv/vl5/lib/python3.7/site-packages (from pypdf>=3.1.0->xhtml2pdf) (4.4.0)
+Collecting lxml
+  Downloading lxml-4.9.2-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl (6.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.6/6.6 MB 3.1 MB/s eta 0:00:00
+Collecting tinycss2>=0.6.0
+  Downloading tinycss2-1.2.1-py3-none-any.whl (21 kB)
+Collecting cssselect2>=0.2.0
+  Downloading cssselect2-0.7.0-py3-none-any.whl (15 kB)
+Collecting importlib-metadata
+  Downloading importlib_metadata-6.0.0-py3-none-any.whl (21 kB)
+Collecting cffi>=1.12
+  Downloading cffi-1.15.1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (427 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 427.9/427.9 KB 2.5 MB/s eta 0:00:00
+Collecting pypng
+  Downloading pypng-0.20220715.0-py3-none-any.whl (58 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 58.1/58.1 KB 1.3 MB/s eta 0:00:00
+Collecting idna<4,>=2.5
+  Downloading idna-3.4-py3-none-any.whl (61 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 61.5/61.5 KB 1.7 MB/s eta 0:00:00
+Collecting urllib3<1.27,>=1.21.1
+  Downloading urllib3-1.26.14-py2.py3-none-any.whl (140 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 140.6/140.6 KB 4.0 MB/s eta 0:00:00
+Collecting charset-normalizer<4,>=2
+  Downloading charset_normalizer-3.0.1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (170 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 170.5/170.5 KB 2.7 MB/s eta 0:00:00
+Collecting certifi>=2017.4.17
+  Downloading certifi-2022.12.7-py3-none-any.whl (155 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 155.3/155.3 KB 2.1 MB/s eta 0:00:00
+Collecting pytz-deprecation-shim
+  Downloading pytz_deprecation_shim-0.1.0.post0-py2.py3-none-any.whl (15 kB)
+Collecting backports.zoneinfo
+  Downloading backports.zoneinfo-0.2.1-cp37-cp37m-manylinux1_x86_64.whl (70 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 70.7/70.7 KB 1.7 MB/s eta 0:00:00
+Collecting pycparser
+  Downloading pycparser-2.21-py2.py3-none-any.whl (118 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 118.7/118.7 KB 3.6 MB/s eta 0:00:00
+Collecting zipp>=0.5
+  Downloading zipp-3.13.0-py3-none-any.whl (6.7 kB)
+Collecting tzdata
+  Downloading tzdata-2022.7-py2.py3-none-any.whl (340 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 340.1/340.1 KB 1.3 MB/s eta 0:00:00
+Using legacy 'setup.py install' for svglib, since package 'wheel' is not installed.
+Installing collected packages: webencodings, pypng, charset-normalizer, asn1crypto, arabic-reshaper, zipp, urllib3, uritools, tzdata, tinycss2, six, qrcode, pyyaml, pypdf, pycparser, Pillow, oscrypto, lxml, idna, certifi, backports.zoneinfo, requests, reportlab, pytz-deprecation-shim, python-bidi, importlib-metadata, html5lib, cssselect2, cffi, tzlocal, svglib, cryptography, click, pyhanko-certvalidator, pyHanko, xhtml2pdf
+  Running setup.py install for svglib: started
+  Running setup.py install for svglib: finished with status 'done'
+Successfully installed Pillow-9.4.0 arabic-reshaper-3.0.0 asn1crypto-1.5.1 backports.zoneinfo-0.2.1 certifi-2022.12.7 cffi-1.15.1 charset-normalizer-3.0.1 click-8.1.3 cryptography-39.0.1 cssselect2-0.7.0 html5lib-1.1 idna-3.4 importlib-metadata-6.0.0 lxml-4.9.2 oscrypto-1.3.0 pyHanko-0.17.0 pycparser-2.21 pyhanko-certvalidator-0.20.0 pypdf-3.4.1 pypng-0.20220715.0 python-bidi-0.4.2 pytz-deprecation-shim-0.1.0.post0 pyyaml-6.0 qrcode-7.4.2 reportlab-3.6.12 requests-2.28.2 six-1.16.0 svglib-1.5.1 tinycss2-1.2.1 tzdata-2022.7 tzlocal-4.2 uritools-4.0.1 urllib3-1.26.14 webencodings-0.5.1 xhtml2pdf-0.2.9 zipp-3.13.0

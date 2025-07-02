@@ -1,0 +1,63 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">Samples Pending Results</div>
+
+<div class="panel panel-default">
+	<ul id="tabs_a" class="nav nav-tabs">    
+    
+	     <li {% if request.GET.stage == '1' %} class="active" {% endif %}>
+	    	<a href="/worksheets/lab_samples/?stage=1">On worksheet, pending results upload</a>
+	    </li>
+	    <li {% if request.GET.stage == '4' %} class='active' {% endif %}>
+	    	<a href="/worksheets/lab_samples/?stage=4">Repeats, pending worksheet</a>
+	    </li>
+	    <li {% if request.GET.sample_without_results == '0' %} class='active' {% endif %}>
+	    	<a href="/samples/list/?sample_without_results=0">Received, pending worksheet</a>
+	    </li>
+  
+	</ul>
+	<div id="my-tab-content" class="tab-content" style="min-height:400px">
+		<div class="table-resonsive">
+			<table class='table table-bordered table-striped table table-condensed' id='range_list_table'>
+				<thead>
+					<tr>
+						<th>Barcode Used</th>
+						<th>Original Barcode</th>
+						<th>Sample type</th>
+						<th>Envelope Number</th>
+						<th>Worksheet Number</th>
+						<th>Worksheet date</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$(document).ready(function() {	
+		$(".status").hide();
+        $(".comments").hide();
+
+		 var table = $('#range_list_table').dataTable({
+			"processing": true,
+			"serverSide": true,
+			"order": [[ 1, "desc" ]],
+			"ajax": "/worksheets/lab_samples_json/?stage={{ request.GET.stage }}",
+		});
+	
+	});
+	
+</script>
+{% endblock %}

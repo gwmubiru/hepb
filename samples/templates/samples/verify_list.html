@@ -1,74 +1,206 @@
 {% extends "home/layout.html" %}
 {% load form_tags %}
-{% load staticfiles %}
+{% load static %}
 
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	<style>
+		.recp{
+			color: #004085;
+		    background-color: #cce5ff;
+		    border-color: #b8daff;
+		}
+		.approved{
+			color: #155724;
+	    	background-color: #d4edda;
+	    	border-color: #c3e6cb;
+		}
+		.data_ent{
+			color: #856404;
+    		background-color: #fff3cd;
+    		border-color: #ffeeba;
+		}
+	</style>
 {% endblock %}
 
 {% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
 	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
 {% endblock %}
 
 {% block content %}	
 
-<span class="page-title">approvals</span>
-
+<div class="page-title">approvals</div>
+<form method='GET' action="{% url 'samples:verify_list' %}" id="filter_form">						
+	<div class="form-inline">
+			
+			<select class="form-control select2" name="facility_id" id="flty">
+				 <option value="">Select facility</option>
+		            {% for f in facilities %}
+		            <option value="{{f.id}}">{{ f.facility }}</option>
+		            {% endfor %}
+       		</select>
+       		<select class="form-control select2" name="facility_id" id="flty">
+				 <option value="">Select envelope</option>
+	            {% for f in facilities %}
+	            <option value="{{f.id}}">{{ f.facility }}</option>
+	            {% endfor %}
+       		</select>
+       		<select class="form-control hidden" name="sample_type" id="sample_type">
+				<option value="">Select sample type</option>    
+	            <option value="P">Plasma</option>
+	            <option value="D">DBS</option>
+		            
+       		</select>
+        <input type="text" name="search" value="{{request.GET.search}}" class="form-control">
+        <input type="text" name="envelope_id" value="{{request.GET.envelope_id}}" class="hidden">
+        <input type="text" name="facility_id" value="{{request.GET.facility_id}}" class="hidden">
+        <input type="text" name="tab" value="{{request.GET.tab}}" class="hidden">
+				<input type="submit" value="Filter" class="btn btn-danger btn-sm" placeholder="search sample">
+		</div>
+</form>
+<br>
 <ul id="tabs_a" class="nav nav-tabs">
-    <li {% if verified == '0' %}class='active'{% endif %}>
+    
+    
+     <li {% if request.GET.verified == '0' %} class="active" {% endif %}>
     	<a href="/samples/verify_list/?verified=0">Pending</a>
     </li>
-    <li {% if verified == '1' %}class='active'{% endif %}>
+    <li {% if request.GET.verified == '1' %} class='active' {% endif %}>
     	<a href="/samples/verify_list/?verified=1">Completed</a>
     </li>
-    <li>
-    	<a href="/samples/envelope_list/">Envelopes/Boxes</a>
-    </li>
 
+  
 </ul>
 <div id="my-tab-content" class="tab-content" style="min-height:400px">
-    <div class="tab-pane active" id="print"> 
+   
+    <div class="tab-pane active" id="print">
+    	{% if request.GET.verified == '0' %}
+    	<div class="alert alert-success" role="alert">
+	  If the data on form matches what what data entered, just mark as verified. Otherwise, edit.
+	</div>
+	{% endif %}
     	{% if verified == '0' %}
-    	<span class="badge badge-default">{{ pending }}</span>
-    	<span class="badge badge-default">DBS: {{ pending_dbs }}</span>
-    	<span class="badge badge-default">Plasma: {{ pending_plasma }}</span>
-    	{% else %}
-    	<span class="badge badge-default">{{ completed }}</span>
-    	<span class="badge badge-default">DBS: {{ completed_dbs }}</span>
-    	<span class="badge badge-default">Plasma: {{ completed_plasma }}</span>
-    	{% endif %}
-
-    	<br><br>
-		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+	    	<span class="badge badge-default">{{ pending }}</span>
+	    	<span class="badge badge-default">DBS: {{ pending_dbs }}</span>
+	    	<span class="badge badge-default">Plasma: {{ pending_plasma }}</span>
+	    	{% endif %}
+		<table class='table table-bordered table-striped table table-condensed' id='tab_idp'>
 			<thead>
 				<tr>
-					<th style="width:50px">Form #</th>
-					<th style="width:70px">Locator ID</th>				
-					<th>Sample Type</th>				
-					<th>Date Collected</th>
-					<th>Initiation Date</th>
-					<th>Date Received</th>				
-					<th>Patient ART #</th>
-					<th>Other ID</th>
-					<th>District</th>
-					<th>Facility</th>
-					<th>Status</th>
-					<th>...</th>
+					
+					<th style="width:70px">Locator ID</th>	
+					<th class="recp">Recep Facility</th>
+					<th class="recp">Recep District</th>
+					<th class="recp">Recep ART #</th>
+					{% if request.GET.verified  == '0' %}
+					<th>Received by</th>
+					{% endif %}
+
+					<th class="data_ent">Data Facility</th>
+					<th class="data_ent">Data District</th>
+					<th class="data_ent">Data ART #</th>
+					{% if request.GET.verified  == '0' %}
+					<th>Entered by</th>
+					{% endif %}
+
+					{% if request.GET.verified == '1' %}
+					<th class="approved">Approved Facility</th>
+					<th class="approved">Approved District</th>
+					<th class="approved">Approved ART #</th>	
+					{% endif %}
+					
+					{% if request.GET.verified == '0' %}						
+					<th>Action</th>
+					<th>..</th>
+					{% endif%}
 				</tr>
-			</thead>		
+			</thead>
+			<tbody>
+					
+				{% for s in samples %}	
+			
+					<tr>
+						<td>{{s.barcode}}</td>
+
+						<td class="recp">{{s.facility}}</td>
+						<td class="recp">{{s.facility.district}}</td>
+						<td class="recp">{{s.reception_art_number}}</td>
+						{% if request.GET.verified  == '0' %}
+						<td>{{ s.created_by.first_name }} {{ s.created_by.last_name }}</td>
+						{% endif %}
+
+						<td class="data_ent">{{s.patient.facility}}</td>
+						<td class="data_ent">{{s.patient.facility.district}}</td>
+						<td class="data_ent">{{s.patient.art_number}}</td>
+						{% if request.GET.verified  == '0' %}
+						<td>{{ s.data_entered_by.first_name }} {{ s.data_entered_by.last_name }}</td>
+						{% endif %}
+
+						{% if request.GET.verified == '1' %}
+						<td class="approved">{{s.patient.facility}} </td>
+						<td class="approved">{{s.patient.facility.district}}</td>
+						<td class="approved">{{s.patient.art_number}}</td>
+						{% endif %}
+						{% if request.GET.verified == '0' %}
+						<td>{% if s.verified == 0 %}
+							<a href="/samples/edit/{{s.id}}?from_page=verify" class="btn btn-danger btn-sm" style="margin-right: 5px;">Edit</a>
+							<label><input type='radio'  name='choices{{ s.pk }}' class='choices' sample-pk="{{ s.pk }}" value='verified'> Verified</label>
+							{% else %}
+								Verified
+							{% endif %}
+							
+						</td>
+						<td><span id="saved{{ s.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;</span></td>
+						{% endif %}
+					</tr>	
+				{% endfor %}
+			</tbody>
 		</table>
+		{% if samples.has_other_pages %}
+		  <ul class="pagination" style="margin-top:0">
+		    {% if samples.has_previous %}
+		      <li><a href="?verified={{request.GET.verified}}&page={{ samples.previous_page_number }}">&laquo;</a></li>
+		    {% else %}
+		      <li class="disabled"><span>&laquo;</span></li>
+		    {% endif %}
+		    {% for i in samples.paginator.page_range %}
+		      {% if samples.number == i %}
+		        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+		      {% else %}
+		        <li><a href="?verified={{request.GET.verified}}&page={{ i }}">{{ i }}</a></li>
+		      {% endif %}
+		    {% endfor %}
+		    {% if samples.has_next %}
+		      <li><a href="?verified={{request.GET.verified}}&page={{ samples.next_page_number }}">&raquo;</a></li>
+		    {% else %}
+		      <li class="disabled"><span>&raquo;</span></li>
+		    {% endif %}
+		  </ul>
+		{% endif %}
 	</div>
 </div>
 
 <script type="text/javascript">
 $(document).ready(function() {
-	var oTable = $('#tab_id').dataTable({
-		"processing": true,
-		"serverSide": true,
-		"order": [],
-		"searching": false,
-		"ajax": "/samples/list_json?verified={{ verified }}{% if global_search %}&global_search={{ global_search }}{% endif %}",
+	$('.select2').select2();
+	$(".choices").on("click",function(){
+	 	var choice = $(this).val();
+	 	//alert(choice);
+	 	var sample_pk = $(this).attr('sample-pk');
+	 	if(choice == 'verified'){
+	 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk, post_type: 'verify', choice: choice};
+	 		$.post("/samples/verify/"+sample_pk+"/", params).done(function( data ) {
+			    $("#saved"+params.sample_pk).show();
+			  });
+	 	}	
+
+	 });
+	 
+	$('.veriify').click(function(){
+		alert('clicked');
 	});
 });
 </script>

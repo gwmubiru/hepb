@@ -1,0 +1,220 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	<script type="stylesheet" src='{% static "home/vendor/flexselect/flexselect.css" %}'></script>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+	
+
+	<script type="text/javascript" src='{% static "home/vendor/autocomplete/jquery.auto-complete.min.js" %}'></script>
+
+{% endblock %}
+
+
+{% block content %}	
+
+<style>
+
+.autocomplete-suggestions {
+    text-align: left; cursor: default; border: 1px solid #ccc; border-top: 0; background: #fff; box-shadow: -1px 1px 3px rgba(0,0,0,.1);
+
+    /* core styles should not be changed */
+    position: absolute; display: none; z-index: 9999; max-height: 254px; overflow: hidden; overflow-y: auto; box-sizing: border-box;
+}
+.autocomplete-suggestion { position: relative; padding: 0 .6em; line-height: 23px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 1.02em; color: #333; }
+    </style>
+<div class="page-title">capture sample details</div>
+<div class="panel panel-default">
+<div class="row panel-body" ng-app="samples" ng-controller="SampleController">
+	<div class="col-lg-11">
+	{% if sample %}
+	<div id="success" class="alert alert-success vl-alert" role="alert">
+		just saved: 
+		<a href="{% url 'samples:show' sample.pk %}">
+			{{sample.locator_category }}{{sample.envelope.envelope_number}}/{{sample.locator_position}} 
+			({{ sample.vl_sample_id }})</a>
+		&nbsp;&nbsp;
+		<span class='x' id='x'>x</span>
+	</div>
+	{% endif %}
+
+	
+	<form action="{% url 'samples:whether_patient_exists'  %}" method="post" role="form" id="patient_exits">
+		{% csrf_token %}
+		
+		<div class="row">
+			<div class="col-lg-5">
+				<span class='sub-title'>form/facility details</span>
+
+				{% if sample_id %}
+				<div class="form-group">
+					<label for='sample_id'>VL Sample ID</label>
+					{% input 'vl_sample_id' vsi '{"disabled":"true"}' %}
+				</div>
+				{% endif %}
+				<div class="form-group required">
+					{{ sample_form.facility.label_tag }}<br>
+					{{ sample_form.facility }}
+					<div style="padding-top:10px;">
+						District: <u id="id_district" style="min-width:100px;">_______________</u>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						Hub: <u id="id_hub">_______________</u>
+					</div>
+				</div>
+
+				<div class="form-group required">
+					<label for='sample_id'>Art Number</label>
+				<input id="art_number" autofocus type="text" name="art_number" class="form-control input-sm input_md" placeholder="start typing ..." style="width:300px; outline:0">
+				</div> 
+
+			</div>
+		</div>
+		
+		<input type="submit" value="Continue" class="btn btn-danger" style="width: 298px; display: none;">
+	</form>
+	</div>
+
+	<div class="col-lg-1" >
+		{% if sample %}
+			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
+			{% for s in sample.envelope.sample_set.all|dictsort:"locator_position" %}
+				<span  style="margin-left:-60px">
+					{{ forloop.counter }}. 
+					<a href='{% url 'samples:show' s.pk %}' >
+						{{s.locator_category }}{{s.envelope.envelope_number}}/{{s.locator_position}}
+					</a>
+				</span><br>
+			{% endfor %}
+		{%endif%}
+	</div>
+</div>
+</div>
+<script type="text/javascript">
+	
+	$( function() {
+		$('#art_number').on('change', function(){
+			var facility_id = $("#id_facility").val();
+			var art_no = $("#id_facility").val();
+			if(facility_id != '' && art_no != ''){
+			   $('#patient_exits').submit();
+			}
+		});
+    	$("#id_facility").change(function(){
+    		//make art number empty 
+    		$('#art_number').val('');
+    		set_district_hub();
+    		$(function(){
+				//get the art numbers for a facility
+				var facility_id = $("#id_facility").val();
+				var url =  "/samples/facility_art_numbers/"+facility_id+"/";
+					$.get(url, function(data, status){
+						var json_data = JSON.parse(data);
+						//console.log(json_data);
+						var options = json_data;
+			        	$('#art_number').autoComplete({
+					            minChars: 1,
+					            source: function(term, suggest){
+					                term = term.toLowerCase();
+					                var choices = options;
+					                var suggestions = [];
+					                for (i=0;i<choices.length;i++)
+					                    if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+					                suggest(suggestions);
+					            }
+			        		});
+		           
+		    			}); 
+					});			    		
+    		});
+
+		$("#x").on("click", function(){
+			$("#success").slideUp("slow");
+		});
+  	});
+	
+	function pick_num(e){
+		var c = e.which||e.keyCode;
+		//alert(c);
+		var ret = true;
+		if(c!=0 && c!=8 && c!=9){
+			ret = c > 47 && c < 58?true:false;
+		}
+		return ret;
+	}
+
+	function round1(val){
+		return Math.floor(val);
+	}
+	function set_district_hub(){
+		var facility_id = $('#id_facility').val();
+		if(facility_id!=''){
+			var url =  "/samples/get_district_hub/"+facility_id+"/";
+			$.get(url, function(data, status){
+				var json_data = JSON.parse(data);
+				$("#id_district").html(json_data.district);
+				$("#id_hub").html(json_data.hub);
+			});	
+		}
+					
+	}
+
+//422551
+	
+</script>
+
+
+<style type="text/css">
+    .x{
+    	color: rgb(210, 190, 220);
+    	cursor: pointer;
+    	font-size: 18px;
+    }
+
+    .form-group.required label:before, .form-inline.required label:before {
+	  content:"*";
+	  color:red;
+	}
+
+	.day{
+		width:10px;
+	}
+
+	.form-group, .form-inline{
+		margin-bottom: 4px;
+	}
+
+	.form-group > label,.form-inline > label{
+		font-size: 14px;
+	}
+
+
+	.live_drpdwn{
+		min-width: 350px;
+		max-height: 300px;
+		border: 1px solid  #D2B9D3;
+		background-color: #DDE1EC;
+		position: absolute;
+		border-radius: 2px;
+		-webkit-box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+		   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+		   width: 100px;
+		   padding-left:5px;
+		   overflow-y:auto;
+		   z-index: 99 !important;
+		}
+
+	input { width: 400px; }
+      label, input { display: block; }
+      label { font-weight: bold; }
+      input, .flexselect_dropdown li { font-size: 1em; }
+      small { color: #999; }
+      .flexselect_selected small { color: #ddd; }
+</style>
+{% endblock %}

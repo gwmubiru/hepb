@@ -22,6 +22,8 @@ class Command(BaseCommand):
 			s.vl_sample_id = "%s/%s%s" %(str(smpl_id).zfill(6), utils.year('yy'), utils.month('mm'))
 			s.save()
 			smpl_id += 1
-			print "updated %s"%s.pk
+			print "updated %s" %s.pk
 
 
+
+#deleted duplicate ids 168403

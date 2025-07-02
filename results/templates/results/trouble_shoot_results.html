@@ -1,0 +1,42 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+	<span class="page-title">Upload results</span>
+	<div class="panel panel-default">
+		<div class="panel-body">
+
+			<form action="{% url 'results:trouble_shoot_results' %}" method="post" >
+				{% csrf_token %}
+				<div class="form-group">
+					<label for="search_by">Search by:</label>
+					<select name="search_by" class="form-control input-sm w-xs" id="search_by" required>
+					  <option value="" selected="">---------</option>
+
+					  <option value="barcode">Barcode</option>
+
+					  <option value="facility_reference">Facility reference</option>
+
+					  <option value="form_number">Form Number</option>
+
+					</select>
+				</div>
+
+				<div class="form-group">
+					
+					<textarea name="search_string" id="search_string" class="form-control" rows="4" cols="50" placeholder="e.g. 2503525201,2503525202"></textarea>
+				</div>
+
+				<input id="" type="submit" value="Generate CSV" class="btn btn-danger btn-submit ">
+
+			</form>
+		</div>
+	</div>
+	
+{% endblock %}

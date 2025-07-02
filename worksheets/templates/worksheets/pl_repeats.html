@@ -1,0 +1,80 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block css %}
+    <link rel="stylesheet" href="{% static 'home/vendor/datatables/media/css/dataTables.jqueryui.min.css' %}">
+{% endblock %}
+
+{% block js %}
+    <script type="text/javascript" src="{% static 'home/vendor/datatables/media/js/jquery.dataTables.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-title">Samples Pending Results</div>
+<div class="alert alert-info alert-dismissible" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+    <ul>
+        <li><b>Has never had result</b> - shows number of samples which are on worksheet but have never got any result.</li>
+        <li><b>Repeats pending result</b> - Shows number of repeat samples which are on worksheet pending results.</li>
+        <br /><b>Note:</b> To see the affected samples, click on the number in question.
+    </ul>
+</div>
+<ul id="tabs_a" class="nav nav-tabs">
+    <li {% if request.GET.is_lab_completed == '0' %}class="active"{% endif %}>
+        <a href="/worksheets/lab_env_list/?sample_type={{ request.GET.sample_type }}&is_lab_completed=0">Pending</a>
+    </li>
+    <li {% if request.GET.is_lab_completed == '1' %}class="active"{% endif %}>
+        <a href="/worksheets/lab_env_list/?sample_type={{ request.GET.sample_type }}&is_lab_completed=1">Completed</a>
+    </li>
+</ul>
+<div id="my-tab-content" class="tab-content" style="min-height:400px">
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped table-condensed" id="lab_env">
+            <thead>
+                <tr>
+                    <th>Sample #</th>
+                    <th>Barcode</th> <!-- Adjusted to match view data -->
+                    <th>Facility Reference</th> <!-- Adjusted to match view data -->
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+<div id="lab_modal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" style="color:red">Samples List</h4>
+            </div>
+            <div class="modal-body" id="content">
+                Samples list here.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".status").hide();
+    $(".comments").hide();
+
+    $('#lab_env').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "order": [[0, "desc"]],
+        "ajax": "/worksheets/pl_repeats_json/?sample_type={{ request.GET.sample_type }}&is_lab_completed={{ request.GET.is_lab_completed }}{% if global_search %}&global_search={{ global_search }}{% endif %}",
+        "columns": [
+            { "data": 0 }, // Sample ID
+            { "data": 1 }, // Barcode
+            { "data": 2 }  // Facility Reference
+        ]
+    });
+});
+</script>
+{% endblock %}

@@ -6,6 +6,7 @@ from backend.models import Appendix
 from results.models import Result, ResultsQC, ResultsDispatch
 from results import utils as r_utils
 from worksheets.models import Worksheet, WorksheetSample
+from django.utils import timezone
 
 class Command(BaseCommand):
 	help = "Transfer results data from old database to the new database"

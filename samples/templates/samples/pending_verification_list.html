@@ -1,0 +1,147 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">Patients Pending Verification</div>
+
+<div class="panel panel-default">
+	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<thead>
+			<tr>				
+				<th>Art Number</th>				
+				<th>DOB</th>
+				<th>Facility</th>
+				<th>Status</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for p in patients %}
+			<tr>				
+				<td>{{ p.art_number }}</td>
+				<td>{{ p.dob }}</td>
+				<th>{{ p.facility }}</th>
+				<th><span id="verify_{{p.pk}}">Pending Verification</span></th>
+				<th>
+
+					<div class="btn-group">
+						<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+							Action 
+							<span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu" role="menu">
+							<li><a href="#" class="newpatient" data-patient_id="{{p.pk}}" >Mark as New</a></li>
+							<li><a href="#" class="merge" data-patient_id="{{p.pk}}" data-type="transfer" data-art_number = "{{p.art_number}}">Transferred</a></li>
+							<li><a href="#" class="merge" data-patient_id="{{p.pk}}" data-type="merge" data-art_number = "{{ p.art_number }}" data-facility_id = "{{ p.facility_id }}">Merge with</a></li>
+						</ul>
+					</div>
+					</th>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<div class="modal fade" tabindex="-1" role="dialog" id="art_number_modal">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title">Merge Number</h4>
+	      </div>
+	      <div class="modal-body">
+	      	<div class="box box-info no-border"> 
+	      	<p id="description"></p>      	
+			  	<form action="/samples/pending_verification_list/" method="post" role="form">
+					{% csrf_token %}
+						<div class="form-group" id="facility_container">
+			              <label for="facility" class="col-sm-3 control-label">Transferred from</label>
+			              <div class="col-sm-9">
+			              	 <select name='facility_id' id='facility_id' class='form-control' style="margin-bottom: 15px;">
+			                	<option value=''></option>
+			                	{% for facility in facilities %}
+			                	<option value='{{facility.id}}'>{{facility.facility}}</option>
+			                	{% endfor %}
+			                </select>
+			              </div>
+			            </div>
+			            
+			  			<div class="form-group">
+			              <label for="art_number" id="art_number_label" class="col-sm-3 control-label">Art Number</label>
+			              <div class="col-sm-9">
+			                <input type="text" name="art_number" class="form-control" style="margin-bottom: 15px;">
+			                <input type="text" name="patient_id" id="patient_id" class="form-control hidden">
+			                <input type="text" name="type" id="type" class="form-control hidden">
+			               </div>
+			              </div>
+
+			  			<div class="box-footer"> 
+			  				<button type="button" class="btn btn-xs btn-danger" data-dismiss="modal">Close</button>
+			  				<button type="submit" class="btn btn-xs btn-primary  pull-right">Submit</button>
+			        	</div>
+			  	</form>
+		   
+      	</div>
+     </div>
+    </div>
+   </div>
+
+</div>
+
+<script type="text/javascript">
+
+	$(document).ready(function() {
+		$(".merge").click(function(){
+		  var p_type = $(this).attr('data-type');
+		  var description = "Please select the facility from which the patient was transferred and their old art number (art number the patient was on at the facility they were transferred from).";
+		  var title = "Transfer Details";
+		  if(p_type == 'merge'){
+		  	description =  "Please enter the correct art number for the patient";
+		  	title = "Merge Details";
+		  	$("#facility_container").addClass('hidden');
+		  	$("#art_number_label").html('Art Number');
+		  	$("#art_number_modal #facility_id").val( $(this).attr('data-facility_id'));
+		  }else{
+		  	$("#facility_container").removeClass('hidden');
+		  	$("#art_number_label").html('Old Art Number');
+		  }
+		  $("#art_number_modal #description").html(description);
+	      $("#art_number_modal #patient_id").val($(this).attr('data-patient_id'));
+	      $("#art_number_modal #type").val(p_type);
+	      $("#art_number_modal").modal('show');
+	    });
+		var oTable = $('#tab_id').dataTable({
+			"processing": true,
+		});
+
+		$(".newpatient").on("click", function(){
+		var that = $(this);
+			var patient_id = $(this).attr('data-patient_id');
+			var params = {csrfmiddlewaretoken:"{{ csrf_token }}", 'patient_id': patient_id,'type':'new'};
+			$.post("/samples/pending_verification_list/", params).done(function(data) {
+				if(data==1){
+					$("#verify_"+patient_id).html("Verified");
+					$("#verify_"+patient_id).addClass('btn btn-success');
+				}else{
+					$("#verify_"+patient_id).html("Not Verified");
+					$("#verify_"+patient_id).addClass('btn btn-danger');
+				}
+				
+			});
+		});	
+	});
+	$(".paginate_button").click(function(){
+		
+	})
+</script>
+{% endblock %}

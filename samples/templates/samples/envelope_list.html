@@ -1,6 +1,6 @@
 {% extends "home/layout.html" %}
 {% load form_tags %}
-{% load staticfiles %}
+{% load static %}
 
 
 {% block css %}
@@ -14,7 +14,7 @@
 {% block content %}	
 
 <div class="page-title">approvals</div>
-<ul id="tabs_a" class="nav nav-tabs">
+<ul id="tabs_a" class="nav nav-tabs hidden">
     <li {% if verified == '0' %}class='active'{% endif %}>
     	<a href="/samples/verify_list/?verified=0">Pending</a>
     </li>
@@ -32,10 +32,10 @@
 			<thead>
 				<tr>
 					<th>Envelope #</th>
-					<th># Samples </th>
-					<th># Pending </th>
-					<th># Completed </th>
-					<th>Date</th>
+					<th># Received</th>
+					<th># Pending entry</th>
+					<th># Pending vrification </th>
+					<th>Date received</th>
 					<th>...</th>
 				</tr>
 			</thead>
@@ -46,11 +46,26 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-	var oTable = $('#tab_id').dataTable({
-		"processing": true,
-		"serverSide": true,
-		"ajax": "/samples/envelope_list_json/",
-	});
+	{% if request.GET.page_type == 'reception' %}
+		var oTable = $('#tab_id').dataTable({
+			"processing": true,
+			"serverSide": true,
+			"columnDefs": [
+	            {
+	                "targets": [3,4],
+	                "visible": false
+	            }
+	        ],
+			"ajax": "/samples/envelope_list_json/",
+		});
+	
+	{% else %}
+		var oTable = $('#tab_id').dataTable({
+			"processing": true,
+			"serverSide": true,
+			"ajax": "/samples/envelope_list_json/",
+		});
+	{% endif %}
 });
 </script>
 {% endblock %}

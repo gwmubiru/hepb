@@ -1,6 +1,6 @@
 {% extends "home/layout.html" %}
 {% load form_tags %}
-{% load staticfiles %}
+{% load static %}
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
@@ -17,13 +17,16 @@
 <div class="panel panel-default">
 	<ul id="tabs_a" class="nav nav-tabs">
 	    <li {% if request.GET.tab == 'all' %}class='active'{% endif %}>
-	    	<a href="?tab=all">All</a>
+	    	<a href="?tab=all&sample_type={{request.GET.sample_type}}">All</a>
 	    </li>
-	    <li {% if request.GET.tab == 'pending_p' %}class='active'{% endif %}>
-	    	<a href="?tab=pending_p">Pending Printing</a>
+	    {% if request.GET.sample_type == 'D' %}
+	    <li {% if request.GET.tab == 'pending_e' %}class='active'{% endif %}>
+	    	<a href="?tab=pending_e&sample_type={{request.GET.sample_type}}">Pending Elusion</a>
 	    </li>
+	    {% endif %}
+	    
 	    <li {% if request.GET.tab == 'pending_r' %}class='active'{% endif %}>
-	    	<a href="?tab=pending_r">Pending Results</a>
+	    	<a href="?tab=pending_r&sample_type={{request.GET.sample_type}}">Pending Results</a>
 	    </li>
 	</ul>
 	<div class="tab-content">
@@ -31,12 +34,16 @@
 			<thead>
 				<tr>
 					<th>Worksheet Ref Number</th>
-					<th>Machine Type</th>
+					<th>Envelopes</th>
 					<th>Sample Type</th>
+					<th>Timestamp</th>
 					<th>Date Created</th>
-					<th>Stage</th>
-					<th>Printed?</th>				
-					<th />
+					<th>Type</th>
+					<th>Elutted/Pippetted at</th>
+					<th>Loaded</th>
+					<th>Loaded at</th>
+					<th>Stage</th>				
+					<th/>
 				</tr>
 			</thead>
 		</table><br><br>
@@ -67,14 +74,50 @@
 </div>
 <script type="text/javascript">
 $(document).ready(function() {	
-	var oTable = $('#tab_id').dataTable({
-		"processing": true,
-		"serverSide": true,
-		"order": [[ 3, "desc" ]],
-		"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}{% endif %}&tab={{request.GET.tab}}",
-	});
+	{% if request.GET.tab == 'pending_e' %}
+		var oTable = $('#tab_id').dataTable({
+			"processing": true,
+			"serverSide": true,
+			"columnDefs": [
+            {
+                "targets": [6,7,8,9],
+                "visible": false
+            }
+        ],
+			"order": [[ 2, "desc" ]],
+			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}{% endif %}&tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
+		});
+		{% elif request.GET.tab == 'pending_l' %}
+		var oTable = $('#tab_id').dataTable({
+			"processing": true,
+			"serverSide": true,
+			"columnDefs": [
+            {
+                "targets": [8,9],
+                "visible": false
+            }
+        ],
+			"order": [[ 2, "desc" ]],
+			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}{% endif %}&tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
+		});
+	 {% else %}
+	 var oTable = $('#tab_id').dataTable({
+			"processing": true,
+			"serverSide": true,
+			"columnDefs": [
+            {
+                'targets': 3, type: 'date-euro',
+                "targets": [6,7,8,9],
+                "visible": false
+            }
+        ],
+			"order": [[ 2, "desc" ]],
+			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}{% endif %}&tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
+		});
+	{% endif %}
 });
 
+//
 function deleteWorksheet(pk, ref_num){
 	//alert("Are you sure that you want to delete worksheet "+pk);
 	$("#myModal").modal('show');

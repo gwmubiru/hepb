@@ -1,0 +1,57 @@
+samples.Sample.created_by: (fields.E304) Reverse accessor for 'samples.Sample.created_by' clashes with reverse accessor for 'samples.Study.created_by'.
+	HINT: Add or change a related_name argument to the definition for 'samples.Sample.created_by' or 'samples.Study.created_by'.
+samples.Sample.created_by: (fields.E305) Reverse query name for 'samples.Sample.created_by' clashes with reverse query name for 'samples.Study.created_by'.
+	HINT: Add or change a related_name argument to the definition for 'samples.Sample.created_by' or 'samples.Study.created_by'.
+samples.Study.created_by: (fields.E304) Reverse accessor for 'samples.Study.created_by' clashes with reverse accessor for 'samples.Sample.created_by'.
+	HINT: Add or change a related_name argument to the definition for 'samples.Study.created_by' or 'samples.Sample.created_by'.
+samples.Study.created_by: (fields.E305) Reverse query name for 'samples.Study.created_by' clashes with reverse query name for 'samples.Sample.created_by'.
+	HINT: Add or change a related_name argument to the definition for 'samples.Study.created_by' or 'samples.Sample.created_by'.
+
+
+2408200101
+
+$('#manage_repeats').on('click', function(){
+    $('#repeats_form').modal('show');
+});
+
+
+<div id="repeats_form" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">×</button>
+        <h4 class="modal-title" style="color:red">Sample Details</h4>
+      </div>
+
+      <div class="modal-body">
+        <form id="rep_form" action="{% url 'worksheets:manage_repeats'  %}" method="post" role="form">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="validate_facility" >Machine Type:</label>
+                <select class="form-control "name="machine_type" required="true">
+                    <option value="">---------</option>
+                    <option value="A">Abbott</option>
+                    <option value="R">Roche CAP/CTM</option>
+                    <option value="C">Cobas 8800</option>
+                    <option value="H">Hologic</option>
+                    </select>
+            </div> <br>
+             <div class="form-group">
+              <label for="validate_facility" >Sample Type:</label>
+                <select class="form-control" name="sample_type" required="true">
+                    <option value="">---------</option>
+                    <option value="P">Plasma</option>
+                    <option value="D">DBS</option>
+                    </select>
+            </div>
+                <input type="text" class="hidden" name="post_type" value="get_samples_for_worksheet">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger"  data-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="confirm_details">Submit</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>

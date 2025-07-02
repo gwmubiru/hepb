@@ -1,0 +1,30 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load staticfiles %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">Upload clean data</span>		
+	<div class="panel panel-default">
+		<div class="panel-body">
+			
+			<form action="{% url 'clean_data' %}" method="post" role="form" enctype="multipart/form-data" id="form">
+				{% csrf_token %}
+				<div class="form-group">
+					<label for="label_clean_data_file">Clean data file:</label>
+					
+					<input class="form-control-file" id="clean_data_file" name="clean_data_file" type="file">
+				</div>
+
+
+				<input id="id_upload" type="submit" value="Upload" class="btn btn-danger btn-submit ">
+				
+			</form>
+		</div>
+	</div>
+	
+{% endblock %}

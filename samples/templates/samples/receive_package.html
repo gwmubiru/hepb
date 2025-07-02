@@ -1,0 +1,96 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<div class="page-title">Packages for Receipt</div>
+
+
+<div id="my-tab-content" class="tab-content" style="min-height:400px">
+   
+    <div class="tab-pane active" id="print">
+    
+		<table class='table table-bordered table-striped table table-condensed' id='tab_idp'>
+			<thead>
+				<tr>
+					
+					<th style="width:70px">Package ID</th>	
+					<th class="recp">No. Samples</th>
+					<th class="recp">Facility</th>
+					<th class="recp">District</th>
+					
+				</tr>
+			</thead>
+			<tbody>
+					
+				{% for s in packages %}	
+			
+					<tr>
+						<td>{{s.code}}</td>
+						<td>{{s.no_samples}}</td>
+						<td>{{s.facility.facility}}</td>
+						<td>{{s.facility.district.district}}</td>
+						
+					</tr>	
+				{% endfor %}
+			</tbody>
+		</table>
+		{% if packages.has_other_pages %}
+		  <ul class="pagination" style="margin-top:0">
+		    {% if packages.has_previous %}
+		      <li><a href="?verified={{request.GET.verified}}&page={{ packages.previous_page_number }}">&laquo;</a></li>
+		    {% else %}
+		      <li class="disabled"><span>&laquo;</span></li>
+		    {% endif %}
+		    {% for i in packages.paginator.page_range %}
+		      {% if packages.number == i %}
+		        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+		      {% else %}
+		        <li><a href="?verified={{request.GET.verified}}&page={{ i }}">{{ i }}</a></li>
+		      {% endif %}
+		    {% endfor %}
+		    {% if packages.has_next %}
+		      <li><a href="?verified={{request.GET.verified}}&page={{ packages.next_page_number }}">&raquo;</a></li>
+		    {% else %}
+		      <li class="disabled"><span>&raquo;</span></li>
+		    {% endif %}
+		  </ul>
+		{% endif %}
+	</div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$('.select2').select2();
+	$(".choices").on("click",function(){
+	 	var choice = $(this).val();
+	 	//alert(choice);
+	 	var sample_pk = $(this).attr('sample-pk');
+	 	if(choice == 'verified'){
+	 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk, post_type: 'verify', choice: choice};
+	 		$.post("/packages/verify/"+sample_pk+"/", params).done(function( data ) {
+			    $("#saved"+params.sample_pk).show();
+			  });
+	 	}	
+
+	 });
+	 
+	$('.veriify').click(function(){
+		alert('clicked');
+	});
+});
+</script>
+{% endblock %}

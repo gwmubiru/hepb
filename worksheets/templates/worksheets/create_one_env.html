@@ -1,0 +1,280 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	<style>
+		.special_width,.input-sm {
+			width: 299px;
+		}
+	</style>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+
+{% block content %}	
+
+<div class="page-title">New{% if sample_type == 'D' %} DBS {% else %}Plasma{% endif %} Worksheet
+						</div>
+<div class="panel panel-default">
+<div class="row panel-body">
+	
+	
+	<form action="{% url 'worksheets:create' sample_type %}" method="post" id="wrksheet_batch_form" role="form">
+		{% csrf_token %}
+	<div class="col-lg-4" style="border-right-style: dotted;">
+		<div class="row">
+			<div class="col-lg-6">
+				
+				<div class="form-inline required">
+					
+					<label for="locator_envelope">First Locator ID</label><br>
+					
+					<input type="text" name="envelope_number" id="envelope_number" class="hidden">
+					<input type="text" name="envelope_id" id="envelope_id" class="hidden">
+					<input type="text" name="locator_position" id="locator_position" class="hidden">
+					<input type="text" name="barcode" class="form-control input-sm special_width" required="required" style="width: 299px;" id="first_barcode">
+					<input type="text" class="hidden" value="{{sample_type}}" id="sample_type" name="sample_type">
+
+				</div>
+				
+				<div class="form-inline required">
+					<label for="locator_envelope">Last Locator ID</label><br>
+					<input type="text" name="last_barcode" class="form-control input-sm special_width" required="required" style="width: 299px;" id="last_barcode">
+				</div>
+				<div class="form-group required">
+					<label for="number_of_samples">No. Samples:</label>
+					<br>
+					<input type="text" name="number_of_samples" id="number_of_samples" class="form-control input-sm special_width" >
+				</div>
+						
+				
+			</div>
+
+			
+		</div>
+		
+	
+	</div>
+	<div class="col-lg-6">
+		<span class="sub-title hidden" id="sub-t">Worksheet Samples</span>
+		<div class="row" id="sub-t-b" style="margin-top:5px;">
+			<div class="row" id="generate_samples_container">
+				<div class="col-md-6" style="text-align:center"></div>
+				<div class="col-md-1" style="text-align:center"></div>
+			</div>
+		</div>
+		<div class="form-inline required" id="locator_id_container" style="margin-top:5px;">
+							
+		
+		</div>
+		<br />
+		<input type="submit" value="Save" class="btn btn-danger" id="submit_wrksheet_form">
+		
+	</div>
+	</form>
+	
+</div>
+</div>
+	
+
+<script type="text/javascript">
+	$(document).ready(function() {
+    	
+		$("#envelope_number").change(function(){
+			var val = $(this).val();
+			var env_num = Number(val.substr(-4));
+			var s_type = $('#sample_type').val();
+			
+			var url =  "/samples/get_envelope_details/?envelope_number="+val+"&sample_type="+s_type+"&env_status_update=has_result";
+    		$.get(url, function(data, status){
+				var data_arr = JSON.parse(data);
+				$("#envelope_id").val(data_arr.envelope_id);
+			});
+		});
+
+		$("#first_barcode").change(function(){
+    		var barc = $(this).val();
+    		var year_month = barc.substring(0, 4);
+    		var env_number = barc.substring(4,8);
+    		var locator_posn = barc.substr(barc.length - 2);
+    		var locator_posn_int = Number(locator_posn);
+    		$("#envelope_number").val(year_month +'-'+env_number).change();
+    		$("#locator_position").val(locator_posn).change();
+    		//also trigger change on number of samples to update generated sample barcodes
+    		$('#number_of_samples').change();
+    		if(barc.length > 10){
+    			alert('invalid barcode!')
+    			$("#first_barcode").val('');
+    		}else{
+
+    			var env_num = Number(barc.substring(4,8));
+				var s_type = $('#sample_type').val();
+				if(s_type == 'D' && env_num < 3000){
+					alert('Toli mu class! This is not a DBS sample');
+					$(this).val('');
+					barc = '';
+				}
+				if(s_type == 'P' && env_num > 2999){
+					alert('Toli mu class! This is not a Plasma sample');
+					$(this).val('');
+					barc = '';
+				}
+				if(s_type == 'P' && locator_posn_int > 99){
+					alert('Plasma position cannot be greater than 99');
+					$("this").val('');
+					barc = '';
+				}
+				if(s_type == 'D' && locator_posn_int > 20){
+					alert('Plasma position cannot be greater than 20');
+					$(this).val('');
+					barc = '';
+				}
+	    		//check if locator ID is already submitted
+	    		var url =  "/worksheets/does_worksheet_sample_number_exist/"+barc+"/";
+	    		if(barc != ''){
+		    		$.get(url, function(data, status){
+		    			if(data != ''){
+		    				alert('Worksheet for this range is already created');
+		    				$("#first_barcode").val('');
+		    			}    			
+		    		});
+		    	}
+    		}  		
+
+    	});
+
+		$("#number_of_samples").change(function(){
+			var no_samples = $(this).val();
+    		var barc = $("#first_barcode").val();
+    		var loc_category = $("#id_locator_category").val();
+    		if(no_samples>0 && barc != ''){
+	    		var s_type = $("#sample_type").val();
+	    		var barcode_stem = barc.substring(0, 8);
+	    		var locator_posn = parseInt(barc.substr(barc.length - 2));
+	    		//compute the last barcode
+	    		var last_bac = parseInt(barc) + parseInt(no_samples)-1;
+	    		$("#last_barcode").val(last_bac);
+	    		var the_html = '';
+	    		for (let i = 0; i < no_samples; i++) {
+	    			var new_pos = i+locator_posn;
+	    			var max_no_loc_ids  = 20;
+	    			if(s_type == 'P'){
+	    				var max_no_loc_ids = 99;
+	    			}else{
+	    				max_no_loc_ids = 20;
+	    			}
+	    			if (new_pos < 10){
+	    				new_pos = '0'+new_pos;
+	    			}
+	    			if (new_pos <= max_no_loc_ids){
+	    				var new_bar = barcode_stem + new_pos;
+		    			var row = generateRow(i, new_bar,loc_category);		    			
+		    			the_html = the_html+row;
+	    			}
+				}
+				$("#locator_id_container").html(the_html);
+				$("#sub-t,#sub-t-b").removeClass('hidden');
+				$("#submit_form").removeClass('hidden');
+
+    		}
+    		//console.log(the_html);
+    		
+    	});
+
+    	$("#last_barcode").change(function(){
+    		var barc = $("#first_barcode").val();
+    		var s_type = $("#sample_type").val();
+    		var year_month = barc.substring(0, 4);
+    		var env_number = barc.substring(4,8);
+    		var locator_posn = barc.substr(barc.length - 2);
+    		var locator_posn_int = Number(locator_posn);
+
+    		var last_bac = $(this).val();
+    		var last_bac_year_month = last_bac.substring(0, 4);
+    		var last_bac_env_number = last_bac.substring(4,8);
+    		var last_bac_locator_posn = last_bac.substr(last_bac.length - 2);
+    		var last_bac_locator_posn_int = Number(locator_posn);
+
+    		if(s_type == 'P' && last_bac_locator_posn_int > 99){
+				alert('Plasma position cannot be greater than 99');
+				$(this).val('');
+				last_bac = '';
+			}
+			if(s_type == 'D' && last_bac_locator_posn_int > 20){
+				alert('Plasma position cannot be greater than 20');
+				$(this).val('');
+				last_bac = '';
+			}
+			if(Number(env_number) != Number(last_bac_env_number)){
+				alert('Bambi, may you work on one envelope at time!');
+				$(this).val('');
+				last_bac = '';
+			}
+    		var url =  "/worksheets/does_worksheet_sample_number_exist/"+last_bac+"/";
+	    	if(last_bac != ''){
+	    		$.get(url, function(data, status){
+	    			if(data != ''){
+	    				alert('Worksheet for this range is already created')
+	    				$("#last_barcode").val('');
+	    			}else{
+			    		if(barc != '' && barc != 'undefined' && last_bac != '' && last_bac != 'undefined' ){
+			    			var no_of_samples = (parseInt(last_bac) - parseInt(barc))+1;
+			    			$('#number_of_samples').val(no_of_samples);
+			    			$('#number_of_samples').change();
+
+			    		}
+			    	}
+		    	});
+		    }
+    	});
+  	});
+	
+	function generateRow(position, barcode,loc_category){
+		var input_str = '<div class="row"><div class="col-md-6">'+barcode+' <input type="text" name="barcodes" value="'+barcode+'" class="form-control input-sm wider barcode hidden" id="bar'+position+'" required="required"><input type="text" name="saved_barcode_id"  class="hidden" id="saved_barcode_id'+barcode+'" ></div><div class ="col-md-1"><span id="span'+barcode+'" class="message_span hidden">saved</span></div></div></div>';
+		return input_str;
+
+	}
+	
+	
+
+</script>
+
+
+<style type="text/css">
+    .x{
+    	color: rgb(210, 190, 220);
+    	cursor: pointer;
+    	font-size: 18px;
+    }
+
+    .form-group.required label:before, .form-inline.required label:before {
+	  content:"*";
+	  color:red;
+	}
+
+	.day{
+		width:10px;
+	}
+
+	.form-group, .form-inline{
+		margin-bottom: 4px;
+	}
+
+	.form-group > label,.form-inline > label{
+		font-size: 14px;
+	}
+	.wider.input-sm{
+		width: 210px;
+	}
+	.message_span{
+		color: #008000;
+	}
+</style>
+{% endblock %}

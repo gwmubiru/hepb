@@ -1,0 +1,91 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<span class="page-title">Switch Samples</span>
+
+<div class="panel panel-default">
+ <form >
+ 	<div style="float:right;">
+	 <input type="button" class='btn btn-danger submit_new_barcodes' value="Submit" />
+	 <input type="hidden" name="env_id" id="env_id" value="{{envelope_id}}">
+	</div>
+		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+			<thead>
+				<tr>
+					<th>Facility Ref</th>
+					<th>Lab Ref</th>
+					<th>Facility</th>
+					<th>District</th>	
+					<th>Patient ART #</th>
+					<th>Result</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for s in samples %}
+				<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}">											
+					<td>																						
+							{{s.facility_reference}}
+					</td>
+					<td>					
+						{{s.barcode}}					
+					</td>	
+					<td>
+					{% if s.patient_id %}
+					{{ s.patient.facility }}
+					{% else %}
+						{{ s.facility }}
+					{% endif %}
+			  </td>
+			  	<td>
+					{% if s.is_data_entered %}
+					{{ s.patient.facility.district }}
+					{% else %}
+						{{ s.sample_reception.facility.district }}
+					{% endif %}
+
+				</td>	
+				<td>
+					{% if s.is_data_entered %}
+					{{ s.patient.art_number }}
+					{% else %}
+						{{ s.reception_art_number }}
+					{% endif %}
+				</td>	
+				<td>{{ s.result.result_alphanumeric }}</td>
+					
+				</tr>
+				{% endfor %}
+			</tbody>
+			
+		</table>
+		<div style="float:right;">
+			 <input type="button" class='btn btn-danger submit_new_barcodes' value="Submit"/>
+			</div>
+	</form>
+	</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"paging":false,
+		"order": [[ 1, "asc" ]],
+	});
+
+	
+});
+</script>
+{% endblock %}

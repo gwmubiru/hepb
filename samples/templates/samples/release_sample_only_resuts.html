@@ -1,0 +1,25 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+
+{% block content %}
+	<span class="page-title">Release results manually</span>
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<form action="{% url 'samples:release_sample_only_results' %}" method="post" >
+				{% csrf_token %}
+			
+
+				<div class="form-group">
+					
+					<textarea name="search_string" id="search_string" class="form-control" rows="4" cols="50" placeholder="e.g. 2503525201,2503525202"></textarea>
+				</div>
+
+				<input id="" type="submit" value="Release results" class="btn btn-danger btn-submit ">
+
+			</form>
+		</div>
+	</div>
+	
+{% endblock %}

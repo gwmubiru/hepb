@@ -11,7 +11,13 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 """
 
 import os
-import db_engines
+#import db_engines
+#import pymysql
+#import mysql.connector
+import pymysql
+
+pymysql.version_info = (1, 4, 6, 'final', 0)
+pymysql.install_as_MySQLdb()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,12 +32,12 @@ SECRET_KEY = 'sf0bgysf((pz2_agu$7b^6(yyndq9n3dx4vs91v-6p_4d)y^5h'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG',True)
 
-ALLOWED_HOSTS = ["localhost"]
-	
+ALLOWED_HOSTS = ["127.0.0.1","10.200.254.78","10.200.254.74","localhost"]
+
 
 # Application definition
-	
-INSTALLED_APPS = [	
+
+INSTALLED_APPS = [
 	'django.contrib.admin',
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
@@ -39,7 +45,7 @@ INSTALLED_APPS = [
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
 	'rest_framework',
-    'rest_framework.authtoken',
+	'rest_framework.authtoken',
 	'easy_pdf',
 	'backend.apps.BackendConfig',
 	'samples.apps.SamplesConfig',
@@ -47,17 +53,21 @@ INSTALLED_APPS = [
 	'results.apps.ResultsConfig',
 	'home.apps.HomeConfig',
 	'api.apps.ApiConfig',
+	'simple_history',
 ]
 
-MIDDLEWARE_CLASSES = [
+#MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
 	'django.contrib.sessions.middleware.SessionMiddleware',
 	'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
-	'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
+	'whitenoise.middleware.WhiteNoiseMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'viral_load2.urls'
@@ -74,6 +84,7 @@ TEMPLATES = [
 				'django.contrib.auth.context_processors.auth',
 				'django.contrib.messages.context_processors.messages',
 			],
+			
 		},
 	},
 ]
@@ -85,11 +96,15 @@ WSGI_APPLICATION = 'viral_load2.wsgi.application'
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
 	'default': {
-		'ENGINE': db_engines.gears.get(os.environ.get('DB_ENGINE'),'django.db.backends.mysql'),
-		'NAME': os.environ.get('DB_NAME','vl2'),
-		'USER': os.environ.get('DB_USER','vl2'),
-		'PASSWORD': os.environ.get('DB_PASSWORD','vl2'),
-		'HOST': os.environ.get('DB_HOST',''),
+		#'ENGINE': db_engines.gears.get(os.environ.get('DB_ENGINE'),'django.db.backends.mysql'),
+        'ENGINE': 'django.db.backends.mysql',
+        'OPTIONS': {
+            'sql_mode': 'traditional',
+        },
+		'NAME': os.environ.get('DB_NAME','vl_lims'),
+		'USER': os.environ.get('DB_USER','vl74'),
+		'PASSWORD': os.environ.get('DB_PASSWORD','Vldatabase#8910'),
+		'HOST': os.environ.get('DB_HOST','10.200.254.78'),
 		'PORT': os.environ.get('DB_PORT',''),
 	}
 }
@@ -118,9 +133,11 @@ REST_FRAMEWORK = {
 		'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',  # enables simple command line authentication
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
 	),
 	'DEFAULT_PERMISSION_CLASSES': (
 		'rest_framework.permissions.IsAuthenticated',
+		'rest_framework.permissions.IsAdminUser',
 	)
 }
 
@@ -152,6 +169,27 @@ LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout'
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+LIST_CUT_OFF_YEAR = 2019
+LIST_CUT_OFF_MONTH = 1
+LIST_CUT_OFF_DATE = 1
+NUMBER_OF_RESULTS_FOR_ADJANCENCY_CONTAMINATION_CHECK = 3
+CONTAMINATION_CHECK_NUMERIC_VALUE = 1000
+#WORKSHEET_SAMPLES_CUT_OFF = 6000000
+WORKSHEET_SAMPLES_CUT_OFF = 1
+ENVELOPE_SAMPLES_CUT_OFF = 227500
+ENVELOPE_SAMPLES_CUT_OFF = 1
+REF_LAB_ID = 2490
+SAMPLES_CUT_OFF = 5000000
+SAMPLES_CUT_OFF = 1
+MIN_NO_ENVELOPES_PENDING = 5
+SESSION_IDLE_TIMEOUT = 900 #
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True #close session automatically when user closes the browser
+SESSION_COOKIE_AGE = 900 # close session if idle for 15 minutes
+SESSION_COOKIE_AGE = 28800  # close session if idle for 8 hours
+SESSION_SAVE_EVERY_REQUEST = True 
+
+SAMPLE_TRACKING_URL = 'http://10.200.254.44/api/restrack/receive_small_package'
 
 try:
 	from local_settings import *

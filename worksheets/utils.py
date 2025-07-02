@@ -1,83 +1,32 @@
 from home import utils
-from worksheets.models import Worksheet, WorksheetBarCode
-
-# def create_worksheet_ref_number(user):
-# 	num = 0
-# 	initials = 'XX'	
-# 	try:
-# 		initials = "%s%s" % (user.first_name[0],user.last_name[0])
-# 	except:
-# 		pass
-
-# 	try:
-# 		num = Worksheet.objects.filter(created_at__year=utils.year(), created_at__month=utils.month()).count()
-# 	except:
-# 		pass
-	
-# 	num = str(num+1)
-# 	num = num.zfill(4)
-# 	return "%s%s%s%s" %(utils.year('yy'), utils.month('mm'), initials.upper() , num)
+from worksheets.models import Worksheet,WorksheetEnvelope
+from samples.models import Sample, Envelope
+import re
 
 
-def bar_code_generator():
-	worksheet_bar_code = WorksheetBarCode.objects.latest('id')
-	batch_prefix1 = worksheet_bar_code.batch_prefix1
-	batch_prefix2 = worksheet_bar_code.batch_prefix2
-	bar_code_counter = worksheet_bar_code.bar_code_counter
-	codes_list = []
-	for i in range(85):
-		#increment the bar_code (0001 series) by 1
-		bar_code = (batch_prefix1 + batch_prefix2 +(str(bar_code_counter)).zfill(4))
-		#batch counter does not exceed 99
-		if(bar_code_counter == 9999 and batch_prefix2 != 'Z'):
-			bar_code_counter = 1
-			batch_prefix2 = chr(ord(batch_prefix2)+1)
-		if(batch_prefix2 == 'Z' and batch_prefix1 != 'Z'):
-			batch_prefix1 = chr(ord(batch_prefix1)+1)
-		codes_list.append(bar_code)
-		bar_code_counter += 1
-	#WorksheetBarCode.objects.all().delete()
-	#barcode = WorksheetBarCode()
-	worksheet_bar_code.batch_prefix1 = batch_prefix1
-	worksheet_bar_code.batch_prefix2 = batch_prefix2
-	worksheet_bar_code.bar_code_counter = bar_code_counter
-	#delete the previously save bar code
-	#WorksheetBarCode.object.filter(pk=worksheet_bar_code.id).delete()
-	worksheet_bar_code.save()
-	return codes_list
-
-def create_worksheet_ref_number(worksheet_type, sample_type):
+def create_worksheet_ref_number(sample_type,worksheet_id):
 	num = 0
-	wt = 'XX'
-	if worksheet_type == 'A':
-		wt = 'AB'
-	elif worksheet_type == 'R':
-		wt = 'CT'
-	elif worksheet_type == 'C':
-		wt = 'C8'	
-	elif worksheet_type == 'H':
-		wt = 'HL'
 
-	w = Worksheet.objects.filter(created_at__year=utils.year(), created_at__month=utils.month()).last()
-
-	if w:
-		num = int(w.worksheet_reference_number[7:11])
-
-	num = str(num+1)
-	num = num.zfill(4)
-	return "%s%s%s%s%s" %(utils.year('yy'), utils.month('mm'), wt, sample_type , num)
+	w = Worksheet.objects.filter(created_at__year=utils.year(), created_at__month=utils.month(), id__lte = worksheet_id).count()
 	
-def sample_limit(worksheet_type):
-	if worksheet_type == 'A':
+	if w:
+		num = w
+	num = str(num +1)
+	num = num.zfill(3)
+
+	return "%s%s%s%s" %(utils.year('yy'), utils.month('mm'), sample_type , num)
+	
+def sample_limit(machine_type):
+	if machine_type == 'A':
 		limit = 93
-	elif worksheet_type == 'R':
+	elif machine_type == 'R':
 		limit = 21
-	elif worksheet_type == 'C':
+	elif machine_type == 'C':
 		limit = 20
-	elif worksheet_type == 'H':
+	elif machine_type == 'H':
 		limit = 94
 	else:
-		limit = 21
+		limit = 94
 	return limit
 
 def sample_pads(worksheet):
@@ -90,3 +39,35 @@ def sample_pads(worksheet):
 	return i
 def random_codes():
 	return 51254
+
+def get_worksheet_envelopes(wksht_id,obj_str = ''):
+	envelopes = Envelope.objects.raw('select envelope_number, e.id from vl_worksheet_samples ws INNER JOIN vl_samples s ON s.id = ws.sample_id and ws.worksheet_id = %s INNER JOIN vl_envelopes e ON e.id = s.envelope_id where ws.worksheet_id = %s GROUP BY e.id' %(wksht_id,wksht_id))
+	if(obj_str == 'obj'):
+		return envelopes
+	env_str = ''
+	separator = ','
+	for envelope in envelopes:
+		if envelope == envelopes[-1]:
+			separator = ''
+		env_str = env_str+'<a href="/samples/search/?search_val=%s&search_env=1" style="margin-left:5px;">%s</a>%s'%(envelope.envelope_number,envelope.envelope_number,separator)
+	return env_str
+
+
+def generate_barcodes(envelope_number,sample_type):
+	max_num = 99 if sample_type == 'P' else 20
+	env_num = re.sub('[^A-Za-z0-9]+', '', envelope_number)
+	barcodes = []
+	for i in range(max_num):
+		i = i+1
+		app_str = '0'+str(i) if i < 10 else str(i)
+		barcodes.append(env_num+app_str)
+	return barcodes
+
+def create_worksheet_envelope(envelope_id,worksheet_id,user_id):
+	worksheet, created = WorksheetEnvelope.objects.update_or_create(
+		envelope_id = envelope_id,
+		worksheet_id = worksheet_id,
+		the_creator_id = user_id,
+		defaults={'envelope_id': envelope_id,'worksheet_id':worksheet_id}
+	)
+	return True

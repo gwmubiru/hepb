@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- Include the required CSS and JS files for jQuery and DataTables -->
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.11.3/datatables.min.css"/>
+
+
+</head>
+<!-- Create a table with an input field in the first column -->
+<table id="example" class="display">
+  <thead>
+    <tr>
+      <th>Input Field</th>
+      <th>Column 2</th>
+      <th>Column 3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><input type="text" class="input-field" value="Value 1"></td>
+      <td>Value 2</td>
+      <td>Value 3</td>
+    </tr>
+    <tr>
+      <td><input type="text" class="input-field" value="Value 4"></td>
+      <td>Value 5</td>
+      <td>Value 6</td>
+    </tr>
+  </tbody>
+</table>
+<div id="myhtml">
+
+</div>
+<!-- Initialize the DataTable and add a click event listener to the rows -->
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.11.3/datatables.min.js"></script>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var table = $('#example').DataTable(); // Initialize the DataTable
+
+  $('#example tbody').on('click', 'tr', function() {
+    var data = table.row(this).data(); // Retrieve the data of the clicked row
+    var html_val = $(data[0]).find('.input-field').val(); // Retrieve the value of the input field
+    console.log(data[0]); // Output: value of the input field
+    
+    $('#myhtml').html(html_val);
+    
+    alert($('.input-field').val());
+
+  });
+});
+</script>
+</html>

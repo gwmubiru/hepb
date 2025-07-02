@@ -1,5 +1,5 @@
 {% extends "home/layout.html" %}
-{% load staticfiles %}
+{% load static %}
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
@@ -10,10 +10,10 @@
 	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
 {% endblock %}
 
-{% block content %}	
+{% block content %}
 	<span class="page-title">WORKSHEET</span>
-	<form action="/worksheets/authorize_results/{{ worksheet.pk }}/" method="post" role="form">	
-	{% csrf_token %}	
+	<form action="/worksheets/authorize_results/{{ worksheet.pk }}/" method="post" role="form">
+	{% csrf_token %}
 	<div class="panel panel-default" style="overflow-y:auto">
 		<div class="panel-body">
 			<div class="worksheet" id="content" >
@@ -40,7 +40,7 @@
 					</thead>
 					<tbody>
 						{% for sample in worksheet.samples.all %}
-						
+
 						<tr {% if sample.result.repeat_test == 3 or sample.result.repeat_test == 1 or sample.result.repeat_test == 0 %} style = "background:#F5A9A9;" {% endif %} {% if sample.result.pk == '' %} style = "background:#d7af0d;" {% endif %}>
 							<td>{{ forloop.counter }} </td>
 							<td>{{ sample.vl_sample_id }}</td>
@@ -61,7 +61,7 @@
 									<tr><td>Result 5:</td><td>{{ sample.result.result5 }}</td></tr>
 								</table>
 								</span>
-								
+
 								<a href="#" class="results_list glyphicon glyphicon-list-alt" data-toggle="modal" data-target="#myModal" style="text-decoration:none;" r_id="{{ forloop.counter }}"></a>
 							</td>
 
@@ -80,13 +80,13 @@
 									Missing Result
 								{% endif %}
 							</td>
-							
-							<td>{% if sample.result.pk == '' %} Missing Result {% else %} 
+
+							<td>{% if sample.result.pk == '' %} Missing Result {% else %}
 								{{ sample.result.result_alphanumeric }} {% endif %}</td>
 							<td>{{ sample.result.get_suppressed_display }}</td>
-							<td>								
-								{% if sample.result.repeat_test == 2 or sample.result.repeat_test == 0 %}	
-									{% if sample.result.result_alphanumeric != 'FAILED' %}							
+							<td>
+								{% if sample.result.repeat_test == 2 or sample.result.repeat_test == 0 %}
+									{% if sample.result.result_alphanumeric != 'FAILED' %}
 									<label><input type='radio' required='true' name='choices{{ sample.pk }}' class='choices' sample-pk="{{ sample.pk }}" value='release' {% if sample.result.authorised == 1 and sample.result.result_alphanumeric != 'FAILED' %} checked {% endif %}> Authorize</label>
 									{% endif %}
 								{% endif %}
@@ -102,12 +102,12 @@
 									{% else %}
 										Invalid
 									{% endif %}
-									
-								</label>								
+
+								</label>
 							</td>
 							<td><span id="saved{{ sample.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;</span></td>
 						</tr>
-						
+
 						{% endfor %}
 					</tbody>
 				</table>
@@ -165,13 +165,13 @@
 	 	submit_auth(params);
 	 });
 
-	 
+
 
 	 $(".x").on("click", function(){
 	 	$(this).parent().hide();
 	 });
 
-	 
+
 	$(".results_list").click(function(){
 		var r_id = $(this).attr('r_id');
 		$("#results_list_show").html($("#results_list"+r_id).html());
@@ -179,7 +179,7 @@
 
 	function submit_auth(params){
 		$.post("/worksheets/authorize_results/{{ worksheet.pk }}/", params).done(function(data) {
-	 		$("#saved"+params.sample_pk).show();	    
+	 		$("#saved"+params.sample_pk).show();
 		 });
 	}
 	</script>

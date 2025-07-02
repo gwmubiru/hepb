@@ -9,7 +9,7 @@ body{
 }
 
 .w-xs{
-	width: 90px
+	width: 301px;
 }
 
 .w-sm{
@@ -214,3 +214,28 @@ page[size="A4"][layout="portrait"] {
     overflow-y:auto;
     z-index:99 !important;
 }
+
+
+.is_data_enterd0{
+	color: red;
+}
+
+/* basic positioning */
+.legend { list-style: none; }
+.legend li { float: left; margin-right: 10px; }
+.legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
+/* your colors */
+.legend .red { background-color: #ff0000; }
+.legend .black { background-color: #000; }
+
+.is_data_enterd0{
+			color: red;
+		}
+
+	/* basic positioning */
+.legend { list-style: none; }
+.legend li { float: left; margin-right: 10px; }
+.legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
+/* your colors */
+.legend .red { background-color: #ff0000; }
+.legend .black { background-color: #000; }

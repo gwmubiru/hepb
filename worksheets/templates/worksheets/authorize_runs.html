@@ -1,0 +1,160 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	<style >
+		.contaminated_Yes, .contaminated_Yes a{
+			color: red;
+		}
+	</style>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+	<span class="page-title">Results Auth</span>
+	<form action="/worksheets/authorize_results/" method="post" role="form">	
+	{% csrf_token %}	
+	<div class="panel panel-default" style="overflow-y:auto">
+		<div class="panel-body">
+			<div class="worksheet" id="content">
+				
+				<br>
+				<table class="table table-striped table-condensed table-bordered" id="runs_list" >
+					<thead>
+						<th>File Name</th>
+						<th>Uploaded On</th>
+						<th>Instrument ID</th>
+						<th>Reagent Lot</th>
+						<th>Reagent Exp. Date</th>
+						<th># Results</th>
+						<th># Invalid Results</th>
+
+						<th>Low Positive Control</th>
+						<th>High Positive Control</th>
+						<th>Negative Control</th>
+						<th>Suspected Contamination</th>
+						<th>Action</th>
+						<th></th>
+					</thead>
+					<tbody>
+						{% for r in runs %}						
+						<tr class="contaminated_{% if r.samples_with_more_than_thou_copies >= 12 or r.has_squential_samples_with_more_than_thou_copies %}Yes {%else%}No{% endif %}">
+							<td>
+								{% if stage == '2' %}
+								<a href="/results/release_results/?run_id={{r.id}}&stage={{stage}}&tab=received">{{r.file_name}}</a>
+								{% else %}
+								<a href="/worksheets/authorize_results/?run_id={{r.id}}&stage={{stage}}&tab=received">{{r.file_name}}</a>
+								{% endif %}
+							</td>
+							<td>{{r.upload_date|date:"d/m/Y H:i:s" }}</td>
+							<td>{{r.serial_number}}</td>
+							<td>{{r.reagent_lot}}</td>
+							<td>{{r.reagent_expiry_date|date:"d/m/Y"}}</td>
+							<td>{{r.no_results}}</td>	
+							<td>{{r.invalid_results}}</td>	
+
+							<td>{{r.low_positive_ctrl}}</td>
+							<td>{{r.high_positive_ctrl}}</td>
+							<td>{{r.negative_ctrl}}</td>
+							<td>{% if r.samples_with_more_than_thou_copies >= 12 or r.has_squential_samples_with_more_than_thou_copies %}Yes {%else%}No{% endif %}</td>			
+							<td>							
+									
+								<label><input type='radio' required='true' name='choices{{ r.pk }}' class='choices r' run_id="{{ r.pk }}" value='release'> Release</label>
+										
+								<label>
+									<input type='radio' required='true'  name='choices{{ r.pk }}' class='choices r' run_id="{{ r.pk }}" value='reschedule'  {% if r.repeat_test == 1 %} checked {% endif %}>{% if r.pk == '' %}Invalidate&nbsp;&#38;&nbsp;Reschedule
+									{% else %}
+										Reschedule
+									{% endif %}
+
+								</label>
+								<label>
+									<input type='radio' required='true' name='choices{{ r.pk }}' class='choices r' run_id="{{ r.pk }}" value='invalid'  {% if r.authorised == 1 and r.result_alphanumeric == 'FAILED' %} checked {% endif %}>{% if r.pk == '' %}Invalidate&nbsp;&#38;&nbsp;Authorize
+									{% else %}
+										Invalid
+									{% endif %}
+
+								</label>									
+									
+							
+							</td>
+							<td><span id="saved{{ r.pk }}" class="status alert alert-success vl-alert hidden" role="alert">saved&nbsp;</span></td>
+						</tr>
+						
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</form>
+
+
+	<script type="text/javascript">
+	 $(function() {
+	 	var oTable = $('#runs_list').dataTable({
+			"processing": true,
+			"paging":false,
+			"order": [[ 1, "asc" ]],
+		});
+
+	    $(".status").hide();
+	    //$(".missing_results").hide();
+	    $(".choices").on("click",function(){
+		 	var choice = $(this).val();
+		 	var run_id = $(this).attr('run_id');
+		 	var run_id = $(this).attr('run_id');
+		 	if(choice == 'release'){
+		 		var ans = confirm("Do you really want to release the entire run?");
+		 		if(ans==false){
+		 			return false;
+		 		}
+		 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", run_id: run_id, post_type: 'full_run', choice_type: choice,run_id:run_id};
+		 		saveDetails(params);
+		 	}else if(choice=='reschedule'){
+		 		var ans = confirm("Do you really want to reschedule the entire run?");
+		 		if(ans==false){
+		 			return false;
+		 		}
+		 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", run_id: run_id, post_type: 'full_run', choice_type: choice,run_id:run_id};
+
+		 		saveRescDetails(params);
+		 	}else{
+		 		var ans = confirm("Do you really want to invalidate the entire run?");
+		 		if(ans==false){
+		 			return false;
+		 		}
+		 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", run_id: run_id, post_type: 'full_run', choice_type: choice,run_id:run_id};
+
+		 		saveDetails(params);
+		 	} 	
+
+		 });
+		 
+		 saveDetails = function(params){
+		 	$.post("/results/release_results/", params).done(function( data ) {
+			    $("#saved"+params.run_id).show();
+			  });
+		 }
+		 saveRescDetails = function(params){
+		 	alert('work in progress');
+		 	/*$.post("/results/release_results/", params).done(function( data ) {
+			    $("#saved"+params.run_id).show();
+			  });*/
+		 }
+	  });
+	</script>
+
+	<style type="text/css">
+	.missing_results{
+		background-color: #F5A9A9;
+	}
+	</style>
+
+{% endblock %}

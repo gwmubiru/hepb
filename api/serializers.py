@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from results.models import Result, ResultsQC, ResultsDispatch
-from samples.models import Patient, Envelope, Sample, PatientPhone, RejectedSamplesRelease, Verification
+from samples.models import Patient, Envelope, Sample, RejectedSamplesRelease, Verification,PendingReceptionQueue
 from backend.models import Appendix, District, Hub, Facility, UserProfile
 
 class AppendixSerializer(serializers.ModelSerializer):
@@ -9,6 +9,10 @@ class AppendixSerializer(serializers.ModelSerializer):
 		model = Appendix
 		fields = ('code', 'appendix','tag',)
 
+class PendingReceptionQueueSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = PendingReceptionQueue
+		fields = ('envelope_number',)
 
 class UserProfileSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -47,16 +51,12 @@ class FacilityMinSerializer(serializers.ModelSerializer):
 		model = Facility
 		fields = ('pk','district', 'hub','facility',)
 
-class PatientPhoneSerializer(serializers.ModelSerializer):
-	class Meta:
-		model = PatientPhone
-		fields = ('phone',)
+
 
 class PatientSerializer(serializers.ModelSerializer):
-	patientphone_set = PatientPhoneSerializer(many=True, read_only=True)
 	class Meta:
 		model = Patient
-		fields = ('art_number', 'other_id', 'gender', 'dob', 'patientphone_set', )
+		fields = ('art_number', 'other_id', 'gender', 'dob' )
 
 class EnvelopeSerializer(serializers.ModelSerializer):
 	class Meta:

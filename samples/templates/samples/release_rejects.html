@@ -1,6 +1,6 @@
 {% extends "home/layout.html" %}
 {% load form_tags %}
-{% load staticfiles %}
+{% load static %}
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
@@ -19,7 +19,7 @@
 		<div class="form-inline">
 			{% input "date_rejected_fro" date_rejected_fro "{'class':'date form-control input-sm w-sm', 'placeholder':'From'}" %} To 
 			{% input "date_rejected_to" date_rejected_to "{'class':'date form-control input-sm w-sm', 'placeholder':'To'}" %}
-			{% select "released" "{'N':'Pending', 'Y':'Released'}" released "{'class':'form-control input-sm sample-field'}" %}
+			{% select "released" "{'0':'Pending', '1':'Released', '3':'Retained'}" released "{'class':'form-control input-sm sample-field'}" %}
 			<input type="submit" value="GO" class="btn btn-danger btn-sm">
 		</div>
 	</form>
@@ -57,8 +57,10 @@
 				<td>
 					{% if r.sample.rejectedsamplesrelease.released == 1 %}
 						Released
-					{% elif r.sample.rejectedsamplesrelease.released == 0 %}
+					{% elif r.sample.rejectedsamplesrelease.released == 3 %}
 						Retained
+					{% elif r.sample.rejectedsamplesrelease.released == 0 %}
+						Rejected
 					{% else %}
 							<label><input type='radio' name='choices{{ r.sample.pk }}' class='choices' sample-pk="{{ r.sample.pk }}" value='release'> Release</label>
 							<label><input type='radio' name='choices{{ r.sample.pk }}' class='choices' sample-pk="{{ r.sample.pk }}" value='retain'> Retain</label>

@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 
 #Appendix Categories are to help categorize appendices 
 class AppendixCategory(models.Model):
+	id = models.AutoField(primary_key=True)
 	category = models.CharField(max_length=64, unique=True)
 
 	class Meta:
@@ -21,11 +22,15 @@ class AppendixCategory(models.Model):
 
 #Appendices are to hold basic back end data to be used on forms
 class Appendix(models.Model):
+	id = models.AutoField(primary_key=True)
 	appendix_category = models.ForeignKey(AppendixCategory, on_delete=models.CASCADE)
 	code = models.CharField(max_length=32, null=True, blank=True)
 	appendix = models.CharField(max_length=128)
 	tag = models.CharField(max_length=64, null=True, blank=True)
-
+	is_active = models.BooleanField(default=True)
+	start_date = models.DateField()
+	end_date = models.DateField()
+	
 	def __str__(self): #return appendix as default
 		return self.appendix
 
@@ -36,6 +41,7 @@ class Appendix(models.Model):
 
 #Hold data about regions
 class Region(models.Model):
+	id = models.AutoField(primary_key=True)
 	region = models.CharField(max_length=32, unique=True)
 
 	def __str__(self): #return region as default
@@ -47,6 +53,7 @@ class Region(models.Model):
 
 #Hold data about Implementing Partners (ips)
 class Ip(models.Model):
+	id = models.AutoField(primary_key=True)
 	ip = models.CharField(max_length=32, unique=True)
 	full_name = models.CharField(max_length=128)
 	address = models.CharField(max_length=64, null=True, blank=True)
@@ -67,6 +74,7 @@ class Ip(models.Model):
 
 #Hold data about districts
 class District(models.Model):
+	id = models.AutoField(primary_key=True)
 	region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
 	district = models.CharField(max_length=32, unique=True)
 	map_code = models.CharField(max_length=64, null=True, blank=True)
@@ -80,8 +88,9 @@ class District(models.Model):
 
 
 #Hold data about hubs
-class Hub(models.Model):	
-	ip = models.ForeignKey(Ip, null=True, blank=True )
+class Hub(models.Model):
+	id = models.AutoField(primary_key=True)
+	ip = models.ForeignKey(Ip, on_delete=models.CASCADE,null=True, blank=True )
 	hub = models.CharField(max_length=32, unique=True)
 	hub_email = models.EmailField(max_length=128, null=True, blank=True)
 	coordinator_name = models.CharField(max_length=64, null=True, blank=True)
@@ -98,6 +107,7 @@ class Hub(models.Model):
 
 #Hold data about Hub Riders (border borders) that transport samples/ results between hubs and facilities
 class HubRider(models.Model):
+	id = models.AutoField(primary_key=True)
 	hub = models.ForeignKey(Hub, on_delete=models.CASCADE)
 	rider = models.CharField(max_length=64)
 	contact = models.CharField(max_length=64)
@@ -116,6 +126,7 @@ class HubRider(models.Model):
 
 #Hold data about facilities (hospitals, and lower level health centers including HC IV, HC III and HC II)
 class Facility(models.Model):
+	id = models.AutoField(primary_key=True)
 	district = models.ForeignKey(District, on_delete=models.CASCADE, null=True, blank=True)
 	hub = models.ForeignKey(Hub, on_delete=models.CASCADE, null=True, blank=True)
 	ips = models.ManyToManyField(Ip, through='IpFacilitySupport')
@@ -131,6 +142,7 @@ class Facility(models.Model):
 	coordinator_contact = models.CharField(max_length=64, null=True, blank=True)
 	coordinator_email = models.EmailField(max_length=128, null=True, blank=True)
 	active = models.BooleanField(default=True)
+	is_cleaned = models.BooleanField(default=True)
 
 	def __str__(self): #return facility as default
 		return self.facility
@@ -141,6 +153,7 @@ class Facility(models.Model):
 		ordering = ('facility',)
 
 class FacilityStats(models.Model):
+	id = models.AutoField(primary_key=True)
 	facility = models.OneToOneField(Facility, on_delete=models.CASCADE)
 	num_pending_dispatch = models.PositiveIntegerField(default=0)
 	num_dispatched = models.PositiveIntegerField(default=0)
@@ -157,8 +170,9 @@ class FacilityStats(models.Model):
 		
 #Many to Many r/ship between facility and ips
 class IpFacilitySupport(models.Model):
-	ip = models.ForeignKey(Ip)
-	facility = models.ForeignKey(Facility)
+	id = models.AutoField(primary_key=True)
+	ip = models.ForeignKey(Ip, on_delete=models.CASCADE)
+	facility = models.ForeignKey(Facility,on_delete=models.CASCADE)
 	start_date = models.DateField()
 	stopped = models.BooleanField(default=False)
 	stop_date = models.DateField()
@@ -168,6 +182,7 @@ class IpFacilitySupport(models.Model):
 		verbose_name_plural = 'IP Facility Support'
 
 class MedicalLab(models.Model):
+	id = models.AutoField(primary_key=True)
 	lab_name = models.CharField(max_length=128, unique=True)
 	contact = models.CharField(max_length=64)
 	address = models.CharField(max_length=128)
@@ -181,13 +196,15 @@ class MedicalLab(models.Model):
 		verbose_name_plural = "Medical Labs"
 
 class UserProfile(models.Model):
+	id = models.AutoField(primary_key=True)
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
+	idp_key = models.CharField(max_length=50, null=True)
 	phone = models.CharField(max_length=64)
 	signature = models.FileField(upload_to='signatures')
 	medical_lab = models.ForeignKey(MedicalLab, on_delete=models.CASCADE)
 
-	def __str__(self):
-		return "%s %s - %s" %(self.user.first_name, self.user.last_name, self.phone)
+	# def __str__(self):
+	#	return "%s %s - %s" %(self.user.first_name, self.user.last_name, self.phone)
 
 	class Meta:
 		db_table = 'backend_user_profiles'
@@ -195,11 +212,12 @@ class UserProfile(models.Model):
 
 
 class DeleteLog(models.Model):
+	id = models.AutoField(primary_key=True)
 	ref_number = models.CharField(max_length=64)
 	section = models.CharField(max_length=64)
 	delete_reason = models.CharField(max_length=128)
 	data = models.TextField()
-	deleted_by = models.ForeignKey(User, related_name='deleted_by')
+	deleted_by = models.ForeignKey(User, related_name='deleted_by',on_delete=models.CASCADE)
 	deleted_at = models.DateTimeField(auto_now_add=True)
 
 	def __str__(self):
@@ -211,6 +229,7 @@ class DeleteLog(models.Model):
 
 
 class DataEntryStats(models.Model):
+	id = models.AutoField(primary_key=True)
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	today = models.PositiveIntegerField(default=0)
 	yesterday = models.PositiveIntegerField(default=0)
@@ -234,6 +253,7 @@ class DataEntryStats(models.Model):
 		verbose_name_plural = 'Data Entry Stats'
 
 class SampleApprovalStats(models.Model):
+	id = models.AutoField(primary_key=True)
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	today = models.PositiveIntegerField(default=0)
 	yesterday = models.PositiveIntegerField(default=0)
@@ -251,6 +271,7 @@ class SampleApprovalStats(models.Model):
 		verbose_name_plural = 'Sample Approval Stats Stats'
 
 class PerformanceStats(models.Model):
+	id = models.AutoField(primary_key=True)
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	year_month = models.PositiveIntegerField()
 	samples_captured = models.PositiveIntegerField(default=0)

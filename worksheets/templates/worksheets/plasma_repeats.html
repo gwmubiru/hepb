@@ -1,0 +1,175 @@
+{% extends "home/layout.html" %}
+{% load static %}
+{% load form_tags %}
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+	<span class="page-title">Plasma Repeats</span>
+
+	<div class="panel panel-default" style="overflow-y:auto;">
+
+			<div class="worksheet" id="content" >
+			<form method='GET' action="{% url 'results:release_results' %}">
+					<br>
+			<div class="form-inline">
+					{% input "date_rejected_fro" date_rejected_fro "{'class':'date form-control input-sm w-sm ', 'placeholder':'From'}" %}
+					{% input "date_rejected_to" date_rejected_to "{'class':'date form-control input-sm w-sm ', 'placeholder':'To'}" %}
+					
+		        <input type="text" name="run_id" value="{{request.GET.run_id}}" class="hidden">
+		        <input type="text" name="stage" value="{{request.GET.stage}}" class="hidden">
+						<input type="submit" value="Filter" class="btn btn-danger btn-sm">
+				</div>
+			</form></br>
+			<form action="/worksheets/manage_plasma_repeats/" method="post" role="form">	
+						{% csrf_token %}
+				<div class="alert alert-info alert-dismissible" role="alert">
+				  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				  <strong>Note!</strong> If a sample cannot be tested because it is hemolysed or insufficient, select appropriate option. This will remove it from the list.
+
+				  <p>However, if a sample is to be run, select it and click the  "Mark selected samples as loaded" button </p>
+				</div>
+
+				<table class="table table-striped table-condensed table-bordered" id="plasma_repeats" >
+					<thead>
+						
+						<th>Sample&nbsp;ID</th>
+						<th>No. Times Tested</th>
+						<th>Take Action
+							<span  id="submit_repeat" style="margin-left:60px;"><input class="btn btn-sm btn-danger btn-submit" type="submit" value="Mark selected samples as loaded"></span>
+						</th>
+						<th></th>
+						
+					</thead>
+					<tbody>
+						<input type="text" id="choice_type" name="choice_type" class="hidden">
+						<input type="text" id="post_type" name="post_type" value="multiple" class="hidden">
+						
+						{% for si in samples %}
+
+						<tr id="row_{{si.pk}}">						
+							<td>{{ si.barcode }}</td>
+							<td>{{ si.sample_run }}</td>
+							<td>
+								<label>
+									<input type='radio' name='choices{{ si.pk }}' class='choices' si-pk="{{ si.pk }}" reason='insfficient' value='invalid' repeat-status='{{ si.repeat_test }}' barcode="{{si.barcode}}">Sample	insufficient							
+
+								</label>
+								<label style="margin-left:15px;">
+									<input type='radio' name='choices{{ si.pk }}' class='choices' si-pk="{{ si.pk }}" reason='hemolyzed' value='invalid' repeat-status='{{ si.repeat_test }}' barcode="{{si.barcode}}">Sample	hemolyzed							
+
+								</label>
+									<label style="margin-left:15px;">
+								<input type="checkbox" class="checked_samples sample_repeats" name="samples" id="sample_{{si.id}}" data-barcode="{{si.barcode}}" value="{{si.id}}"> Loaded
+							</label>
+							
+							</td>
+
+							<td><span id="saved{{ si.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;</span></td>
+						</tr>
+
+						{% endfor %}
+					</tbody>
+				</table>
+			</form>
+				{% if samples.has_other_pages %}
+					  <ul class="pagination" style="margin-top:0">
+					    {% if samples.has_previous %}
+					      <li><a href="?page={{ samples.previous_page_number }}">&laquo;</a></li>
+					    {% else %}
+					      <li class="disabled"><span>&laquo;</span></li>
+					    {% endif %}
+					    {% for i in samples.paginator.page_range %}
+					      {% if samples.number == i %}
+					        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+					      {% else %}
+					        <li><a href="?page={{ i }}">{{ i }}</a></li>
+					      {% endif %}
+					    {% endfor %}
+					    {% if samples.has_next %}
+					      <li><a href="?page={{ samples.next_page_number }}">&raquo;</a></li>
+					    {% else %}
+					      <li class="disabled"><span>&raquo;</span></li>
+					    {% endif %}
+					  </ul>
+					{% endif %}
+			</div>
+	</div>
+</form>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Results list for the sample</h4>
+      </div>
+      <div class="modal-body">
+        <p id="results_list_show"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+	<script type="text/javascript">
+	 $(function() {
+	 	var oTable = $('#plasma_repeats_non').dataTable({
+			"processing": true,
+			"paging":false,
+			"order": [[ 1, "asc" ]],
+		});
+
+        $(".status").hide();
+        //$(".missing_results").hide();
+      });
+
+	 $(".choices").on("click",function(){
+	 	var choice = $(this).val();
+	 	var reason = $(this).attr('reason');
+	 	var barcode = $(this).attr('barcode');
+	 	var obj_id = $(this).attr('si-pk')
+	 	
+	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: obj_id, choice_type: 'invalid', post_type: 'single',comments:'',reason:reason, sample_pk: obj_id};
+	 	
+	 		var ans = confirm("Do you really want to invalidate "+barcode+"?");
+	 		if(ans==false){
+	 			return false;
+	 	}
+	 	console.log(params);
+	 	submit_auth(params);
+	 	//row_
+	 	$("#row_"+obj_id).remove();
+	 });
+
+
+	$(".results_list").click(function(){
+		var r_id = $(this).attr('r_id');
+		$("#results_list_show").html($("#results_list"+r_id).html());
+	});
+
+	function submit_auth(params){
+		$.post("/results/release_results/", params).done(function(data) {
+	 		$("#saved"+params.ws_pk).show();
+		 });
+	}
+
+	</script>
+
+	<style type="text/css">
+	.missing_results{
+		background-color: #F5A9A9;
+	}
+	</style>
+
+{% endblock %}

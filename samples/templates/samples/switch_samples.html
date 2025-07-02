@@ -1,0 +1,118 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+
+<span class="page-title">Switch Samples</span>
+
+<div class="panel panel-default">
+ <form >
+ 	<div style="float:right;">
+	 <input type="button" class='btn btn-danger submit_new_barcodes' value="Submit" />
+	 <input type="hidden" name="env_id" id="env_id" value="{{envelope_id}}">
+	</div>
+		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+			<thead>
+				<tr>
+					<th>Facility Ref</th>
+					<th>Lab Ref</th>
+					<th>Art Number</th>
+					<th>Replace with</th>
+					<th>...</th>
+					<th>...</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for s in samples %}
+				<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}">											
+					<td>																						
+							{{s.facility_reference}}
+					</td>
+					<td>					
+						{{s.barcode}}					
+					</td>	
+					<td>
+						{% if s.is_data_entered %}
+							{{ s.patient.art_number }}
+						{% else %}
+							{{ s.reception_art_number }}
+						{% endif %}</td>		
+					<td>
+						{% if s.is_data_entered == 0 and s.stage < 2 and s.worksheetsample_set.count < 2 %}
+						<input type="text" class="form-control new_barcodes" name="new_barcode_{{s.pk}}" value="{{s.barcode}}" id="{{ s.pk }}">
+						{% endif %}
+					</td>
+					<td>{% if s.is_data_entered == 0 and s.stage < 2 and s.worksheetsample_set.count < 2 %}<input type="button" class="btn btn-warning detach_sample" value="Detach" data-sample="{{s.pk}}" id="detach_{{ s.pk }}">{% endif %}</td>
+					<td><span id="success_text{{s.pk}}" class="hidden" style="color:#008000">saved</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+			
+		</table>
+		<div style="float:right;">
+			 <input type="button" class='btn btn-danger submit_new_barcodes' value="Submit"/>
+			</div>
+	</form>
+	</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var oTable = $('#tab_id').dataTable({
+		"processing": true,
+		"paging":false,
+		"order": [[ 1, "asc" ]],
+	});
+
+	$(".submit_new_barcodes").on("click",function(){
+		var env_id = $('#env_id').val();
+		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", env_id:env_id};
+	 		$.post("/samples/switch_samples/", params).done(function( data ) {	
+		});
+
+		var new_barcs = $('.new_barcodes').map(function() {
+		    return this.value;
+		}).get();
+    var chk = new Set();
+    var duplicates = new_barcs.filter(n => chk.size === chk.add(n).size);
+    	
+    if(duplicates.length > 0){
+        //alert('You have duplicate locator id! Fix the issue and try again.');
+        //return false;
+    }else{
+    	$('.new_barcodes').map(function() {
+			  var sample_id = this.id;
+			  var new_barcode = this.value;
+			  var locator_posn = new_barcode.substr(new_barcode.length - 2);
+			  var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_id: sample_id,new_barcode:new_barcode,locator_posn:locator_posn};
+		 		$.post("/samples/switch_samples/", params).done(function( data ) {		 				
+	 			  $('#success_text'+sample_id).removeClass('hidden');
+			  });
+			});
+    }
+	});
+	$(".detach_sample").on("click",function(){
+		var sample_id = $(this).data('sample');
+		alert(sample_id);
+		var id = 'detach_'+sample_id;
+		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_id: sample_id};
+	 		$.post("/samples/detach_sample/", params).done(function( data ) {		 
+				  //$('#success_text'+sample_id).removeClass('hidden');
+		 });
+	});
+
+
+	
+});
+</script>
+{% endblock %}

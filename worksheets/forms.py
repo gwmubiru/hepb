@@ -1,5 +1,5 @@
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from .models import Worksheet
 from samples.models import Sample
@@ -24,6 +24,8 @@ class WorksheetForm(forms.ModelForm):
 			'amplication_kit',
 			'amplication_kit_expiry_date',
 			'assay_date',
+			'starting_locator_id',
+			'ending_locator_id'
 		)
 
 		widgets = {
@@ -38,6 +40,8 @@ class WorksheetForm(forms.ModelForm):
 			'calibrator': forms.TextInput(attrs=utils.ATTRS),
 			'calibrator_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'amplication_kit': forms.TextInput(attrs=utils.ATTRS),
+			'starting_locator_id': forms.TextInput(attrs=utils.ATTRS),
+			'ending_locator_id': forms.TextInput(attrs=utils.ATTRS),
 			'amplication_kit_expiry_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 		}
 

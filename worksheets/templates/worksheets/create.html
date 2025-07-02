@@ -1,209 +1,107 @@
 {% extends "home/layout.html" %}
 {% load form_tags %}
-{% load staticfiles %}
+{% load static %}
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	<style>
+		.special_width,.input-sm {
+			width: 299px;
+		}
+	</style>
 {% endblock %}
 
 {% block js %}
-	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
-	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
 	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
-	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
 {% endblock %}
 
 {% block content %}	
-	<span class="page-title">create worksheet</span>		
-	<div class="panel panel-default" ng-app="worksheet_samples" ng-controller="worksheetSamplesController">
-		<div class="panel-body">
-			
-			<form action="{% url 'worksheets:create' machine_type %}" method="post" role="form">
-				{% csrf_token %}
-				<div class="row">
-					<div class="form-group col-md-5">
-						<label for="id_wrn">Worksheet Ref Number:</label>
-						<input class="form-control input-sm w-md" id="id_wrn" maxlength="64" name="wrn" readonly="true" type="text" placeholder="this will be generated after saving">
-						
-					</div>
 
-					<div class="form-group col-md-4">
-						<div id="log"></div>
-						{{ form.machine_type.label_tag }}
-						{{ form.machine_type.errors }}
-						{{ form.machine_type }}
-					</div>
+<div class="page-title">Samples for first time worksheet</div>
 
-					<div class="form-group col-md-3">
-						{{ form.sample_type.label_tag }}
-						{{ form.sample_type.errors }}
-						{{ form.sample_type }}
-					</div>
-				</div>
-				{% if machine_type != 'H' %}
-				<div class="row">
-					<div class="form-group col-md-5">
-						{% if machine_type == 'R' %}
-							<label for="id_sample_prep">HI2CAP</label>
-						{% elif machine_type == 'C' %}
-							<label for="id_sample_prep">Cobas HIV 1</label>
-						{% else %}
-							{{ form.sample_prep.label_tag }}
-						{% endif %}
-						
-						{{ form.sample_prep.errors }}
-						{{ form.sample_prep }}
-					</div>
 
-					<div class="form-inline col-md-4">
-						{% if machine_type == 'R' %}
-							<label for="id_sample_prep">HI2CAP expiry date</label>
-						{% elif machine_type == 'C' %}
-							<label for="id_sample_prep">Cobas HIV 1 expiry date</label>
-						{% else %}
-							{{ form.sample_prep_expiry_date.label_tag }}
-						{% endif %}
-						
-						{{ form.sample_prep_expiry_date.errors }}
-						<br>{{ form.sample_prep_expiry_date }}
+<div id="content" class="tab-content" style="min-height:400px">
+	<div class="row">
+		<div class="col-md-6">
+			<div class="table-resonsive">				
+										
+					<br><br><table class='table table-bordered table-striped table table-condensed' id='create_worksheet_table'>
+
+						<thead>
+							<tr><td></td>
+								<th>Envelope #</th>						
+							</tr>
+						</thead>
+					</table>
+			</div>
+		</div>
+		<div class="col-md-6">
+				<span id="sub-t">Selected Envelopes</span>
+				<form method='POST' action="{% url 'worksheets:create' sample_type %}" id="create_wksht">
+					 {% csrf_token %}
+					 <div class="row">
+					 	<div class="col-md-4 list" id="list_col">
+					 		<div class="form-group  required">
+								<label for="generated_by_id">Prepared for loading by</label>
+									<select class="form-control select2" name="generated_by_id" required="true" id="generated_by_id" style="width:;">
+										 <option value="">select tech</option>
+								            {% for u in users %}
+								            <option value="{{u.id}}">{{ u.first_name}} {{u.last_name}}</option>
+								            {% endfor %}
+						       		</select>
+						    </div>
+					 	</div>
+					 	<div class="col-md-4">
+					 		<div class="form-group">
+					 			
+								<input type="submit" class="btn btn-xs btn-danger" value="Add ll selected to worksheet" style="margin-top:24px;" />
+							</div>
+					 	</div>
 					</div>
-				</div>
+					<div class="form-inline required" id="envelopes_container" style="margin-top:5px;">
+										
+					
+					</div>
+				</form>
 				
-
-				{% if machine_type != 'C' %}
-				<div class="row">
-					<div class="form-group col-md-5">
-						{{ form.bulk_lysis_buffer.label_tag }}
-						{{ form.bulk_lysis_buffer.errors }}
-						{{ form.bulk_lysis_buffer }}
-					</div>
-
-					<div class="form-inline col-md-4">
-						{{ form.bulk_lysis_buffer_expiry_date.label_tag }}
-						{{ form.bulk_lysis_buffer_expiry_date.errors }}
-						<br>{{ form.bulk_lysis_buffer_expiry_date }}
-					</div>
-				</div>
-				{% endif %}
-
-				{% endif %}
 				
-
-				{% if machine_type == 'A' or machine_type == 'H' %}
-				<div class="row">
-					<div class="form-group col-md-5	">
-						{{ form.control.label_tag }}
-						{{ form.control.errors }}
-						{{ form.control }}
-					</div>
-
-					<div class="form-inline col-md-4">
-						{{ form.control_expiry_date.label_tag }}
-						{{ form.control_expiry_date.errors }}
-						<br>{{ form.control_expiry_date }}
-					</div>
-				</div>
-
-				<div class="row">
-					<div class="form-group col-md-5">
-						{{ form.calibrator.label_tag }}
-						{{ form.calibrator.errors }}
-						{{ form.calibrator }}
-					</div>
-
-					<div class="form-inline col-md-4">
-						{{ form.calibrator_expiry_date.label_tag }}
-						{{ form.calibrator_expiry_date.errors }}
-						<br>{{ form.calibrator_expiry_date }}
-					</div>
-					{% if machine_type == 'A' %} 
-					<div class="form-group col-md-3">
-						<br>	
-						{{ form.include_calibrators.errors }}
-						{{ form.include_calibrators }}
-						{{ form.include_calibrators.label_tag }}				
-					</div>
-					{% endif %}
-				</div>
-
-				<div class="row">
-					<div class="form-group col-md-5">
-						{{ form.amplication_kit.label_tag }}
-						{{ form.amplication_kit.errors }}
-						{{ form.amplication_kit }}
-					</div>
-
-					<div class="form-inline col-md-4">
-						{{ form.amplication_kit_expiry_date.label_tag }}
-						{{ form.amplication_kit_expiry_date.errors }}
-						<br>{{ form.amplication_kit_expiry_date }}
-					</div>
-				</div>
-
-				{% endif %}
-
-				<div class="form-inline">
-					{{ form.assay_date.label_tag }}
-					{{ form.assay_date.errors }}
-					<br>{{ form.assay_date }}
-				</div>
-				<br>{{ userid }}
-
-				<br><input id="id_submit" type='submit' value='save and attach samples' class="btn btn-danger btn-submit "> 
-				
-			</form>
 		</div>
 	</div>
-	<style type="text/css">
-	.form-group,.form-inline{
-		margin-bottom: 0px;
-	}
-	</style>
 	
-	<script type="text/javascript">
-	var date_now = new Date();
-	var yr_now = date_now.getFullYear();
-	$( function() {
-		$("#id_submit").click(function(){
-			var sample_type = $("#id_sample_type").val();
-			if(sample_type==""){
-				alert("please select sample type");
-				return false;
-			}else{
-				return true;
-			}
-		})
-		$(".date").combodate({
-    		format: "YYYY-MM-DD",
-    		template: "D MMM YYYY",
-    		customClass: "form-control input-sm",
-    		maxYear: yr_now+30,
-    		minYear: yr_now-1,
-    		yearDescending: false,    		
-    	});
+</div>
 
-    	$("#id_assay_date").combodate({
-    		format: "YYYY-MM-DD",
-    		template: "D MMM YYYY",
-    		customClass: "form-control input-sm",
-    		maxYear: yr_now+30,
-    		minYear: yr_now-1,
-    		yearDescending: false, 
-    		value: new Date(),
-    	});
-
-    	$("#id_machine_type").attr('readonly','true');
-
-    	/*var oTable = $('#samples-table').dataTable({
+<script type="text/javascript">
+	$(document).ready(function() {	
+		
+		$('#list_col .select2').select2();
+		 $('#create_worksheet_table').dataTable({
 			"processing": true,
-		});*/
-	});
+			"serverSide": true,
+			"order": [[ 1, "desc" ]],
+			"ajax": "/worksheets/create_worksheet_list_json/?sample_type={{request.GET.sample_type}}&{% if global_search %}?global_search={{ global_search }}{% endif %}",
+		});
 
-	/*$(".lab-tabs").on('click',function(){
-		$(this).addClass('active');
-		console.log("dedere");
-	});
-*/
+		//$("#envelopes_container .romve_env").click(function(){
+		$('#envelopes_container').on('click', '.romve_env', function(e){
+            var id = $(this).attr('id');
+            $("#rem_row"+id).remove();
 
-	</script>
+            /*$(this).parent().before($cloned_row.attr("id","envelope_row" + envelope_row_index));
+            $("#envelope_row" + envelope_row_index + " :input").each(function(){
+                $(this).attr("id",$(this).attr("id") + envelope_row_index);
+                $('#envelope-name'+ envelope_row_index).val('');
+            });
+            $("#a_remove_envelope_row" + envelope_row_index).click(function(){
+                $(this).closest("div").remove();
+            });*/
+        }); 
+		
+	});
+	function addEnvelope(env_id,env_num) {
+	  	$('<div id="rem_row'+env_id+'"><input type="text" class="envelopes hidden" name="envelope_ids" value="'+env_id+'">'+env_num+' <a class="romve_env" id="'+env_id+'" href="#" class=""><i class="fa fa-remove"></i></a> </div>').appendTo($('#envelopes_container'));
+	}
+
+</script>
 {% endblock %}

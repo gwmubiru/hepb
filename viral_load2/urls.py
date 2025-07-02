@@ -13,24 +13,29 @@ Including another URLconf
 	1. Add an import:  from blog import urls as blog_urls
 	2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import include,url
+from django.urls import include,re_path
+from django.urls import re_path as url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
 from home import views as home_views, session
 
 urlpatterns = [
-	url(r'^$', home_views.home, name='home_page'),
-	url(r'^login/', home_views.login_page, name='login_page'),
-	url(r'^login_attempt/', home_views.login_attempt, name='login_attempt'),
-	url(r'^logout/', home_views.logout, name='logout'),
-	url(r'^quick_stats/', home_views.quick_stats, name='quick_stats'),
-	url(r'^data_entry_stats/', home_views.data_entry_stats, name='data_entry_stats'),	
-	url(r'^sample_approval_stats/', home_views.sample_approval_stats, name='sample_approval_stats'),	
-	url(r'^change-password/$', auth_views.password_change, {'post_change_redirect': 'home_page'}, name='password_change'),
-	url(r'^admin/', admin.site.urls),
-	url(r'^samples/', include('samples.urls')),
-	url(r'^worksheets/', include('worksheets.urls')),
-	url(r'^results/', include('results.urls')),
-	url(r'^api/', include('api.urls')),
+	re_path(r'^$', home_views.home, name='home_page'),
+	re_path(r'^login/', home_views.login_page, name='login_page'),
+	re_path(r'^login_attempt/', home_views.login_attempt, name='login_attempt'),
+	re_path(r'^logout/', home_views.logout, name='logout'),
+	re_path(r'^quick_stats/', home_views.quick_stats, name='quick_stats'),
+	re_path(r'^data_entry_stats/', home_views.data_entry_stats, name='data_entry_stats'),	
+	re_path(r'^sample_approval_stats/', home_views.sample_approval_stats, name='sample_approval_stats'),	
+	re_path(r'^password_change/', auth_views.PasswordChangeView.as_view(), name='password_change'),
+	re_path(r'^admin/', admin.site.urls),
+	re_path(r'^samples/', include('samples.urls')),
+	re_path(r'^worksheets/', include('worksheets.urls')),
+	re_path(r'^results/', include('results.urls')),
+	re_path(r'^clean_data/', home_views.clean_data, name='clean_data'),
+	re_path(r'^facility_data/', home_views.facility_data, name='facility_data'),
+	re_path(r'^clean_data_list/', home_views.clean_data_list, name='clean_data_list'),
+	re_path(r'^api/', include('api.urls')),
+	re_path(r'^oauth/', include('sso.urls')),
 ]

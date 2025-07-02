@@ -1,4 +1,5 @@
-import datetime as dt,json, csv
+import datetime
+import csv, pandas, io, json, math, os as SI
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -6,9 +7,11 @@ from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.db.models import Q
 
 from home import utils
-from samples.models import Sample, Verification
-from backend.models import DataEntryStats
+from samples.models import Sample, Verification, Patient, FacilityPatient
+from backend.models import DataEntryStats,Facility
 from backend.models import SampleApprovalStats
+from django.core.management.base import BaseCommand, CommandError
+from django.db import connections
 
 # Create your views here.
 @login_required
@@ -16,7 +19,7 @@ def home(request):
 	return render(request, 'home/index.html')
 
 def quick_stats(request):
-	today = dt.datetime.today()
+	today = datetime.datetime.today()
 	last_month = utils.last_month()
 
 	last_month_filter = Q(created_at__year=last_month.get('year'), created_at__month=last_month.get('month'))
@@ -115,3 +118,142 @@ def logout(request):
 	auth_logout(request)
 	next = request.GET.get('next')
 	return redirect(next if next else '/')
+
+def clean_data(request):
+	facilities = Facility.objects.all()
+	#facilities_dropdown = utils.select('facility_id',facilities)
+	if request.method == 'POST':
+		uploaded_file = request.FILES['clean_data_file']
+		tmp_name = "/tmp/%s"%uploaded_file.name
+		with open(tmp_name, 'wb+') as destination:
+			for chunk in uploaded_file.chunks():
+				destination.write(chunk)
+
+		facility_id = request.POST.get('facility_id')
+		connections['default'].cursor().execute("DELETE FROM facility_patients WHERE facility_id=%s" %facility_id)
+		#connections.close()
+		reader = pandas.read_csv(tmp_name, sep=',', escapechar='\\',encoding='ISO-8859-1')
+		for row in reader.iterrows():
+			index, data = row
+			#if index == 1:
+			#return HttpResponse(data["DATE OF BIRTH"])
+			sanitized_art_no = utils.removeSpecialCharactersFromString(data[2])
+			fp = FacilityPatient()
+
+			if isinstance(data["DATE OF BIRTH"], str):
+				fp.date_of_birth = datetime.datetime.strptime(data["DATE OF BIRTH"], '%d/%m/%Y')
+			fp.unique_id = "%s-A-%s" %(facility_id, sanitized_art_no)
+			fp.facility_id = facility_id
+			fp.gender = data["SEX"]
+			fp.art_number = data[2] 
+			#fp.current_regimen = data["CURRENT REGIMEN"]
+			fp.current_regimen = data[7]
+			fp.sanitized_art_number = sanitized_art_no
+			if isinstance(data["ART START DATE"], str):
+				fp.treatment_initiation_date = datetime.datetime.strptime(data["ART START DATE"], '%d/%m/%Y') 
+			fp.save()
+		
+		return HttpResponse('updated successfully')
+			#except Exception as e:
+			#logging.getLogger("error_logger").error("Unable to upload file. "+repr(e))
+			#messages.error(request,"Unable to upload file. "+repr(e))
+			#return HttpResponse(repr(e))
+	else:
+		return render(request, 'home/clean_data.html',{'facilities':facilities})
+
+def clean_data_list(request):
+	if request.method == 'GET':
+		facility_id = request.GET['facility_id']
+	else:
+		facility_id = request.POST['facility_id']
+	context = {
+		'facility_id':facility_id
+	}
+	if(facility_id):
+		cursor = connections['default'].cursor()
+		#get generated matched and unmatched records of facility
+		cursor.execute("SELECT * FROM facility_patients WHERE facility_id=%s" %facility_id)
+		row = cursor.fetchone()
+		#update context
+		context = {
+			'patients_in_facility_not_in_vl': '',
+			'patients_in_vl_not_in_facility':'',
+			'matching_patients': '',
+			'matched_patient_ids':''
+		}
+		matching_patients = ''
+		if row is not None:
+			matched_patients = row[2];
+
+			if matched_patients != '':
+				patient_ids = json.loads(matched_patients)
+				#return HttpResponse(matched_patients)
+				#get patients in VL but not in facility
+				sql = """ SELECT  s.patient_unique_id,p.art_number,s.facility_id,s.patient_id FROM vl_samples s INNER JOIN vl_patients p ON(s.patient_id = p.id) WHERE s.facility_id = %s GROUP BY s.patient_unique_id,p.art_number,s.facility_id,s.patient_id ORDER BY p.art_number ASC"""				
+				cursor.execute(sql, [facility_id])
+				patients = utils.dictfetchall(cursor)
+				if len(patients) > 0:
+					context['patients_in_vl_not_in_facility'] = patients
+				
+				#get patients both in VL and in Facility - together with their VLs
+				sql = """ SELECT  s.patient_unique_id,s.patient_id,p.art_number, p.gender, p.dob, s.treatment_initiation_date, ba.appendix, s.facility_id, r.test_date, r.result_numeric, r.result_alphanumeric FROM vl_samples s 
+				INNER JOIN vl_patients p ON(s.patient_id = p.parent_id)
+				LEFT JOIN vl_results r ON(s.id = r.sample_id)
+				LEFT JOIN backend_appendices ba ON(s.current_regimen_id = ba.id and ba.appendix_category_id = 3)	
+				WHERE s.patient_id IN  %s AND s.facility_id = %s 
+				GROUP BY r.id,s.patient_unique_id,s.patient_id,p.art_number,s.facility_id, r.test_date, r.result_numeric, r.result_alphanumeric, p.gender, p.dob, s.treatment_initiation_date, s.treatment_line_id,ba.appendix ORDER BY p.art_number ASC"""				
+				
+				if len(patient_ids):
+					cursor.execute(sql, [patient_ids, facility_id])
+					matching_patients = utils.dictfetchall(cursor)
+					if len(matching_patients) > 0:
+						context['matching_patients'] = matching_patients
+			context['patients_in_facility_not_in_vl'] = row[1]
+			context['matched_patient_ids'] = patient_ids
+
+	
+	#	return HttpResponse(record['facility_patients_not_in_vl'])
+	return render(request, 'home/clean_data_list.html',context)
+def receive_api(request):
+	response = requests.get('http://freegeoip.net/json/')
+	geodata = response.json()
+	return HttpResponse(geodata['ip'])
+def facility_data(request):
+	if request.method == 'POST':
+		#return 1;
+		facility_id = request.POST['facility_id']
+		received_clean_data_file = request.FILES["clean_data_file"]
+		if not received_clean_data_file.name.endswith('.csv'):
+			messages.error(request,'File is not CSV type')
+			return HttpResponse('uploada a csv file please');
+
+		file_data = received_clean_data_file.read().decode("utf-8")		
+
+		rows = file_data.split("\n")
+		#loop over the rows and save them in db. If error , store as string and then display
+		cursor = connections['default'].cursor()
+		matching_patients = [] 
+		facilty_only_arts = []
+		for row in rows:
+			#since there is no effective way to know end of file, check for row emptiness
+			if row == '':
+				break						
+			columns = row.split(",")
+			#get the facility_id and art_number and pick then from the DB
+			return HttpResponse(columns)
+			
+			unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
+			sql = """ SELECT  s.patient_unique_id,p.art_number,s.facility_id,s.patient_id FROM vl_samples s INNER JOIN vl_patients p ON(s.patient_id = p.id)	WHERE s.facility_id = %s GROUP BY s.patient_unique_id,p.art_number,s.facility_id,s.patient_id ORDER BY p.art_number ASC"""				
+			cursor.execute(sql, [facility_id])
+			patients = utils.dictfetchall(cursor)
+			if len(patients) > 0:
+				context['patients_in_vl_not_in_facility'] = patients
+	else:
+		facility_id = request.GET['facility_id']
+		return render(request, 'home/facility_data.html')
+def get_months():
+	return ['01','02','03','04','05','06','07','08','09','10','11','12']
+
+def getSupressionCutOff(sample_type):
+    appendix = Appendix.objects.filter(appendix_category_id=9,is_active=1, tag=sample_type).values('id','appendix').first()
+    return appendix

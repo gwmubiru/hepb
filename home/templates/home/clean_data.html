@@ -1,0 +1,76 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block js %}
+<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">Upload clean data</span>		
+	<div class="panel panel-default">
+		<div class="panel-body">
+			
+			<form action="{% url 'clean_data' %}" method="post" role="form" enctype="multipart/form-data" id="form">
+				{% csrf_token %}
+				<div class="form-group">
+					<label for="label_clean_data_file">Facility:</label>
+					<select class="form-control select2" name="facility_id" id="facility_id">
+							<option value="">Select facility</option>
+				            {% for f in facilities %}
+				            	<option value="{{f.id}}">{{ f.facility }}</option>
+				            {% endfor %}
+			        </select>
+			        <div style="padding-top:10px;">
+						District: <u id="id_district" style="min-width:100px;">_______________</u>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						Hub: <u id="id_hub">_______________</u>
+					</div>
+			    </div>
+				<div class="form-group">
+					<label for="label_clean_data_file">Clean data file:</label>					
+					<input class="form-control-file" id="clean_data_file" name="clean_data_file" type="file">
+				</div>
+
+
+				<input id="id_upload" type="submit" value="Upload" class="btn btn-danger btn-submit ">
+				
+			</form>
+		</div>
+	</div>
+	
+
+<script type="text/javascript">
+	var tr_code_id = 0;
+	$(document).ready(function() {
+		$('#facility_id').select2();
+		$("#facility_id").change(function(){
+			//alert('changed');
+    		set_district_hub();   		    		
+    	});
+
+	    function set_district_hub(){
+			var facility_id = $('#facility_id').val();
+			//only get district and hub if value not 0, null, NaN or empty
+			if(!facility_id){
+				//do nothing
+			}else{ 
+				var url =  "/samples/get_district_hub/"+facility_id+"/";
+				$.get(url, function(data, status){
+					var json_data = JSON.parse(data);
+					$("#id_district").html(json_data.district);
+					$("#id_hub").html(json_data.hub);
+				});	
+			}
+						
+		}
+	});
+
+</script>
+{% endblock %}

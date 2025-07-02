@@ -1,25 +1,29 @@
 import json
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.db.models import Q
+from django.conf import settings
 from django.db import models
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 
 from .models import Sample, Envelope
 from home import utils
-import utils as sample_utils
+#import utils as sample_utils
+from . import utils as sample_utils
+from datetime import datetime, date, timedelta
+import logging
 
 class ListJson(BaseDatatableView):
 	model = Sample
 	columns = [
-		'form_number', 'locator_position', 'sample_type', 'date_collected','treatment_initiation_date',
-		'date_received', 'patient.art_number','patient.other_id', 'facility.district', 'facility', 'verified', 'pk']
+		'facility_reference','barcode', 'sample_type', 'date_collected','treatment_initiation_date',
+		'date_received', 'patient.art_number','patient.other_id', 'patient.facility.district', 'patient.facility', 'pk']
 
 	order_columns = [
-		'facility', 'facility.district', 
-		'sample_type', 'form_number', 'locator_position', 
+		'patient.facility', 'patient.facility.district', 
+		'sample_type', 'barcode', 'locator_position', 
 		'date_collected', 'date_received', 'treatment_initiation_date',
-		'patient.art_number','patient.other_id','verified', '']
+		'patient.art_number','patient.other_id' '']
 
 	max_display_length = 500		
 
@@ -28,38 +32,45 @@ class ListJson(BaseDatatableView):
 		verify_url =  "/samples/verify/{0}".format(row.pk)
 		show_url = "/samples/show/{0}".format(row.pk)
 		edit_url = "/samples/edit/{0}".format(row.pk)
+		#edit_received_url = "/samples/edit_received/{0}".format(row.pk)
 		l = verify_url if verified else show_url
-		if column == 'facility':
+		if column == 'facility' and hasattr(row, 'patient') and hasattr(row.patient, 'facility'):
 			if(row.is_study_sample):
-				return 'Study - '+'{0}'.format(row.facility.facility)
+				return 'Study - '+'{0}'.format(row.patient.facility.facility)
 			else:
-				return '{0}'.format(row.facility.facility)
-		elif column == 'facility.district':
+				
+				return '{0}'.format(row.patient.facility.facility)
+		elif column == 'facility.district' and hasattr(row, 'patient') and hasattr(row.patient, 'facility') and hasattr(row.patient.facility, 'district'):
 			return '%s' %(row.facility.district.district)
-		elif column == 'form_number':
-			return "<a href='%s' target='_blank'>%s</a>" %(show_url,row.form_number)
+		elif column == 'barcode':
+			return "<a href='%s' target='_blank'>%s</a>" %(show_url,row.barcode)
+		elif column == 'facility_reference':
+			return row.facility_reference if row.facility_reference else row.form_number
 		elif column == 'locator_position':
-			locator_id = '{0}{1}/{2}'.format(row.locator_category, 
-									   row.envelope.envelope_number, 
-									   row.locator_position)
+			locator_id = '{0}'.format(row.locator_category)
 			return "<a href='%s' target='_blank'>%s</a>" %(show_url,locator_id)
-		elif column == 'verified':
-			if row.verified:
-				try:
-					return "accepted" if row.verification else "rejected" 
-				except: 
-					return ""
+		elif column == 'date_received':
+			if row.date_received:
+				#return row.envelope.created_at.strftime("%d/%m/%Y").__str__()
+				return row.date_received.strftime("%d/%m/%Y").__str__()
 			else:
-				return "pending"
+				return ''
+		elif column == 'date_collected' and row.date_collected:
+			return row.date_collected.strftime("%d/%m/%Y").__str__()
 		elif column == 'pk':
 			if verified:
 				links = "<a class='btn btn-xs btn-danger' href='%s'>approve</a>" %verify_url
 				links = "approved" if verified =="1" else links
 			else:
-				links = utils.dropdown_links([
-					{"label":"view", "url":show_url},
-					{"label":"edit", "url":edit_url},
+				if self.request.GET.get('is_data_entered') == 'W' or row.is_data_entered == 0:
+					links = utils.dropdown_links([
+					{"label":"edit received","url":"/samples/edit_received/{0}".format(row.pk)},
 					])
+				else:
+					links = utils.dropdown_links([
+						{"label":"view", "url":show_url},
+						{"label":"edit", "url":edit_url},
+						])
 				
 			return links
 		else:
@@ -71,55 +82,62 @@ class ListJson(BaseDatatableView):
 
 		if global_search:
 			search = global_search
+		is_data_entered = self.request.GET.get('is_data_entered')
+		sample_without_results = self.request.GET.get('sample_without_results')
+		hie_samples_pending_reception = self.request.GET.get('hie_samples_pending_reception')
+		no_result = self.request.GET.get('no_result')
 
+		if is_data_entered == '0':
+			qs = qs.filter(patient_id__isnull=True)
+		elif sample_without_results == '0':
+			qs = qs.filter(sampleidentifier__sample_id__isnull=True)
+		elif is_data_entered == 'W':
+			qs = qs.filter(locator_category='W')
+		elif hie_samples_pending_reception == '1':
+			qs = qs.filter(facility_reference__isnull=False, date_received__isnull=True)
+		else:
+		  	qs = qs.filter(patient_id__isnull=False)
+		if no_result:
+			qs = qs.filter(id__gte=6000000,result__isnull=True)
 		qs_params = Q()
 		if search:
-			#f_cond = Q(facility__facility__icontains=search)
-			#h_cond = Q(facility__hub__hub__icontains=search)
 			if  search.isdigit() or search[:-1].isdigit():
 				return qs.filter(form_number=search)
 			else:
-				fn_cond = Q(form_number__icontains=search)
-				loc_cond = sample_utils.locator_cond(search)
-				#st_cond = Q(sample_type=search[0])
-				qs_params = fn_cond | loc_cond if loc_cond else fn_cond
-
-		#if self.request.user.pk > 1:
-			#qs_params = qs_params & Q(envelope__sample_medical_lab=utils.user_lab(self.request))
-		qs_params = qs_params & Q(envelope__sample_medical_lab=utils.user_lab(self.request))
-		verified = self.request.GET.get('verified')
-		qs_params = Q(envelope__sample_medical_lab=utils.user_lab(self.request)) & Q(verified=int(verified)) if verified=='0' or verified=='1' else qs_params
-		if qs_params:
-			return qs.filter(qs_params).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('-envelope__envelope_number','lposition_int')
-		else:
-			return qs.all().extra({'lposition_int': "CAST(locator_position as UNSIGNED)"}).order_by('-envelope__envelope_number','lposition_int')
-		#return qs.filter(envelope__sample_medical_lab=utils.user_lab(self.request))
+				qs_params = Q(form_number__icontains=search)
 		
+		qs_params = Q(created_at__gte=date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE)) 
+		if qs_params:
+			return qs.filter(qs_params).order_by('-created_at')
+		else:
+			return qs.filter(created_at__gte=date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE)).order_by('-created_at')
 
 class VerifyListJson(BaseDatatableView):
-	model = Envelope
-	columns = ['envelope_number', 'pk']
-	order_columns = ['envelope_number', '']
-
+	model = Sample
+	columns = ['form_number', 'barcode','patient.facility', 'patient.facility.district', 'patient.art_number','patient.gender', 'date_collected',
+		 'pk']
+	order_columns = ['form_number', 'barcode']
+	max_display_length = 500
 	def render_column(self, row, column):
 		if(column == 'pk'):
 			url = "/samples/verify/{0}".format(row.pk)
-			return utils.btn_link(url, 'Verify')
+			return utils.btn_link(url, 'Verify','verify')
 		else:
 			return super(VerifyListJson, self).render_column(row, column)
 
+	def filter_queryset(self, qs):
+		search = self.request.GET.get(u'search[value]', None)
+		verified = self.request.GET.get(u'verified[value]', None)
+		global_search = self.request.GET.get('global_search', None)
+		
+		qs_params = Q(verified=0)
+		if search:
+			qs_params = Q(barcode=search) | Q(form_number=search) 
+		return qs.filter(qs_params).order_by('barcode')
 
-# class EnvelopeListJson(BaseDatatableView):
-# 	model = Envelope
-# 	columns = ['envelope_number', 'pk']
-# 	order_columns = ['envelope_number', '']
 
-# 	def render_column(self, row, column):
-# 		if(column == 'pk'):
-# 			url = "/samples/verify/{0}".format(row.pk)
-# 			return utils.btn_link(url, 'Verify')
-# 		else:
-# 			return super(EnvelopeListJson, self).render_column(row, column)
+
+
 
 def envelope_list_json(request):
 	r = request.GET
@@ -129,8 +147,8 @@ def envelope_list_json(request):
 	for e in envelopes_data:
 		data.append([
 			"<a href='/samples/search/?search_val=%s&approvals=1&search_env=1'>%s</a>"%(e.envelope_number,e.envelope_number),
-			e.s_count,e.p_count,
-			e.c_count, utils.local_datetime(e.created_at),
+			e.s_count,e.entered_count,e.p_count,
+			utils.local_datetime(e.created_at),
 			"<a href='/samples/search/?search_val=%s&approvals=1&search_env=1'>view</a>"%e.envelope_number,
 			])
 
@@ -144,17 +162,16 @@ def envelope_list_json(request):
 def __get_envelopes(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
-	filter_query = Q(sample_medical_lab=utils.user_lab(request))
+	f_query = Q(sample_medical_lab=utils.user_lab(request))
 
-	s_count = models.Count('sample',filter=Q(envelope__sample_medical_lab=utils.user_lab(request)))
+	s_count = models.Count('sample',filter=Q(sample_medical_lab=utils.user_lab(request)))
 	p_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
-	c_count = models.Count(models.Case(models.When(sample__verified=True, then=1)))
+	entered_count = models.Count(models.Case(models.When(sample__is_data_entered=True, then=1)))
 
-	data = Envelope.objects.annotate(s_count=s_count, p_count=p_count, c_count=c_count).filter(filter_query).order_by('-created_at')[start:start+length]
+	data = Envelope.objects.annotate(s_count=s_count, entered_count=entered_count, p_count=p_count,).filter(f_query).order_by('-created_at')[start:start+length]
 
 	recordsTotal =  Envelope.objects.count()
-	#recordsTotal =  Envelope.objects.filter(sample_medical_lab=request.user.userprofile.medical_lab_id).count()
-	recordsFiltered = recordsTotal if not filter_query else Envelope.objects.filter(filter_query).count()
+	recordsFiltered = recordsTotal if not f_query else Envelope.objects.filter(f_query).count()
 	return {'envelopes_data':data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 
 
@@ -162,9 +179,6 @@ def vl_list(request):
 	return render(request, 'samples/vl_list.html')
 
 def vl_list_data(request):
-	# columns = [
-	# 	'form_number', 'locator_position', 'sample_type', 'date_collected','treatment_initiation_date',
-	# 	'date_received', 'patient.art_number','patient.other_id', 'facility.district', 'facility', 'verified', 'pk']
 	r = request.GET
 	samples = __get_samples(r)
 	samples_data = samples.get('samples_data')
@@ -172,12 +186,13 @@ def vl_list_data(request):
 	for s in samples_data:
 		data.append(
 			[
-			s.form_number,
+			s.facility_reference,
+			s.barcode,
 			'{0}{1}/{2}'.format(s.locator_category, s.envelope.envelope_number, s.locator_position),
 			s.get_sample_type_display(),
 			utils.local_date(s.date_collected),
 			utils.local_date(s.treatment_initiation_date),
-			utils.local_date(s.date_received),
+			s.date_received,
 			s.patient.art_number,
 			s.patient.other_id,
 			s.facility.district.district,
@@ -215,12 +230,8 @@ def __get_filter_query(r):
 		
 	if search:
 		search = search.strip()
-		#f_cond = Q(facility__facility__icontains=search)
-		#h_cond = Q(facility__hub__hub__icontains=search)
 		fn_cond = Q(form_number__icontains=search)
 		loc_cond = sample_utils.locator_cond(search)
-		#st_cond = Q(sample_type=search[0])
-		#qs_params = fn_cond | loc_cond if loc_cond else fn_cond
 		qs_params = fn_cond
 
 	

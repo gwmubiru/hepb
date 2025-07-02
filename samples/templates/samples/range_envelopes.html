@@ -1,0 +1,128 @@
+{% extends "home/layout.html" %}
+{% load static %}
+{% load form_tags %}
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
+	<style>
+
+	</style>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+{% endblock %}
+
+
+{% block content %}	
+	<span class="page-title">Assigned Envelopes</span>		
+	<div class="panel panel-default" style="overflow-y:auto">
+		<div class="panel-body">
+			
+				<form action="/samples/range_envelopes/" method="post" role="form" id="multi_approve_reject">	
+				{% csrf_token %}
+				<div class="row" style="margin-top: 10px;">
+						<div class="col-md-12">
+							<a href="#" class='btn btn-xs btn-primary ' id="select_all" >Select all visible</a>
+						 	
+						</div>
+					</div>
+				<div class="row">
+					<div class="col-md-8">
+					
+					<table class="table table-striped table-condensed table-bordered" id="samples-table" style="margin-top:15px">
+						<thead>
+							<th></th>
+							<th>Envelope Number</th>
+							<th>
+								{% if request.GET.type == '1'%}
+									Accessioned By
+								{% else %}
+									Pippeted/Cut by
+								{% endif %}</th>
+							<th>Assigned By</th>
+						</thead>
+						<tbody>
+							<input type="text" id="choice_type" name="choice_type" class="hidden">
+							<input type="text" id="post_type" name="post_type" value="multiple" class="hidden">
+							{% for env in envelopes %}					
+									<tr>
+										<td>
+										{% if not env.is_received %}											
+											<input type="checkbox" class="envelopes" name="envelope_ids" value="{{ env.pk }}">	
+										{% endif %}											
+										</td>									
+										<td>{{ env.envelope_number }}</td>	
+										{% if request.GET.type == '1'%}
+										<td>{{ env.accessioner.first_name }} {{ env.accessioner.last_name }}</td>
+										{% else %}	
+										<td>{{ env.processed_by.first_name }} {{ env.processed_by.last_name }}</td>	
+										{% endif %}								
+										<td></td>
+									</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					{% if envelopes.has_other_pages %}
+					  <ul class="pagination" style="margin-top:0">
+					    {% if envelopes.has_previous %}
+					      <li><a href="?page={{ envelopes.previous_page_number }}">&laquo;</a></li>
+					    {% else %}
+					      <li class="disabled"><span>&laquo;</span></li>
+					    {% endif %}
+					    {% for i in envelopes.paginator.page_range %}
+					      {% if envelopes.number == i %}
+					        <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+					      {% else %}
+					        <li><a href="?page={{ i }}">{{ i }}</a></li>
+					      {% endif %}
+					    {% endfor %}
+					    {% if envelopes.has_next %}
+					      <li><a href="?page={{ envelopes.next_page_number }}">&raquo;</a></li>
+					    {% else %}
+					      <li class="disabled"><span>&raquo;</span></li>
+					    {% endif %}
+					  </ul>
+					{% endif %}
+				</div>
+				<div class="col-md-4">
+					<div class="form-group  required">
+						<label for="accessioned_by"><b>Assign selected to</b></label>
+						<select class="form-control select2" name="accessioner_id" required="true" id="accessioner_id">
+							 <option value="">select user</option>
+					            {% for u in users %}
+					            <option value="{{u.id}}">{{ u.first_name}} {{u.last_name}}</option>
+					            {% endfor %}
+			       		</select>
+			       		<input type="hidden" name="range_id" value="{{request.GET.range_id}}">
+			       		<input type="hidden" name="wksht_id" value="{{request.GET.wksht_id}}">
+			       		<input type="hidden" name="type" value="{{request.GET.type}}">
+			       		<br><br>
+			       		<input type="submit" value="Submit" class="btn btn-danger">
+			       	</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<script type="text/javascript">
+	$('#flty').val('{{request.GET.facility_id}}');
+	$('#sample_type').val('{{sample_type}}');
+	$('.select2').select2();
+	 $('#select_all').click(function(){
+        var status = $(this).html();
+        if(status == 'Select all visible'){
+            $(".envelopes").attr("checked", true);
+            $(this).html('Unselect all visible');
+        }else{
+            $(".envelopes").attr("checked", false);
+            $(this).html('Select all visible');
+        }
+     });
+	 
+	</script>
+
+{% endblock %}

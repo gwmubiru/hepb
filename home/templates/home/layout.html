@@ -1,24 +1,24 @@
-{% load staticfiles %}
+{% load static %}
 {% load form_tags %}
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-        
+
         <title>Viral Load</title>
         <link rel="Shortcut Icon" href='{% static "home/images/favicon.png" %}' />
         <link href='{% static "home/tisa-admin/assets/css/style.css"%}' rel="stylesheet" media="screen">
         <link rel="stylesheet" href='{% static "home/vendor/jquery-ui/themes/base/jquery-ui.min.css" %}'>
-             
+
 
         <link href='{% static "home/vendor/metisMenu/dist/metisMenu.min.css" %}' rel="stylesheet">
         <link href='{% static "home/sb-admin-2/dist/css/timeline.css" %}' rel="stylesheet">
-        <link href='{% static "home/sb-admin-2/dist/css/sb-admin-2.css" %}' rel="stylesheet">       
-       <!-- <link href="../bower_components/morrisjs/morris.css" rel="stylesheet"> -->
+        <link href='{% static "home/sb-admin-2/dist/css/sb-admin-2.css" %}' rel="stylesheet">
         <link href='{% static "home/vendor/font-awesome-min/css/font-awesome.min.css" %}' rel="stylesheet" type="text/css">
 
         <link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>
+        <link rel="stylesheet" href='{% static "home/css/calendar.css" %}'>
         <link rel="stylesheet" href='{% static "home/css/app.css" %}'>
         {% block css %}
         {% endblock %}
@@ -29,33 +29,33 @@
         <script type="text/javascript" src='{% static "home/vendor/metisMenu/dist/metisMenu.min.js" %}'></script>
 
         <script type="text/javascript" src='{% static "home/sb-admin-2/dist/js/sb-admin-2.js" %}'></script>
-
+        <script type="text/javascript" src='{% static "home/js/bootstrapValidator.min-0.5.1.js" %}'></script>
         <script type="text/javascript" src='{% static "home/js/app.js" %}'></script>
 
         {% block js %}
         {% endblock %}
 
         <link href='{% static "home/tisa-admin/assets/icons/font-awesome/css/font-awesome.min.css" %}' rel="stylesheet" media="screen">
-            <!-- ionicons -->   
+            <!-- ionicons -->
         <link href='{% static "home/tisa-admin/assets/icons/ionicons/css/ionicons.min.css" %}' rel="stylesheet" media="screen">
-                
-    
+
+
     <!-- page specific stylesheets -->
-                
-        <!-- main stylesheet -->      
-        
-       
+
+        <!-- main stylesheet -->
+
+
     </head>
     <body class="side_nav_hover theme_b">
         <!-- top bar -->
         <header class="navbar navbar-fixed-top" role="banner">
             <div class="container-fluid">
                 <div class="navbar-header">
-                   
-                        <img src='{% static "home/images/logo.png" %}' >                        
+
+                        <img src='{% static "home/images/logo.png" %}' >
                         <span id='main-link'>VL LIMS</span>
-                        
-                   
+
+
                 </div>
 
                 <ul class="nav navbar-nav navbar-left">
@@ -64,145 +64,158 @@
                     {% if perms.samples %}
                     <li class="user_menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+
+                            <span class="vl-menu-items">Sample Reception</span><span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-left">
+                            <li><a href="{% url 'samples:create_range' %}">Accession Samples</a></li>
+                            <li><a href="{% url 'samples:range_list' %}">Accessioned Samples</a></li>
+                            <li><a href="{% url 'samples:receive_batch' %}">Receive Batch</a></li>
+                            <li><a href="{% url 'samples:receive' %}">Receive Single</a></li>
+                            <li><a href="{% url 'samples:merge_envelopes' %}">Merge Envelopes</a></li>
                            
-                            <span class="vl-menu-items">Samples</span><span class="caret"></span>
+                            <li class=""><a href="/samples/list/?hie_samples_pending_reception=1">HIE Pending Reception</a></li>
+                            <li><a href="{% url 'samples:receive_hie' %}">Receive HIE Samples</a></li>
+                             <li class="important_link"><a href="{% url 'samples:receive_sample_only' %}">Receive Sample Only</a></li>
+                            <li><a href="/samples/list/?is_data_entered=W">Received with Issues</a></li>
+                            
+                            <li class=""><a href="/samples/list/?is_data_entered=0">Pending Data Entry</a></li>
+                            
+                            <li><a href="{% url 'samples:envelope_list' %}?page_type=reception">Verify envelope</a></li>
+                            
+                        </ul>
+                    </li>
+                    <li class="user_menu">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+
+                            <span class="vl-menu-items">Data Entry</span><span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-left">
                             
-                            <li><a href="{% url 'samples:create' %}">Create</a></li>
-                            <li><a href="{% url 'samples:list' %}">List</a></li>
+                            <li><a href="{% url 'samples:create' %}?page_type=1">Create</a></li>
+                            <li class="hidden"><a href="{% url 'samples:create' %}?page_type=2">Create2</a></li>
+                            <li class=""><a href="/samples/list/?is_data_entered=0">Pending Data Entry</a></li>
+                            <li><a href="/samples/list/?is_data_entered=1">Data Entry Completed</a></li>
+
                         </ul>
                     </li>
                     {% endif %}
 
-                    {% if perms.samples.add_verification %}
-                     <li class="user_menu">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                           
-                            <span class="vl-menu-items">Approvals<span class="caret"></span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-left">
-                            <li>
-                                <a href="/samples/verify_list?verified=0"> 
-                                    View Pending 
-                                    <span class="badge badge-default">
-                                       
-                                    </span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="/samples/verify_list?verified=1"> 
-                                    View Completed
-                                    <span class="badge badge-default">
-                                       
-                                    </span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    {% endif %}
 
-                    {% if perms.worksheets %}
+
+                   
                     <li class="user_menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <span class="vl-menu-items">Lab</span>
                             <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-left">
-                       
-                            <li class="dropdown-headers">Set Reagent Info</li>
-                            <li><a href="{% url 'worksheets:reg_info' 'A' %}">For Abbott</a></li>
-                            <li><a href="{% url 'worksheets:reg_info' 'R' %}">For Roche CAP/CTM</a></li>
-                            <li><a href="{% url 'worksheets:reg_info' 'C' %}">For Cobas 8800</a></li>
-                            <li><a href="{% url 'worksheets:reg_info' 'H' %}">For Hologic</a></li>
-                            <li class="dropdown-headers">Create worksheet</li>
-                            <li><a href="{% url 'worksheets:create' 'A' %}">For Abbott</a></li>
-                            <li><a href="{% url 'worksheets:create' 'R' %}">For Roche CAP/CTM</a></li>
-                            <li><a href="{% url 'worksheets:create' 'C' %}">For Cobas 8800</a></li>
-                            <li><a href="{% url 'worksheets:create' 'H' %}">For Hologic</a></li>
-                            <li class="dropdown-headers">Upload Result</li>
-                            <li><a href="/worksheets/list/?type=A&tab=pending_r">For Abbott</a></li>
-                            <li><a href="/worksheets/list/?type=R&tab=pending_r">For Roche CAP/CTM</a></li>
-                            <li><a href="/results/cobas_upload/?type=C&tab=pending_r">For Cobas 8800</a></li>
-                            <li><a href="/worksheets/list/?type=H&tab=pending_r">For Hologic</a></li>
+
+                            <li class="dropdown-headers">New Samples</li>
+                                                      
+                            </li>
+
+                            <li><a id="load_plasma" href="{% url 'worksheets:create' 'D' %}?tab=normal&sample_type=D">DBS</a></li>
+                            <li><a id="load_plasma" href="{% url 'worksheets:create' 'P' %}?tab=normal&sample_type=P">Plasma</a></li>
+                            
+                            <li class="dropdown-headers">Repeat Samples</li>
+                          
+                            <li ><a id="load_plasma" href="{% url 'worksheets:manage_repeats' %}?sample_type=D&tab=repeatworksheet_type=normal">DBS</a></li>
+                            <li ><a id="load_plasma" href="{% url 'worksheets:manage_repeats' %}?sample_type=D&tab=repeat&worksheet_type=fell_off">DBS Machine Fall Offs</a></li>
+                            <li ><a id="load_plasma" href="{% url 'worksheets:manage_plasma_repeats' %}?sample_type=P&tab=repeat">Plasma</a></li>
                             <li class="dropdown-headers">Lists</li>
-                            <li><a href="/worksheets/list/?tab=all">View all</a></li> 
+                            <li><a href="/worksheets/lab_env_list/?sample_type=P&is_lab_completed=0">Incomplete plasma envelopes</a></li> 
+                            <li><a href="/worksheets/lab_env_list/?sample_type=D&is_lab_completed=0">Incomplete DBS envelopes</a></li> 
+                            <li><a href="/worksheets/lab_samples/?stage=1">Samples Pending results</a></li> 
+                            <li><a href="/worksheets/list_page/?tab=all">All worksheets</a></li> 
                         </ul>
                     </li>
-                    {% endif %}
+                   
                     {% if perms.results %}
                     <li class="user_menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <span class="vl-menu-items">Results Auth</span>
+                            <span class="vl-menu-items">Results</span>
                             <span class="caret"></span>
                         </a>
+
                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="{% url 'worksheets:authorize_list' 'A' %}">For Abbott</a></li>
-                            <li><a href="{% url 'worksheets:authorize_list' 'R' %}">For Roche CAP/CTM</a></li>
-                            <li><a href="{% url 'worksheets:authorize_list' 'C' %}">For Cobas 8800</a></li>
-                            <li><a href="{% url 'worksheets:authorize_list' 'H' %}">For Hologic</a></li>
-                            <li><a href="{% url 'results:authorize_sample' %}">For Sample</a></li>
+                            
+                             <li class="dropdown-headers">Upload Results</li>
+                            <li><a href="/results/upload/?type=A&tab=pending_r">For Abbott</a></li>
+                            <li><a href="/results/upload/?type=N&tab=pending_r">For Alinity</a></li>
+                            <li><a href="/results/cobas_upload/?type=C&tab=pending_r">For Cobas 8800</a></li>
+                            <li><a href="/results/cobas_upload/?type=S&tab=pending_r">For Cobas 6800</a></li>
+                            <li><a href="/results/cobas_upload/?type=H&tab=pending_r">For Hologic</a></li>
+                            <li class="dropdown-headers">Override Results</li>
+                            <li><a href="/results/override_results/?stage=1&auth_by=runs">For file</a></li>
+                            <li class="dropdown-headers">Auth Results</li>
+                            <li><a href="/worksheets/authorize_runs/?stage=1&auth_by=runs">For All Runs</a></li>
+                           
+                            <li class=""><a href="{% url 'samples:release_rejects' %}">Rejected samples</a></li>
+                            <li class="dropdown-headers hidden">Intervention</li>
+                            <li class="dropdown-headers">Reveiw for DR</li>
+                            <li><a href="{% url 'results:dr_results' %}">Pending DR Review</a></li>
+                            
                         </ul>
                     </li>
+                    
+                    
+                {% endif %}
+                
                     <li>
                          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <span class="vl-menu-items">Results Release</span>
+                            <span class="vl-menu-items">QC</span>
                             <span class="caret"></span>
-                        </a> 
+                        </a>
                          <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="{% url 'results:release_list' 'A' %}">For Abbott</a></li>
-                            <li><a href="{% url 'results:release_list' 'R' %}">For Roche CAP/CTM</a></li>
-                            <li><a href="{% url 'results:release_list' 'C' %}">For Cobas 8800</a></li>
-                            <li><a href="{% url 'results:release_list' 'H' %}">For Hologic</a></li>
-                            <li><a href="{% url 'results:release_sample' %}">For Sample</a></li>
-                            <li><a href="{% url 'samples:release_rejects' %}">Rejected samples</a></li>
-                         </ul> 
-                     </li>
-                     <li>
-                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                            <span class="vl-menu-items">Intervention</span>
-                            <span class="caret"></span>
-                        </a> 
-                         <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="{% url 'results:intervene_list' %}">Results</a></li>
-                            <li><a href="{% url 'samples:intervene_list' %}">Rejected samples</a></li>  
-                         </ul> 
-                     </li>
-                {% endif %}
+                            <li><a href="{% url 'samples:verify_list' %}?verified=0">Verify data entry</a></li>
+                            <li><a href="{% url 'samples:envelope_list' %}">Verify envelope</a></li>
+                            <li><a href="{% url 'results:trouble_shoot_results' %}">Troubleshoot results</a></li>
+                            <li><a href="{% url 'samples:release_sample_only_results' %}">Release Hie Results</a></li>
+                        </ul>
+                    </li>
                     <li>
                          <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <span class="vl-menu-items">more</span>
                             <span class="caret"></span>
-                        </a> 
+                        </a>
                          <ul class="dropdown-menu dropdown-menu-left">
-                            <li><a href="{% url 'samples:generate_forms' %}">Generate forms</a></li>
-                            <li><a href="{% url 'samples:reports' %}">Reports</a></li> 
-                            <li><a href="{% url 'samples:reports' %}?detectables=1">Detectables</a></li>  
-                            <li><a href="{% url 'samples:reports' %}?dr=1">Drug Resistance Samples</a></li>
-                            <li><a href="{% url 'samples:download' 'longitudinal_cohorts.csv.zip' %}?cohort=1">Cohorts for Jan '17 & Jun '18</a></li>  
+                            <li><a href="{% url 'samples:reports' %}">Reports</a></li>
+                            <li class="hidden"><a href="{% url 'samples:reports' %}?detectables=1">Detectables</a></li>
+                            <li class="hidden"><a href="{% url 'samples:reports' %}?dr=1">Drug Resistance Samples</a></li>
+                            <li class="hidden"><a href="{% url 'samples:download' 'longitudinal_cohorts.csv.zip' %}?cohort=1">Cohorts for Jan '17 & Jun '18</a></li>
                             <li><a href="{% url 'data_entry_stats' %}?tab=data_entry">Data Entry Performance</a></li>
                             <li><a href="{% url 'sample_approval_stats' %}">Sample Reception Performance</a></li>
-                         </ul> 
+
+
+                            <li class="hidden"><a href="{% url 'clean_data' %}">Upload clean data</a></li>
+                            <li class="hidden"><a href="{% url 'facility_data' %}">After field facility data</a></li>
+                            <li class="hidden"><a href="{% url 'clean_data_list' %}?facility_id=">View Cleaned data</a></li>
+                            <li class="hidden"><a href="{% url 'samples:pending_verification_list' %}">Verify Patients</a></li>
+                         </ul>
                   </li>
-                    
+                  
+
                 </ul>
-               
+
                 <ul class="nav navbar-nav navbar-right">
                     <li class="top_links" id="search-sect">
                         <input id="search_id" type="text" class="form-control input-sm" placeholder="Search...">
                         <ul class="dropdown-menu dropdown-menu-left" id="search-list" >
                             <li ><a class="search_link" section ="samples" href="{% url 'samples:search' %}" >Sample</a></li>
                             <li ><a class="search_link" section ="samples_env" href="{% url 'samples:search' %}" >Envelope</a></li>
-                            <li ><a class="search_link" section ="verify_env" href="{% url 'samples:search' %}" >Verify Envelope</a></li>
-                            <li ><a class="search_link" section ="worksheets" href="{% url 'worksheets:list' %}" >Worksheet</a></li>
-                            <li><a class="search_link" section="forms" href="{% url 'samples:forms' %}">Forms</a></li>
-                           <!--  <li ><a class="search_link" href="{% url 'results:list' %}" >Results</a></li> -->
-                        </ul>                        
+                            <li ><a class="search_link" section ="verify_env" href="{% url 'samples:search' %}" >Verify data entry</a></li>
+                            <li class=""><a class="search_link" section ="remove_sample" href="{% url 'samples:search' %}" >Remove sample</a></li>
+                            <li class=""><a class="search_link" section ="switch_sample" href="{% url 'samples:search' %}" >Switch Samples</a></li>
+                            <li class=""><a class="search_link" section ="with_results" href="{% url 'samples:search' %}" >With results</a></li>
+                           
+                            
+                        </ul>
                     </li>
-                    
+
                     <li class="user_menu">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                           
+
                             <span class="navbar_el_icon ion-person"></span> {{ request.user.username }} <span class="caret"></span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-right">
@@ -214,7 +227,7 @@
                 </ul>
             </div>
         </header>
-        
+
         <!-- main content -->
         <div id="main_wrapper">
             <div class="page_content">
@@ -228,11 +241,11 @@
                         <!-- <div class="col-lg-1"><span class='stat-count'>Lab: {{ request.user.userprofile.medical_lab}}</span></div> -->
                     </div>
                 </div>
-            </div>      
+            </div>
         </div>
-        <script src='{% static "home/tisa-admin/assets/js/tisa_common.js"%}'></script>
-        
-      
+
+
+
         <style type="text/css">
         #main_wrapper{
             margin-left: 20px;
@@ -265,7 +278,9 @@
             background-color: #FFFFFF;
         }
 
-       
+        ul.dropdown-menu li.important_link a {
+            color: #FF0000;
+        }
         </style>
 
         <script type="text/javascript">
@@ -280,23 +295,111 @@
                 var search_val = $("#search_id").val();
                 var extras = "";
                 if(section=='samples_env'){
-                     extras = "&search_env=1";                    
+                     extras = "&search_env=1";
+                }else if(section=='samples'){
+                    extras = "&search_sample=1";
                 }else if(section=='verify'){
-                    extras = "&approvals=1";                   
+                    extras = "&approvals=1";
                 }else if(section=='verify_env'){
                     extras = "&approvals=1&search_env=1";
+                }else if(section=='remove_sample'){
+                    extras = "&remove_sample=1&search_env=1";
+                }else if(section=='switch_sample'){
+                    extras = "&switch_sample=1&search_env=1";
+
+                }else if(section=='with_results'){
+                    extras = "&with_results=1&search_env=1";
+
                 }
                 //alert(extras);
                 window.location.href = link+"?search_val="+search_val+""+extras;
                 return false;
                 //return window.location.assign(link+"?search_val="+search_val);
-             }); 
+             });
+            $('#manage_repeats').on('click', function(){
+                $('#repeats_form').modal('show');
+            });
+
         });
 
 
         $("#search-sect").mouseover(function(){ $("#search-list").show(); });
 
         $("#search-sect").mouseout(function(){ $("#search-list").hide(); });
+        $("#load_plasma").click(function(e){
+            //e.preventDefault();
+            $("#plasma_wrksht_modal").modal('show');
+        });
         </script>
+        <div id="repeats_form" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" style="color:red">Sample Details</h4>
+              </div>
+
+              <div class="modal-body">
+                <form id="rep_form" action="{% url 'worksheets:manage_repeats'  %}" method="post" role="form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                      <label for="validate_facility" >Machine Type:</label>
+                        <select class="form-control "name="machine_type" required="true">
+                            <option value="">---------</option>
+                            <option value="A">Abbott</option>
+                            <option value="R">Roche CAP/CTM</option>
+                            <option value="C">Cobas 8800</option>
+                            <option value="H">Hologic</option>
+                            </select>
+                    </div> <br>
+                     <div class="form-group">
+                      <label for="validate_facility" >Sample Type:</label>
+                        <select class="form-control" name="sample_type" required="true">
+                            <option value="">---------</option>
+                            <option value="P">Plasma</option>
+                            <option value="D">DBS</option>
+                            </select>
+                    </div>
+                        <input type="text" class="hidden" name="post_type" value="get_samples_for_worksheet">
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-danger"  data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="confirm_details">Submit</button>
+                  </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+
+        <div id="plasma_wrksht_modal" class="modal fade" role="dialog">
+          <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" style="color:red">Validate Samples</h4>
+              </div>
+              
+              <div class="modal-body">
+                 
+                <div class="form-group">
+                  <label for="starting_barcode" class="">Start from:</label>
+                  <input class="form-control"  name="starting_barcode" type="text">
+                </div>  
+                <div class="form-group">
+                  <label for="last_barcode" class="">End at:</label>
+                  <input class="form-control"  name="last_barcode" type="text">
+                </div>       
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-danger"  data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm_details">Change Details</button>        
+              </div>
+            </div>
+          </div>
+        </div>
+
     </body>
 </html>

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.core.serializers import serialize
 
 from .models import *
-from samples.models import Sample, LabTech, Clinician, ClinicalRequestFormsDispatch
+from samples.models import Sample
 
 
 class ReadOnlyAdmin(object):
@@ -11,7 +11,7 @@ class ReadOnlyAdmin(object):
 	def __init__(self, *args, **kwargs):
 		super(ReadOnlyAdmin, self).__init__(*args, **kwargs)
 		#self.readonly_fields = self.model._meta.get_all_field_names()
-		self.readonly_fields = map(lambda f: f.attname, self.model._meta.get_fields())
+		self.readonly_fields = list(map(lambda f: f.attname, self.model._meta.get_fields()))
 
 	def has_add_permission(self, request):
 		return False
@@ -66,23 +66,7 @@ class FacilityAdmin(VLAdmin, admin.ModelAdmin):
 			facility_ip.facility = facility0
 			facility_ip.save()
 
-		dispatched_forms = ClinicalRequestFormsDispatch.objects.filter(facility=facility1)
-		for dispatched_form in dispatched_forms:
-			dispatched_form.facility = facility0
-			dispatched_form.save()
-
-		lab_techs = LabTech.objects.filter(facility=facility1)
-		for lab_tech in lab_techs:
-			lab_tech.lname = self.new_lname(facility0, "%s."%lab_tech.lname)  
-			lab_tech.facility = facility0
-			lab_tech.save()
-
-		clinicians = Clinician.objects.filter(facility=facility1)
-		for clinician in clinicians:
-			clinician.cname = self.new_cname(facility0,"%s."%clinician.cname)
-			clinician.facility = facility0
-			clinician.save()
-
+		
 		facility_stats = FacilityStats.objects.filter(facility=facility1)
 		facility_stats.delete()
 		
@@ -134,7 +118,7 @@ class UserProfileAdmin(VLAdmin, admin.ModelAdmin):
 class DeleteLogAdmin(VLAdmin, ReadOnlyAdmin, admin.ModelAdmin):
 	fields = ('section', 'ref_number', 'delete_reason', 'deleted_by', 'deleted_at', 'data',)
 	list_display = ('section', 'ref_number', 'delete_reason', 'deleted_by', 'deleted_at', )
-	search_fields = ('ref_number',)
+	search_fields =('ref_number',)
 	show_fields = ('ref_number',)
 
 # Register your models here.

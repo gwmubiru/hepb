@@ -1,10 +1,24 @@
 {% extends "home/layout.html" %}
 {% load form_tags %}
-{% load staticfiles %}
+{% load static %}
 
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	<style>
+		.is_data_enterd0{
+			color: red;
+		}
+
+		/* basic positioning */
+	.legend { list-style: none; }
+	.legend li { float: left; margin-right: 10px; }
+	.legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
+	/* your colors */
+	.legend .red { background-color: #ff0000; }
+	.legend .black { background-color: #000; }
+
+</style> 
 {% endblock %}
 
 {% block js %}
@@ -26,76 +40,110 @@
 		{{request.GET.reverse_approval}}
 	</span>
 	{% endif %}
+	<ul class="legend">
+    <li><span class="red"></span> Pending data entry</li>
+    <li><span class="black"></span> Data entry complete</li>
+	</ul>
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
 		<thead>
 			<tr>
 				<th>#</th>
-				<th style="width:50px">Form #</th>
-				<th style="width:70px">Locator ID</th>	
-				<th>Pos</th>			
+				<th>Facility Ref</th>
+				<th>Form Number</th>
+				<th>Lab Ref</th>
+				<th>Facility</th>
+				<th>District</th>	
+				<th>Patient ART #</th>
+				<th>Sex</th>
 				<th>Sample Type</th>				
 				<th>Date Collected</th>
 				<th>Initiation Date</th>
-				<th>Date Received</th>				
-				<th>Patient ART #</th>
-				<th>Other ID</th>
-				<th>District</th>
-				<th>Facility</th>
+				<th>Date Received</th>		
 				<th>Status</th>
 				<th>...</th>
 			</tr>
 		</thead>
 		<tbody>
 			{% for s in samples %}
-			<tr>
-				<td>{{ forloop.counter }}</td>				
-				<td>{{ s.form_number }}</td>
-				<td>{{s.locator_category}}{{s.envelope.envelope_number}}/{{s.locator_position}}</td>	
-				<td>{{ s.lposition_int }}</td>			
+			<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}">
+				<td>{{ forloop.counter }}</td>													
+				<td>																						
+						{{s.facility_reference}}
+				</td>
+				<td>																						
+						{{s.form_number}}
+				</td>
+				<td>
+
+					
+				{{s.barcode}}
+					
+				</td>
+				<td>
+					{% if s.patient_id %}
+					{{ s.patient.facility }}
+					{% else %}
+						{{ s.facility }}
+					{% endif %}
+			  </td>
+			  	<td>
+					{% if s.is_data_entered %}
+					{{ s.patient.facility.district }}
+					{% else %}
+						{{ s.sample_reception.facility.district }}
+					{% endif %}
+
+				</td>	
+				<td>
+					{% if s.is_data_entered %}
+					{{ s.patient.art_number }}
+					{% else %}
+						{{ s.reception_art_number }}
+					{% endif %}
+				</td>	
+				<td>{{ s.patient.gender }}</td>
 				<td>{{ s.get_sample_type_display }}</td>				
 				<td>{{ s.date_collected | date:"Y-m-d" }}</td>
-				<td>{{ s.treatment_initiation_date | date:"Y-m-d"}}</td>
-				<td>{{ s.date_received | date:"Y-m-d"}}</td>				
-				<td>{{ s.patient.art_number }}</td>
-				<td>{{ s.patient.other_id }}</td>
-				<td>{{ s.facility.district }}</td>
-				<td>{{ s.facility }}</td>
 				<td>
-					{% if s.verified %} 
-						<span style="display:none" id="verify_details{{ s.pk }}">
-							<table class="table table-bordered table-condensed table-striped">
-								<tr>
-									<th>Stage</th>
-									<th  width="30%">Value</th>
-									<th>By</th>
-									<th>Date</th>
-								</tr>
-								<tr>
-									<td>Created</td>
-									<td></td>
-									<td>{{ s.created_by}}</td>
-									<td>{{ s.created_at }}</td>
-								</tr>
-								<tr>
-									<td>Approval</td>
-									<td>{% if s.verification.accepted %} Accepted {% else %} Rejected {% endif %}</td>
-									<td>{{ s.verification.verified_by }}</td>
-									<td>{{ s.verification.created_at }}</td>
-								</tr>
-								{% if not s.verification.accepted %}
+					{% if s.is_data_entered %}
+					 {{ s.patient.treatment_initiation_date | date:"Y-m-d"}}
+					{% else %}
+					{{ s.treatment_initiation_date | date:"Y-m-d"}}
+					{% endif %}
+				</td>
+				<td>{{ s.date_received | date:"Y-m-d"}}</td>	
+				
+				
+				<td>
+					{% if s.verified %} <!-- Start condition for verification-->
+					<span style="display:none" id="verify_details{{ s.pk }}">
+						<table class="table table-bordered table-condensed table-striped">
+							<tr>
+								<th>Stage</th>
+								<th  width="30%">Value</th>
+								<th>By</th>
+								<th>Date</th>
+							</tr>
+							<tr>
+								<td>Received</td>
+								<td>{% if s.stage == 0 %}Yes {% else %}No{% endif %}</td>
+								<td>{{ s.created_by}}</td>
+								<td>{{ s.created_at }}</td>
+							</tr>
+							<tr>
+								<td>Data Entry</td>
+								<td>{% if s.is_data_entered %} Entered {% else %} Not entered {% endif %}</td>
+								<td>{{ s.data_entered_by }}</td>
+								<td>{{ s.data_entered_at }}</td>
+							</tr>
+							{% if not s.verification.accepted %} <!--Start the if not veri -->
 								<tr>
 									<td>Rejection Reason</td>
 									<td colspan="3">{{ s.verification.rejection_reason.appendix }}</td>
 								</tr>
 								{% else %}
-								{% for sw in s.worksheet_set.all %} 
-								<tr>
-									<td>Worksheet</td>
-									<td>{{ sw.worksheet_reference_number }}</td>
-									<td>{{ sw.generated_by }}</td>
-									<td>{{ sw.created_at }}</td>
-								</tr>								
-								{% endfor %}
+								
+								
 								<tr>
 									<td>Processed Result</td>
 									<td>
@@ -111,12 +159,7 @@
 									<td></td>
 									<td></td>
 								</tr>
-								<tr>
-									<td>Authorised?</td>
-									<td>{% if s.result.authorised %} Yes {% else %} No {% endif %}</td>
-									<td>{{ s.result.authorised_by }}</td>
-									<td>{{ s.result.authorised_at }}</td>
-								</tr>
+								
 
 								<tr>
 									<td>Released?</td>
@@ -126,50 +169,72 @@
 								</tr>
 
 								<tr>
-									<td>Dispatched?</td>
+									<td>Printed at facility?</td>
 									<td>{% if s.resultsdispatch %} Yes {% else %} No {% endif %}</td>
 									<td>{{ s.resultsdispatch.dispatched_by }}</td>
 									<td>{{ s.resultsdispatch.dispatched_date }}</td>
 								</tr>
-								{% endif %}
-
-								{% if approvals %} 
+								
+							{% endif %} <!-- End of if not veri -->
+							{% if approvals %} 
 								<tr>
 									<td colspan="4" style="text-align:center">
 										<a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">change</a>
 										<a class="btn btn-xs btn-danger" href="/samples/reverse_approval/{{ s.verification.pk }}/?search_val={{ request.GET.search_val}}">reverse approval</a>
 									</td></tr>
 								{% endif %}
-							</table>								
-						</span>
-						<button type="button" class="btn btn-xs btn-danger approved" data-toggle="modal" data-target="#myModal" sample_id="{{ s.pk }}">
-							{% if s.verification.accepted %} accepted {% else %} rejected {% endif %}
+						</table>
+					</span>
+					
+					<button type="button" class="btn btn-xs btn-danger approved" data-toggle="modal" data-target="#myModal" sample_id="{{ s.pk }}">
+						{% if s.verification.accepted %} 
+							accepted 
+						{% elif s.stage == 20 %}
+							sample collection
+						{% elif s.stage == 25 or s.stage == 30 %}
+							shipment
+						{% else %} 
+							rejected 
+						{% endif %}
 						</button>
-					{% else %} 
+					{% else %} <!-- else for verification condition -->
 						pending 
-					{% endif %} 
+					{% endif %}
 				</td>
 				<td>
-					{% if approvals %} 
-						{% if s.verified %} 
-							<button type="button" class="btn btn-xs btn-danger approved" data-toggle="modal" data-target="#myModal" sample_id="{{ s.pk }}">approved</button>
+					{% if remove_sample or switch_sample%}
+					 	{% if remove_sample and s.is_data_entered == 0 and s.stage < 2 and s.worksheetsample_set.count < 2 %}
+							<label><input type='radio'  name='removals{{ s.pk }}' class='removals' sample-pk="{{ s.pk }}" value='removed'> remove</label>
+						{% endif %}
+						{% if switch_sample %}
+							<label><input type='text'  name='switch_samples{{ s.pk }}' class='switch_samples' sample-pk="{{ s.pk }}" value=''> Save</label>
+						{%endif%}
+					{% else %}
+						{% if approvals and s.is_data_entered == 1  and s.verified == 0 %}  
+							<a href="/samples/edit/{{s.id}}?from_page=approvals" class="btn btn-danger btn-sm" style="margin-right: 5px;">Edit</a>
+								<label><input type='radio'  name='choices{{ s.pk }}' class='choices' sample-pk="{{ s.pk }}" value='verified'> Verified</label>
 						{% else %} 
-							<a class="btn btn-xs btn-danger" href="/samples/verify/{{ s.pk }}">approve</a>
-						{% endif %} 
-					{% else %} 
-						<div class="btn-group">
-							<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-								Options 
-								<span class="caret"></span>
-							</button>
-							<ul class="dropdown-menu" role="menu">
-								<li>
-									<a href="/samples/show/{{ s.pk }}">view</a>
-								</li>
-								<li><a href="/samples/edit/{{ s.pk }}">edit</a></li>
-							</ul>
-						</div>
-					{% endif %} 
+							<div class="btn-group">
+								<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+									Options 
+									<span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu" role="menu">
+									<li>
+										<a href="/samples/show/{{ s.pk }}">view</a>
+									</li>
+									<li>
+										
+											<a href="/samples/edit/{{ s.pk }}">edit</a>
+										
+											<a href="/samples/edit_received/{{ s.pk }}">edit reception</a>
+											
+									 </li>
+										
+								</ul>
+							</div>
+						{% endif %}
+					{% endif %}<!-- end if remove sample condition-->
 				</td>
 			</tr>
 			{% endfor %}
@@ -206,6 +271,48 @@ $(document).ready(function() {
 		"paging":false,
 		"order": [[ 3, "asc" ]],
 	});
+
+	$(".choices").on("click",function(){
+	 	var choice = $(this).val();
+	 	//alert(choice);
+	 	var sample_pk = $(this).attr('sample-pk');
+	 	if(choice == 'verified'){
+	 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk, post_type: 'verify', choice: choice};
+	 		$.post("/samples/verify/"+sample_pk+"/", params).done(function( data ) {
+			    $("#saved"+params.sample_pk).show();
+			  });
+	 	}	
+
+	 });
+
+	$(".removals").on("click",function(){
+	 	alert('disabled for now');
+	 	var sample_pk = $(this).attr('sample-pk');
+	 	
+ 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk};
+ 		$.post("/samples/remove/"+sample_pk+"/", params).done(function( data ) {
+ 				var row = document.getElementById(sample_pk);
+    		row.parentNode.removeChild(row);
+		    //$("#saved"+params.sample_pk).show();
+		    $('#tab_id').DataTable().row("#12195042").remove().draw();
+
+		  });
+	 	
+	 });
+
+	$(".switch_samples").on("change",function(){
+		alert('disabled for now');
+	 	var correct_fac_ref = this.value;
+	 	var sample_pk = $(this).attr('sample-pk');
+	 	
+ 		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk,correct_fac_ref:correct_fac_ref};
+ 		$.post("/samples/switch_samples/"+sample_pk+"/", params).done(function( data ) {
+ 				var row = document.getElementById(sample_pk);
+ 				//switch_samples
+		  });
+	 	
+	 });
+	
 
 	$(".approved").click(function(){
 		var sample_id = $(this).attr('sample_id');

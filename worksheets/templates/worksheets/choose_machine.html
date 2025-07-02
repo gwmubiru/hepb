@@ -1,0 +1,76 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
+{% endblock %}
+
+{% block content %}	
+	<span class="page-title">Deatails of Processed Samples</span>		
+	<div class="panel panel-default">
+		<div class="panel-body">
+			
+			<form action="{% url 'worksheets:choose_machine_type' %}" method="POST" role="form">
+				{% csrf_token %}
+				<div class="row">
+					<div class="form-group" style="width: 400px">
+						<label for="id_sample_type">Processing type:</label>						
+						<select class="form-control input-sm" id="id_sample_type" name="process_type" required="true">
+							<option value="R">Range</option>
+						</select>
+					</div>
+					<div class="form-group" style="width: 400px">						
+						<label for="id_machine_type">Machine type:</label>						
+						<select class="form-control input-sm" id="id_machine_type" name="machine_type" required="true">
+							<option value="">---------</option>
+							<option value="A">Abbott</option>
+							<option value="R">Roche CAP/CTM</option>
+							<option value="C">Cobas 8800</option>
+							<option value="H">Hologic</option>
+						</select>
+					</div>
+					<br>
+					<div class="form-group" style="width: 400px">
+						<label for="id_sample_type">Sample type:</label>						
+						<select class="form-control input-sm" id="id_sample_type" name="sample_type" required="true">
+							<option value="" selected="selected">---------</option>
+							<option value="P">Plasma</option>
+							<option value="D">DBS</option>
+						</select>
+					</div>
+				</div>
+
+				<br><input id="" type='submit' value='save' class="btn btn-danger btn-submit "> 
+				
+			</form>
+		</div>
+	</div>
+	<style type="text/css">
+	.form-group,.form-inline{
+		margin-bottom: 0px;
+	}
+	</style>
+	
+	<script type="text/javascript">
+	var date_now = new Date();
+	var yr_now = date_now.getFullYear();
+	$( function() {
+		
+	});
+
+	/*$(".lab-tabs").on('click',function(){
+		$(this).addClass('active');
+		console.log("dedere");
+	});
+*/
+
+	</script>
+{% endblock %}

@@ -1,0 +1,230 @@
+{% extends "home/layout.html" %}
+{% load static %}
+{% load form_tags %}
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/jquery-barcode/jquery-barcode.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+	<span class="page-title">Results Auth</span>
+
+	<div class="panel panel-default" style="overflow-y:auto;">
+
+			<div class="worksheet" id="content" >
+			<form method='GET' action="{% url 'results:release_results' %}">
+					<br>
+			<div class="form-inline">
+					{% input "date_rejected_fro" date_rejected_fro "{'class':'date form-control input-sm w-sm hidden', 'placeholder':'From'}" %}
+					{% input "date_rejected_to" date_rejected_to "{'class':'date form-control input-sm w-sm hidden', 'placeholder':'To'}" %}
+					<select class="form-control hidden" name="facility_id" id="flty">
+						 <option value="">Select facility</option>
+		            {% for f in facilities %}
+		            <option value="{{f.id}}">{{ f.facility }}</option>
+		            {% endfor %}
+		        </select>
+		        <input type="text" name="run_id" value="{{request.GET.run_id}}" class="hidden">
+		        <input type="text" name="stage" value="{{request.GET.stage}}" class="hidden">
+						<input type="submit" value="Filter" class="btn btn-danger btn-sm">
+				</div>
+			</form></br>
+			<form action="/worksheets/authorize_results/" method="post" role="form" id="multi_action">
+	{% csrf_token %}
+			<a href="#" class='btn btn-xs btn-primary ' id="select_all" >Select all visible</a>
+			 <input type="button" class='btn btn-xs btn-success' value="Authorize all selected" onclick="takeAction('authorize');" />
+			 <input type="button" class='btn btn-xs btn-info' value="Reshedule all selected" onclick="takeAction('reschedule');" />
+			 <input type="button" class='btn btn-xs btn-danger' value="Invalidate all selected" onclick="takeAction('invalid');" />
+				<br>
+				<table class="table table-striped table-condensed table-bordered" id="samples-table" >
+					<thead>
+						<th></th>
+						<th>Sample&nbsp;ID</th>
+						<th>Instrument Id</th>
+						<th>Position in Run</th>
+						<th>&nbsp;</th>
+						<th>Machine Result&nbsp;(latest)</th>
+						<th>Result (latest)</th>
+		        <th>Suppressed?</th>
+		        <th style="width:250px">Choose</th>
+		                
+					</thead>
+					<tbody>
+						<input type="text" id="choice_type" name="choice_type" class="hidden">
+						<input type="text" id="post_type" name="post_type" value="multiple" class="hidden">
+						{% for ws in worksheet_samples %}
+
+						<tr {% if ws.sample.result.repeat_test == 3 or ws.sample.result.repeat_test == 1 or ws.sample.result.repeat_test == 0 %} style = "background:#F5A9A9;" {% endif %} {% if ws.sample.result.pk == '' %} style = "background:#d7af0d;" {% endif %}>
+
+							<td><input type="checkbox" class="results" name="worksheet_samples" value="{{ ws.pk }}"></td>
+							<td>{{ ws.instrument_id }}</td>
+							<td>{{ ws.instrument_id }}</td>
+							<td>{{ ws.result_run_position }}</td>
+
+							<td>
+								<span id="results_list{{ forloop.counter }}" style="display:none">
+								<table  class="table table-bordered table-condensed table-striped" >
+									<tr><td>Result 1:</td><td>{{ ws.sample.result.result1 }}</td></tr>
+									<tr><td>Result 2:</td><td>{{ ws.sample.result.result2 }}</td></tr>
+									<tr><td>Result 3:</td><td>{{ ws.sample.result.result3 }}</td></tr>
+									<tr><td>Result 4:</td><td>{{ ws.sample.result.result4 }}</td></tr>
+									<tr><td>Result 5:</td><td>{{ ws.sample.result.result5 }}</td></tr>
+								</table>
+								</span>
+
+								<a href="#" class="results_list glyphicon glyphicon-list-alt" data-toggle="modal" data-target="#myModal" style="text-decoration:none;" r_id="{{ forloop.counter }}"></a>
+							</td>
+
+							<td>
+								{{ws.result_alphanumeric}}
+							</td>
+
+							<td>{% if ws.result_alphanumeric == '' %} Missing Result {% else %}
+								{{ ws.result_alphanumeric }} {% endif %}</td>
+							<td>{{ ws.sample.result.get_suppressed_display }}</td>
+							<td>
+								{% if ws.repeat_test == 2 or ws.repeat_test == 0 %}
+									{% if ws.result_alphanumeric != 'FAILED' %}
+									<label><input type='radio' required='true' name='choices{{ ws.pk }}' class='choices' ws-pk="{{ ws.pk }}" value='release' {% if ws.authorised == 1 and ws.result_alphanumeric != 'FAILED' %} checked {% endif %}> Authorize</label>
+									{% endif %}
+								{% endif %}
+								<label>
+									<input type='radio' required='true'  name='choices{{ ws.pk }}' class='choices' ws-pk="{{ ws.pk }}" value='reschedule' repeat-status='{{ ws.repeat_test }}' {% if ws.repeat_test == 1 %} checked {% endif %}>{% if ws.pk == '' %}Invalidate&nbsp;&#38;&nbsp;Reschedule
+									{% else %}
+										Reschedule
+									{% endif %}
+
+								</label>
+								<label>
+									<input type='radio' required='true' name='choices{{ ws.pk }}' class='choices' ws-pk="{{ ws.pk }}" value='invalid' repeat-status='{{ ws.repeat_test }}' {% if ws.authorised == 1 and ws.result_alphanumeric == 'FAILED' %} checked {% endif %}>{% if ws.pk == '' %}Invalidate&nbsp;&#38;&nbsp;Authorize
+									{% else %}
+										Invalid
+									{% endif %}
+
+								</label>
+							</td>
+							<td><span id="saved{{ ws.pk }}" class="status alert alert-success vl-alert" role="alert">saved&nbsp;</span></td>
+						</tr>
+
+						{% endfor %}
+					</tbody>
+				</table>
+				<input type="hidden" name="complete_run" value='1'>
+				<input type="hidden" name="run_id" value='{{run_id}}'>
+				<input type="text" class="hidden" name="is_multi_approval" id="is_multi_approval" value='No'>
+				<a class="hidden" href="/worksheets/attach_results/?run_id={{run_id}}" class="btn btn-sm btn-primary">Attach Results</a><br><br>
+				<input type='submit' value='Mark run as complete' class='btn btn-sm btn-danger'><br>
+
+			</div>
+	</div>
+</form>
+
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Results list for the sample</h4>
+      </div>
+      <div class="modal-body">
+        <p id="results_list_show"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+	<script type="text/javascript">
+	 $(function() {
+	 	var oTable = $('#samples-table').dataTable({
+			"processing": true,
+			"paging":false,
+			"order": [[ 2, "asc" ]],
+		});
+
+        $(".status").hide();
+        //$(".missing_results").hide();
+      });
+
+	 $(".choices").on("click",function(){
+	 	var choice = $(this).val();
+	 	var repeat_status = $(this).attr('repeat-status');
+	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", ws_pk:$(this).attr('ws-pk'),post_type:'single', choice:$(this).val()};
+
+	 	if(repeat_status==2 && (choice=='reschedule' || choice=='invalid')){
+	 		var ans = confirm("Valid result. Do you really want to invalidate result?");
+	 		if(ans==false){
+	 			return false;
+	 		}
+	 	}
+	 	submit_auth(params);
+	 });
+
+
+
+	 $(".x").on("click", function(){
+	 	$(this).parent().hide();
+	 });
+
+
+	$(".results_list").click(function(){
+		var r_id = $(this).attr('r_id');
+		$("#results_list_show").html($("#results_list"+r_id).html());
+	});
+
+	function submit_auth(params){
+		$.post("/worksheets/authorize_results/", params).done(function(data) {
+	 		$("#saved"+params.ws_pk).show();
+		 });
+	}
+
+	$('#select_all').click(function(){
+        var status = $(this).html();
+        if(status == 'Select all visible'){
+            $(".results").attr("checked", true);
+            $(this).html('Unselect all visible');
+        }else{
+            $(".results").attr("checked", false);
+            $(this).html('Select all visible');
+        }
+    });
+
+
+	 function takeAction(choice) {
+
+	   if ($('.results').filter(':checked').length < 1){
+	        alert("Seltec at least one result!");
+			return false;
+		}else{
+			$('#choice_type').val(choice);
+			$('#is_multi_approval').val('Yes');
+			var message_part = choice;
+			if (choice == 'invalid'){
+				message_part = 'invalidate';
+			}
+			var ans = confirm("Do you really want to "+message_part+" the selected results?");
+	 		if(ans==false){
+	 			return false;
+	 		}
+			var the_form = document.getElementById("multi_action");
+			the_form.submit();
+		}
+
+	}
+	</script>
+
+	<style type="text/css">
+	.missing_results{
+		background-color: #F5A9A9;
+	}
+	</style>
+
+{% endblock %}
