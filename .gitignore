@@ -14,3 +14,25 @@ vendor/
 vendor
 Anaconda3-2021.11-Linux-x86_64.sh
 Anaconda3-2021.11-Linux-x86_64.sh
+
+# python envs
+venv/
+.venv/
+env/
+vlenv/
+henv/
+__pycache__/
+*.pyc
+
+# data / generated reports
+results/media/reports/
+results/media/reports/detectables/
+results/media/*.csv
+
+# installers / big binaries
+*.sh
+*.bin
+*.run
+
+# office docs (optional)
+*.docx
