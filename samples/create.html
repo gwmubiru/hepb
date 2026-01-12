@@ -87,7 +87,7 @@
 					<input type="text" name="locator_position" id="locator_position" class="hidden">
 					{{ sample_form.barcode}}
 					<input type="text" name="reception_facility" id="reception_facility" class="hidden">
-					<input type="text" name="reception_art_number" id="reception_art_number" class="hidden">
+					<input type="text" name="reception_hep_number" id="reception_hep_number" class="hidden">
 					<input type="text" name="s_id" id="s_id" class="hidden">
 					<input type="text" name="from_page" value="{{from_page}}" class="hidden">
 
@@ -136,8 +136,8 @@
 			<div class="col-lg-5">
 
 				<div class="form-group required">
-					{{ patient_form.art_number.label_tag }}
-					{{ patient_form.art_number }}
+					{{ patient_form.hep_number.label_tag }}
+					{{ patient_form.hep_number }}
 				</div> 
 				<input type="text" name="patient_id" id="patient_id" class="hidden">
 				<div class="form-group">
@@ -192,7 +192,7 @@
 					<tr ng-repeat="ph in patient_history">
 						<td><% ph.test_date %></td>
 						<td><% ph.result %></td>
-						<td><% ph.art_number %></td>
+						<td><% ph.hep_number %></td>
 						<td><% ph.dob %></td>
 						<td><% ph.gender %></td>
 						<td><% ph.form_number %></td>					
@@ -290,17 +290,7 @@
 
 		</div>
 		<br>
-		<span class='sub-title'>indication for viral load testing</span> 
-
-		<div class="row">
-			<div class="col-lg-2">
-				<div class="form-group required">
-					<label>Select</label>
-					{{ sample_form.viral_load_testing }}				
-				</div>
-			</div>
-			
-		</div>
+		
 
 		<div class="row">		
 			<div class="col-lg-6">
@@ -505,14 +495,14 @@
     	//update facility and 
     	$('#confirm_details').on('click', function(){
     		var vali_fac = $('#validate_facility').val();
-    		var art_no = $('#validate_art_number').val();
+    		var art_no = $('#validate_hep_number').val();
     		$('#reception_facility').val(vali_fac);
-    		$('#reception_art_number').val(art_no);
+    		$('#reception_hep_number').val(art_no);
 
     		$('#id_facility').val(vali_fac);
-    		$('#id_art_number').val(art_no);
+    		$('#id_hep_number').val(art_no);
     		//trigger change on art number so that system can pick patient details afresh
-    		$('#id_art_number').change();
+    		$('#id_hep_number').change();
 
     		$('#reception_modal').modal('hide');
     		$("#id_other_id").focus();
@@ -520,26 +510,26 @@
 			//$('#validate_facility').select2();
     	});
     	
-    	$('#id_art_number,#id_facility').on('change', function(){
+    	$('#id_hep_number,#id_facility').on('change', function(){
 			var facility_id = $("#id_facility").val();
-			var art_no = $("#id_art_number").val();
+			var art_no = $("#id_hep_number").val();
 			var reception_facility = $("#reception_facility").val();
-			var reception_art_number = $("#reception_art_number").val();
+			var reception_hep_number = $("#reception_hep_number").val();
 
-			var sanitized_recep_art_number = sanitizeString(reception_art_number).toLowerCase();
-			var sanitized_art_number = sanitizeString(art_no).toLowerCase();
+			var sanitized_recep_hep_number = sanitizeString(reception_hep_number).toLowerCase();
+			var sanitized_hep_number = sanitizeString(art_no).toLowerCase();
 			if(facility_id != '' & art_no != ''){
 
-				if(reception_facility != facility_id || sanitized_recep_art_number != sanitized_art_number){
+				if(reception_facility != facility_id || sanitized_recep_hep_number != sanitized_hep_number){
 				
 					//$("#id_facility").val('');
-					//$("#id_art_number").val('');
+					//$("#id_hep_number").val('');
 					//$('#reception_modal').modal('show');
 					alert('Kindly double check! Either the Facility of the Art number you entered does not match what was entered at reception');
 
 				}
 			
-				var url =  "/samples/get_patient/?facility_id="+facility_id+"&art_number="+art_no;
+				var url =  "/samples/get_patient/?facility_id="+facility_id+"&hep_number="+art_no;
 				$.get(url, function(data, status){
 						var data_arr = JSON.parse(data);
 						var is_facility_clean = data_arr.is_facility_clean;
@@ -701,24 +691,6 @@
 			set_dob();			
 		});
 
-		$("#id_viral_load_testing").change(function(){
-			var vl_val = $(this).val();
-			var $vl_testing = $('input:radio[name=vl_testing]');
-
-			//console.log("dhejehd"+$vl_testing);
-			switch(vl_val){
-				case "93":
-					$vl_testing.filter('[value=routine]').prop('checked', true);
-					break;
-				case "94":
-					$vl_testing.filter('[value=repeat]').prop('checked', true);
-					break;
-				case "95":
-					$vl_testing.filter('[value=suspected]').prop('checked', true);
-					break;
-			}
-
-		});
 
 		$("#x").on("click", function(){
 			$("#success").slideUp("slow");
@@ -745,12 +717,7 @@
 		    		var val = year_month +'-'+env_number;
 					var env_num = Number(val.substr(-4));
 					var s_type = '';
-					if(env_num < 3000){
-						//plasma study samples === from 900 up to 999
-						s_type = 'P'; 
-					}else{
-						s_type = 'D';
-					}
+					var s_type =  (env_num<=999?'P':'D');
 					$("#id_sample_type").val(s_type);
 					$("#sample_type").val(s_type);
 		    		$("#locator_position").val(locator_posn).change();
@@ -767,12 +734,12 @@
 						}else{
 							//now generate the locator positions etc
 							$("#reception_facility").val(data_arr.reception_facility);
-							$("#reception_art_number").val(data_arr.reception_art_number);
+							$("#reception_hep_number").val(data_arr.reception_hep_number);
 							//also update the modal with art and facility details
 							$("#validate_facility").val(data_arr.reception_facility);
 							$("#date_received").val(data_arr.date_received);
 							$("#txt_date_received").html(data_arr.date_received);
-							$("#validate_art_number").val(data_arr.reception_art_number);
+							$("#validate_hep_number").val(data_arr.reception_hep_number);
 							$("#s_id").val(data_arr.s_id);
 						}
 						//$('#validate_facility').select2();
@@ -896,11 +863,11 @@ ctrller.SampleController = function($scope,$http){
 	
 	$scope.patient_history = [];
 	$scope.facility = "{{ sample_form.facility.value|default:'' }}";
-	$scope.art_number = "{{ patient_form.art_number.value|default:'' }}";
+	$scope.hep_number = "{{ patient_form.hep_number.value|default:'' }}";
 	
 
 	$scope.patHist = function(){
-		$http.get("/samples/patient_history/"+$scope.facility+"/?art_number="+$scope.art_number).success(function(data){
+		$http.get("/samples/patient_history/"+$scope.facility+"/?hep_number="+$scope.hep_number).success(function(data){
 			$scope.patient_history = data;
 		});
 	}
@@ -941,7 +908,7 @@ $(document).ready(function() {
                         }
                     }
                 },
-                art_number: {
+                hep_number: {
                     validators: {
                         notEmpty: {
                             message: 'Please enter lab number'
@@ -1039,8 +1006,8 @@ $(document).on('focus', '.select2-selection.select2-selection--single', function
 			</select> 
         </div> <br>
         <div class="form-group">
-          <label for="validate_art_number" class="">Art Number:</label>
-          <input class="form-control" id="validate_art_number" name="validate_art_number" type="text">
+          <label for="validate_hep_number" class="">Art Number:</label>
+          <input class="form-control" id="validate_hep_number" name="validate_hep_number" type="text">
         </div>        
       </div>
       <div class="modal-footer">

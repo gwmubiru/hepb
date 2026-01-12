@@ -56,7 +56,7 @@ class FacilityMinSerializer(serializers.ModelSerializer):
 class PatientSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Patient
-		fields = ('art_number', 'other_id', 'gender', 'dob' )
+		fields = ('hep_number', 'other_id', 'gender', 'dob' )
 
 class EnvelopeSerializer(serializers.ModelSerializer):
 	class Meta:

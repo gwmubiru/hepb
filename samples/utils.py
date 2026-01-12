@@ -191,10 +191,12 @@ def update_result_models(s):
 				rst.resultsqc.save()
 
 def is_rec_and_entery_data_mataching(sample,request_art, request_facility_id):
-	reception_art_number = utils.removeSpecialCharactersFromString(sample.reception_art_number)
-	data_entry_art_number = utils.removeSpecialCharactersFromString(request_art)
+	rec_raw_hep_number = sample.reception_hep_number or ""
+	reception_hep_number = utils.removeSpecialCharactersFromString(rec_raw_hep_number)
+	req_request_art = request_art or ""
+	data_entry_hep_number = utils.removeSpecialCharactersFromString(req_request_art)
 	
-	if (reception_art_number.lower() == data_entry_art_number.lower()) and (sample.facility_id == int(request_facility_id)):
+	if (reception_hep_number.lower() == data_entry_hep_number.lower()) and (sample.facility_id == int(request_facility_id)):
 		return 0
 	return 1
 

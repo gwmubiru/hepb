@@ -37,7 +37,22 @@ def select(name="", data="{}", selected_val="", more="{}"):
 	select_tag += "</select>"
 	return mark_safe(select_tag)
 
-
+@register.simple_tag
+def checkbox(name="", selected_vals="", data="{}"):
+	checkbox_tag = "";
+	data = ast.literal_eval(data)
+	for val,label in data.items():
+		if selected_vals:
+			if selected_vals.count(int(val)) > 0 :
+				is_checked = "checked='checked'"
+			else:
+				is_checked = ""
+			checkbox_tag += "<label class='checkbox-inline'> <input %s type='checkbox' name='%s' value='%s' id='%s' class='treatment_indication' tabindex='1'> %s </label>" % (is_checked, name, val,val,label)
+		else:
+			checkbox_tag += "<label class='checkbox-inline'> <input type='checkbox' name='%s' value='%s' id='%s' class='treatment_indication' tabindex='1'> %s </label>" % (name, val,val,label)
+	
+	return mark_safe(checkbox_tag)
+	
 @register.simple_tag
 def yesno_select(name="", selected_val="", more="{'class':'form-control input-xs w-xs'}"):
 	return select(name, "{'Y':'Yes', 'N':'No', 'L':'Left Blank'}", selected_val, more)

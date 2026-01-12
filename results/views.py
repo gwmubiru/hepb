@@ -1,5 +1,6 @@
 import csv, pandas, io, json, math, os as SI
 import openpyxl
+#from datetime import *
 from datetime import datetime as dt, timedelta,date
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
@@ -212,7 +213,7 @@ def _process_row(self, data, result_run, m_type, multiplier, user, test_date, in
             user, test_date, result_run, index
         )
 
-def update_sample_and_save_result(machine_type,instrument_id,result, multiplier, user, test_date,result_run,row_index):
+def update_sample_and_save_result(machine_type,instrument_id,result, multiplier, user, test_date,result_run,row_index,sample_volume=''):
 	if user.userprofile.medical_lab_id == 2:
 		save_upload_result(result, multiplier,machine_type,instrument_id,user)
 		return 0
@@ -235,7 +236,8 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 	            multiplier,
 	            machine_type,
 	            ws.is_diluted,
-	            sample.sample_type  # Use the already fetched sample object
+	            sample.sample_type, # Use the already fetched sample object
+	            sample_volume
 	        )
 			#result_dict = result_utils.get_result(result, multiplier,machine_type,ws.is_diluted,ws.sample.sample_type)
 			if(machine_type == 'H'):
@@ -527,6 +529,10 @@ def cobas_upload(request):
 			#return HttpResponse(result_run)
 			if result_run == 'completed':
 				return HttpResponse('This file has already been used')
+			#with open(tmp_name, 'r', encoding='utf-8') as f:
+			#	reader = csv.DictReader(f)
+			#	print("Column names:", reader.fieldnames)
+			#return HttpResponse('te')
 			with open(tmp_name, 'wb+') as destination:
 				for chunk in uploaded_file.chunks():
 					destination.write(chunk)
@@ -541,8 +547,10 @@ def cobas_upload(request):
 				user = request.user
 				for row in reader.iterrows():
 					index, data = row
+
 					test = data["Test"]
 					instrument_id = str(data["Sample ID"])
+					sample_volume = int(data["Sample volume (µL) "])
 					#get the controls
 					
 					if mtype == 'S':
@@ -576,19 +584,23 @@ def cobas_upload(request):
 
 						date_format = request.POST.get('date_format')
 						if mtype == 'S':
-							start_date = dt.strptime(data["Custom date"], '%Ym%md%d %H:%M:%S')
-							#if date_format=="1":
-							#	start_date = dt.strptime(data["Result creation date/time"], '%d-%b-%Y  %I:%M:%S %p')
-							#else:
-							#	start_date = dt.strptime(data["Result creation date/time"], '%m/%d/%Y %H:%M')
-						else:
+							#start_date = dt.strptime(data["Custom date"], '%Ym%md%d %H:%M:%S')
+							dt_str = data["Result creation date/time"]
+							santized_date = result_utils.single_space(dt_str)
 							if date_format=="1":
-								start_date = dt.strptime(data["Date/time"], '%d-%b-%Y  %I:%M:%S %p')
+								start_date = dt.strptime(santized_date, '%d-%b-%Y  %I:%M:%S %p')
 							else:
-								start_date = dt.strptime(data["Date/time"], '%m/%d/%Y %H:%M')
+								start_date = dt.strptime(santized_date, '%m/%d/%Y %H:%M')
+						else:
+							dt_str = data["Date/time"]
+							santized_date = result_utils.single_space(dt_str)
+							if date_format=="1":
+								start_date = dt.strptime(santized_date, '%d-%b-%Y  %I:%M:%S %p')
+							else:
+								start_date = dt.strptime(santized_date, '%m/%d/%Y %H:%M')
 
 						test_date =  start_date + timedelta(hours=3)
-						update_sample_and_save_result('C',instrument_id,result, multiplier, user, test_date,result_run,index)
+						update_sample_and_save_result('C',instrument_id,result, multiplier, user, test_date,result_run,index,sample_volume)
 						
 				update_run_with_contamination_info(result_run)
 				
@@ -674,7 +686,7 @@ def release_list(request, machine_type):
 	else:
 		filters = Q(stage=3, machine_type=machine_type,worksheet_medical_lab=utils.user_lab(request))
 
-	worksheets = Worksheet.objects.filter(filters).order_by("-pk")[:1000]
+	worksheets = Worksheet.objects.filter(filters).order_by("-pk")
 	context = {'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)}
 	return render(request,'results/release_list.html',context)
 
@@ -872,11 +884,11 @@ def api(request):
 		p = r.sample.patient
 		ret.append({
 				'sample_id': s.pk,
-				'art_number': p.art_number,
+				'hep_number': p.hep_number,
 				'vl_sample_id': s.vl_sample_id,
 				'locator_id': "%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
 				'form_number': s.form_number,
-				'art_number': s.patient.art_number,
+				'hep_number': s.patient.hep_number,
 			})
 	return HttpResponse(json.dumps(ret))
 
@@ -968,6 +980,69 @@ def trouble_shoot_results(request):
     return render(request, 'results/trouble_shoot_results.html')
 
 
+def trouble_shoot_ranges(request):
+	if request.method == 'POST':
+		pst = request.POST
+		year = pst.get('year')
+		month = pst.get('month')
+		lower_limit = pst.get('lower_limit')
+		number_of_envelopes = pst.get('number_of_envelopes')
+		envelope_numbers = [
+   			f"{str(year)[-2:]}{int(month):02d}-{int(lower_limit) + i:04d}"
+    		for i in range(int(number_of_envelopes))
+        ]
+		# Create a proper SQL list of quoted strings
+		envelope_numbers_sql = ", ".join([f"'{num}'" for num in envelope_numbers])
+		#samples_without_results = Sample.objects.filter(envelope__envelope_number__in=envelope_numbers).exclude(
+    	#	id__in=Result.objects.values('sample_id')).select_related('envelope')
+		#
+		## Create CSV response
+		#response = HttpResponse(
+        #    content_type='text/csv',
+        #    headers={'Content-Disposition': 'attachment; filename="samples_without_results.csv"'},
+        #)
+		#
+		#writer = csv.writer(response)
+		## Write header
+		#writer.writerow([
+        #    'Barcode', 
+        #    'Facility Reference', 
+        #    'Form Number',
+        #    'Stage' 
+        #    # Add other sample fields you want to export
+        #])
+		## Write data
+		#for sample in samples_without_results:
+		#	writer.writerow([
+        #        sample.barcode,
+        #        sample.facility_reference,
+        #        sample.form_number,
+        #        sample.stage,
+        #        # Add other sample fields
+        #    ])
+		#return response
+		sql = f"""SELECT barcode, form_number, facility_reference, instrument_id, ws.stage, qc.released, r.result_alphanumeric 
+            FROM vl_samples s 
+            LEFT JOIN vl_worksheet_samples ws ON s.id = ws.sample_id 
+            LEFT JOIN vl_results r ON r.sample_id = s.id 
+            LEFT JOIN vl_results_qc qc ON qc.result_id = r.id 
+            WHERE (r.result_alphanumeric IS NULL OR r.result_alphanumeric = '') and s.envelope_id IN (select id from vl_envelopes where envelope_number in({envelope_numbers_sql}))"""
+
+		with connections['default'].cursor() as cursor:
+			cursor.execute(sql) 
+			samples = dictfetchall(cursor)
+		response = HttpResponse(content_type='text/csv')
+		filename = f"troubleshoot_results.csv"
+		response['Content-Disposition'] = f'attachment; filename="{filename}"'
+		writer = csv.DictWriter(response, fieldnames=samples[0].keys() if samples else [])
+		writer.writeheader()
+		writer.writerows(samples)
+		return response
+	context = {
+		'years': range(int((dt.now().strftime('%y')))-1, int((dt.now().strftime('%y')))+1),
+		'months': utils.get_months(),
+	}
+	return render(request, 'results/trouble_shoot_ranges.html',context)
 
 def release_sample(request):
 	if request.method == 'POST':
@@ -1048,7 +1123,7 @@ def force_create_result(request):
 class ListJson(BaseDatatableView):
 	model = WorksheetSample
 	columns = ['sample.barcode','instrument_id','sample.form_number','sample.patient.facility','sample.patient.facility.district',
-	'sample.patient.art_number','sample.patient.other_id','sample.patient.gender','sample.date_collected','sample.date_received',
+	'sample.patient.hep_number','sample.patient.other_id','sample.patient.gender','sample.date_collected','sample.date_received',
 	'sample.result.result_alphanumeric','action','status']
 	order_columns = ['barcode','instrument_id']
 	max_display_length = 500

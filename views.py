@@ -399,7 +399,7 @@ def pending_samples(request):
 				'vl_sample_id': s.vl_sample_id,
 				'locator_id': "%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
 				'form_number': s.form_number,
-				'art_number': s.patient.art_number,
+				'hep_number': s.patient.hep_number,
 				'sample_type': s.sample_type,
 				'in_worksheet': s.in_worksheet,
 				'barcode': s.barcode,

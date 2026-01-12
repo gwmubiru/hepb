@@ -71,7 +71,7 @@
 
 				<div class="form-group required">
 					<label for='sample_id'>Art Number</label>
-				<input id="art_number" autofocus type="text" name="art_number" class="form-control input-sm input_md" placeholder="start typing ..." style="width:300px; outline:0">
+				<input id="hep_number" autofocus type="text" name="hep_number" class="form-control input-sm input_md" placeholder="start typing ..." style="width:300px; outline:0">
 				</div> 
 
 			</div>
@@ -99,7 +99,7 @@
 <script type="text/javascript">
 	
 	$( function() {
-		$('#art_number').on('change', function(){
+		$('#hep_number').on('change', function(){
 			var facility_id = $("#id_facility").val();
 			var art_no = $("#id_facility").val();
 			if(facility_id != '' && art_no != ''){
@@ -108,17 +108,17 @@
 		});
     	$("#id_facility").change(function(){
     		//make art number empty 
-    		$('#art_number').val('');
+    		$('#hep_number').val('');
     		set_district_hub();
     		$(function(){
 				//get the art numbers for a facility
 				var facility_id = $("#id_facility").val();
-				var url =  "/samples/facility_art_numbers/"+facility_id+"/";
+				var url =  "/samples/facility_hep_numbers/"+facility_id+"/";
 					$.get(url, function(data, status){
 						var json_data = JSON.parse(data);
 						//console.log(json_data);
 						var options = json_data;
-			        	$('#art_number').autoComplete({
+			        	$('#hep_number').autoComplete({
 					            minChars: 1,
 					            source: function(term, suggest){
 					                term = term.toLowerCase();

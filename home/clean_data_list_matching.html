@@ -2286,7 +2286,7 @@
 				{% for patient in patients_in_vl_not_in_facility %} 
 					{% if patient.patient_id not in matched_patient_ids %}
 					<tr>
-						<td>{{patient.art_number}}</td>
+						<td>{{patient.hep_number}}</td>
 						<th>{{patient.patient_unique_id}}</th>
 					{% endif %}	
 					</tr>
@@ -2314,7 +2314,7 @@
 				{% for record in matching_patients %} 
 					{% if record.patient_id in matched_patient_ids %}
 					<tr>
-						<td>{{record.art_number}}</td>
+						<td>{{record.hep_number}}</td>
 						<th>{{record.gender}}</th>
 						<th>{{record.dob}}</th>
 						<th>{{record.treatment_initiation_date}}</th>

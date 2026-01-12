@@ -1,0 +1,13 @@
+pip install pymysql pip djangorestframework django-easy-pdf django-simple-history pip django-datatables-view setuptools wheel openpyxl
+
+pip3 install whitenoise
+pip install celery redis
+
+source venv/bin/activate
+//starter celery worker
+celery -A viral_load2 worker --loglevel=info  - to run this, you must be in folder where you can run python manage.py
+
+
+sudo systemctl enable redis-server
+sudo systemctl start redis-server
+sudo systemctl status redis-server

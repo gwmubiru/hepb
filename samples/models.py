@@ -16,10 +16,10 @@ class FacilityPatient(models.Model):
 		('L', 'Left Blank'),
 	)
 	id = models.AutoField(primary_key=True)
-	art_number = models.CharField(max_length=255, null=True, blank=True)	
+	hep_number = models.CharField(max_length=255, null=True, blank=True)	
 	unique_id = models.CharField(max_length=255, null=True, blank=True)	
 	current_regimen = models.CharField(max_length=255, null=True, blank=True)	
-	sanitized_art_number = models.CharField(max_length=255, null=True, blank=True)	
+	sanitized_hep_number = models.CharField(max_length=255, null=True, blank=True)	
 	treatment_initiation_date = models.DateField(null=True, blank=True)
 	date_of_birth = models.DateField(null=True, blank=True)
 	facility = models.ForeignKey(backend.Facility,null=True, blank=True, on_delete=models.CASCADE)
@@ -38,8 +38,9 @@ class Patient(models.Model):
 	TX_DURATION_CHOICES = ( (1, '6 months -< 1yr'), (2, '1 -< 2yrs'), (3, '2 -< 5yrs'), (4, '5yrs and above'), (5, 'Left Blank') )
 	id = models.AutoField(primary_key=True)
 	unique_id = models.CharField(max_length=128, null=True, blank=True)
-	art_number = models.CharField(max_length=64, null=True, blank=True)
-	sanitized_art_number = models.CharField(max_length=64, null=True, blank=True)
+	name = models.CharField(max_length=225, null=True, blank=True)
+	hep_number = models.CharField(max_length=64, null=True, blank=True)
+	sanitized_hep_number = models.CharField(max_length=64, null=True, blank=True)
 	other_id = models.CharField(max_length=64, null=True, blank=True)
 	gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
 	dob = models.DateField(null=True, blank=True)
@@ -81,6 +82,36 @@ class Patient(models.Model):
 	class Meta:
 		db_table = 'vl_patients'
 
+class PreliminaryFindings(models.Model):
+	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No'), ('L', 'Left Blank') )
+	POSITIVE_NEGATIVE = ( (1, 'Positive'), (2, 'Negative') )
+	WHETHER_COINFECTED_HIV = ((1,'HBV/HIV'))
+	id = models.AutoField(primary_key=True)
+	patient = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
+	hbeag_results = models.PositiveSmallIntegerField(choices=POSITIVE_NEGATIVE, null=True, blank=True)
+	hiv_coinfected = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
+	hiv_hcv_coinfected = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
+	hiv_hcv_tb_coinfected = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
+	hep_other_coinfections = models.CharField(max_length=128,null=True, blank=True)
+	alt_value_1 = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	alt_value_2 = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	alt_value_3 = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	ast_value_1 = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	ast_value_2 = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	ast_value_3 = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	alt_value_normal_range = models.CharField(max_length=128,null=True, blank=True)
+	platelet_count = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	platelet_normal_range = models.CharField(max_length=128,null=True, blank=True)
+	ast_value_normal_range = models.CharField(max_length=128,null=True, blank=True)
+	fetal_protein_value = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	fetal_protein_value_normal_range = models.CharField(max_length=128,null=True, blank=True)
+	prem_other_findings= models.CharField(max_length=128,null=True, blank=True)
+	ast_plt_ratio_greater_than_2 = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
+	serum_creatinine = models.DecimalField(max_digits=5, decimal_places = 2, null=True, blank=True)
+	serum_creatinine_normal_range = models.CharField(max_length=128,null=True, blank=True)
+
+	class Meta:
+		db_table = 'vl_patient_preliminary_findings'
 
 class EnvelopeRange(models.Model):
 	YES_NO = ((1,'Yes'),(2,'No'))
@@ -141,7 +172,7 @@ class SampleReception(models.Model):
 	id = models.AutoField(primary_key=True)
 	barcode = models.TextField(unique=True)
 	facility = models.ForeignKey(backend.Facility, on_delete=models.CASCADE)
-	art_number = models.CharField(max_length=64, null=True, blank=True)
+	hep_number = models.CharField(max_length=64, null=True, blank=True)
 	date_collected = models.DateField(null=True, blank=True)
 	date_received = models.DateField()
 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES)
@@ -209,15 +240,17 @@ class Sample(models.Model):
 	id = models.AutoField(primary_key=True)
 	CONSENT_CHOICES = ( ('Y', 'Accept'), ('N', 'Decline'), ('L', 'Left Blank') )
 	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
+	DRUG_NAMES = ( (1, 'Tenofovir'), (2, 'Entecavir') )
 	TX_DURATION_CHOICES = ( (1, '6 months -< 1yr'), (2, '1 -< 2yrs'), (3, '2 -< 5yrs'), (4, '5yrs and above'), (5, 'Left Blank'),(5, '< 6 months') )
 	WHO_STAGES = ((1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV'))
 	STAGES = ((1, 'Created'), (2, 'Pending_result_auth'), (3, 'panding_result_release'), (4, 'completed'))
 	TX_CARE_APPROACHES = ((1, 'FBIM'), (2, 'FBG'), (3, 'FTDR'), (4, 'CDDP'), (5, 'CCLAD'),(5, 'CRPDDP'))
+	INDICATION_FOR_VL = ( (1, 'Routing Monitoring'), (2, 'Treatment Initiation') )
 	patient = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
 	study = models.ForeignKey(Study, null=True, blank=True, on_delete=models.CASCADE)
 	patient_unique_id = models.CharField(max_length=128)
-	reception_art_number = models.CharField(max_length=40,null=True, blank=True)
-	data_art_number = models.CharField(max_length=40,null=True, blank=True)
+	reception_hep_number = models.CharField(max_length=40,null=True, blank=True)
+	data_hep_number = models.CharField(max_length=40,null=True, blank=True)
 	locator_category = models.CharField(max_length=1, choices=( ('V', 'V'), ('R', 'R'),('W', 'W') ))
 	envelope = models.ForeignKey(Envelope,null=False, blank=False, on_delete=models.CASCADE)
 	locator_position = models.CharField(max_length=4)
@@ -229,6 +262,7 @@ class Sample(models.Model):
 	sample_reception = models.ForeignKey(SampleReception,null=True, blank=True, on_delete=models.CASCADE)
 	tracking_code = models.ForeignKey(TrackingCode, on_delete=models.CASCADE)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen',null=True, blank=True, on_delete=models.CASCADE)
+	source_system = models.ForeignKey(backend.Appendix, related_name='source_system',null=True, blank=True, on_delete=models.CASCADE)
 	other_regimen = models.CharField(max_length=128, null=True, blank=True)
 	pregnant = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
 	anc_number = models.CharField(max_length=64, null=True, blank=True) #anc number for pregnant women
@@ -244,7 +278,7 @@ class Sample(models.Model):
 	current_who_stage = models.PositiveSmallIntegerField(choices=WHO_STAGES, null=True, blank=True)
 	stage = models.PositiveSmallIntegerField(choices=STAGES, null=True, blank=True)
 	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES,null=True, blank=True)
-	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing', on_delete=models.CASCADE)
+	viral_load_testing = models.ForeignKey(backend.Appendix, related_name='viral_load_testing', on_delete=models.CASCADE,null=True, blank=True,)
 	treatment_indication = models.ForeignKey(backend.Appendix, related_name='treatment_indication', null=True, blank=True, on_delete=models.CASCADE)
 	treatment_indication_other = models.CharField(max_length=64, null=True, blank=True)
 	treatment_line = models.ForeignKey(backend.Appendix, related_name='treatment_line',null=True, blank=True, on_delete=models.CASCADE)
@@ -274,6 +308,10 @@ class Sample(models.Model):
 	barcode4 = models.TextField(null=True, blank=True)
 	barcode5 = models.TextField(null=True, blank=True)
 	facility_reference = models.TextField(null=True, blank=True)
+
+	is_patient_on_treatment = models.CharField(max_length=1, choices=YES_NO_CHOICES, null=True, blank=True)
+	current_drug_name = models.PositiveSmallIntegerField(choices=DRUG_NAMES, null=True, blank=True)
+	reason_for_vl = models.PositiveSmallIntegerField(choices=INDICATION_FOR_VL, null=True, blank=True)
 	#history = HistoricalRecords()
 
 
@@ -382,9 +420,9 @@ class RejectedSamplesRelease(models.Model):
 
 
 class patientTransferHistory(models.Model):
-	old_art_number = models.CharField(max_length=64, null=True, blank=True)
+	old_hep_number = models.CharField(max_length=64, null=True, blank=True)
 	id = models.AutoField(primary_key=True)
-	current_art_number = models.CharField(max_length=64, null=True, blank=True)
+	current_hep_number = models.CharField(max_length=64, null=True, blank=True)
 	patient_id = models.PositiveIntegerField(null=True, blank=True)
 	old_facility_id = models.PositiveIntegerField(null=True, blank=True)
 	current_facility_id = models.PositiveIntegerField(null=True, blank=True)

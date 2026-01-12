@@ -53,15 +53,7 @@
 							<td>{{ s.sample.facility_reference }}</td>						
 							<td>{{ s.instrument_id }}</td>
 							<td>
-								{% if s.sample_id %}
-									{% if s.sample.facility_reference and s.is_data_entered %}
-										{{ s.sample.patient.art_number }}	
-									{% else %}
-										{{ s.sample.reception_art_number }}	
-									{% endif %}
-								{% else %}
-									{{ s.reception_art_number }}
-								{% endif %}
+								{{ s.sample.patient.hep_number }}
 							</td>
 							{% if worksheet.sample_type == 'P' %}
 								<td>{% if s.is_diluted == 0 %}

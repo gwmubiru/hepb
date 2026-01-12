@@ -22,6 +22,7 @@ urlpatterns  = [
 	re_path(r'^approve_for_dr/(?P<result_pk>[0-9]+)/$', login_required(views.approve_for_dr), name='approve_for_dr'),
 	re_path(r'^authorize_sample/$', login_required(views.authorize_sample), name='authorize_sample'),
 	re_path(r'^trouble_shoot_results/$', login_required(views.trouble_shoot_results), name='trouble_shoot_results'),
+	re_path(r'^trouble_shoot_ranges/$', login_required(views.trouble_shoot_ranges), name='trouble_shoot_ranges'),
 	re_path(r'^release_sample/$', login_required(views.release_sample), name='release_sample'),
 	re_path(r'^samples_pending_results/$', login_required(views.samples_pending_results), name='samples_pending_results'),
 	re_path(r'^list/$', login_required(views.list), name='list'),

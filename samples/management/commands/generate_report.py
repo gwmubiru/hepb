@@ -65,9 +65,8 @@ class Command(BaseCommand):
 
 		dtctbls_df = pd.DataFrame([], columns=self.__get_headers())
 		dtctbls_df.to_csv(detectable_file_path, index=False, header=self.__get_headers(), mode='w')
-		sql = """ SELECT s.form_number,s.facility_reference, tc.code as tracking_code,f.facility,d.district,region.region,h.hub,date(s.date_collected) as date_collected,date(date_received) as date_received,date(s.created_at) as date_created, data_entered_at,s.sample_type,s.barcode,s.barcode2,s.barcode3,p.art_number,p.other_id,p.unique_id,p.gender as sex,p.dob as date_of_birth,TIMESTAMPDIFF(YEAR, p.dob, qc.released_at) as age, p.treatment_initiation_date, CASE WHEN p.treatment_duration=1 THEN "< 6 months" WHEN p.treatment_duration=2 THEN "6 months -< 1yr" WHEN p.treatment_duration=3 THEN "1 -< 2yrs" WHEN p.treatment_duration=4 THEN "2 -< 5yrs" WHEN p.treatment_duration=5 THEN "5yrs and above" ELSE "Left Blank"
-		 END as treatment_duration,ba.appendix as current_regimen,s.other_regimen,   CASE      WHEN s.viral_load_testing_id = 93 THEN "Routine Monitoring" WHEN s.viral_load_testing_id = 94 THEN "Repeat Viral Load" WHEN s.viral_load_testing_id = 95 THEN "Suspected Treatment Failure"      WHEN s.viral_load_testing_id = 97 THEN "6 months after ART initiation"       WHEN s.viral_load_testing_id = 98 THEN "12 months after ART initiation"       WHEN s.viral_load_testing_id = 99 THEN "Repeat (after IAC)"       WHEN s.viral_load_testing_id = 100 THEN "1st ANC For PMTCT"    ELSE  "Left Blank" END as indication_for_VL_Testing, CASE WHEN s.failure_reason_id = 4 THEN "Virological" WHEN s.failure_reason_id = 5 THEN "Clinical"  WHEN s.failure_reason_id = 6 THEN "Immunological" ELSE "N/A" END as failure_reason, s.pregnant,s.anc_number,s.breast_feeding,s.active_tb_status,    CASE WHEN s.tb_treatment_phase_id = 82 THEN "Initiation Phase"  WHEN s.tb_treatment_phase_id = 83 THEN "Continuation Phase" ELSE "" END as tb_treatment_phase,     CASE WHEN s.arv_adherence_id=1 THEN "Good > 95%" WHEN s.arv_adherence_id=2 THEN "Fair 85 - 94%"  WHEN
-		s.arv_adherence_id=3 THEN "Poor < 85%" ELSE "" END as arv_adherence, s.treatment_line_id,  v.accepted as status,date(v.created_at) as approval_date, v.rejection_reason_id,br.appendix as rejection_reason, tl.appendix as treatment_line,  r.result_alphanumeric,r.suppressed,date(r.result_upload_date) as result_upload_date,    date(qc.released_at) as released_at,qc.qc_date,qc.is_reviewed_for_dr,s.current_who_stage, f.dhis2_name,f.dhis2_uid,DATE(r.test_date) as test_date,DATE(sr.released_at) as data_qc_date_for_rejects, DATE(rd.dispatch_date) as date_downloaded, s.consented_sample_keeping as brod_consent, ws.method as test_machine,p.current_regimen_initiation_date as current_regimen_initiation_date,s.current_regimen_initiation_date as s_current_regimen_initiation_date,tc.delivered_at, tc.picked_at as picked_from_facility_on,s.viral_load_testing_id,r.suppressed, r.result_numeric,s.viral_load_testing_id, s.data_entered_by_id,s.hie_data_created_at,bs.appendix as source_system             
+		sql = """ SELECT s.form_number,s.facility_reference, tc.code as tracking_code,f.facility,d.district,region.region,h.hub,date(s.date_collected) as date_collected,date(date_received) as date_received,date(s.created_at) as date_created, data_entered_at,s.sample_type,s.barcode,s.barcode2,s.barcode3,p.hep_number,p.other_id,p.unique_id,p.gender as sex,p.dob as date_of_birth,TIMESTAMPDIFF(YEAR, p.dob, qc.released_at) as age, p.treatment_initiation_date, CASE WHEN p.treatment_duration=1 THEN "< 6 months" WHEN p.treatment_duration=2 THEN "6 months -< 1yr" WHEN p.treatment_duration=3 THEN "1 -< 2yrs" WHEN p.treatment_duration=4 THEN "2 -< 5yrs" WHEN p.treatment_duration=5 THEN "5yrs and above" ELSE "Left Blank"
+		 END as treatment_duration,ba.appendix as current_regimen,s.other_regimen,   txt_r.appendix as indication_for_VL_Testing, fr.appendix as failure_reason, s.pregnant,s.anc_number,s.breast_feeding,s.active_tb_status,    tb_txt_phase.appendix as tb_treatment_phase, arv_adh.appendix as arv_adherence, s.treatment_line_id,  v.accepted as status,date(v.created_at) as approval_date, v.rejection_reason_id,br.appendix as rejection_reason, tl.appendix as treatment_line,  r.result_alphanumeric,r.suppressed,date(r.result_upload_date) as result_upload_date,    date(qc.released_at) as released_at,qc.qc_date,qc.is_reviewed_for_dr,s.current_who_stage, f.dhis2_name,f.dhis2_uid,DATE(r.test_date) as test_date,DATE(sr.released_at) as data_qc_date_for_rejects, DATE(rd.dispatch_date) as date_downloaded, s.consented_sample_keeping as brod_consent, ws.method as test_machine,p.current_regimen_initiation_date as current_regimen_initiation_date,s.current_regimen_initiation_date as s_current_regimen_initiation_date,tc.delivered_at, tc.picked_at as picked_from_facility_on,s.viral_load_testing_id,r.suppressed, r.result_numeric,s.viral_load_testing_id, s.data_entered_by_id,s.hie_data_created_at,bs.appendix as source_system             
 		      FROM vl_samples s
 		      LEFT JOIN vl_patients p on s.patient_id = p.id              
 		      LEFT JOIN vl_tracking_codes tc on s.tracking_code_id = tc.id              
@@ -86,6 +85,10 @@ class Command(BaseCommand):
 		      left join vl_rejected_samples_release as sr ON sr.sample_id = s.id              
 		      left join vl_results_dispatch rd on rd.sample_id = s.id 
 		      left join backend_appendices bs on bs.id = s.source_system            
+		      left join backend_appendices txt_r on txt_r.id = s.viral_load_testing_id            
+		      left join backend_appendices fr on fr.id = s.failure_reason_id            
+		      left join backend_appendices tb_txt_phase on tb_txt_phase.id = s.tb_treatment_phase_id            
+		      left join backend_appendices arv_adh on arv_adh.id = s.arv_adherence_id            
 		      where date(s.created_at) between '{}' and '{}'""".format(start_date_str,end_date_str)
 
 		#cursor.execute(sql,[start_date_str,end_date_str])
@@ -116,7 +119,7 @@ class Command(BaseCommand):
 					s['barcode'],
 					s['barcode2'],
 					s['barcode3'],
-					s['art_number'],
+					s['hep_number'],
 					s['other_id'],
 					s['unique_id'],
 					s['sex'],
@@ -227,7 +230,7 @@ class Command(BaseCommand):
 				's.barcode',
 				's.barcode2',
 				's.barcode3',
-				'art_number',
+				'hep_number',
 				'other_id',
 				'unique_id',
 				'sex',

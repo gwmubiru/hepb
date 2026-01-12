@@ -538,7 +538,7 @@ ctrller.SampleController = function($scope,$http){
 	$scope.clinicians = [];
 	$scope.lab_techs = [];
 	$scope.facility = "{{ sample_form.facility.value|default:'' }}";
-	$scope.art_number = "{{ patient_form.art_number.value|default:'' }}";
+	$scope.hep_number = "{{ patient_form.hep_number.value|default:'' }}";
 	$scope.cname = "{{ clinician_form.cname.value|default:'' }}";
 	$scope.cphone ="{{ clinician_form.cphone.value|default:'' }}";
 	$scope.lname = "{{ lab_tech_form.lname.value|default:'' }}";
@@ -546,7 +546,7 @@ ctrller.SampleController = function($scope,$http){
 
 
 	$scope.patHist = function(){
-		$http.get("/samples/patient_history/"+$scope.facility+"/?art_number="+$scope.art_number).success(function(data){
+		$http.get("/samples/patient_history/"+$scope.facility+"/?hep_number="+$scope.hep_number).success(function(data){
 			$scope.patient_history = data;
 		});
 	}

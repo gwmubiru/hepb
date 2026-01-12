@@ -44,9 +44,9 @@
 					</td>	
 					<td>
 						{% if s.is_data_entered %}
-							{{ s.patient.art_number }}
+							{{ s.patient.hep_number }}
 						{% else %}
-							{{ s.reception_art_number }}
+							{{ s.reception_hep_number }}
 						{% endif %}</td>		
 					<td>
 						{% if s.is_data_entered == 0 and s.stage < 2 and s.worksheetsample_set.count < 2 %}

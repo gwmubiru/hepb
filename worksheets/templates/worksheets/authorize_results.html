@@ -46,7 +46,7 @@
 							<td>{{ sample.vl_sample_id }}</td>
 							<td>{{ sample.locator_category }}{{ sample.envelope.envelope_number }}/{{ sample.locator_position }}</td>
 							<td>{{ sample.form_number }}</td>
-							<td>{{ sample.patient.art_number }}</td>
+							<td>{{ sample.patient.hep_number }}</td>
 							{% if worksheet.machine_type == 'C' %}
 							<td>{{ sample.worksheetsample_set.first.instrument_id }}</td>
 							{% endif %}

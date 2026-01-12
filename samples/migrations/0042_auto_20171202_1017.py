@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name='patient',
-            name='simple_art_number',
+            name='simple_hep_number',
         ),
         migrations.AlterField(
             model_name='patient',

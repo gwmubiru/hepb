@@ -14,6 +14,7 @@ ATTRS2 = {'class': 'form-control input-sm w-xs', 'required': 'true'}
 ATTRS3 = {'class': 'form-control input-sm', 'required': 'true'}
 ATTRS2_OPTIONAL = {'class': 'form-control input-sm w-xs', }
 ATTRS_DATE = {'class': 'form-control input-sm w-xs date', }
+TREATMENT_INFO_OPTIONS = "{'84':'Cirrhosis/APRI &gt; 2', '85':'ALT/AST Persistently abnormal', '86':'Viral Load &gt; 20,000 IU/ML','87':'HIV Co-Infection'}"
 
 # These utils are to hold raw python functions that can be used in views mainly
 

@@ -25,60 +25,58 @@
 
 <div class="page-title">capture sample details</div>
 <div class="panel panel-default">
-{% if pending_entry_count > 0 %}
-<div id="success" class="alert alert-warning hidden" role="alert">
-		<h2 style="font-size:11px; margin-top: 0; padding-top: 0;">Envelopes with results</h2>
-		
-		<p>
-			{% for e in pending_entry %}
-							
-			<span style="padding-right:5px;">{{ e.envelope_number }}</span>,
-			{% endfor %}
+	{% if pending_entry_count > 0 %}
+		<div id="success" class="alert alert-warning hidden" role="alert">
+			<h2 style="font-size:11px; margin-top: 0; padding-top: 0;">Envelopes with results</h2>
 			
-		</p>
-</div>
-{% endif %}
+			<p>
+				{% for e in pending_entry %}
+								
+				<span style="padding-right:5px;">{{ e.envelope_number }}</span>,
+				{% endfor %}
+				
+			</p>
+		</div>
+	{% endif %}
 <div class="row panel-body" ng-app="samples" ng-controller="SampleController">
 	<div class="col-lg-11">
-	{% if sample %}
-	<div id="success" class="alert alert-success vl-alert" role="alert">
-		just saved: 
-		<a href="{% url 'samples:show' sample.pk %}">
-			({{ sample.barcode }})</a>
-		&nbsp;&nbsp;
-		<span class='x' id='x'>x</span>
-	</div>
-	{% endif %}
+		{% if sample %}
+		<div id="success" class="alert alert-success vl-alert" role="alert">
+			just saved: 
+			<a href="{% url 'samples:show' sample.pk %}">
+				({{ sample.barcode }})</a>
+			&nbsp;&nbsp;
+			<span class='x' id='x'>x</span>
+		</div>
+		{% endif %}
 
-	
-	<form id="sample_form" action="
-				    {% url 'samples:create'  %} 
-				  " method="post" role="form">
-		{% csrf_token %}
-
-		<ul>
 		
-		{% for field in sample_form %}
-			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
-		{% endfor %}
-		{% for field in patient_form %}
-			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
-		{% endfor %}
+		<form id="sample_form" action="
+					    {% url 'samples:create'  %} 
+					  " method="post" role="form">
+			{% csrf_token %}
+
+			<ul>
+			
+			{% for field in sample_form %}
+				{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+			{% endfor %}
+			{% for field in patient_form %}
+				{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+			{% endfor %}
+			
+			{% for field in preliminary_findings %}
+				{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
+			{% endfor %}
+			
+			</ul>
+			
+
+			<div class="container section" >
+				<div class="row">
 				
-		
-		</ul>
-		<div class="row">
-			<div class="col-lg-5">
-				<span class='sub-title'>form/facility details</span>
-
-				{% if sample_id %}
-				<div class="form-group hidden">
-					<label for='sample_id'>VL Sample ID</label>
-					{% input 'vl_sample_id' vsi '{"disabled":"true"}' %}
-				</div>
-				{% endif %}
-
-				<div class="form-inline required">
+				<div class="col-lg-4">
+					<div class="form-inline required">
 					
 					<label for="locator_envelope">Location/Rejection ID</label><br>
 					{{ sample_form.locator_category }}
@@ -92,292 +90,408 @@
 					<input type="text" name="from_page" value="{{from_page}}" class="hidden">
 
 				</div>
-
-				<div class="form-group required">
-					{{ sample_form.form_number.label_tag}}
-					{{ sample_form.form_number}}
 				</div>
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ sample_form.form_number.label_tag}}
+						{{ sample_form.form_number}}
+					</div>
+				</div>
+				<div class="col-lg-4">
 
-				<div class="form-group required">
-					{{ sample_form.facility.label_tag }}<br>
-					{{ sample_form.facility }}
-					<div style="padding-top:10px;">
-						District: <u id="id_district" style="min-width:100px;">_______________</u>
-						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-						Hub: <u id="id_hub">_______________</u>
+					{% if sample_id %}
+					<div class="form-group">
+						<label for='sample_id'>VL Sample ID</label>
+						{% input 'vl_sample_id' vsi '{"disabled":"true"}' %}
+					</div>
+					{% endif %}
+				</div>
+			</div>
+			<div class="row">
+					<div class="col-lg-4">
+						<div class="form-group required" >
+						{{ sample_form.facility.label_tag }}<br>
+						{{ sample_form.facility }}
+					</div>
+					</div>
+					<div class="col-lg-4" style="padding-top: 24px;">
+						<label for="district">District:</label>
+						<u id="id_district" style="width: 100%">_____________________________________</u>
+					</div>
+					<div class="col-lg-4" style="padding-top: 24px;">
+						<label for="hub">Hub:</label>
+						<u id="id_hub" style="width: 100%">________________________________</u>
+					</div>
+					<div class="col-lg-4">
+					</div>
+				</div>
+			
+		</div>
+			<!-- end section -->
+			<!-- start new section -->
+			<div class="container header-section">
+				<div class="row">
+					<div class="col-lg-12">
+						<h2 class="sub-section">Patient Details</h2>
+					</div>
+				</div>
+			</div>
+			<div class="container section">
+				<div class="row">
+					<div class="col-lg-4">
+						<div class="form-group">
+							{{ patient_form.name.label_tag }}
+							{{ patient_form.name }}
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="form-inline required">
+							{{ patient_form.dob.label_tag }}<br>
+							<div id="dob_error"></div>
+							{{ patient_form.dob }}
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="form-inline">
+							<label for="id_age">If DOB Unknown, Age in years</label><br>
+							<input type="text" name="age" id="id_age" class="form-control input-sm" size="5" maxlength="3">
+							<select name="age_units" id="id_age_units" class="form-control input-sm">
+								<option value="Y" selected="true">Years</option>
+								<option value="M">Months</option>
+							</select>
+							&nbsp;
+							<input type="checkbox" name="null_dob"
+							{% if null_dob %} checked='true' {% endif %}
+							>&nbsp;Blank												
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-lg-4">
+						<div class="form-group required">
+							{{ patient_form.hep_number.label_tag }}
+							{{ patient_form.hep_number }}
+						</div> 
+					</div>
+					<div class="col-lg-4">
+						<div class="form-group">
+							{{ patient_form.other_id.label_tag }}
+							{{ patient_form.other_id }}
+						</div> 
+					</div>
+				</div>
+				<div class="row">
+					
+					<div class="col-lg-4">
+						<div class="form-group required">
+							{{ patient_form.gender.label_tag }}
+							{{ patient_form.gender }}
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="form-group">
+							{{ phone_form.phone.label_tag }}
+							{{ phone_form.phone.errors }}
+							{{ phone_form.phone }}
+						</div>
+					</div>
+					<div class="col-lg-4">
+						
+					</div>
+				</div>
+			</div>
+			<!-- end section -->
+
+			<!-- start new section -->
+			<div class="container header-section">
+				<div class="row">
+					<div class="col-lg-12">
+						<h2 class="sub-section">Disease status/Co-Infections</h2>
+					</div>
+				</div>
+			</div>
+			<div class="container section">
+				<div class="row">
+					<div class="col-lg-4">
+						<div class="form-group">
+							{{ preliminary_findings_form.hbeag_results.label_tag }}
+							{{ preliminary_findings_form.hbeag_results}}
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="form-group">
+							{{ preliminary_findings_form.hiv_coinfected.label_tag }}
+							{{ preliminary_findings_form.hiv_coinfected}}
+						</div>
+					</div>
+					<div class="col-lg-4">
+						<div class="form-group">
+							{{ preliminary_findings_form.hiv_hcv_coinfected.label_tag }}
+							{{ preliminary_findings_form.hiv_hcv_coinfected}}
+						</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-lg-4">
+						<div class="form-group ">
+							{{ preliminary_findings_form.hiv_hcv_tb_coinfected.label_tag }}
+							{{ preliminary_findings_form.hiv_hcv_tb_coinfected}}
+						</div>
+					</div>
+					<div class="col-lg-8">
+						<div class="form-group">
+							{{ preliminary_findings_form.hep_other_coinfections.label_tag }}
+							{{ preliminary_findings_form.hep_other_coinfections }}
+						</div>
+					</div>
+				</div>
+			</div>
+		<!-- end section -->
+		<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Preliminary Laboratory Findings</h2>
+				</div>
+			</div>
+		</div>
+		<div class="container section">
+			<div class="row" style="padding-top: 5px; margin-top: 5px;">
+				<div class="col-lg-6">
+					<div class="form-inline">
+						<label class="form-inline" for="alt_value">ALT Value:</label>
+						{{ preliminary_findings_form.alt_value_1 }}
+						{{ preliminary_findings_form.alt_value_2 }}
+						{{ preliminary_findings_form.alt_value_3 }}
+						{{ preliminary_findings_form.alt_value_normal_range }}			
+					</div>
+				</div>
+				<div class="col-lg-6">
+					<div class="form-inline">
+						<label class="form-inline" for="platelet_count">Platelet count:</label>
+						{{ preliminary_findings_form.platelet_count }}
+						{{ preliminary_findings_form.platelet_normal_range }}													
 					</div>
 				</div>
 			</div>
 
-			<div class="col-lg-6">
-
-				<span class='sub-title'>sample details</span>
-				<div class="form-inline required" id="collection_date_container">
-					<span><b>Reception Date:</b> </span><span id="txt_date_received"></span><br>	
-					{{ sample_form.date_collected.label_tag }} <br>
-					{{ sample_form.date_collected }}
-					<input type="text" class="hidden" name="date_received" id="date_received">
-																	
+			<div class="row" style="padding-top: 5px;margin-top: 5px;">
+				<div class="col-lg-6">
+					<div class="form-inline">
+						<label class="form-inline" for="alt_value">AST Value:</label>
+						{{ preliminary_findings_form.ast_value_1 }}
+						{{ preliminary_findings_form.ast_value_2 }}
+						{{ preliminary_findings_form.ast_value_3 }}
+						{{ preliminary_findings_form.ast_value_normal_range }}
+																				
+					</div>
 				</div>
-
-				<div class="form-group required">
-					{{ sample_form.sample_type.label_tag }} 
-					{{ sample_form.sample_type }}
-					<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_form.sample_type.value }}'>
-					<input type="hidden" name="page_type" value="{{page_type}}">
-				</div>
-
-			</div>
-		</div>
-		<br>
-		
-		<span class='sub-title'>patient information</span>
-		<div class="row">
-			<div class="col-lg-5">
-
-				<div class="form-group required">
-					{{ patient_form.art_number.label_tag }}
-					{{ patient_form.art_number }}
-				</div> 
-				<input type="text" name="patient_id" id="patient_id" class="hidden">
-				<div class="form-group">
-					{{ patient_form.other_id.label_tag }}
-					{{ patient_form.other_id }}
-				</div> 
-
-				<div class="form-group required">
-					{{ patient_form.gender.label_tag }}
-					{{ patient_form.gender }}
+				<div class="col-lg-6">
+					<div class="form-inline required">
+						<label class="form-inline" for="alt_value">AST/PLT ratio > 2:</label>
+						{{ preliminary_findings_form.ast_plt_ratio_greater_than_2 }}															
+					</div>
 				</div>
 			</div>
-			<div class="col-lg-4"> 
-				<div class="form-inline required" id="dob_container">
-					{{ patient_form.dob.label_tag }}<br>
-					<div id="dob_error"></div>
-					{{ patient_form.dob }}
-				</div>
-				
 
-				<div class="form-inline">
-					<label for="id_age">Age</label><br>
-					<input type="text" name="age" id="id_age" class="form-control input-sm" size="5" maxlength="3">
-					<select name="age_units" id="id_age_units" class="form-control input-sm">
-						<option value="Y" selected="true">Years</option>
-						<option value="M">Months</option>
-					</select>
-					&nbsp;
-					<input type="checkbox" id="null_dob" name="null_dob"
-					{% if null_dob %} checked='true' {% endif %}
-					>&nbsp;Blank												
+			<div class="row" style="padding-top: 5px;margin-top: 5px;">
+				<div class="col-lg-6">
+					<div class="form-inline">
+						<label class="form-inline" for="alt_value">Fatal Protein Value:</label>
+						{{ preliminary_findings_form.fetal_protein_value}}					
+						{{ preliminary_findings_form.fetal_protein_value_normal_range}}														
+					</div>
 				</div>
-				
+				<div class="col-lg-6">
+					<div class="form-inline">
+						<label class="form-inline" for="serum_creatinine">Serum Creatinine:</label>
+						{{ preliminary_findings_form.serum_creatinine}}
+						{{ preliminary_findings_form.serum_creatinine_normal_range}}													
+					</div>
+				</div>
+			</div>
+
+			<div class="row" style="padding-top: 5px;margin-top: 5px;">
+				<div class="col-lg-6">
+					<div class="form-inline">
+						<div class="form-group">
+							{{ preliminary_findings_form.prem_other_findings.label_tag }}
+							{{ preliminary_findings_form.prem_other_findings }}
+						</div>
+					</div>
+				</div>
 			</div>
 
 		</div>
-		<div ng-if="patient_history.length>=1" class="row">
-			<div class="col-lg-9">					
-				<label>Patient history (last 3)</label>
-				<table  class="table table-striped table-condensed table-bordered ng-cloak">
-					<tr>
-						<th>Test Date</th>
-						<th>Result</th>
-						<th>Art #</th>
-						<th>DOB</th>
-						<th>Gender</th>
-						<th>Form #</th>						
-						
-					</tr>
-					<tr ng-repeat="ph in patient_history">
-						<td><% ph.test_date %></td>
-						<td><% ph.result %></td>
-						<td><% ph.art_number %></td>
-						<td><% ph.dob %></td>
-						<td><% ph.gender %></td>
-						<td><% ph.form_number %></td>					
-						
-					</tr>
-				</table>
-				
+			<!-- end section -->
+			<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Treatment Information</h2>
+				</div>
 			</div>
 		</div>
-		<!-- Treatment Information -->
-		<br>
-		<span class='sub-title'>treatment information</span>
-		<div class="row">
-			<div class="col-lg-5">
-				<div class="form-group required">
-					{{ sample_form.treatment_duration.label_tag }}
-					{{ sample_form.treatment_duration }}
-					<input type="hidden" name="treatment_duration" id="treatment_duration" value='{{ sample_form.treatment_duration.value }}'>
-				</div>		
-				<div class="form-inline required" id="treatment_duration_container">
-					{{ patient_form.treatment_initiation_date.label_tag }}<br>
-					{{ patient_form.treatment_initiation_date }}&nbsp;<input type="checkbox" id="treatment_duration_null" name="null_treatment_initiation_date"
-					{% if null_treatment_initiation_date %} checked='true' {% endif %}
-					>&nbsp;Blank
+		<div class="container section">
 
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-group required">
+					{{ sample_form.is_patient_on_treatment.label_tag }}
+					{{ sample_form.is_patient_on_treatment}}
+					</div>
 				</div>
-
-
-				<div class="form-group">
-					{{ sample_form.current_who_stage.label_tag }}
-					{{ sample_form.current_who_stage }}
-				</div>						
-
-				<div class="form-group required">
-					{{ sample_form.current_regimen.label_tag }}
-					{{ sample_form.current_regimen }}			
+				<div class="col-lg-4">
+					<div class="form-group">
+					{{ sample_form.current_drug_name.label_tag }}
+					{{ sample_form.current_drug_name}}
+				</div>
 				</div>
 				
-				<div class="form-inline required">
-					{{ patient_form.current_regimen_initiation_date.label_tag }}<br>
-					{{ patient_form.current_regimen_initiation_date }}			
-				</div>
-				<div class="form-group" id='other-regimen-sect'>
-					{{ sample_form.other_regimen.label_tag }}
-					{{ sample_form.other_regimen }}			
-				</div>
-
-				<div class="form-group required">
-					{{ sample_form.treatment_line.label_tag }}
-					{{ sample_form.treatment_line }}
-				</div> 
-
-				<input type="hidden" name="results_qc_id" value="{{request.GET.results_qc_id}}">	
-
 			</div>
-			<div class="col-lg-6">
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-lg-4">
+					<div class="form-inline" id="tmt_initiation">
+						{{ patient_form.treatment_initiation_date.label_tag }}<br>
+						{{ patient_form.treatment_initiation_date }}
 
-				<div class="form-group">
-					{{ sample_form.pregnant.label_tag }}
-					{{ sample_form.pregnant }}
+					</div>
 				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
 
-				<div class="form-group" id="anc_sect">
-					{{ sample_form.anc_number.label_tag }}
-					{{ sample_form.anc_number }}
+						{{ sample_form.treatment_indication.label_tag }}
+						{% checkbox  "treatment_indication" selected_treatment_ids  treatment_indication_options %}			
+					</div>
 				</div>
-
-				<div class="form-group">
-					{{ sample_form.breast_feeding.label_tag }}
-					{{ sample_form.breast_feeding }}
-				</div>
-
-				<div class="form-group">
-					{{ sample_form.active_tb_status.label_tag }}
-					{{ sample_form.active_tb_status }}
-				</div>
-
-				<div class="form-group">
-					{{ sample_form.tb_treatment_phase.label_tag }}
-					{{ sample_form.tb_treatment_phase }}					
-				</div>
-
-				<div class="form-group">
-					{{ sample_form.arv_adherence.label_tag }}
-					{{ sample_form.arv_adherence }}				
-				</div>
-
-				<div class="form-group">
-					{{ sample_form.treatment_care_approach.label_tag }}
-					{{ sample_form.treatment_care_approach }}				
-				</div>
-
-
 			</div>
-
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-lg-4">
+					<div class="form-group">
+						<label for="id_age">If HBV/HIV Co-Infected, Regimen Type</label><br>
+						{{ sample_form.current_regimen }}		
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+								
+					</div>
+				</div>
+			</div>
+			<div class="row" style="margin-top: 5px;">
+				<div class="col-lg-4">
+					<div class="form-group">
+						<label>Is patient pregnant?</label>
+						{{ sample_form.pregnant }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						<label>Is Patient Breastfeeding?</label>
+						{{ sample_form.breast_feeding }}
+					</div>
+				</div>
+			</div>
 		</div>
-		<br>
-		<span class='sub-title'>indication for viral load testing</span> 
-
-		<div class="row">
-			<div class="col-lg-2">
-				<div class="form-group required">
-					<label>Select</label>
-					{{ sample_form.viral_load_testing }}				
+		<!-- end section -->
+			<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Indication for Treatment</h2>
 				</div>
 			</div>
+		</div>
+		<div class="container section">
+
+			<div class="row">
+				<div class="col-lg-4">
+					<label>Reason for VL</label>
+					{{sample_form.reason_for_vl}}
+				</div>
+			</div>
+			<h3 style="font-size: 13px; font-weight: bold; margin-bottom: 5px;">If Routine Monitoring</h3>
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-inline" id="vl_last_date_container">
+						{{ sample_form.last_test_date.label_tag }}<br>
+						{{ sample_form.last_test_date }}							
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ sample_form.last_value.label_tag }}
+						{{ sample_form.last_value }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group">
+						{{ sample_form.last_sample_type.label_tag }}
+						{{ sample_form.last_sample_type }}	
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end section -->
+		<!-- start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section">Sample Identification</h2>
+				</div>
+			</div>
+		</div>
+		<div class="container section">
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="form-inline required">
+						<label>Date of Sample Collection</label><br>
+						{{ sample_form.date_collected }}													
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-inline required">
+						<label>Date of Sample Received at the Testing Lab</label><br>
+						{{ sample_form.date_received }}
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ sample_form.sample_type.label_tag }}
+						{{ sample_form.sample_type }}
+						<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_form.sample_type.value }}'>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- end section -->
+		<!--Start new section -->
+		<div class="container header-section">
+			<div class="row">
+				<div class="col-lg-12">
+					<h2 class="sub-section"></h2>
+				</div>
+			</div>
+		</div>
+		<div class="container section">
 			
+
+			<div class="row">		
+				<div class="col-lg-4">
+					<div class="form-group required">
+						{{ sample_form.consented_sample_keeping.label_tag }}
+						{{ sample_form.consented_sample_keeping }}
+						
+					</div>
+				</div>
+			</div>
+
 		</div>
 
-		<div class="row">		
-			<div class="col-lg-6">
-				<div class="form-group required">
-					{{ sample_form.consented_sample_keeping.label_tag }}
-					{{ sample_form.consented_sample_keeping }}
-					
-				</div>
-			</div>
-		</div>
-<div class="row">		
-	<div class="col-lg-6">
-		Has Drug Resistance
-		<input type="checkbox" class="" name="has_dr" value="" id="has_dr" style="height: 28px;width: 23px;">
-	</div>
-</div>
-<br>
-		
-<div class="drug_resistance_container hidden">
-		<br>
-		<span class='sub-title'>information for hiv drug resistance testing only</span> 
-		<div class="row">
-			<div class="col-lg-12">
-				<table class='table table-condensed table-bordered'>
-					<tr>
-						<td>Past Regimen</td>
-						{% for past_regimens_form in past_regimens_formset %}
-						<td>
-							{% for hidden in past_regimens_form.hidden_fields %}{{ hidden }}{% endfor %} 
-							{{ past_regimens_form.regimen.errors }}<br>
-							{{ past_regimens_form.regimen }}
-						</td>
-						{% endfor %}
-					</tr>
-					<tr>
-						<td>Start Date</td>
-						{% for past_regimens_form in past_regimens_formset %}
-						<td class="form-inline">
-							{{ past_regimens_form.start_date.errors }}<br>
-							{{ past_regimens_form.start_date }}
-						</td>
-						{% endfor %}
-					</tr>
-					<tr>
-						<td>Stop Date</td>
-						{% for past_regimens_form in past_regimens_formset %}
-						<td class="form-inline">
-							{{ past_regimens_form.stop_date.errors }}<br>
-							{{ past_regimens_form.stop_date }}
-						</td>
-						{% endfor %}
-					</tr>
-			
-				</table>	
-				{{ past_regimens_formset.management_form }}			
-			</div>
-		</div>
-		
-		<div class="row">
-			<div class="col-lg-4">
-				<div class="form-group">
-					{{ drug_resistance_form.body_weight.label }}
-					{{ drug_resistance_form.body_weight.errors }}
-					{{ drug_resistance_form.body_weight }}
-				</div>
-			</div>
-			<div class="col-lg-4">
-				<div class="form-group">
-					{{ drug_resistance_form.patient_on_rifampicin.label }}?
-					{{ drug_resistance_form.patient_on_rifampicin.errors }}
-					{{ drug_resistance_form.patient_on_rifampicin }}
-				</div>
-			</div>
-		</div>
-</div>
-		<input type="hidden" name="intervene" value="{{ intervene }}">
-		<input type="hidden" id="edit_id" name="edit_id" value="{{sample_id}}">
-		<input type="submit" value="{% if sample_id %} Update {% if intervene %} and release {% endif %} {% else %} Save and get new form {% endif %}" class="btn btn-danger">
-	</form>
+			<input type="hidden" name="intervene" value="{{ intervene }}">
+			<input type="hidden" id="edit_id" name="edit_id" value="{{sample_id}}">
+			<input type="submit" value="{% if sample_id %} Update {% if intervene %} and release {% endif %} {% else %} Save and get new form {% endif %}" class="btn btn-danger">
+		</form>
 	</div>
 
 	<div class="col-lg-1" >
@@ -395,7 +509,6 @@
 			{% endfor %}
 		{%endif%}
 	</div>
-</div>
 </div>
 	
  
@@ -503,14 +616,14 @@
     	//update facility and 
     	$('#confirm_details').on('click', function(){
     		var vali_fac = $('#validate_facility').val();
-    		var art_no = $('#validate_art_number').val();
+    		var hep_no = $('#validate_hep_number').val();
     		$('#reception_facility').val(vali_fac);
-    		$('#reception_art_number').val(art_no);
+    		$('#reception_hep_number').val(hep_no);
 
     		$('#id_facility').val(vali_fac);
-    		$('#id_art_number').val(art_no);
+    		$('#id_hep_number').val(hep_no);
     		//trigger change on art number so that system can pick patient details afresh
-    		//$('#id_art_number').change();
+    		//$('#id_hep_number').change();
 
     		$('#reception_modal').modal('hide');
     		$("#id_other_id").focus();
@@ -666,12 +779,12 @@
 						}else{
 							//now generate the locator positions etc
 							$("#reception_facility").val(data_arr.reception_facility);
-							$("#reception_art_number").val(data_arr.reception_art_number);
+							$("#reception_hep_number").val(data_arr.reception_hep_number);
 							//also update the modal with art and facility details
 							$("#validate_facility").val(data_arr.reception_facility);
 							$("#date_received").val(data_arr.date_received);
 							$("#txt_date_received").html(data_arr.date_received);
-							$("#validate_art_number").val(data_arr.reception_art_number);
+							$("#validate_hep_number").val(data_arr.reception_hep_number);
 							$("#s_id").val(data_arr.s_id);
 							$("#id_id").val(data_arr.s_id);
 						}
@@ -783,12 +896,12 @@ var app=angular.module('samples', [], function($interpolateProvider) {
 
 app.controller('SampleController', function($scope, $http, $timeout) {
 	$scope.facility = "{{ sample_form.facility.value|default:'' }}";
-    $scope.art_number = "{{ patient_form.art_number.value|default:'' }}";
+    $scope.hep_number = "{{ patient_form.hep_number.value|default:'' }}";
     /*$scope.patient_history = [];
     $scope.facility = "{{ sample_form.facility.value|default:'' }}";
-    $scope.art_number = "{{ patient_form.art_number.value|default:'' }}";
+    $scope.hep_number = "{{ patient_form.hep_number.value|default:'' }}";
     $scope.reception_facility = "{{ reception_form.facility.value|default:'' }}";
-    $scope.reception_art_number = "{{ reception_form.art_number.value|default:'' }}";
+    $scope.reception_hep_number = "{{ reception_form.hep_number.value|default:'' }}";
 
     var debounceTimeout;
 
@@ -796,27 +909,27 @@ app.controller('SampleController', function($scope, $http, $timeout) {
         return str ? str.replace(/\s+/g, '').toLowerCase() : '';
     }
 
-    // Watch for changes in 'facility' and 'art_number' with debounce
-    $scope.$watchGroup(['facility', 'art_number'], function(newValues, oldValues) {
+    // Watch for changes in 'facility' and 'hep_number' with debounce
+    $scope.$watchGroup(['facility', 'hep_number'], function(newValues, oldValues) {
         $timeout.cancel(debounceTimeout); // Clear previous timeout
 
         debounceTimeout = $timeout(function() { // Wait 500ms after typing stops
             var facility_id = newValues[0];
-            var art_no = newValues[1];
+            var hep_no = newValues[1];
 
             var reception_facility = $scope.reception_facility;
-            var reception_art_number = $scope.reception_art_number;
+            var reception_hep_number = $scope.reception_hep_number;
 
-            var sanitized_recep_art_number = sanitizeString(reception_art_number);
-            var sanitized_art_number = sanitizeString(art_no);
+            var sanitized_recep_hep_number = sanitizeString(reception_hep_number);
+            var sanitized_hep_number = sanitizeString(hep_no);
 
-            if (facility_id && art_no) {
-                if (reception_facility !== facility_id || sanitized_recep_art_number !== sanitized_art_number) {
+            if (facility_id && hep_no) {
+                if (reception_facility !== facility_id || sanitized_recep_hep_number !== sanitized_hep_number) {
                     alert('Kindly double check! Either the Facility or the ART number you entered does not match what was entered at reception');
                     
                     // Optional: Reset the fields if needed
                     // $scope.facility = '';
-                    // $scope.art_number = '';
+                    // $scope.hep_number = '';
                     // $('#reception_modal').modal('show'); // If using Bootstrap modal
                 }
             }
@@ -824,7 +937,7 @@ app.controller('SampleController', function($scope, $http, $timeout) {
     });*/
 
     $scope.patHist = function() {
-        $http.get("/samples/patient_history/" + $scope.facility + "/?art_number=" + $scope.art_number)
+        $http.get("/samples/patient_history/" + $scope.facility + "/?hep_number=" + $scope.hep_number)
             .success(function(data) {
             	if (data && data.length > 0) { // Ensure data is not empty
 	                $scope.patient_history = data;
@@ -920,21 +1033,21 @@ $(document).ready(function() {
         //return str ? str.replace(/\s+/g, '').toLowerCase() : '';
         return str ? str.replace(/[^a-z0-9]/gi, '').toLowerCase() : ''
     }
-    $('#id_art_number,#id_facility,#id_barcode').on('change', function(){
+    $('#id_hep_number,#id_facility,#id_barcode').on('change', function(){
 		var facility_id = $("#id_facility").val();
-		var art_no = $("#id_art_number").val();
+		var hep_no = $("#id_hep_number").val();
 		var reception_facility = $("#reception_facility").val();
-		var reception_art_number = $("#reception_art_number").val();
+		var reception_hep_number = $("#reception_hep_number").val();
 		var locator_id = $("#id_barcode").val();
 
-		var sanitized_recep_art_number = sanitizeString(reception_art_number).toLowerCase();
-		var sanitized_art_number = sanitizeString(art_no).toLowerCase();
-		if(facility_id != '' & art_no != '' & locator_id != ''){
+		var sanitized_recep_hep_number = sanitizeString(reception_hep_number).toLowerCase();
+		var sanitized_hep_number = sanitizeString(hep_no).toLowerCase();
+		if(facility_id != '' & hep_no != '' & locator_id != ''){
 
-			if(reception_facility != facility_id || sanitized_recep_art_number != sanitized_art_number){
+			if(reception_facility != facility_id || sanitized_recep_hep_number != sanitized_hep_number){
 			
 				//$("#id_facility").val('');
-				//$("#id_art_number").val('');
+				//$("#id_hep_number").val('');
 				//$('#reception_modal').modal('show');
 				alert('Kindly double check! Either the Facility of the Art number you entered does not match what was entered at reception');
 
@@ -952,7 +1065,7 @@ $(document).ready(function() {
                         }
                     }
                 },
-                art_number: {
+                hep_number: {
                     validators: {
                         notEmpty: {
                             message: 'Please enter lab number'
@@ -1050,8 +1163,8 @@ $(document).on('focus', '.select2-selection.select2-selection--single', function
 			</select> 
         </div> <br>
         <div class="form-group">
-          <label for="validate_art_number" class="">Art Number:</label>
-          <input class="form-control" id="validate_art_number" name="validate_art_number" type="text">
+          <label for="validate_hep_number" class="">Art Number:</label>
+          <input class="form-control" id="validate_hep_number" name="validate_hep_number" type="text">
         </div>        
       </div>
       <div class="modal-footer">

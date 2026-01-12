@@ -24,7 +24,7 @@
 	                <th>Age(yrs)</th>
 	                <th>Indication for Testing</th>
 	                <th>Current Regimen</th>
-	                <th>Treatment Line</th>
+	                <th>Data Source</th>
 	                <th></th>
 			    </thead>			
 				<tbody>
@@ -38,12 +38,14 @@
 							{% endif %}</td>
 						<td><a href="/samples/edit/{{ i.result.sample.pk }}?results_qc_id={{i.id}}">{{ i.result.sample.form_number }}</a></td>
 						<td>{{ i.result.sample.patient.facility }}</td>
-						<td>{{ i.result.sample.patient.art_number }}</td>
+						<td>{{ i.result.sample.patient.hep_number }}</td>
 						<td>{{ i.result.sample.patient.dob }}</td>
 						<td>{{ i.result.sample.patient.get_age }}</td>
 						<td>{{ i.result.sample.viral_load_testing }}</td>
 						<td>{{ i.result.sample.current_regimen}}</td>
-						<td>{{ i.result.sample.treatment_line }}</td>
+						<td>
+							{{i.result.sample.source_system}}
+						</td>
 						<th><a href="#" class="approve_for_dr" result-pk="{{i.result.pk}}">Mark as reviewed</a></th>
 					</tr>
 					{% endfor %}

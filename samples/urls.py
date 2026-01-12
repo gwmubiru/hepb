@@ -52,7 +52,7 @@ urlpatterns  = [
 	re_path(r'^reverse_approval/(?P<verification_id>[0-9]+)/$', login_required(views.reverse_approval), name="reverse_approval"),
 	re_path(r'^download/(?P<path>.*)$',login_required(views.download), name="download"),
 	re_path(r'^reports/$',login_required(views.reports), name='reports'),
-	re_path(r'^facility_art_numbers/(?P<facility_id>[0-9]+)/$', login_required(views.facility_art_numbers), name='facility_art_numbers'),
+	re_path(r'^facility_hep_numbers/(?P<facility_id>[0-9]+)/$', login_required(views.facility_hep_numbers), name='facility_hep_numbers'),
 	re_path(r'^get_patient/$', login_required(views.get_patient), name='get_patient'),
 	re_path(r'^get_barcode_details/$', login_required(views.get_barcode_details), name='get_barcode_details'),
 	re_path(r'^get_envelope_details/$', login_required(views.get_envelope_details), name='get_envelope_details'),
@@ -62,6 +62,7 @@ urlpatterns  = [
 	re_path(r'^range_list/$', login_required(views.range_list), name='range_list'),
 	re_path(r'^release_sample_only_results/$', login_required(views.release_sample_only_results), name='release_sample_only_results'),
 	re_path(r'^range_envelopes/$', login_required(views.range_envelopes), name='range_envelopes'),
+	re_path(r'^download_envelope_results/$', login_required(views.download_envelope_results), name='download_envelope_results'),
 	re_path(r'^range_json/$', login_required(views.RangeJson.as_view()), name='range_json'),
 
 ]

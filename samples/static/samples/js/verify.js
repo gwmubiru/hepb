@@ -78,7 +78,7 @@ ctrller.VerifyController = function($scope,$http){
 
 	$scope.patHist = function(){
 		$scope.patient_history=[];
-		$http.get("/samples/patient_history/"+$scope.sample.facility_id+"/?art_number="+$scope.sample.art_number).success(function(data){
+		$http.get("/samples/patient_history/"+$scope.sample.facility_id+"/?hep_number="+$scope.sample.hep_number).success(function(data){
 			$scope.patient_history = data;
 		});		
 	}

@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('unique_id', models.CharField(max_length=128, unique=True)),
-                ('art_number', models.CharField(max_length=64)),
+                ('hep_number', models.CharField(max_length=64)),
                 ('other_id', models.CharField(max_length=64, null=True)),
                 ('gender', models.CharField(choices=[('M', 'Male'), ('F', 'Female'), ('X', 'Missing Gender')], max_length=1)),
                 ('dob', models.DateField(null=True)),

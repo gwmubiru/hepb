@@ -98,8 +98,8 @@
 				
 				
 				<div class="form-inline">						
-					<label for="reception_art_number">Art Number</label><br>					
-					<input class="form-control input-sm w-md" id="id_reception_art_number" name="reception_art_number" value="{{reception_art_number}}"  type="text" >
+					<label for="reception_hep_number">Art Number</label><br>					
+					<input class="form-control input-sm w-md" id="id_reception_hep_number" name="reception_hep_number" value="{{reception_hep_number}}"  type="text" >
 				</div>
 			</div>
 
@@ -122,8 +122,8 @@
 			<div class="col-lg-6">
 
 				<div class="form-group required">
-					{{ sample_reception_form.art_number.label_tag }}
-					{{ sample_reception_form.art_number }}
+					{{ sample_reception_form.hep_number.label_tag }}
+					{{ sample_reception_form.hep_number }}
 				</div> 
 
 			</div>
@@ -179,7 +179,7 @@
 	                        }
 	                    }
 	                },
-	            reception_art_number: {
+	            reception_hep_number: {
 	                    validators: {
 	                        notEmpty: {
 	                            message: 'Please enter the art number'
@@ -236,12 +236,7 @@
 			var val = $(this).val();
 			var env_num = Number(val.substr(-4));
 			var s_type = '';
-			if(env_num < 3000){
-				//plasma study samples === from 900 up to 999
-				s_type = 'P'; 
-			}else{
-				s_type = 'D';
-			}
+			var s_type =  (env_num<=999?'P':'D');
 			
 			$("#id_sample_type").val(s_type);
 			$("#sample_type").val(s_type);

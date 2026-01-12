@@ -101,10 +101,10 @@ DATABASES = {
         'OPTIONS': {
             'sql_mode': 'traditional',
         },
-		'NAME': os.environ.get('DB_NAME','vl_lims'),
-		'USER': os.environ.get('DB_USER','vl74'),
-		'PASSWORD': os.environ.get('DB_PASSWORD','Vldatabase#8910'),
-		'HOST': os.environ.get('DB_HOST','10.200.254.78'),
+		'NAME': os.environ.get('DB_NAME','hepb'),
+		'USER': os.environ.get('DB_USER','root'),
+		'PASSWORD': os.environ.get('DB_PASSWORD','password'),
+		'HOST': os.environ.get('DB_HOST','localhost'),
 		'PORT': os.environ.get('DB_PORT',''),
 	}
 }
@@ -190,6 +190,18 @@ SESSION_COOKIE_AGE = 28800  # close session if idle for 8 hours
 SESSION_SAVE_EVERY_REQUEST = True 
 
 SAMPLE_TRACKING_URL = 'http://10.200.254.44/api/restrack/receive_small_package'
+
+#Celery settings
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+CELERY_TASK_ALWAYS_EAGER = False
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_ACKS_LATE = True
+CELERY_TASK_STORE_ERRORS_EVEN_IF_IGNORED = True
 
 try:
 	from local_settings import *

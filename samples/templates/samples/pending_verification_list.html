@@ -29,7 +29,7 @@
 		<tbody>
 			{% for p in patients %}
 			<tr>				
-				<td>{{ p.art_number }}</td>
+				<td>{{ p.hep_number }}</td>
 				<td>{{ p.dob }}</td>
 				<th>{{ p.facility }}</th>
 				<th><span id="verify_{{p.pk}}">Pending Verification</span></th>
@@ -42,8 +42,8 @@
 						</button>
 						<ul class="dropdown-menu" role="menu">
 							<li><a href="#" class="newpatient" data-patient_id="{{p.pk}}" >Mark as New</a></li>
-							<li><a href="#" class="merge" data-patient_id="{{p.pk}}" data-type="transfer" data-art_number = "{{p.art_number}}">Transferred</a></li>
-							<li><a href="#" class="merge" data-patient_id="{{p.pk}}" data-type="merge" data-art_number = "{{ p.art_number }}" data-facility_id = "{{ p.facility_id }}">Merge with</a></li>
+							<li><a href="#" class="merge" data-patient_id="{{p.pk}}" data-type="transfer" data-hep_number = "{{p.hep_number}}">Transferred</a></li>
+							<li><a href="#" class="merge" data-patient_id="{{p.pk}}" data-type="merge" data-hep_number = "{{ p.hep_number }}" data-facility_id = "{{ p.facility_id }}">Merge with</a></li>
 						</ul>
 					</div>
 					</th>
@@ -52,7 +52,7 @@
 		</tbody>
 	</table>
 
-	<div class="modal fade" tabindex="-1" role="dialog" id="art_number_modal">
+	<div class="modal fade" tabindex="-1" role="dialog" id="hep_number_modal">
 	  <div class="modal-dialog">
 	    <div class="modal-content">
 	      <div class="modal-header">
@@ -77,9 +77,9 @@
 			            </div>
 			            
 			  			<div class="form-group">
-			              <label for="art_number" id="art_number_label" class="col-sm-3 control-label">Art Number</label>
+			              <label for="hep_number" id="hep_number_label" class="col-sm-3 control-label">Art Number</label>
 			              <div class="col-sm-9">
-			                <input type="text" name="art_number" class="form-control" style="margin-bottom: 15px;">
+			                <input type="text" name="hep_number" class="form-control" style="margin-bottom: 15px;">
 			                <input type="text" name="patient_id" id="patient_id" class="form-control hidden">
 			                <input type="text" name="type" id="type" class="form-control hidden">
 			               </div>
@@ -109,16 +109,16 @@
 		  	description =  "Please enter the correct art number for the patient";
 		  	title = "Merge Details";
 		  	$("#facility_container").addClass('hidden');
-		  	$("#art_number_label").html('Art Number');
-		  	$("#art_number_modal #facility_id").val( $(this).attr('data-facility_id'));
+		  	$("#hep_number_label").html('Art Number');
+		  	$("#hep_number_modal #facility_id").val( $(this).attr('data-facility_id'));
 		  }else{
 		  	$("#facility_container").removeClass('hidden');
-		  	$("#art_number_label").html('Old Art Number');
+		  	$("#hep_number_label").html('Old Art Number');
 		  }
-		  $("#art_number_modal #description").html(description);
-	      $("#art_number_modal #patient_id").val($(this).attr('data-patient_id'));
-	      $("#art_number_modal #type").val(p_type);
-	      $("#art_number_modal").modal('show');
+		  $("#hep_number_modal #description").html(description);
+	      $("#hep_number_modal #patient_id").val($(this).attr('data-patient_id'));
+	      $("#hep_number_modal #type").val(p_type);
+	      $("#hep_number_modal").modal('show');
 	    });
 		var oTable = $('#tab_id').dataTable({
 			"processing": true,

@@ -1,6 +1,10 @@
 from home import utils
 from worksheets.models import Worksheet,WorksheetSample, ResultRunDetail, MACHINE_TYPES,ResultRun
 from django.utils import timezone
+from django.db.models import Q
+from . import utils as result_utils
+from django.core.exceptions import ObjectDoesNotExist
+
 
 def repeat_test(machine_type, result, flag):
 	repeat = False
@@ -41,7 +45,7 @@ def repeat_test(machine_type, result, flag):
 	return repeat
 
 
-def get_result(result, multiplier,machine_type,is_diluted,sample_type):
+def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_volume=200):
 	
 	numeric_result = 0
 	alphanumeric_result = ''
@@ -64,8 +68,12 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type):
 		suppressed = 3
 		repeat_test = 3
 	elif eq(result, '< Titer min'):
-		numeric_result = 50
-		alphanumeric_result = '< 50.00 Copies / mL'
+		if sample_volume is not None and sample_volume == 500:
+			numeric_result = 20
+			alphanumeric_result = '< 20.00 Copies / mL'
+		else:
+			numeric_result = 50
+			alphanumeric_result = '< 50.00 Copies / mL'
 	elif eq(result, '> Titer max'):
 		numeric_result = 10000000
 		alphanumeric_result = '> 10,000,000 Copies / mL'
@@ -223,56 +231,108 @@ def generate_radios(ws_id):
 	redio_inputs = redio_inputs+"<div class='comments' id='comments_sect{0}'> <input type='text'  name='comments{0}' placeholder='comments' id='comment{0}' class='comments_input' res_pk='{0}' value=''></div>".format(ws_id,ws_id,ws_id,ws_id)
 	return redio_inputs
 
+def get_result_run(filename,user):
+	rn = ResultRun.objects.filter(file_name=filename).first()
+	if not rn:
+		rn = ResultRun()
+		rn.file_name = filename
+		rn.upload_date = timezone.now()
+		rn.run_uploaded_by=user
+		rn.stage=1
+		rn.save()
+	if rn.stage == 3:
+		rn = 'completed'
+	return rn
 
 def update_sample_and_save_result(machine_type,instrument_id,result, multiplier, user, test_date,result_run,row_index,the_test_date):
-	ws = WorksheetSample.objects.filter(instrument_id=instrument_id,stage__lte=3).first()
-	result_dict = get_result(result, multiplier,machine_type,0, '')
+	ins_filter = Q(instrument_id=instrument_id) | Q(other_instrument_id=instrument_id)
+	stage_filter = Q(stage__lte=3) | Q(stage=4)
+	sample_volume = 200
+	ws = WorksheetSample.objects.filter(ins_filter & stage_filter).first()
+	result_run_detail = {
+		'numeric_result':'',
+		'alphanumeric_result':''
+	}
 	if ws:
-		result_dict = get_result(result, multiplier,machine_type,ws.is_diluted,ws.sample.sample_type)
-	
-	#save a copy of the result_run results
-	#helpful if the instrument_id was not partially captured on the testing platform
-	result_run_detail = ResultRunDetail.objects.filter(the_result_run_id= result_run.id,instrument_id=instrument_id).first()
-	if not result_run_detail:
-		result_run_detail = ResultRunDetail.objects.create(			
-			result_numeric = result_dict.get('numeric_result'),
-			result_alphanumeric = result_dict.get('alphanumeric_result'),
-			result_run_position = row_index,
-			test_date = the_test_date,
-			testing_by_id = 1,
-			the_result_run_id= result_run.id,
-			instrument_id=instrument_id
-			)
-	if ws:
-		
-		result = result.strip() if type(result) is str else result
-		
-		#only upload results where stage is 1, meaning awaiting results or stage is 4, meaning repeat waiting for results
-		if ws.stage == 1:
-			ws.repeat_test = result_dict.get('rep_test')
-			ws.result_numeric = result_dict.get('numeric_result')
-			alf_num_result = result_dict.get('alphanumeric_result')
-			ws.result_alphanumeric = alf_num_result
-			ws.suppressed = result_dict.get('suppressed')
-			ws.method = machine_type
-			ws.result_run_detail_id = result_run_detail.id
-			ws.test_date = the_test_date
-			ws.tester = user
-			ws.stage = 2
-			ws.sample.stage = 2
-			ws.supression_cut_off_id = result_dict.get('supression_cut_off')
-			ws.has_low_level_viramia = result_dict.get('has_low_level_viramia')
-			if alf_num_result == 'Failed':
-				ws.repeat_test = 1
-				ws.stage = 4
-				ws.sample.stage = 4
-				ws.authorised_at = timezone.now()
-				ws.authoriser = user
+		try:
+			# First verify sample exists before doing anything
+			sample = ws.sample
+			# Now we can safely access sample attributes
+			if not sample or not hasattr(sample, 'sample_type') or sample.sample_type is None:
+				raise ObjectDoesNotExist("Sample exists but sample_type is invalid")
+			result_dict = result_utils.get_result(
+	            result, 
+	            multiplier,
+	            machine_type,
+	            ws.is_diluted,
+	            sample.sample_type, # Use the already fetched sample object
+	            sample_volume
+	        )
+			#result_dict = result_utils.get_result(result, multiplier,machine_type,ws.is_diluted,ws.sample.sample_type)
+			
+			the_test_date = timezone.now()
+			#save a copy of the result_run results
+			#helpful if the instrument_id was not partially captured on the testing platform
+			result_run_detail = ResultRunDetail.objects.filter(the_result_run_id= result_run.id,instrument_id=instrument_id).first()
+			if not result_run_detail:
+				result_run_detail = ResultRunDetail.objects.create(			
+					result_numeric = result_dict.get('numeric_result'),
+					result_alphanumeric = result_dict.get('alphanumeric_result'),
+					result_run_position = row_index,
+					test_date = the_test_date,
+					testing_by = user,
+					the_result_run_id= result_run.id,
+					instrument_id=instrument_id
+					)
+			result = result.strip() if type(result) is str else result
+			#only upload results where stage is 1, meaning awaiting results or stage is 4, meaning repeat waiting for results
+			if ws.stage == 1 or ws.stage == 4:
+				# Update worksheet fields that don't depend on sample
+				ws.repeat_test = result_dict.get('rep_test')
+				ws.result_numeric = result_dict.get('numeric_result')
+				alf_num_result = result_dict.get('alphanumeric_result')
+				ws.result_alphanumeric = alf_num_result
+				ws.suppressed = result_dict.get('suppressed')
+				ws.method = machine_type
+				ws.result_run_detail_id = result_run_detail.id
+				ws.test_date = the_test_date
+				ws.tester = user
+				ws.stage = 2
+				
+				# Update sample fields
+				sample.stage = 2
+				ws.supression_cut_off_id = result_dict.get('supression_cut_off')
+				ws.has_low_level_viramia = result_dict.get('has_low_level_viramia')
 
-			ws.result_run = result_run
-			ws.result_run_position = row_index
+				# Handle Failed case
+				if alf_num_result == 'Failed':
+					ws.repeat_test = 1
+					ws.stage = 4
+					sample.stage = 4
+					ws.authorised_at = timezone.now()
+					ws.authoriser = user
+		            
+		        # Handle stage 4 non-Failed case
+				if ws.stage == 4 and alf_num_result != 'Failed':
+					ws_igno = WorksheetSample()
+					ws_igno.stage = 9
+					ws_igno.save()
+		            
+				# Save both objects
+				sample.save()
+				ws.result_run = result_run
+				ws.result_run_position = row_index
+				ws.save()
+		        
+		except ObjectDoesNotExist:
+			# Handle invalid sample case
+			import logging
+			logger = logging.getLogger(__name__)
+			logger.error(f"Invalid sample reference in worksheet {ws.id}")
+	        
+	        # Clear the invalid reference and save minimal worksheet info
+			ws.sample_id = None
 			ws.save()
-			ws.sample.save()
 		
 
 #update sample run with information of contamination.
@@ -319,3 +379,6 @@ def compare_results_for_adjacency_contamination(cohort,no_of_adjance_results_for
 		else:
 			value_is_gte = 1
 		return value_is_gte
+
+def single_space(value):
+	return " ".join(value.strip().split())

@@ -75,7 +75,7 @@ class Command(BaseCommand):
 					self.__local_date(s.date_collected),
 					self.__local_date(s.date_received),
 					s.get_sample_type_display(),
-					s.patient.art_number,
+					s.patient.hep_number,
 					s.patient.other_id,
 					s.patient_unique_id,
 					s.patient.gender,

@@ -17,13 +17,13 @@ class ListJson(BaseDatatableView):
 	model = Sample
 	columns = [
 		'facility_reference','barcode', 'sample_type', 'date_collected','treatment_initiation_date',
-		'date_received', 'patient.art_number','patient.other_id', 'patient.facility.district', 'patient.facility', 'pk']
+		'date_received', 'patient.hep_number','patient.other_id', 'patient.facility.district', 'patient.facility', 'pk']
 
 	order_columns = [
 		'patient.facility', 'patient.facility.district', 
 		'sample_type', 'barcode', 'locator_position', 
 		'date_collected', 'date_received', 'treatment_initiation_date',
-		'patient.art_number','patient.other_id' '']
+		'patient.hep_number','patient.other_id' '']
 
 	max_display_length = 500		
 
@@ -114,7 +114,7 @@ class ListJson(BaseDatatableView):
 
 class VerifyListJson(BaseDatatableView):
 	model = Sample
-	columns = ['form_number', 'barcode','patient.facility', 'patient.facility.district', 'patient.art_number','patient.gender', 'date_collected',
+	columns = ['form_number', 'barcode','patient.facility', 'patient.facility.district', 'patient.hep_number','patient.gender', 'date_collected',
 		 'pk']
 	order_columns = ['form_number', 'barcode']
 	max_display_length = 500
@@ -193,7 +193,7 @@ def vl_list_data(request):
 			utils.local_date(s.date_collected),
 			utils.local_date(s.treatment_initiation_date),
 			s.date_received,
-			s.patient.art_number,
+			s.patient.hep_number,
 			s.patient.other_id,
 			s.facility.district.district,
 			s.facility.facility,

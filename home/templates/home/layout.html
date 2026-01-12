@@ -5,20 +5,20 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-
-        <title>Viral Load</title>
+        
+        <title>Hepatitis B Viral Load</title>
         <link rel="Shortcut Icon" href='{% static "home/images/favicon.png" %}' />
         <link href='{% static "home/tisa-admin/assets/css/style.css"%}' rel="stylesheet" media="screen">
         <link rel="stylesheet" href='{% static "home/vendor/jquery-ui/themes/base/jquery-ui.min.css" %}'>
-
+             
 
         <link href='{% static "home/vendor/metisMenu/dist/metisMenu.min.css" %}' rel="stylesheet">
         <link href='{% static "home/sb-admin-2/dist/css/timeline.css" %}' rel="stylesheet">
-        <link href='{% static "home/sb-admin-2/dist/css/sb-admin-2.css" %}' rel="stylesheet">
+        <link href='{% static "home/sb-admin-2/dist/css/sb-admin-2.css" %}' rel="stylesheet">       
+       <!-- <link href="../bower_components/morrisjs/morris.css" rel="stylesheet"> -->
         <link href='{% static "home/vendor/font-awesome-min/css/font-awesome.min.css" %}' rel="stylesheet" type="text/css">
 
         <link rel="stylesheet" href='{% static "home/vendor/bootstrap/dist/css/bootstrap.min.css" %}'>
-        <link rel="stylesheet" href='{% static "home/css/calendar.css" %}'>
         <link rel="stylesheet" href='{% static "home/css/app.css" %}'>
         {% block css %}
         {% endblock %}
@@ -29,22 +29,22 @@
         <script type="text/javascript" src='{% static "home/vendor/metisMenu/dist/metisMenu.min.js" %}'></script>
 
         <script type="text/javascript" src='{% static "home/sb-admin-2/dist/js/sb-admin-2.js" %}'></script>
-        <script type="text/javascript" src='{% static "home/js/bootstrapValidator.min-0.5.1.js" %}'></script>
+
         <script type="text/javascript" src='{% static "home/js/app.js" %}'></script>
 
         {% block js %}
         {% endblock %}
 
         <link href='{% static "home/tisa-admin/assets/icons/font-awesome/css/font-awesome.min.css" %}' rel="stylesheet" media="screen">
-            <!-- ionicons -->
+            <!-- ionicons -->   
         <link href='{% static "home/tisa-admin/assets/icons/ionicons/css/ionicons.min.css" %}' rel="stylesheet" media="screen">
-
-
+                
+    
     <!-- page specific stylesheets -->
-
-        <!-- main stylesheet -->
-
-
+                
+        <!-- main stylesheet -->      
+        
+       
     </head>
     <body class="side_nav_hover theme_b">
         <!-- top bar -->
@@ -171,6 +171,7 @@
                             <li><a href="{% url 'samples:verify_list' %}?verified=0">Verify data entry</a></li>
                             <li><a href="{% url 'samples:envelope_list' %}">Verify envelope</a></li>
                             <li><a href="{% url 'results:trouble_shoot_results' %}">Troubleshoot results</a></li>
+                            <li><a href="{% url 'results:trouble_shoot_ranges' %}">Troubleshoot envelope ranges</a></li>
                             <li><a href="{% url 'samples:release_sample_only_results' %}">Release Hie Results</a></li>
                         </ul>
                     </li>

@@ -1,6 +1,7 @@
 from django.db import transaction
 from .models import Patient, Sample, PastRegimens, DrugResistanceRequest
-from .forms import PatientForm, SampleForm, DrugResistanceRequestForm
+from .forms import PatientForm, SampleForm, DrugResistanceRequestForm, PreliminaryFindingsForm
+from results.models import Result,ResultsQC
 from home import utils
 from datetime import *
 from . import utils as sample_utils
@@ -9,17 +10,23 @@ class SampleService:
     @staticmethod
     def create_patient(patient_form, pst, user):
         patient = patient_form.save(commit=False)
-        sanitized_art_number = utils.removeSpecialCharactersFromString(pst.get('art_number'))
-        patient.unique_id = f"{pst.get('facility')}-A-{sanitized_art_number}"
+        sanitized_hep_number = utils.removeSpecialCharactersFromString(pst.get('hep_number'))
+        patient.unique_id = f"{pst.get('facility')}-A-{sanitized_hep_number}"
         patient.parent_id = patient.id
         patient.created_by = user
         patient.facility_id = pst.get('facility')
         patient.treatment_duration = pst.get('treatment_duration')
-        patient.sanitized_art_number = sanitized_art_number
+        patient.sanitized_hep_number = sanitized_hep_number
         patient.facility_patient_id = pst.get('patient_id')
         patient.gender = pst.get('gender')
         patient.save()
         return patient
+
+    def create_preliminary_finidings(preliminary_findings_form,patient, pst, user):
+        preliminary_findings = preliminary_findings_form.save(commit=False)
+        preliminary_findings.patient_id = patient.id
+        preliminary_findings.save()
+        return preliminary_findings
 
     @staticmethod
     def update_sample(sample_form, pst, patient, user):
@@ -39,11 +46,11 @@ class SampleService:
                 #if pst.get('page_type') == '1' or pst.get('page_type') == 1:
                 if pst.get('page_type') == '1' or sample.data_entered_by is None or (sample.data_entered_by == user):
                     sample.data_facility_id = pst.get('facility')
-                    sample.data_art_number = pst.get('data_art_number')
+                    sample.data_hep_number = pst.get('data_hep_number')
                     sample.is_data_entered = 1
                     sample.data_entered_by = user
                     sample.data_entered_at = datetime.now()
-                    needs_verification = sample_utils.is_rec_and_entery_data_mataching(sample,pst.get('art_number'),pst.get('facility'))
+                    needs_verification = sample_utils.is_rec_and_entery_data_mataching(sample,pst.get('hep_number'),pst.get('facility'))
                     sample.required_verification = needs_verification
                     if needs_verification == 1:
                         sample.verified = 0
@@ -64,11 +71,10 @@ class SampleService:
                 if rc_id:
                     resultsqc = ResultsQC.objects.get(pk=rc_id)
                     resultsqc.is_reviewed_for_dr = True
-                    resultsqc.dr_reviewed_by_id = request.user
+                    resultsqc.dr_reviewed_by_id = user
                     resultsqc.dr_reviewed_at = datetime.now()
                     resultsqc.save()
                     sample.verified = 1
-
                 sample.patient_unique_id = patient.unique_id
                 sample.sample_medical_lab = utils.user_lab(user)
                 sample.save()
@@ -88,13 +94,12 @@ class SampleService:
                 past_regimen.save()
 
     @staticmethod
-    def validate_forms(patient_form, envelope_form, sample_form, drug_resistance_form, past_regimens_formset, pst):
+    def validate_forms(patient_form,preliminary_findings_form, envelope_form, sample_form, drug_resistance_form, past_regimens_formset, pst):
         if not all([
             patient_form.is_valid(),
             envelope_form.is_valid(),
             sample_form.is_valid(),
-            drug_resistance_form.is_valid(),
-            past_regimens_formset.is_valid(),
+            preliminary_findings_form.is_valid(),
         ]):
             return False
 

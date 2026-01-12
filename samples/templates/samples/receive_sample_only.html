@@ -186,12 +186,7 @@
 			var val = $(this).val();
 			var env_num = Number(val.substr(-4));
 			var s_type = '';
-			if(env_num < 3000){
-				//plasma study samples === from 900 up to 999
-				s_type = 'P'; 
-			}else{
-				s_type = 'D';
-			}
+			var s_type =  (env_num<=999?'P':'D');
 			$("#id_sample_type").val(s_type);
 			$("#sample_type").val(s_type);
 			var url =  "/samples/get_envelope_details/?envelope_number="+val+"&sample_type="+s_type;
@@ -297,12 +292,12 @@
 			var span_color = "#ff0000";
 			$.get(url, function(data, status){
 				var data_arr = JSON.parse(data);
-				if(data_arr.art_number == ''){
+				if(data_arr.hep_number == ''){
 					$("#span"+barc).html(data_arr.err_msg);
 		        	$("#span"+barc).css({"color":span_color});
 		        	$("#span"+barc).removeClass('hidden');
 		        }else{
-		        	$("#art_no"+ind).val(data_arr.art_number);
+		        	$("#art_no"+ind).val(data_arr.hep_number);
 		        }
 				
 			});
@@ -370,7 +365,7 @@
 		    form_data.append('facility', sample.facility);
 		    form_data.append('tracking_code_id', tr_code_id);
 		    form_data.append('saved_id', sample.saved_id);
-		    form_data.append('reception_art_number', sample.artNo);
+		    form_data.append('reception_hep_number', sample.artNo);
 		    form_data.append('envelope_id', sample.envelope_id);
 		    form_data.append('sample_only', 1);
 		    
@@ -444,7 +439,7 @@
   	});
 	
 	function generateRow(position, barcode,loc_category){
-		var input_str = '<div class="row"><div class="col-md-4"><select class="form-control input-sm w-xs hidden" name="locator_category" required="true"><option value="V" selected="selected">V</option></select> <input type="text" name="locator_id" value="'+barcode+'" class="form-control input-sm wider barcode" id="bar'+position+'" required="required"><input type="text" name="saved_barcode_id"  class="hidden" id="saved_barcode_id'+barcode+'" ></div><div class = "col-md-3"><input type="text" name="facility_reference"  class="form-control input-sm wider facilityreference" id="fac_ref'+position+'" data-barccode="'+barcode+'" required="required"></div> <div class = "col-md-3"><input type="text" name="art_number"  class="form-control input-sm wider artnumber" id="art_no'+position+'" data-barccode="'+barcode+'" required="required"></div>  <div class ="col-md-1"><span id="span'+barcode+'" class="message_span hidden">saved</span></div></div></div>';
+		var input_str = '<div class="row"><div class="col-md-4"><select class="form-control input-sm w-xs hidden" name="locator_category" required="true"><option value="V" selected="selected">V</option></select> <input type="text" name="locator_id" value="'+barcode+'" class="form-control input-sm wider barcode" id="bar'+position+'" required="required"><input type="text" name="saved_barcode_id"  class="hidden" id="saved_barcode_id'+barcode+'" ></div><div class = "col-md-3"><input type="text" name="facility_reference"  class="form-control input-sm wider facilityreference" id="fac_ref'+position+'" data-barccode="'+barcode+'" required="required"></div> <div class = "col-md-3"><input type="text" name="hep_number"  class="form-control input-sm wider artnumber" id="art_no'+position+'" data-barccode="'+barcode+'" required="required"></div>  <div class ="col-md-1"><span id="span'+barcode+'" class="message_span hidden">saved</span></div></div></div>';
 		return input_str;
 
 	}

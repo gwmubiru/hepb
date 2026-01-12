@@ -145,10 +145,10 @@ def clean_data(request):
 			fp.unique_id = "%s-A-%s" %(facility_id, sanitized_art_no)
 			fp.facility_id = facility_id
 			fp.gender = data["SEX"]
-			fp.art_number = data[2] 
+			fp.hep_number = data[2] 
 			#fp.current_regimen = data["CURRENT REGIMEN"]
 			fp.current_regimen = data[7]
-			fp.sanitized_art_number = sanitized_art_no
+			fp.sanitized_hep_number = sanitized_art_no
 			if isinstance(data["ART START DATE"], str):
 				fp.treatment_initiation_date = datetime.datetime.strptime(data["ART START DATE"], '%d/%m/%Y') 
 			fp.save()
@@ -189,19 +189,19 @@ def clean_data_list(request):
 				patient_ids = json.loads(matched_patients)
 				#return HttpResponse(matched_patients)
 				#get patients in VL but not in facility
-				sql = """ SELECT  s.patient_unique_id,p.art_number,s.facility_id,s.patient_id FROM vl_samples s INNER JOIN vl_patients p ON(s.patient_id = p.id) WHERE s.facility_id = %s GROUP BY s.patient_unique_id,p.art_number,s.facility_id,s.patient_id ORDER BY p.art_number ASC"""				
+				sql = """ SELECT  s.patient_unique_id,p.hep_number,s.facility_id,s.patient_id FROM vl_samples s INNER JOIN vl_patients p ON(s.patient_id = p.id) WHERE s.facility_id = %s GROUP BY s.patient_unique_id,p.hep_number,s.facility_id,s.patient_id ORDER BY p.hep_number ASC"""				
 				cursor.execute(sql, [facility_id])
 				patients = utils.dictfetchall(cursor)
 				if len(patients) > 0:
 					context['patients_in_vl_not_in_facility'] = patients
 				
 				#get patients both in VL and in Facility - together with their VLs
-				sql = """ SELECT  s.patient_unique_id,s.patient_id,p.art_number, p.gender, p.dob, s.treatment_initiation_date, ba.appendix, s.facility_id, r.test_date, r.result_numeric, r.result_alphanumeric FROM vl_samples s 
+				sql = """ SELECT  s.patient_unique_id,s.patient_id,p.hep_number, p.gender, p.dob, s.treatment_initiation_date, ba.appendix, s.facility_id, r.test_date, r.result_numeric, r.result_alphanumeric FROM vl_samples s 
 				INNER JOIN vl_patients p ON(s.patient_id = p.parent_id)
 				LEFT JOIN vl_results r ON(s.id = r.sample_id)
 				LEFT JOIN backend_appendices ba ON(s.current_regimen_id = ba.id and ba.appendix_category_id = 3)	
 				WHERE s.patient_id IN  %s AND s.facility_id = %s 
-				GROUP BY r.id,s.patient_unique_id,s.patient_id,p.art_number,s.facility_id, r.test_date, r.result_numeric, r.result_alphanumeric, p.gender, p.dob, s.treatment_initiation_date, s.treatment_line_id,ba.appendix ORDER BY p.art_number ASC"""				
+				GROUP BY r.id,s.patient_unique_id,s.patient_id,p.hep_number,s.facility_id, r.test_date, r.result_numeric, r.result_alphanumeric, p.gender, p.dob, s.treatment_initiation_date, s.treatment_line_id,ba.appendix ORDER BY p.hep_number ASC"""				
 				
 				if len(patient_ids):
 					cursor.execute(sql, [patient_ids, facility_id])
@@ -239,11 +239,11 @@ def facility_data(request):
 			if row == '':
 				break						
 			columns = row.split(",")
-			#get the facility_id and art_number and pick then from the DB
+			#get the facility_id and hep_number and pick then from the DB
 			return HttpResponse(columns)
 			
-			unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
-			sql = """ SELECT  s.patient_unique_id,p.art_number,s.facility_id,s.patient_id FROM vl_samples s INNER JOIN vl_patients p ON(s.patient_id = p.id)	WHERE s.facility_id = %s GROUP BY s.patient_unique_id,p.art_number,s.facility_id,s.patient_id ORDER BY p.art_number ASC"""				
+			unique_id = "%s-A-%s" %(facility_id, hep_number.replace(' ','').replace('-','').replace('/',''))
+			sql = """ SELECT  s.patient_unique_id,p.hep_number,s.facility_id,s.patient_id FROM vl_samples s INNER JOIN vl_patients p ON(s.patient_id = p.id)	WHERE s.facility_id = %s GROUP BY s.patient_unique_id,p.hep_number,s.facility_id,s.patient_id ORDER BY p.hep_number ASC"""				
 			cursor.execute(sql, [facility_id])
 			patients = utils.dictfetchall(cursor)
 			if len(patients) > 0:

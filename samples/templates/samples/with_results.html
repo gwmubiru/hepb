@@ -19,10 +19,10 @@
 <div class="panel panel-default">
  <form >
  	<div style="float:right;">
-	 <input type="button" class='btn btn-danger submit_new_barcodes' value="Submit" />
-	 <input type="hidden" name="env_id" id="env_id" value="{{envelope_id}}">
+	 <a class="btn btn-danger" href="{% url 'samples:download_envelope_results' %}?env_id={{envelope_id}}">Download</a>
+	
 	</div>
-		<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
+		<table class='table table-bordered table-striped table table-condensed' id='tab_results_id'>
 			<thead>
 				<tr>
 					<th>Facility Ref</th>
@@ -59,9 +59,9 @@
 				</td>	
 				<td>
 					{% if s.is_data_entered %}
-					{{ s.patient.art_number }}
+					{{ s.patient.hep_number }}
 					{% else %}
-						{{ s.reception_art_number }}
+						{{ s.reception_hep_number }}
 					{% endif %}
 				</td>	
 				<td>{{ s.result.result_alphanumeric }}</td>
@@ -72,8 +72,9 @@
 			
 		</table>
 		<div style="float:right;">
-			 <input type="button" class='btn btn-danger submit_new_barcodes' value="Submit"/>
-			</div>
+			<a class="btn btn-danger" href="{% url 'samples:download_envelope_results' %}">Download</a>
+			 
+		</div>
 	</form>
 	</div>
 

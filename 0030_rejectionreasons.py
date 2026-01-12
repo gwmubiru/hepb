@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('backend', '0005_auto_20170614_1646'),
-        ('samples', '0029_patient_simple_art_number'),
+        ('samples', '0029_patient_simple_hep_number'),
     ]
 
     operations = [

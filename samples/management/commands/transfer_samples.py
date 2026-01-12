@@ -65,7 +65,7 @@ class Command(BaseCommand):
 				p, pat_created = Patient.objects.get_or_create(
 					id=r.get('pid'),
 					defaults={'unique_id':r.get('uniqueID'),
-							  'art_number':r.get('artNumber'),
+							  'hep_number':r.get('artNumber'),
 							  'other_id':r.get('otherID', ''),
 							  'gender':self.genders.get(r.get('gender'), None),
 							  'dob':utils.get_date(r, 'dateOfBirth'),

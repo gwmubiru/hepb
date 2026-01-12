@@ -89,7 +89,7 @@
 							<table class="vl-table ng-cloak">
 								<tr>
 									<td>ART Number:</td>
-									<td>{% input "art_number" "" "{'class':'form-control input-sm optional patient-field', 'ng-model': 'sample.art_number', 'ng-change':'patHist()'}" %}</td>
+									<td>{% input "hep_number" "" "{'class':'form-control input-sm optional patient-field', 'ng-model': 'sample.hep_number', 'ng-change':'patHist()'}" %}</td>
 								</tr>
 								<tr>
 									<td>Other ID</td>
@@ -142,7 +142,7 @@
 								<tr ng-repeat="ph in patient_history">
 									<td><% ph.test_date %></td>
 									<td><% ph.result %></td>
-									<td><% ph.art_number %></td>
+									<td><% ph.hep_number %></td>
 									<td><% ph.dob %></td>
 									<td><% ph.gender %></td>
 									<td><% ph.form_number %></td>	
@@ -462,7 +462,7 @@ ctrller.VerifyController = function($scope,$http){
 
 	$scope.patHist = function(){
 		$scope.patient_history=[];
-		$http.get("/samples/patient_history/"+$scope.sample.facility_id+"/?art_number="+$scope.sample.art_number).success(function(data){
+		$http.get("/samples/patient_history/"+$scope.sample.facility_id+"/?hep_number="+$scope.sample.hep_number).success(function(data){
 			$scope.patient_history = data;
 		});		
 	}

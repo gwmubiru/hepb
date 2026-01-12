@@ -7,19 +7,15 @@ body{
 	font-family: OpenSans;
 	font-size:12px;
 }
-
-.w-xs{
-	width: 301px;
+.container.section{
+	border: solid 1px #D5D8DC;
+	padding-top: 4px;
+	padding-bottom: 5px;
 }
-
-.w-sm{
-	width: 200px
+h2.sub-section{
+	font-size: 16px;
+	font-weight: bold;
 }
-
-.w-md{
-	width: 300px
-}
-
 .required_asta{
 	color: #d9534f;
 }
@@ -214,28 +210,12 @@ page[size="A4"][layout="portrait"] {
     overflow-y:auto;
     z-index:99 !important;
 }
-
-
-.is_data_enterd0{
-	color: red;
+ .form-signin .btn.btn-danger {
+    background-color: #3657d7;
+    border-color: #3657d7;
 }
 
-/* basic positioning */
-.legend { list-style: none; }
-.legend li { float: left; margin-right: 10px; }
-.legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
-/* your colors */
-.legend .red { background-color: #ff0000; }
-.legend .black { background-color: #000; }
-
-.is_data_enterd0{
-			color: red;
-		}
-
-	/* basic positioning */
-.legend { list-style: none; }
-.legend li { float: left; margin-right: 10px; }
-.legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
-/* your colors */
-.legend .red { background-color: #ff0000; }
-.legend .black { background-color: #000; }
+.form-signin .btn.btn-danger {
+    background-color: #3a55bd;
+    border-color: #3a55bd;
+}

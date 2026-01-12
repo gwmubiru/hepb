@@ -109,7 +109,7 @@
 				{% if forloop.counter0|divisibleby:5 %}<div class="col-xs-1 rack">{{ s.rack_id }}</div>{% endif %}
 				<div class="col-xs-1 wrksht-wrapper">
 				{% mod 5 forloop.counter %}<br>
-					<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.art_number }}<br>
+					<span class='sm-label'>Pat ART #</span>: {{ s.sample.patient.hep_number }}<br>
 					<span class='sm-label'>Sample ID</span>: {{ s.sample.vl_sample_id }}<br>
 					<span class='sm-label'>Location ID</span>: 
 					{{ s.sample.locator_category }}{{ s.sample.envelope.envelope_number }}/{{ s.sample.locator_position }}<br>

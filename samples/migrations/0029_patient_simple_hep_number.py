@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='patient',
-            name='simple_art_number',
+            name='hep_number',
             field=models.CharField(blank=True, max_length=64, null=True),
         ),
     ]

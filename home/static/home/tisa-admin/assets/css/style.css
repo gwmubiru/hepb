@@ -792,7 +792,7 @@ code {
 /* dropdowns */
 ul.dropdown-menu {
   border: none;
-  background-color: #292929 !important;
+  background-color: #3a55bd !important;
 }
 ul.dropdown-menu .dropdown-header {
   font-size: 12px;
@@ -1534,8 +1534,8 @@ a.list-group-item-danger:hover {
   }
 }
 .navbar {
-  background: #222;
-  border-bottom: 1px solid #222;
+  background: #415dc8;
+  border-bottom: #415dc8;
   min-height: 42px;
   height: 42px;
 }
@@ -1628,12 +1628,14 @@ a.list-group-item-danger:hover {
   color: #222222;
 }
 .navbar .navbar-nav > li > a {
-  padding: 12px 15px 9px;
+  padding: 13px 15px 9px;
+  padding-bottom: 16px;
   color: #eee;
   font-size: 12px;
 }
 .navbar .navbar-nav > li > a:hover {
   background: #292929;
+  background: #3a55bd;
 }
 .navbar .navbar-nav > li > a:focus {
   background: none;
@@ -1641,10 +1643,11 @@ a.list-group-item-danger:hover {
 .navbar .navbar-nav > li.open > a,
 .navbar .navbar-nav > li.open > a:hover,
 .navbar .navbar-nav > li.open > a:focus {
-  background: #292929;
+  background: #3a55bd;
 }
 .navbar .navbar-nav > li > .dropdown-menu {
   border: 1px solid #222;
+  border: 1px solid #3a55bd;
 }
 .navbar .navbar-nav > li.user_menu .caret,
 .navbar .navbar-nav > li.lang_menu .caret {
@@ -5333,4 +5336,30 @@ a.fc-event:hover {
   .page_bar [class*='col-lg'].text-right {
     text-align: left;
   }
+}
+
+#main_wrapper .btn.btn-danger, .btn.btn-xs.btn-danger.dropdown-toggle, .form-signin .btn.btn-danger {
+    background-color: #415dc8;
+    border-color: #415dc8;
+}
+
+#main_wrapper .btn.btn-danger.printed_1{
+    background-color: #d9534f;
+    border-color: #d43f3a;
+}
+
+#main_wrapper .btn.btn-danger:hover,.btn.btn-xs.btn-danger.dropdown-toggle:hover,.btn.btn-xs.btn-danger.dropdown-toggle:focus,.form-signin .btn.btn-danger {
+    background-color: #3a55bd;
+    border-color: #3a55bd;
+}
+
+.container-fluid > .navbar-collapse, .container-fluid > .navbar-header, .container > .navbar-collapse, .container > .navbar-header{
+  padding-top: 5px;
+}
+.form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control{
+  pointer-events: none;
+}
+
+.navbar {
+  background: #415dc8;
 }

@@ -87,11 +87,11 @@ def save_form_using_external_api(pst,user_id,sample):
 	form_data = pst.dict()
 	form_data["created_by_id"]=user_id
 	form_data["data_entered_by_id"]=user_id
-	sanitized_art_no = utils.removeSpecialCharactersFromString(pst.get('art_number'))
+	sanitized_art_no = utils.removeSpecialCharactersFromString(pst.get('hep_number'))
 	unique_id = "%s-A-%s" %(pst.get('facility'), sanitized_art_no)
-	form_data["sanitized_art_number"]=sanitized_art_no
+	form_data["sanitized_hep_number"]=sanitized_art_no
 	form_data["unique_id"]=unique_id
-	needs_verification = sample_utils.is_rec_and_entery_data_mataching(sample,pst.get('art_number'),pst.get('facility'))
+	needs_verification = sample_utils.is_rec_and_entery_data_mataching(sample,pst.get('hep_number'),pst.get('facility'))
 	sample.required_verification = needs_verification
 	if needs_verification == 1:
 		verified = 0
@@ -287,7 +287,7 @@ def receive(request):
 			#get the facility_patient
 			#save the sample and its first identifier
 
-			sanitized_art_no = utils.removeSpecialCharactersFromString(request.POST.get('reception_art_number'))
+			sanitized_art_no = utils.removeSpecialCharactersFromString(request.POST.get('reception_hep_number'))
 			unique_id = "%s-A-%s" %(request.POST.get('facility'), sanitized_art_no)
 			#return HttpResponse(unique_id)
 			facility_pat = FacilityPatient.objects.filter(unique_id=unique_id).first()
@@ -317,7 +317,7 @@ def receive(request):
 				s = Sample(tracking_code_id = tr_code_id,locator_category = request.POST.get('locator_category'),locator_position=request.POST.get('locator_position'),
 					barcode=request.POST.get('barcode'),created_by =request.user,stage=stage,
 					form_number=request.POST.get('barcode'),facility_id = request.POST.get('facility'),
-					sample_type=request.POST.get('sample_type'),date_received=datetime.now(), envelope_id = env_id,reception_art_number=request.POST.get('reception_art_number'),facility_reference=facility_reference,facility_patient = fac_pat,verified=0)
+					sample_type=request.POST.get('sample_type'),date_received=datetime.now(), envelope_id = env_id,reception_hep_number=request.POST.get('reception_hep_number'),facility_reference=facility_reference,facility_patient = fac_pat,verified=0)
 				s.save()
 
 			sample_utils.update_envelope_status(s,'received')
@@ -357,7 +357,7 @@ def receive(request):
 		'current_tr_code':current_tr_code,
 		'reception_id':'',
 		'locator_category':'',
-		'reception_art_number': '',
+		'reception_hep_number': '',
 		'facility_reference': '',
 		'form_data':form_data
 	}
@@ -508,7 +508,7 @@ def receive_batch(request,ret_to_fun = 0):
 				'err_msg':'Please select the facility'
 			}
 		
-		sanitized_art_no = utils.removeSpecialCharactersFromString(request.POST.get('reception_art_number'))
+		sanitized_art_no = utils.removeSpecialCharactersFromString(request.POST.get('reception_hep_number'))
 		unique_id = "%s-A-%s" %(request.POST.get('facility'), sanitized_art_no)
 		facility_pat = FacilityPatient.objects.filter(unique_id=unique_id).first()
 		fac_pat = facility_pat if facility_pat else None
@@ -518,7 +518,7 @@ def receive_batch(request,ret_to_fun = 0):
 		if saved_id:
 			mg = saved_id
 			s = Sample.objects.get(pk=saved_id)
-			s.reception_art_number = request.POST.get('reception_art_number')
+			s.reception_hep_number = request.POST.get('reception_hep_number')
 			s.facility_patient = fac_pat
 			s.stage = None
 			s.save()
@@ -527,7 +527,7 @@ def receive_batch(request,ret_to_fun = 0):
 			lab_sample = Sample.objects.filter(barcode=request.POST.get('the_barcode')).first()
 			s = Sample(tracking_code_id = tr_code_id,locator_category = 'V',locator_position=request.POST.get('the_position'),
 			barcode=request.POST.get('the_barcode'),created_by =request.user,date_received = datetime.now(),
-			form_number=request.POST.get('the_barcode'),reception_art_number = request.POST.get('reception_art_number'),facility_id = request.POST.get('facility'),
+			form_number=request.POST.get('the_barcode'),reception_hep_number = request.POST.get('reception_hep_number'),facility_id = request.POST.get('facility'),
 			sample_type=request.POST.get('sample_type'),stage=None, envelope_id = env_id,facility_patient = fac_pat,verified=0,facility_reference=request.POST.get('facility_reference'))
 			#if lab_sample:
 				#s.id = lab_sample.id
@@ -590,7 +590,7 @@ def receive_hie(request):
 		tr_code_id = request.POST.get('tracking_code_id')
 		facility_reference = request.POST.get('facility_reference')
 		env_id = int(request.POST.get('envelope_id'))
-		art_number = request.POST.get('reception_art_number')
+		hep_number = request.POST.get('reception_hep_number')
 		saved_id = request.POST.get('saved_id')		
 		
 		#s = Sample.objects.filter(Q(facility_reference=facility_reference) | Q(form_number=facility_reference)).first()
@@ -625,7 +625,7 @@ def receive_hie(request):
 				'receipt_type':'hie',
 				'err_msg':'saved'
 			}
-		elif art_number is not None and art_number != '':
+		elif hep_number is not None and hep_number != '':
 			#save as normal sample
 			s = receive_batch(request,1)
 			ret = {
@@ -741,7 +741,7 @@ def edit_received(request, reception_id):
 		sample_reception = Sample.objects.get(pk=reception_id)
 		if sample_reception:
 			sample_reception.facility_id = request.POST.get('facility')
-			sample_reception.reception_art_number = request.POST.get('reception_art_number')
+			sample_reception.reception_hep_number = request.POST.get('reception_hep_number')
 			sample_reception.tracking_code_id = tr.id
 			if(accepted=='R'):
 				sample_reception.verification.rejection_reason_id = rejection_reason_id
@@ -761,7 +761,7 @@ def edit_received(request, reception_id):
 			'current_tr_code':sample_reception.tracking_code.code,
 			'reception_id':reception_id,
 			'locator_category':sample_reception.locator_category,
-			'reception_art_number':sample_reception.reception_art_number,
+			'reception_hep_number':sample_reception.reception_hep_number,
 			'facility_reference':sample_reception.facility_reference,
 		}
 		return render(request, 'samples/receive.html', context)
@@ -919,12 +919,12 @@ def get_patient(request):
 
 	#district_hub = sample_utils.get_district_hub_by_facility(facility_id)
 	facility_id = request.GET.get('facility_id')
-	art_number = request.GET.get('art_number')
+	hep_number = request.GET.get('hep_number')
 	#facility = Facility.objects.get(pk=facility_id)
 	ret = {}
 	#for now turn off this feature
 	#return HttpResponse(json.dumps(ret))
-	unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
+	unique_id = "%s-A-%s" %(facility_id, hep_number.replace(' ','').replace('-','').replace('/',''))
 	#patient = FacilityPatient.objects.filter( Q(facility_id=facility_id,unique_id=unique_id)).first()
 	patient = Patient.objects.filter(unique_id=unique_id).order_by('-created_at').first()
 
@@ -965,7 +965,7 @@ def get_barcode_details(request):
 			'reception_facility': sample.facility_id,
 			's_id': sample.id,
 			'is_data_entered': sample.is_data_entered,
-			'reception_art_number': sample.reception_art_number,
+			'reception_hep_number': sample.reception_hep_number,
 			'date_received': "{}-{}-{}".format(rec_date.year, rec_date.month, rec_date.day)
 			}
 	
@@ -1031,23 +1031,23 @@ def pending_verification_list(request):
 				return HttpResponse(1)
 			else:
 				#get the patient for consideration
-				art_number = request.POST.get('art_number')
+				hep_number = request.POST.get('hep_number')
 				facility_id = request.POST.get('facility_id')
-				unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
+				unique_id = "%s-A-%s" %(facility_id, hep_number.replace(' ','').replace('-','').replace('/',''))
 				merge_old_patient = Patient.objects.filter(unique_id=unique_id,facility_id=facility_id).first()
 
 				if merge_old_patient:
 					#if transfered, create the historical record
 					if p_type == 'transfer':
 						patient_transfer_history = patientTransferHistory()
-						patient_transfer_history.old_art_number = merge_old_patient.art_number
-						patient_transfer_history.current_art_number = patient.art_number
+						patient_transfer_history.old_hep_number = merge_old_patient.hep_number
+						patient_transfer_history.current_hep_number = patient.hep_number
 						patient_transfer_history.old_facility_id  = merge_old_patient.facility_id
 						patient_transfer_history.current_facility_id = patient.facility_id
 						patient_transfer_history.created_at = datetime.now()
 						patient_transfer_history.save()
 						#assign the old patient the new art number
-						merge_old_patient.art_number = patient.art_number
+						merge_old_patient.hep_number = patient.hep_number
 						merge_old_patient.save()
 
 
@@ -1146,7 +1146,7 @@ def save_verify(request):
 	sample_edits = int(r.get('sample_edits'))
 	if(pat_edits>0):
 		p = Patient.objects.get(pk=r.get('patient_id'))
-		p.art_number = r.get('art_number', '')
+		p.hep_number = r.get('hep_number', '')
 		p.other_id = r.get('other_id', '')
 		p.dob = utils.get_date(r, 'dob')
 		p.gender = r.get('gender', '')
@@ -1298,7 +1298,7 @@ def verify_envelope(request, envelope_id):
 				'district': district_name,
 				'hub': hub_name,
 				'date_collected': utils.local_date(s.date_collected),
-				'art_number': s.patient.art_number,
+				'hep_number': s.patient.hep_number,
 				'other_id': s.patient.other_id,
 				'gender': s.patient.gender,
 				'barcode': s.barcode,
@@ -1321,17 +1321,17 @@ def appendices_json(cat_id):
 
 def pat_hist(request, facility_id):
 	ret = []
-	art_number = request.GET.get('art_number')
-	if art_number == '':
+	hep_number = request.GET.get('hep_number')
+	if hep_number == '':
 		return HttpResponse(json.dumps(ret))
-	unique_id = "%s-A-%s" %(facility_id, art_number.replace(' ','').replace('-','').replace('/',''))
-	samples = Sample.objects.filter( Q(patient__unique_id=unique_id)|Q(facility_id=facility_id,patient__art_number=art_number)).order_by('-date_collected')[:3]
+	unique_id = "%s-A-%s" %(facility_id, hep_number.replace(' ','').replace('-','').replace('/',''))
+	samples = Sample.objects.filter( Q(patient__unique_id=unique_id)|Q(facility_id=facility_id,patient__hep_number=hep_number)).order_by('-date_collected')[:3]
 
 	for s in samples:
 		ret.append({
 				'form_number': s.form_number,
 				'date_collected': utils.local_date(s.date_collected),
-				'art_number': s.patient.art_number,
+				'hep_number': s.patient.hep_number,
 				'other_id': s.patient.other_id,
 				'patient_id': s.patient.id,
 				'gender': s.patient.gender,
@@ -1426,12 +1426,12 @@ def envelope_list(request):
 	return render(request, 'samples/envelope_list.html')
 
 
-def facility_art_numbers(request, facility_id):
+def facility_hep_numbers(request, facility_id):
 	facility_samples = Sample.objects.filter(facility=facility_id).order_by('-pk')
 	ret = []
 	for s in facility_samples:
-		if s.patient.art_number not in ret:
-			ret.append(s.patient.art_number)
+		if s.patient.hep_number not in ret:
+			ret.append(s.patient.hep_number)
 	return HttpResponse(json.dumps(ret))
 
 def reverse_approval(request, verification_id):

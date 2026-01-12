@@ -127,14 +127,14 @@
 
 						<td class="recp">{{s.facility}}</td>
 						<td class="recp">{{s.facility.district}}</td>
-						<td class="recp">{{s.reception_art_number}}</td>
+						<td class="recp">{{s.reception_hep_number}}</td>
 						{% if request.GET.verified  == '0' %}
 						<td>{{ s.created_by.first_name }} {{ s.created_by.last_name }}</td>
 						{% endif %}
 
 						<td class="data_ent">{{s.patient.facility}}</td>
 						<td class="data_ent">{{s.patient.facility.district}}</td>
-						<td class="data_ent">{{s.patient.art_number}}</td>
+						<td class="data_ent">{{s.patient.hep_number}}</td>
 						{% if request.GET.verified  == '0' %}
 						<td>{{ s.data_entered_by.first_name }} {{ s.data_entered_by.last_name }}</td>
 						{% endif %}
@@ -142,7 +142,7 @@
 						{% if request.GET.verified == '1' %}
 						<td class="approved">{{s.patient.facility}} </td>
 						<td class="approved">{{s.patient.facility.district}}</td>
-						<td class="approved">{{s.patient.art_number}}</td>
+						<td class="approved">{{s.patient.hep_number}}</td>
 						{% endif %}
 						{% if request.GET.verified == '0' %}
 						<td>{% if s.verified == 0 %}

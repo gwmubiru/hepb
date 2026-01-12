@@ -6,7 +6,7 @@ from django.core.serializers import serialize
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from easy_pdf.views import PDFTemplateView
+#from easy_pdf.views import PDFTemplateView
 #from easy_pdf.rendering import render_to_pdf_response
 from django.contrib.auth.decorators import permission_required
 from django.views import generic
@@ -511,7 +511,7 @@ def pending_samples(request):
 				'vl_sample_id': s.vl_sample_id,
 				'locator_id': "%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
 				'form_number': s.form_number,
-				'art_number': '',
+				'hep_number': '',
 				'sample_type': s.sample_type,
 				'in_worksheet': s.in_worksheet,
 				'barcode': s.barcode,

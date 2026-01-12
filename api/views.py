@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 
-from rest_framework import status
+from rest_framework import status,permissions
 # from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -14,6 +14,9 @@ from samples.models import Sample
 from results.models import ResultsQC, ResultsDispatch
 from backend.models import Facility
 from api.serializers import ResultsQCSerializer, FacilitySerializer, SampleSerializer
+
+from rest_framework.views import APIView
+from results.tasks import process_alinity_result
 
 from django.db.models import Q
 
@@ -107,3 +110,16 @@ def update_dispatch_details(request):
 # 	dispatch_date = models.DateTimeField(null=True)
 # 	dispatched_by = models.CharField(max_length=128, null=True)
 			
+class AlinityResultsAPIView(APIView):
+	permission_classes = [permissions.AllowAny]
+	def post(self, request):
+		data = request.data.get("AlinityResults", [])
+		queued = 0
+		for entry in data:
+			process_alinity_result.delay(entry)
+			queued += 1
+
+		return Response({
+			"status": "received",
+			"queued_items": queued
+		}, status=status.HTTP_202_ACCEPTED)

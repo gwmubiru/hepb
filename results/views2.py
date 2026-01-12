@@ -806,11 +806,11 @@ def api(request):
 		p = r.sample.patient
 		ret.append({
 				'sample_id': s.pk,
-				'art_number': p.art_number,
+				'hep_number': p.hep_number,
 				'vl_sample_id': s.vl_sample_id,
 				'locator_id': "%s%s/%s"  %(s.locator_category, s.envelope.envelope_number, s.locator_position),
 				'form_number': s.form_number,
-				'art_number': s.patient.art_number,
+				'hep_number': s.patient.hep_number,
 			})
 	return HttpResponse(json.dumps(ret))
 
@@ -982,7 +982,7 @@ def force_create_result(request):
 class ListJson(BaseDatatableView):
 	model = WorksheetSample
 	columns = ['sample.barcode','instrument_id','sample.form_number','sample.patient.facility','sample.patient.facility.district',
-	'sample.patient.art_number','sample.patient.other_id','sample.patient.gender','sample.date_collected','sample.date_received',
+	'sample.patient.hep_number','sample.patient.other_id','sample.patient.gender','sample.date_collected','sample.date_received',
 	'sample.result.result_alphanumeric','action','status']
 	order_columns = ['barcode','instrument_id']
 	max_display_length = 500
