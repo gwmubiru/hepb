@@ -51,6 +51,10 @@
 		<div class="row">
 			<div class="col-lg-6">
 				<span class='sub-title'>form/facility details</span>
+				<div class="form-group required">
+					{{ sample_reception_form.program_code.label_tag }}
+					{{ sample_reception_form.program_code }}
+				</div>
 				<div class="form-inline required">						
 					<label for="tracking_code">Tracking Code</label><br>					
 					<input class="form-control input-sm w-md" id="id_code" name="code" value="{{current_tr_code}}" required="true" type="text" >
@@ -111,6 +115,10 @@
 					{{ sample_reception_form.sample_type.label_tag }}
 					{{ sample_reception_form.sample_type }}
 					<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_reception_form.sample_type.value }}'>
+				</div>
+				<div class="form-group required">
+					{{ sample_reception_form.date_collected.label_tag }}
+					{{ sample_reception_form.date_collected }}
 				</div>
 
 			</div>
@@ -179,10 +187,24 @@
 	                        }
 	                    }
 	                },
-	            reception_hep_number: {
+				reception_hep_number: {
 	                    validators: {
 	                        notEmpty: {
 	                            message: 'Please enter the art number'
+	                        }
+	                    }
+	                },
+	            date_collected: {
+	                    validators: {
+	                        notEmpty: {
+	                            message: 'Please select the collection date'
+	                        }
+	                    }
+	                },
+	            program_code: {
+	                    validators: {
+	                        notEmpty: {
+	                            message: 'Please select the program'
 	                        }
 	                    }
 	                },
@@ -245,6 +267,9 @@
 				var data_arr = JSON.parse(data);
 				//$("#envelope_id").val(data_arr.envelope_id);
 				$("#date_received").val(data_arr.date_received);
+				if(data_arr.program_code){
+					$("#id_program_code").val(data_arr.program_code);
+				}
 			});
 		});
 

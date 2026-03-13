@@ -16,14 +16,23 @@ import logging
 class ListJson(BaseDatatableView):
 	model = Sample
 	columns = [
-		'facility_reference','barcode', 'sample_type', 'date_collected','treatment_initiation_date',
+		'facility_reference','barcode', 'sample_type', 'program', 'date_collected','treatment_initiation_date',
 		'date_received', 'patient.hep_number','patient.other_id', 'patient.facility.district', 'patient.facility', 'pk']
 
 	order_columns = [
-		'patient.facility', 'patient.facility.district', 
-		'sample_type', 'barcode', 'locator_position', 
-		'date_collected', 'date_received', 'treatment_initiation_date',
-		'patient.hep_number','patient.other_id' '']
+		'facility_reference',
+		'barcode',
+		'sample_type',
+		'envelope__program_code',
+		'date_collected',
+		'treatment_initiation_date',
+		'date_received',
+		'patient__hep_number',
+		'patient__other_id',
+		'facility__district__district',
+		'facility__facility',
+		''
+	]
 
 	max_display_length = 500		
 
@@ -55,6 +64,8 @@ class ListJson(BaseDatatableView):
 				return row.date_received.strftime("%d/%m/%Y").__str__()
 			else:
 				return ''
+		elif column == 'program':
+			return row.envelope.get_program_code_display() if row.envelope_id else ''
 		elif column == 'date_collected' and row.date_collected:
 			return row.date_collected.strftime("%d/%m/%Y").__str__()
 		elif column == 'pk':
@@ -190,6 +201,7 @@ def vl_list_data(request):
 			s.barcode,
 			'{0}{1}/{2}'.format(s.locator_category, s.envelope.envelope_number, s.locator_position),
 			s.get_sample_type_display(),
+			s.envelope.get_program_code_display() if s.envelope_id else '',
 			utils.local_date(s.date_collected),
 			utils.local_date(s.treatment_initiation_date),
 			s.date_received,

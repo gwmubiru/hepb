@@ -597,8 +597,8 @@ def dilute_sample(request):
 
 class ListJson(BaseDatatableView):
 	model = Worksheet
-	columns = ['worksheet_reference_number', 'envelopes', 'sample_type','Timestamp', 'created_at','eluted?','eluted_pippeted_at','loaded?','loaded_at','stage','pk']
-	order_columns = ['worksheet_reference_number', 'sample_type', 'created_at','stage', 'worksheetprinting.pk','']
+	columns = ['worksheet_reference_number', 'envelopes', 'sample_type', 'program', 'Timestamp', 'created_at','eluted?','eluted_pippeted_at','loaded?','loaded_at','stage','pk']
+	order_columns = ['worksheet_reference_number', '', 'sample_type', '', 'created_at', 'created_at','stage','','','','stage','']
 	max_display_length = 500
 
 	def render_column(self, row, column):
@@ -638,6 +638,10 @@ class ListJson(BaseDatatableView):
 
 		elif column == 'envelopes':
 			return worksheet_utils.get_worksheet_envelopes(row.pk)
+		elif column == 'program':
+			programs = row.worksheetenvelope_set.values_list('envelope__program_code', flat=True).distinct()
+			labels = [dict(Envelope.PROGRAM_CODES).get(program_code) for program_code in programs if program_code]
+			return ', '.join(labels)
 		elif column == 'created_at':
 			return utils.set_page_dates_format(row.created_at)
 		elif column == 'Timestamp':
@@ -874,8 +878,9 @@ def create_worksheet_list_json(request):
 	for e in envelopes_data:
 		data.append([
 			'<input type="checkbox" onclick="addEnvelope(\'%s\',\'%s\')" class="envs" name="env_ids" value="%s">'%(e.pk,e.envelope_number,e.pk),
-			"<a  href='/samples/search/?search_val=%s&approvals=1&search_env=1'>%s</a> (%s)"%(e.envelope_number,e.envelope_number,e.s_count),			
-						
+			"<a  href='/samples/search/?search_val=%s&approvals=1&search_env=1'>%s</a> (%s)"%(e.envelope_number,e.envelope_number,e.s_count),
+			e.get_program_code_display(),
+
 			])
 
 	return HttpResponse(json.dumps({
@@ -889,6 +894,7 @@ def __get_worksheet_envelope_samples(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
 	sample_type = request.GET.get('sample_type')
+	program_code = request.GET.get('program_code')
 	search = r.get(u'search[value]')
 	global_search = r.get(u'global_search[value]')
 	if global_search:
@@ -896,6 +902,8 @@ def __get_worksheet_envelope_samples(r,request):
 	is_lab_completed = 0
 
 	f_query = Q(sample_medical_lab=utils.user_lab(request), sample_type=sample_type, processed_by_id__isnull=True)
+	if program_code:
+		f_query = f_query & Q(program_code=program_code)
 	if search:
 		f_query = f_query & Q(envelope_number__contains=search)
 

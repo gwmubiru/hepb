@@ -131,11 +131,13 @@ class EnvelopeRange(models.Model):
 
 class Envelope(models.Model):
 	YES_NO = ((1,'Yes'),(2,'No'))
+	PROGRAM_CODES = ((1,'HepB'),(2,'HepC'))
 	envelope_number = models.CharField(max_length=10)
 	id = models.AutoField(primary_key=True)
 	stage = models.PositiveSmallIntegerField(choices=((1,'not_verified'), (2, 'verified'), (3, 'in_worksheet'),(4, 'completed')), default=1)
 	is_received = models.PositiveSmallIntegerField(choices=YES_NO, default=0)
 	is_lab_completed = models.PositiveSmallIntegerField(choices=YES_NO, default=0)
+	program_code = models.PositiveSmallIntegerField(choices=PROGRAM_CODES, default=0)
 	is_data_entered = models.PositiveSmallIntegerField(choices=YES_NO, default=0)
 	has_result = models.PositiveSmallIntegerField(choices=YES_NO, default=0)
 	sample_type = models.CharField(max_length=1, choices=( ('P', 'Plasma'), ('D', 'DBS') ), default='')

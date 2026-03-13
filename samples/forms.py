@@ -301,13 +301,25 @@ class SampleForm(forms.ModelForm):
 			self.add_error('form_number', "Form number exists")
 
 class SampleReceptionForm(forms.ModelForm):
+	program_code = forms.ChoiceField(
+		choices=Envelope.PROGRAM_CODES,
+		widget=forms.Select(attrs=utils.ATTRS3),
+		required=True,
+		label='Program'
+	)
+
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+		if self.instance and getattr(self.instance, 'envelope_id', None):
+			self.fields['program_code'].initial = self.instance.envelope.program_code
 
 	class Meta:
 		model = Sample
 
 		fields = (
 			'facility',
-			'date_received', 
+			'date_collected',
+			'date_received',
 			'sample_type',
 			'barcode',
 			'facility_reference'
@@ -316,13 +328,15 @@ class SampleReceptionForm(forms.ModelForm):
 		widgets = {
 			'barcode': forms.TextInput(attrs={'class':'form-control input-sm special_width','required':'required',}),
 			'facility': forms.Select(attrs={'class':'form-control input-sm special_width',}),
-			'date_received': forms.DateInput(attrs=utils.ATTRS_DATE),		
+			'date_collected': forms.DateInput(attrs={'class': 'form-control input-sm w-xs date_d'}),
+			'date_received': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'sample_type': forms.Select(attrs=utils.ATTRS3),
-			'locator_category': forms.Select(attrs=utils.ATTRS3),			
+			'locator_category': forms.Select(attrs=utils.ATTRS3),
 			}
 
 		labels = {
 			'facility':'Facility',
+			'date_collected': 'Date Collected',
 			'date_received': "Reception Date",
 			'hep_number': 'Art Number',
 			'barcode':'Locator ID',
@@ -339,6 +353,8 @@ class SampleReceptionForm(forms.ModelForm):
 		pk = self.instance.pk
 
 		utils.non_future_dates(self, ['date_collected'])
+		if not date_collected:
+			self.add_error('date_collected', 'Date collected is required')
 		form_fltr = Q(barcode=cleaned_data.get('barcode'))
 		if pk:
 			form_fltr = ~Q(pk=pk) & form_fltr
@@ -366,4 +382,3 @@ class PastRegimensForm(forms.ModelForm):
 			'start_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'stop_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			}
-		

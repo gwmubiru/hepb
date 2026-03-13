@@ -29,6 +29,15 @@ from .services import SampleService
 ENVS_LIMIT = 1000
 SAMPLES_LIMIT = 1000
 
+
+def update_envelope_program_code(envelope_id, program_code):
+	if envelope_id and program_code:
+		Envelope.objects.filter(pk=envelope_id).update(program_code=program_code)
+
+
+def posted_date(post_data, field_name):
+	return utils.get_date(post_data, field_name)
+
 @permission_required('samples.add_sample', login_url='/login/')
 @transaction.atomic
 def create(request):
@@ -248,6 +257,7 @@ def receive(request):
 		if env_id is None:
 			sample_reception_form.add_error('barcode', 'Envelope was not found, did you accession it?')
 		if sample_reception_form.is_valid():
+			date_collected = posted_date(request.POST, 'date_collected')
 			if tr_code_id == ''  or (current_tr_code != '' and pst.get('code') != current_tr_code) :
 				tr = TrackingCode.objects.filter(code=pst.get('code')).first()
 				if tr is None:
@@ -297,6 +307,7 @@ def receive(request):
 				s.stage = 0
 				s.locator_position=request.POST.get('locator_position')
 				s.barcode=request.POST.get('barcode')
+				s.date_collected = date_collected
 				#s.date_received = request.POST.get('date_received')
 				s.date_received = datetime.now()
 				s.received_by = request.user
@@ -305,9 +316,10 @@ def receive(request):
 				s = Sample(tracking_code_id = tr_code_id,locator_category = request.POST.get('locator_category'),locator_position=request.POST.get('locator_position'),
 					barcode=request.POST.get('barcode'),created_by =request.user,stage=stage,
 					form_number=form_number,facility_id = request.POST.get('facility'),
-					sample_type=request.POST.get('sample_type'),date_received=datetime.now(), envelope_id = env_id,received_by = request.user,reception_hep_number=request.POST.get('reception_hep_number'),facility_reference=facility_reference,facility_patient = fac_pat,verified=0)
+					sample_type=request.POST.get('sample_type'),date_collected=date_collected,date_received=datetime.now(), envelope_id = env_id,received_by = request.user,reception_hep_number=request.POST.get('reception_hep_number'),facility_reference=facility_reference,facility_patient = fac_pat,verified=0)
 				s.save()
 
+			update_envelope_program_code(env_id, request.POST.get('program_code'))
 			sample_utils.update_envelope_status(s,'received')
 			#save the corresponding verification object
 			v = Verification()
@@ -348,7 +360,7 @@ def receive(request):
 	else:
 		form_data = ''
 		d = datetime.now()
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
 
 	context = {
 		'sample_reception_form': sample_reception_form,
@@ -413,10 +425,11 @@ def get_envelope_details(request):
 		env_id = envelope.id
 		update_env_status(envelope,env_status_update)
 		date_received = envelope.created_at.strftime('%Y-%m-%d')
-		
+
 	ret = {
 		'envelope_id': env_id,
-		'date_received':date_received
+		'date_received':date_received,
+		'program_code': envelope.program_code if envelope else ''
 		}
 	return HttpResponse(json.dumps(ret))
 def get_envelope_status_for_lab(request):
@@ -496,6 +509,7 @@ def receive_batch(request,ret_to_fun = 0):
 		current_tr_code = ''
 	if request.method == 'POST' or ret_to_fun:
 		pst = request.POST
+		date_collected = posted_date(request.POST, 'date_collected')
 		sample_reception_form = SampleReceptionForm(pst)
 		tr_code_id = request.POST.get('tracking_code_id')
 		env_id = request.POST.get('envelope_id')
@@ -525,10 +539,12 @@ def receive_batch(request,ret_to_fun = 0):
 			s.reception_hep_number = request.POST.get('reception_hep_number')
 			s.facility_patient = fac_pat
 			s.stage = 0
+			s.date_collected = date_collected
 			if sample_only:
 				s.is_data_entered = 1
 			s.received_by = request.user
 			s.save()
+			update_envelope_program_code(env_id, request.POST.get('program_code'))
 		else:
 			if sample_only == '1':
 				data_entered_val = 1
@@ -547,20 +563,21 @@ def receive_batch(request,ret_to_fun = 0):
 			lab_sample = Sample.objects.filter(barcode=request.POST.get('the_barcode')).first()
 			s = Sample(tracking_code_id = tr_code_id,locator_category = 'V',locator_position=request.POST.get('the_position'),
 			barcode=request.POST.get('the_barcode'),created_by =request.user,date_received = datetime.now(),
-			form_number=form_number,reception_hep_number = request.POST.get('reception_hep_number'),facility_id = request.POST.get('facility'), 
-			sample_type=request.POST.get('sample_type'),stage=0,is_data_entered=data_entered_val,patient_id=patient_id, received_by = request.user,envelope_id = env_id,facility_patient = fac_pat,verified=verified,facility_reference = facility_ref)
+			form_number=form_number,reception_hep_number = request.POST.get('reception_hep_number'),facility_id = request.POST.get('facility'),
+			sample_type=request.POST.get('sample_type'),date_collected=date_collected,stage=0,is_data_entered=data_entered_val,patient_id=patient_id, received_by = request.user,envelope_id = env_id,facility_patient = fac_pat,verified=verified,facility_reference = facility_ref)
 			#if lab_sample:
 				#s.id = lab_sample.id
 			s.save()
-			
-			sample_utils.update_envelope_status(s,'received')
 
-			#save the corresponding verification object
-			sample_utils.save_verification_details(s,request)
-			sample_utils.update_worksheet_sample(s)
-					
-			# if the sample has been tested, updated it
-			sample_utils.update_result_models(s)
+		update_envelope_program_code(env_id, request.POST.get('program_code'))
+		sample_utils.update_envelope_status(s,'received')
+
+		#save the corresponding verification object
+		sample_utils.save_verification_details(s,request)
+		sample_utils.update_worksheet_sample(s)
+
+		# if the sample has been tested, updated it
+		sample_utils.update_result_models(s)
 		if ret_to_fun:
 			return s	
 		ret = {
@@ -575,7 +592,7 @@ def receive_batch(request,ret_to_fun = 0):
 
 	else:
 		d = datetime.now()
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
 
 	pending_reception = PendingReceptionQueue.objects.all()
 	context = {
@@ -608,15 +625,19 @@ def receive_hie(request):
 		s = Sample.objects.filter(facility_reference=facility_reference).first()
 		if s and s.patient_id and s.date_received is None:
 			hep_number = s.patient.hep_number
+			date_collected = s.date_collected.strftime('%Y-%m-%d') if s.date_collected else ''
 			err_msg = ''
 		elif s and s.date_received is not None:
 			hep_number = ''
+			date_collected = ''
 			err_msg = 'Already received'
 		else:
 			hep_number = ''
+			date_collected = ''
 			err_msg = 'Not found'
 		ret = {
 			'hep_number': hep_number,
+			'date_collected': date_collected,
 			'err_msg': err_msg
 		}
 		return HttpResponse(json.dumps(ret))
@@ -625,6 +646,7 @@ def receive_hie(request):
 		current_tr_code = ''
 	if request.method == 'POST':
 		pst = request.POST
+		date_collected = posted_date(request.POST, 'date_collected')
 		sample_reception_form = SampleReceptionForm(pst)
 		tr_code_id = request.POST.get('tracking_code_id')
 		facility_reference = request.POST.get('facility_reference')
@@ -645,10 +667,12 @@ def receive_hie(request):
 			s.locator_position=request.POST.get('the_position')
 			s.barcode=request.POST.get('the_barcode')
 			s.sample_type=request.POST.get('sample_type')
+			s.date_collected = date_collected
 			#s.date_received = request.POST.get('date_received')
 			s.date_received = datetime.now()
 			s.received_by_id = request.user.id
 			s.save()
+			update_envelope_program_code(env_id, request.POST.get('program_code'))
 			sample_utils.save_verification_details(s,request)
 
 			ws = WorksheetSample.objects.filter(other_instrument_id=s.barcode).first()
@@ -701,7 +725,7 @@ def receive_hie(request):
 		
 	else:
 		d = datetime.now()
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
 
 	context = {
 		'sample_reception_form': sample_reception_form,
@@ -746,6 +770,7 @@ def create_range(request):
 				envelope = Envelope()
 				envelope.envelope_number = env_number
 				envelope.sample_type = request.POST.get('sample_type')
+				envelope.program_code = request.POST.get('program_code')
 				envelope.accessioned_at = datetime.now()
 				envelope.envelope_range = env_range
 				envelope.accessioner = request.user
@@ -754,6 +779,7 @@ def create_range(request):
 			else:
 				envelope.envelope_number = env_number
 				envelope.sample_type = request.POST.get('sample_type')
+				envelope.program_code = request.POST.get('program_code')
 				envelope.accessioned_at = datetime.now()
 				envelope.envelope_range = env_range
 				envelope.accessioner = request.user
@@ -796,6 +822,7 @@ def edit_received(request, reception_id):
 		if sample_reception:
 			sample_reception.facility_id = facility_id
 			sample_reception.reception_hep_number = hep_number
+			sample_reception.date_collected = posted_date(request.POST, 'date_collected')
 			sample_reception.tracking_code_id = tr.id
 			if(accepted=='R'):
 				sample_reception.verification.rejection_reason_id = rejection_reason_id
@@ -806,6 +833,7 @@ def edit_received(request, reception_id):
 				sample_reception.verification.accepted = True
 			sample_reception.verification.verified_by = request.user
 			sample_reception.save()
+			update_envelope_program_code(sample_reception.envelope_id, request.POST.get('program_code'))
 			sample_reception.verification.save()
 		if sample_reception.patient_id:
 			sample_reception.patient.hep_number = hep_number
@@ -1649,6 +1677,7 @@ def receive_sample_only(request):
 		current_tr_code = ''
 	if request.method == 'POST':
 		pst = request.POST
+		date_collected = posted_date(request.POST, 'date_collected')
 		sample_reception_form = SampleReceptionForm(pst)
 		tr_code_id = request.POST.get('tracking_code_id')
 		facility_reference = request.POST.get('facility_reference')
@@ -1731,8 +1760,10 @@ def receive_sample_only(request):
 		sample.locator_position=request.POST.get('the_position')
 		sample.barcode=request.POST.get('the_barcode')
 		sample.sample_type=request.POST.get('sample_type')
+		sample.date_collected = date_collected
 		sample.date_received = datetime.now()
 		sample.save()
+		update_envelope_program_code(env_id, request.POST.get('program_code'))
 
 		sample_utils.save_verification_details(sample,request)
 
@@ -1750,7 +1781,7 @@ def receive_sample_only(request):
 		
 	else:
 		d = datetime.now()
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
 
 		context = {
 			'sample_reception_form': sample_reception_form,

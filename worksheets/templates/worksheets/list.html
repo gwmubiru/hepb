@@ -36,6 +36,7 @@
 					<th>Worksheet Ref Number</th>
 					<th>Envelopes</th>
 					<th>Sample Type</th>
+					<th>Program</th>
 					<th>Timestamp</th>
 					<th>Date Created</th>
 					<th>Type</th>
@@ -80,7 +81,7 @@ $(document).ready(function() {
 			"serverSide": true,
 			"columnDefs": [
             {
-                "targets": [6,7,8,9],
+                "targets": [7,8,9,10],
                 "visible": false
             }
         ],
@@ -93,7 +94,7 @@ $(document).ready(function() {
 			"serverSide": true,
 			"columnDefs": [
             {
-                "targets": [8,9],
+                "targets": [9,10],
                 "visible": false
             }
         ],
@@ -106,8 +107,8 @@ $(document).ready(function() {
 			"serverSide": true,
 			"columnDefs": [
             {
-                'targets': 3, type: 'date-euro',
-                "targets": [6,7,8,9],
+                'targets': 4, type: 'date-euro',
+                "targets": [7,8,9,10],
                 "visible": false
             }
         ],

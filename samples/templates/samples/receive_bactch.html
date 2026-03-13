@@ -66,6 +66,10 @@
 		</ul>
 		<div class="row">
 			<div class="col-lg-6">
+				<div class="form-group required">
+					{{ sample_reception_form.program_code.label_tag }}
+					{{ sample_reception_form.program_code }}
+				</div>
 				<div class="form-inline required">						
 					<label for="tracking_code">Tracking Code</label><br>					
 					<input class="form-control input-sm special_width" id="id_code" name="code" value="{{current_tr_code}}" required="true" type="text" style="width: 299px;">

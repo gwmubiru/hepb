@@ -56,6 +56,11 @@
 					{{ sample_reception_form.date_received.label_tag }}<br>
 					{{ sample_reception_form.date_received }}													
 				</div>
+				<div class="form-group required">
+					{{ sample_reception_form.program_code.label_tag }}
+					{{ sample_reception_form.program_code }}
+				</div>
+
 				<div class="form-inline required">						
 					<label for="tracking_code">Tracking Code</label><br>					
 					<input class="form-control input-sm" id="id_code" name="code" value="{{current_tr_code}}" required="true" type="text" >
@@ -113,10 +118,10 @@
 		<span class="sub-title hidden" id="sub-t">Generated Samples</span>
 		<div class="row" id="sub-t-b" style="margin-top:5px;">
 			<div class="row" id="generate_samples_container">
-				<div class="col-md-4" style="text-align:center">Locator ID</div>
-				<div class="col-md-3" style="text-align:center">Facility Identifier</div>
+				<div class="col-md-2" style="text-align:center">Locator ID</div>
+				<div class="col-md-2" style="text-align:center">Facility Identifier</div>
 				<div class="col-md-3" style="text-align:center">Art no</div>
-				<div class="col-md-1" style="text-align:center"></div>
+				<div class="col-md-4" style="text-align:center">Date Collectd</div>
 			</div>
 		</div>
 		<div class="form-inline required" id="locator_id_container" style="margin-top:5px;">
@@ -201,6 +206,9 @@
 				}else{
 					$("#envelope_id").val(data_arr.envelope_id);
 					$("#date_received").val(data_arr.date_received);
+					if(data_arr.program_code){
+						$("#id_program_code").val(data_arr.program_code);
+					}
 				}
 			});
 		});
@@ -245,6 +253,8 @@
 	    			}
 				}
 				$("#locator_id_container").html(the_html);
+
+				initComboDate($("#locator_id_container"));
 				$("#sub-t,#sub-t-b").removeClass('hidden');
 				$("#submit_form").removeClass('hidden');
 
@@ -298,6 +308,22 @@
 		        	$("#span"+barc).removeClass('hidden');
 		        }else{
 		        	$("#art_no"+ind).val(data_arr.hep_number);
+					if (data_arr.date_collected) {
+					    var $dc = $("#date_collected" + ind);
+
+					    // set backing value
+					    $dc.val(data_arr.date_collected); // "2026-01-23" matches YYYY-MM-DD
+
+					    // if combodate attached, refresh it
+					    if ($dc.data('combodate')) {
+					        // works for many combodate builds:
+					        $dc.combodate('setValue', data_arr.date_collected);
+					    } else {
+					        // fallback: re-init only this element (safe if you guard initialization)
+					        initComboDate($dc.closest('#locator_id_container'));
+					        $dc.combodate('setValue', data_arr.date_collected);
+					    }
+					}
 		        }
 				
 			});
@@ -322,9 +348,11 @@
 		            index: index,
 		            facility: $("#id_facility").val(),
 		            envelope_id: $("#envelope_id").val(),
+		            programCode: $("#id_program_code").val(),
 		            barcode: $("#bar"+index).val(),
 		            facilityRef: $("#fac_ref"+index).val(),
 		            artNo: $("#art_no"+index).val(),
+		            dateCollected: $("#date_collected"+index).val(),
 		            saved_id: $("#saved_barcode_id"+$("#bar"+index).val()).val()
 		        });
 		    });
@@ -366,6 +394,8 @@
 		    form_data.append('tracking_code_id', tr_code_id);
 		    form_data.append('saved_id', sample.saved_id);
 		    form_data.append('reception_hep_number', sample.artNo);
+		    form_data.append('date_collected', sample.dateCollected);
+		    form_data.append('program_code', sample.programCode);
 		    form_data.append('envelope_id', sample.envelope_id);
 		    form_data.append('sample_only', 1);
 		    
@@ -439,7 +469,7 @@
   	});
 	
 	function generateRow(position, barcode,loc_category){
-		var input_str = '<div class="row"><div class="col-md-4"><select class="form-control input-sm w-xs hidden" name="locator_category" required="true"><option value="V" selected="selected">V</option></select> <input type="text" name="locator_id" value="'+barcode+'" class="form-control input-sm wider barcode" id="bar'+position+'" required="required"><input type="text" name="saved_barcode_id"  class="hidden" id="saved_barcode_id'+barcode+'" ></div><div class = "col-md-3"><input type="text" name="facility_reference"  class="form-control input-sm wider facilityreference" id="fac_ref'+position+'" data-barccode="'+barcode+'" required="required"></div> <div class = "col-md-3"><input type="text" name="hep_number"  class="form-control input-sm wider artnumber" id="art_no'+position+'" data-barccode="'+barcode+'" required="required"></div>  <div class ="col-md-1"><span id="span'+barcode+'" class="message_span hidden">saved</span></div></div></div>';
+		var input_str = '<div class="row"><div class="col-md-2"><select class="form-control input-sm w-xs hidden" name="locator_category" required="true"><option value="V" selected="selected">V</option></select> <input type="text" name="locator_id" value="'+barcode+'" class="form-control input-sm wider barcode" id="bar'+position+'" required="required"><input type="text" name="saved_barcode_id"  class="hidden" id="saved_barcode_id'+barcode+'" ></div><div class = "col-md-2"><input type="text" name="facility_reference"  class="form-control input-sm wider facilityreference" id="fac_ref'+position+'" data-barccode="'+barcode+'" required="required"></div> <div class = "col-md-3"><input type="text" name="hep_number"  class="form-control input-sm wider artnumber" id="art_no'+position+'" data-barccode="'+barcode+'" required="required"></div> <div class = "col-md-4"><input type="text" name="date_collected"  class="form-control input-sm wider datecollected" id="date_collected'+position+'" data-barccode="'+barcode+'" required="required"></div> <div class ="col-md-1"><span id="span'+barcode+'" class="message_span hidden">saved</span></div></div></div>';
 		return input_str;
 
 	}
@@ -530,6 +560,26 @@
 	  var current_datetime = new Date()
 	  var formatted_date =  (current_datetime.getMonth() + 1) + "/" + current_datetime.getDate() + "/" + current_datetime.getFullYear();
 	  return formatted_date;
+	}
+
+	function initComboDate(context) {
+	    var $ctx = context && context.jquery ? context : $(context || document);
+
+	    $ctx.find('.datecollected').each(function () {
+	        var $el = $(this);
+
+	        // avoid double init
+	        if ($el.data('combodate-initialized')) return;
+	        $el.data('combodate-initialized', true);
+
+	        $el.combodate({
+	            format: "YYYY-MM-DD",
+	            template: "D MMM YYYY",
+	            customClass: "form-control",
+	            minYear: 1900,
+	            maxYear: new Date().getFullYear()
+	        });
+	    });
 	}
 
 </script>
