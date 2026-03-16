@@ -5,8 +5,30 @@
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
 	<style>
-		.special_width,.input-sm {
+		.special_width {
 			width: 299px;
+		}
+
+		#receive_batch_form .reception-left-col .form-inline,
+		#receive_batch_form .reception-left-col .form-group {
+			max-width: 320px;
+		}
+
+		#receive_batch_form .reception-left-col .form-control,
+		#receive_batch_form .reception-left-col .select2-container {
+			max-width: 320px;
+		}
+
+		#receive_batch_form .reception-left-col .form-control {
+			width: 100% !important;
+		}
+
+		.reception-panel-row > .reception-left-pane {
+			padding-right: 30px;
+		}
+
+		.reception-panel-row > .reception-center-pane {
+			padding-left: 30px;
 		}
 	</style>
 {% endblock %}
@@ -41,8 +63,8 @@
 		</p>
 </div>
 {% endif %}
-<div class="row panel-body">
-	<div class="col-lg-4" style="border-right-style: dotted;">
+<div class="row panel-body reception-panel-row">
+	<div class="col-lg-4 reception-left-pane" style="border-right-style: dotted;">
 	{% if sample %}
 	<div id="success" class="alert alert-success vl-alert" role="alert">
 		Last received: 
@@ -65,14 +87,19 @@
 		
 		</ul>
 		<div class="row">
-			<div class="col-lg-6">
-				<div class="form-group required">
-					{{ sample_reception_form.program_code.label_tag }}
-					{{ sample_reception_form.program_code }}
+			<div class="col-lg-12 reception-left-col">
+				<div class="hidden">
+					<input type="text" name="envelope_number" id="envelope_number">
+					<input type="text" name="locator_position" id="locator_position">
+					<input type="text" name="tracking_code_id" id="tracking_code_id" value="{{request.GET.tracking_code_id}}">
+					<input type="text" name="date_received" id="date_received" value="">
+					<input type="text" name="envelope_id" id="envelope_id" value="{{request.GET.envelope_id}}">
+					<input type="text" name="current_tr_code" id="current_tr_code" value="{{request.GET.current_tr_code}}">
+					<input type="text" name="reception_id" id="reception_id" value="{{reception_id}}">
 				</div>
 				<div class="form-inline required">						
 					<label for="tracking_code">Tracking Code</label><br>					
-					<input class="form-control input-sm special_width" id="id_code" name="code" value="{{current_tr_code}}" required="true" type="text" style="width: 299px;">
+					<input class="form-control input-sm special_width" id="id_code" name="code" value="{{current_tr_code}}" required="true" type="text">
 				</div>
 				<div class="form-group required">
 					{{ sample_reception_form.facility.label_tag }}<br>
@@ -86,14 +113,6 @@
 				<div class="form-inline required">
 					
 					<label for="locator_envelope">First Locator ID</label><br>
-					
-					<input type="text" name="envelope_number" id="envelope_number" class="hidden">
-					<input type="text" name="locator_position" id="locator_position" class="hidden">
-					<input type="text" name="tracking_code_id" id="tracking_code_id" value="{{request.GET.tracking_code_id}}" class="hidden">
-					<input type="text" name="date_received" id="date_received" value="" class="hidden">
-					<input type="text" name="envelope_id" id="envelope_id" value="{{request.GET.envelope_id}}" class="hidden">
-					<input type="text" name="current_tr_code" id="current_tr_code" value="{{request.GET.current_tr_code}}" class="hidden">
-					<input type="text" name="reception_id" id="reception_id" value="{{reception_id}}" class="hidden">
 					{{ sample_reception_form.barcode }}
 
 				</div>
@@ -104,7 +123,7 @@
 				</div>
 				<div class="form-inline required">
 					<label for="locator_envelope">Last Locator ID</label><br>
-					<input type="text" name="last_barcode" class="form-control input-sm special_width" required="required" style="width: 299px;" id="last_barcode">
+					<input type="text" name="last_barcode" class="form-control input-sm special_width" required="required" id="last_barcode">
 				</div>
 				<div class="form-group required">
 					<label for="number_of_samples">No. Samples:</label>
@@ -123,7 +142,7 @@
 		
 	</form>
 	</div>
-	<div class="col-lg-6">
+	<div class="col-lg-6 reception-center-pane">
 		<span class="sub-title hidden" id="sub-t">Generated Samples</span>
 		<div class="row" id="sub-t-b" style="margin-top:5px;">
 			<div class="row" id="generate_samples_container">
@@ -170,6 +189,23 @@
 	    return false;
 	}
 
+	function resetBatchSelection(){
+		$("#envelope_id,#date_received,#envelope_number,#locator_position,#last_barcode,#number_of_samples").val('');
+		$("#locator_id_container").html('');
+		$("#sub-t,#sub-t-b").addClass('hidden');
+		$("#submit_form").addClass('hidden').prop('disabled', false).val('Save and get new form');
+	}
+
+	function hasProgramMismatch(dataArr){
+		if (dataArr.program_mismatch || (dataArr.err_msg && dataArr.saved_sample === '')){
+			alert(dataArr.err_msg);
+			resetBatchSelection();
+			$("#id_barcode").val('');
+			return true;
+		}
+		return false;
+	}
+
 	var tr_code_id = 0;	
 	var number_of_boxes_pending_now = {{pending_reception_count}};
 	var min_no_envelopes_pending = {{min_no_envelopes_pending}};
@@ -179,38 +215,40 @@
 	{% endfor %}
 	$(document).ready(function() {	
 
-		$('#receive_form').bootstrapValidator({
-	       
-	        fields: {
-				
-				facility_id: {
-	                    validators: {
-	                        notEmpty: {
-	                            message: 'Please locator Id'
-	                        },
-	                         stringLength: {
-		                        min: 10,
-		                        max: 10,
-		                        message: 'Barcode must be 10 digits long'
+		if ($.fn.bootstrapValidator) {
+			$('#receive_batch_form').bootstrapValidator({
+		       
+		        fields: {
+					
+					facility_id: {
+		                    validators: {
+		                        notEmpty: {
+		                            message: 'Please locator Id'
+		                        },
+		                         stringLength: {
+			                        min: 10,
+			                        max: 10,
+			                        message: 'Barcode must be 10 digits long'
+			                    }
 		                    }
-	                    }
-	                },
-	             code: {
+		                },
+		             code: {
+		                    validators: {
+		                        notEmpty: {
+		                            message: 'Please enter the tracking code'
+		                        }
+		                    }
+		                },
+	                date_received: {
 	                    validators: {
 	                        notEmpty: {
-	                            message: 'Please enter the tracking code'
+	                            message: 'Please select the date of reception'
 	                        }
 	                    }
-	                },
-                date_received: {
-                    validators: {
-                        notEmpty: {
-                            message: 'Please select the date of reception'
-                        }
-                    }
-                }
-			}//endo of validation rules
-	    });// close form validation function
+	                }
+				}//endo of validation rules
+		    });// close form validation function
+		}
 	
 	var date_now = new Date();
 	//console.log(date_now.toDateString());
@@ -237,9 +275,36 @@
 			dateFormat: "yy-mm-dd",
 			maxDate: 0
 		});
-    	$("#id_facility").change(function(){
-    		set_district_hub();   		    		
-    	}).change();
+	    	$("#id_facility").change(function(){
+	    		set_district_hub();   		    		
+	    	}).change();
+
+			$("#id_barcode").change(function(){
+	    		var barc = $(this).val();
+	    		if(barc === ''){
+	    			return;
+	    		}
+	    		var url =  "/samples/get_barcode_details/?barcode="+barc;
+	    		$.get(url, function(data, status){
+					var data_arr = JSON.parse(data);
+					if(hasProgramMismatch(data_arr)){
+						return;
+					}
+	    			var year_month = barc.substring(0, 4);
+	    			var env_number = barc.substring(4,8);
+	    			var env_year = year_month +'-'+env_number;
+	    			var locator_posn = barc.substr(barc.length - 2);
+	    			var is_env_among_pending = isValueInArray(pending_rect,env_year);
+
+					/*if(Number(number_of_boxes_pending_now) > Number(min_no_envelopes_pending) && locator_posn == '01' && !is_env_among_pending){
+						alert('priority should be given to envelopes which already have results');
+					}else{*/
+		    			$("#envelope_number").val(env_year).change();
+		    			$("#locator_position").val(locator_posn).change();
+		    			$('#number_of_samples').change();
+		    		/*}*/
+	    		});
+	    	});
 
     	
 		$("#envelope_number").change(function(){
@@ -255,6 +320,9 @@
 				var url =  "/samples/get_envelope_details/?envelope_number="+val+"&sample_type="+s_type+"&env_status_update=received";
 	    		$.get(url, function(data, status){
 					var data_arr = JSON.parse(data);
+					if(hasProgramMismatch(data_arr)){
+						return;
+					}
 					if (data_arr.envelope_id === ''){
 						alert('The evelope is not found, did you accession it?');
 						$("#id_barcode").val('');
@@ -271,27 +339,6 @@
 				$("#date_received").val(date_rec);
 			}
 		});
-
-		$("#id_barcode").change(function(){
-    		var barc = $(this).val();
-    		var year_month = barc.substring(0, 4);
-    		var env_number = barc.substring(4,8);
-    		var env_year = year_month +'-'+env_number;
-    		var locator_posn = barc.substr(barc.length - 2);
-    		var is_env_among_pending = isValueInArray(pending_rect,env_year);
-
-			/*if(Number(number_of_boxes_pending_now) > Number(min_no_envelopes_pending) && locator_posn == '01' && !is_env_among_pending){
-				alert('priority should be given to envelopes which already have results');
-				//$(this).val('');
-
-			}else{*/
-	    		$("#envelope_number").val(env_year).change();
-	    		$("#locator_position").val(locator_posn).change();
-	    		//also trigger change on number of samples to update generated sample barcodes
-	    		$('#number_of_samples').change();
-	    	//}
-
-    	});
 
 		$("#number_of_samples").change(function(){
 			var no_samples = $(this).val();
@@ -403,6 +450,10 @@
 					   success : function(data) {
 					   	   console.log(data);
 					       var json_data = JSON.parse(data);
+					       if(json_data.err_msg && !json_data.saved_sample){
+					       	alert(json_data.err_msg);
+					       	return;
+					       }
 					       var saved_sample	= json_data.saved_sample
 					       $("#saved_barcode_id"+json_data.s_barcode).val(saved_sample);			       
 					       //display success message
@@ -469,6 +520,10 @@
 						   success : function(data) {
 						   	   console.log(data);
 						       var json_data = JSON.parse(data);
+						       if(json_data.err_msg && !json_data.saved_sample){
+						       	alert(json_data.err_msg);
+						       	return;
+						       }
 						       var saved_sample = json_data.saved_sample;
 
 						       if(i == (barcodes.length)-1){

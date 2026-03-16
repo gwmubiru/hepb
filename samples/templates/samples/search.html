@@ -56,6 +56,7 @@
 				<th>Patient ART #</th>
 				<th>Sex</th>
 				<th>Sample Type</th>				
+				<th>Program</th>
 				<th>Date Collected</th>
 				<th>Initiation Date</th>
 				<th>Date Received</th>		
@@ -103,6 +104,7 @@
 				</td>	
 				<td>{{ s.patient.gender }}</td>
 				<td>{{ s.get_sample_type_display }}</td>				
+				<td>{% if s.envelope_id %}{{ s.envelope.get_program_code_display }}{% endif %}</td>
 				<td>{{ s.date_collected | date:"Y-m-d" }}</td>
 				<td>
 					{% if s.is_data_entered %}
