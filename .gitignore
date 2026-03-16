@@ -36,3 +36,8 @@ results/media/*.csv
 
 # office docs (optional)
 *.docx
+.env
+venv/
+__pycache__/
+*.pyc
+static/
