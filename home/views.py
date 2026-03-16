@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login, logout as auth_logout
 from django.db.models import Q
 
 from home import utils
+from home import programs
 from samples.models import Sample, Verification, Patient, FacilityPatient
 from backend.models import DataEntryStats,Facility
 from backend.models import SampleApprovalStats
@@ -29,30 +30,33 @@ def quick_stats(request):
 
 	you_filter2 = Q(verified_by=request.user)
 
+	sample_qs = programs.filter_queryset_by_program(request, Sample.objects.all(), 'envelope__program_code')
+	verification_qs = programs.filter_queryset_by_program(request, Verification.objects.all(), 'sample__envelope__program_code')
+
 	stats = {
 		'samples_everyone':{
-			'all':Sample.objects.all().count(),
-			'last_month':Sample.objects.filter(last_month_filter).count(),
-			'this_month':Sample.objects.filter(this_month_filter).count(),
-			'today':Sample.objects.filter(today_filter).count()
+			'all':sample_qs.count(),
+			'last_month':sample_qs.filter(last_month_filter).count(),
+			'this_month':sample_qs.filter(this_month_filter).count(),
+			'today':sample_qs.filter(today_filter).count()
 			},
 		'samples_you':{
-			'all':Sample.objects.filter(you_filter).count(),
-			'last_month':Sample.objects.filter(you_filter&last_month_filter).count(),
-			'this_month':Sample.objects.filter(you_filter&this_month_filter).count(),
-			'today':Sample.objects.filter(you_filter&today_filter).count()
+			'all':sample_qs.filter(you_filter).count(),
+			'last_month':sample_qs.filter(you_filter&last_month_filter).count(),
+			'this_month':sample_qs.filter(you_filter&this_month_filter).count(),
+			'today':sample_qs.filter(you_filter&today_filter).count()
 			},
 		'approvals_everyone':{
-			'all':Verification.objects.all().count(),
-			'last_month':Verification.objects.filter(last_month_filter).count(),
-			'this_month':Verification.objects.filter(this_month_filter).count(),
-			'today':Verification.objects.filter(today_filter).count()
+			'all':verification_qs.count(),
+			'last_month':verification_qs.filter(last_month_filter).count(),
+			'this_month':verification_qs.filter(this_month_filter).count(),
+			'today':verification_qs.filter(today_filter).count()
 			},
 		'approvals_you':{
-			'all':Verification.objects.filter(you_filter2).count(),
-			'last_month':Verification.objects.filter(you_filter2&last_month_filter).count(),
-			'this_month':Verification.objects.filter(you_filter2&this_month_filter).count(),
-			'today':Verification.objects.filter(you_filter2&today_filter).count()
+			'all':verification_qs.filter(you_filter2).count(),
+			'last_month':verification_qs.filter(you_filter2&last_month_filter).count(),
+			'this_month':verification_qs.filter(you_filter2&this_month_filter).count(),
+			'today':verification_qs.filter(you_filter2&today_filter).count()
 			}
 		}
 	return HttpResponse(json.dumps(stats))
@@ -107,12 +111,31 @@ def login_attempt(request):
 	if user is not None:
 		if user.is_active:
 			login(request, user)
-			return redirect('/')
+			programs.set_active_program_code(request, '')
+			return redirect('/select_program/')
 		else:
 			return render(request, 'home/login.html', {'error_message': error_message, })
 	else:
 		return render(request, 'home/login.html', {'error_message': error_message, })
 		# Return an 'invalid login' error message.
+
+
+@login_required
+def select_program(request):
+	return render(request, 'home/select_program.html', {'next': request.GET.get('next', '/')})
+
+
+@login_required
+def set_program(request):
+	next_url = request.POST.get('next') or request.GET.get('next') or '/'
+	program_code = programs.normalize_program_code(request.POST.get('program_code') or request.GET.get('program_code'))
+	if program_code:
+		programs.set_active_program_code(request, program_code)
+		return redirect(next_url)
+	return render(request, 'home/select_program.html', {
+		'error_message': 'Select a program to continue',
+		'next': next_url,
+	})
 
 def logout(request):
 	auth_logout(request)

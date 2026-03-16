@@ -301,18 +301,6 @@ class SampleForm(forms.ModelForm):
 			self.add_error('form_number', "Form number exists")
 
 class SampleReceptionForm(forms.ModelForm):
-	program_code = forms.ChoiceField(
-		choices=Envelope.PROGRAM_CODES,
-		widget=forms.Select(attrs=utils.ATTRS3),
-		required=True,
-		label='Program'
-	)
-
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-		if self.instance and getattr(self.instance, 'envelope_id', None):
-			self.fields['program_code'].initial = self.instance.envelope.program_code
-
 	class Meta:
 		model = Sample
 

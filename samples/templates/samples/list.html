@@ -31,7 +31,7 @@
 	    <li {% if request.GET.sample_without_results == '0' %} class='active' {% endif %}>
 	    	<a href="/samples/list/?sample_without_results=0">Received, pending worksheet</a>
 	    </li>
-  
+
 	</ul>
 	<div id="my-tab-content" class="tab-content" style="min-height:400px">
 		{% endif %}
@@ -68,7 +68,7 @@ $(document).ready(function() {
 		"processing": true,
 		"serverSide": true,
 		"searching": false,
-		"ajax": "/samples/list_json?hie_samples_pending_reception={{ hie_samples_pending_reception }}&sample_without_results={{ sample_without_results }}&is_data_entered={{ is_data_entered }}{% if global_search %}?global_search={{ global_search }}{% endif %}",
+		"ajax": "/samples/list_json?hie_samples_pending_reception={{ hie_samples_pending_reception }}&sample_without_results={{ sample_without_results }}&is_data_entered={{ is_data_entered }}{% if global_search %}&global_search={{ global_search }}{% endif %}",
 	});
 });
 </script>

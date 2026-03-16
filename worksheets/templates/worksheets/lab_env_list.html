@@ -80,7 +80,7 @@
 			"processing": true,
 			"serverSide": true,
 			"order": [[ 0, "desc" ]],
-			"ajax": "/worksheets/lab_env_list_json/?sample_type={{request.GET.sample_type}}&is_lab_completed={{request.GET.is_lab_completed}}{% if global_search %}?global_search={{ global_search }}{% endif %}",
+			"ajax": "/worksheets/lab_env_list_json/?sample_type={{request.GET.sample_type}}&is_lab_completed={{request.GET.is_lab_completed}}{% if global_search %}&global_search={{ global_search }}{% endif %}",
 		});
 	
 		$('#lab_env tbody').on('click', 'tr', function(e) {

@@ -21,6 +21,7 @@ from django.db import models
 from django.core import serializers
 
 from home import utils
+from home import programs
 from backend.models import DeleteLog, Facility
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample, WorksheetPrinting,ResultRunDetail, MACHINE_TYPES,WorksheetEnvelope
@@ -240,9 +241,9 @@ def manage_repeats(request):
 		#get the correspnding samples
 		if request.GET.get('worksheet_type') == 'fell_off':
 			time_threshold = timezone.now() - timedelta(days=7)
-			samples = Sample.objects.filter(Q(stage=6) | Q(stage=1),sample_type='D',updated_at__lte=time_threshold).order_by('barcode')
+			samples = programs.filter_queryset_by_program(request, Sample.objects.filter(Q(stage=6) | Q(stage=1),sample_type='D',updated_at__lte=time_threshold), 'envelope__program_code').order_by('barcode')
 		else:
-			samples = Sample.objects.filter(stage=4,sample_type='D').order_by('barcode')
+			samples = programs.filter_queryset_by_program(request, Sample.objects.filter(stage=4,sample_type='D'), 'envelope__program_code').order_by('barcode')
 		context = {'samples': samples,'worksheet_id':worksheet.id}
 		return render(request, 'worksheets/create_repeats.html', context)
 
@@ -280,7 +281,7 @@ def manage_plasma_repeats(request):
 		else:
 			return HttpResponse("Select atleast one sample")
 	else:
-		sis = Sample.objects.filter(stage=4,sample_type='P').order_by('barcode')
+		sis = programs.filter_queryset_by_program(request, Sample.objects.filter(stage=4,sample_type='P'), 'envelope__program_code').order_by('barcode')
 		page = request.GET.get('page', 1)
 		paginator = Paginator(sis, 100)
 		try:
@@ -299,7 +300,9 @@ def list_page(request):
 			worksheet = worksheets[0]
 			return redirect('/worksheets/show/%d' %worksheet.pk)
 
-	return render(request,'worksheets/list.html', {'machine_type':request.GET.get('type')})
+	return render(request,'worksheets/list.html', {
+		'machine_type':request.GET.get('type'),
+	})
 
 def show(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
@@ -671,6 +674,7 @@ class ListJson(BaseDatatableView):
 			#search = search.replace('-','')
 			#qs = qs.filter(worksheetenvelope__envelope__envelope_number__icontains=search).distinct()
 			qs = qs.filter(worksheetenvelope__envelope__envelope_number__icontains=search).distinct()
+		qs = programs.filter_queryset_by_program(self.request, qs, 'worksheetenvelope__envelope__program_code').distinct()
 		if machine_type:
 			qs = qs.filter(machine_type=machine_type, stage=1)
 		return qs
@@ -721,6 +725,7 @@ class LabSamplesJson(BaseDatatableView):
 		if search:
 			qs_params = qs_params & Q(sample__barcode=search) | Q(sample__envelope__envelope_number=search) | Q(instrument_id=search)
 		
+		qs = programs.filter_queryset_by_program(self.request, qs, 'sample__envelope__program_code')
 		return qs.filter(qs_params,stage_query).order_by('instrument_id')	
 
 def get_pending_samples(request):
@@ -728,7 +733,7 @@ def get_pending_samples(request):
 	env_id = request.GET.get('env_id')
 	query = Q(stage=stage,envelope_id=env_id)
 
-	sis = Sample.objects.filter(query).order_by('barcode')
+	sis = programs.filter_queryset_by_program(request, Sample.objects.filter(query), 'envelope__program_code').order_by('barcode')
 	ret = []
 	for i,s in enumerate(sis):
 		ret.append({'pk':s.pk,'barcode':s.barcode,'form_number':s.form_number,'facility_reference':s.facility_reference,'stage':s.stage})
@@ -739,7 +744,11 @@ def lab_env_list(request):
 	is_lab_completed = request.GET.get('is_lab_completed')
 	sample_type = request.GET.get('sample_type')
 	is_lab_completed = request.GET.get('is_lab_completed')
-	return render(request, 'worksheets/lab_env_list.html', {'global_search':search_val,'is_lab_completed':is_lab_completed ,'sample_type':sample_type,'is_lab_completed':is_lab_completed})
+	return render(request, 'worksheets/lab_env_list.html', {
+		'global_search':search_val,
+		'is_lab_completed':is_lab_completed,
+		'sample_type':sample_type,
+	})
 
 def lab_env_list_json(request):
 	r = request.GET
@@ -777,6 +786,9 @@ def __get_envelopes(r,request):
 	is_lab_completed = int(request.GET.get('is_lab_completed'))
 	
 	f_query = Q(sample_medical_lab=utils.user_lab(request), sample_type=sample_type, is_lab_completed=is_lab_completed)
+	active_program_code = programs.get_active_program_code(request)
+	if active_program_code:
+		f_query = f_query & Q(program_code=int(active_program_code))
 	if search:
 		f_query = f_query & Q(envelope_number__contains=search)
 
@@ -894,7 +906,6 @@ def __get_worksheet_envelope_samples(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
 	sample_type = request.GET.get('sample_type')
-	program_code = request.GET.get('program_code')
 	search = r.get(u'search[value]')
 	global_search = r.get(u'global_search[value]')
 	if global_search:
@@ -902,8 +913,9 @@ def __get_worksheet_envelope_samples(r,request):
 	is_lab_completed = 0
 
 	f_query = Q(sample_medical_lab=utils.user_lab(request), sample_type=sample_type, processed_by_id__isnull=True)
-	if program_code:
-		f_query = f_query & Q(program_code=program_code)
+	active_program_code = programs.get_active_program_code(request)
+	if active_program_code:
+		f_query = f_query & Q(program_code=int(active_program_code))
 	if search:
 		f_query = f_query & Q(envelope_number__contains=search)
 

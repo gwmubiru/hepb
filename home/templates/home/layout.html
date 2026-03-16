@@ -34,6 +34,143 @@
 
         {% block js %}
         {% endblock %}
+        <style type="text/css">
+        :root {
+            --program-bg: {{ active_program_theme.nav_bg }};
+            --program-border: {{ active_program_theme.nav_border }};
+            --program-hover: {{ active_program_theme.hover_bg }};
+            --program-soft: {{ active_program_theme.soft_bg }};
+            --program-soft-border: {{ active_program_theme.soft_border }};
+        }
+        .navbar-fixed-top {
+            background: var(--program-bg) !important;
+            background-color: var(--program-bg) !important;
+            background-image: none !important;
+            border-color: var(--program-border) !important;
+        }
+        .navbar-fixed-top .navbar-nav > li > a,
+        .navbar-fixed-top .navbar-nav > li > a:hover,
+        .navbar-fixed-top .navbar-nav > li > a:focus,
+        .navbar-fixed-top #main-link {
+            color: #fff !important;
+        }
+        .navbar-fixed-top .navbar-nav > li > a:hover,
+        .navbar-fixed-top .navbar-nav > li > a:focus {
+            background: rgba(255,255,255,0.12);
+        }
+        .navbar-fixed-top .navbar-nav > .open > a,
+        .navbar-fixed-top .navbar-nav > .open > a:hover,
+        .navbar-fixed-top .navbar-nav > .open > a:focus,
+        .navbar-fixed-top .navbar-nav > .active > a,
+        .navbar-fixed-top .navbar-nav > .active > a:hover,
+        .navbar-fixed-top .navbar-nav > .active > a:focus {
+            background: var(--program-hover) !important;
+            color: #fff !important;
+        }
+        .navbar .dropdown-menu {
+            background: var(--program-bg) !important;
+            border-top: 3px solid var(--program-bg);
+            border-color: var(--program-border) !important;
+        }
+        .navbar .dropdown-menu > li > a,
+        .navbar .dropdown-menu > li > a:visited {
+            color: #fff !important;
+        }
+        .navbar .dropdown-menu li > a:hover,
+        .navbar .dropdown-menu li > a:focus,
+        .navbar .dropdown-menu .active > a,
+        .navbar .dropdown-menu .active > a:hover,
+        .navbar .dropdown-menu .active > a:focus {
+            background: rgba(255,255,255,0.16) !important;
+            color: #fff !important;
+        }
+        .navbar .dropdown-menu .divider {
+            background-color: rgba(255,255,255,0.18) !important;
+        }
+        .dropdown-headers {
+            color: rgba(255,255,255,0.75) !important;
+        }
+        .program-switcher {
+            margin-top: 8px;
+            margin-right: 12px;
+        }
+        .program-switcher .form-control {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.35);
+            color: #fff;
+            height: 34px;
+        }
+        .program-switcher .form-control option {
+            color: #333;
+        }
+        .program-pill {
+            color: #fff;
+            font-size: 12px;
+            line-height: 50px;
+            margin-right: 10px;
+            opacity: 0.9;
+        }
+        .btn-primary,
+        #main_wrapper .btn.btn-danger,
+        #main_wrapper .btn.btn-xs.btn-danger.dropdown-toggle,
+        .modal-footer .btn.btn-primary {
+            background: var(--program-bg) !important;
+            border-color: var(--program-border) !important;
+            color: #fff !important;
+        }
+        .btn-primary:hover,
+        .btn-primary:focus,
+        .btn-primary:active,
+        .btn-primary.active,
+        #main_wrapper .btn.btn-danger:hover,
+        #main_wrapper .btn.btn-danger:focus,
+        #main_wrapper .btn.btn-danger:active,
+        #main_wrapper .btn.btn-xs.btn-danger.dropdown-toggle:hover,
+        #main_wrapper .btn.btn-xs.btn-danger.dropdown-toggle:focus,
+        .modal-footer .btn.btn-primary:hover,
+        .modal-footer .btn.btn-primary:focus {
+            background: var(--program-hover) !important;
+            border-color: var(--program-hover) !important;
+        }
+        .nav-tabs > li > a {
+            color: #4d5c70;
+        }
+        .nav-tabs > li > a:hover,
+        .nav-tabs > li > a:focus {
+            background: var(--program-soft);
+            border-color: transparent;
+            color: var(--program-bg);
+        }
+        .nav-tabs > li.active > a,
+        .nav-tabs > li.active > a:hover,
+        .nav-tabs > li.active > a:focus {
+            background: var(--program-bg) !important;
+            border-color: var(--program-border) !important;
+            color: #fff !important;
+        }
+        .panel-default > .panel-heading,
+        .panel > .panel-heading {
+            background: var(--program-soft);
+            border-color: var(--program-soft-border);
+            color: var(--program-bg);
+        }
+        .pagination > .active > a,
+        .pagination > .active > span,
+        .pagination > .active > a:hover,
+        .pagination > .active > span:hover,
+        .pagination > .active > a:focus,
+        .pagination > .active > span:focus {
+            background: var(--program-bg);
+            border-color: var(--program-border);
+        }
+        a {
+            color: var(--program-bg);
+        }
+        a:hover,
+        a:focus {
+            color: var(--program-hover);
+        }
+        </style>
 
         <link href='{% static "home/tisa-admin/assets/icons/font-awesome/css/font-awesome.min.css" %}' rel="stylesheet" media="screen">
             <!-- ionicons -->
@@ -201,6 +338,18 @@
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
+                    <li class="program-pill">Program: {{ active_program_label|default:"Not set" }}</li>
+                    <li class="program-switcher">
+                        <form method="post" action="{% url 'set_program' %}" class="form-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <select class="form-control input-sm" name="program_code" onchange="this.form.submit()">
+                                {% for value, label in program_choices %}
+                                    <option value="{{ value }}" {% if active_program_code == value|stringformat:"s" %}selected="selected"{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </li>
                     <li class="top_links" id="search-sect">
                         <input id="search_id" type="text" class="form-control input-sm" placeholder="Search...">
                         <ul class="dropdown-menu dropdown-menu-left" id="search-list" >

@@ -8,6 +8,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 
 from .models import Sample, Envelope
 from home import utils
+from home import programs
 #import utils as sample_utils
 from . import utils as sample_utils
 from datetime import datetime, date, timedelta
@@ -108,6 +109,7 @@ class ListJson(BaseDatatableView):
 			qs = qs.filter(facility_reference__isnull=False, date_received__isnull=True)
 		else:
 		  	qs = qs.filter(patient_id__isnull=False)
+		qs = programs.filter_queryset_by_program(self.request, qs, 'envelope__program_code')
 		if no_result:
 			qs = qs.filter(id__gte=6000000,result__isnull=True)
 		qs_params = Q()
@@ -144,6 +146,7 @@ class VerifyListJson(BaseDatatableView):
 		qs_params = Q(verified=0)
 		if search:
 			qs_params = Q(barcode=search) | Q(form_number=search) 
+		qs = programs.filter_queryset_by_program(self.request, qs, 'envelope__program_code')
 		return qs.filter(qs_params).order_by('barcode')
 
 
@@ -174,6 +177,9 @@ def __get_envelopes(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
 	f_query = Q(sample_medical_lab=utils.user_lab(request))
+	active_program_code = programs.get_active_program_code(request)
+	if active_program_code:
+		f_query = f_query & Q(program_code=int(active_program_code))
 
 	s_count = models.Count('sample',filter=Q(sample_medical_lab=utils.user_lab(request)))
 	p_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
@@ -191,7 +197,7 @@ def vl_list(request):
 
 def vl_list_data(request):
 	r = request.GET
-	samples = __get_samples(r)
+	samples = __get_samples(r, request)
 	samples_data = samples.get('samples_data')
 	data = []
 	for s in samples_data:
@@ -221,10 +227,10 @@ def vl_list_data(request):
 				"data":data,
 				}))
 
-def __get_samples(r):
+def __get_samples(r, request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
-	filter_query = __get_filter_query(r)
+	filter_query = __get_filter_query(r, request)
 
 	samples_data = Sample.objects.filter(filter_query).order_by('-envelope__envelope_number')[start:start+length]
 
@@ -232,10 +238,11 @@ def __get_samples(r):
 	recordsFiltered = recordsTotal if not filter_query else Sample.objects.filter(filter_query).count()
 	return {'samples_data':samples_data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 
-def __get_filter_query(r):
+def __get_filter_query(r, request):
 	qs_params = Q()
 	search = r.get(u'search[value]', None)
 	global_search = r.get('global_search', None)
+	active_program_code = programs.get_active_program_code(request)
 
 	if global_search:
 		search = global_search.strip()
@@ -250,6 +257,8 @@ def __get_filter_query(r):
 	verified = r.get('verified')
 	if verified=='0' or verified=='1':
 		qs_params = Q(verified=int(verified))
+	if active_program_code:
+		qs_params = qs_params & Q(envelope__program_code=int(active_program_code))
 	return qs_params
 
 

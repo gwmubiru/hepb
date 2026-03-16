@@ -86,7 +86,7 @@ $(document).ready(function() {
             }
         ],
 			"order": [[ 2, "desc" ]],
-			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}{% endif %}&tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
+			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}&{% endif %}tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
 		});
 		{% elif request.GET.tab == 'pending_l' %}
 		var oTable = $('#tab_id').dataTable({
@@ -99,7 +99,7 @@ $(document).ready(function() {
             }
         ],
 			"order": [[ 2, "desc" ]],
-			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}{% endif %}&tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
+			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}&{% endif %}tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
 		});
 	 {% else %}
 	 var oTable = $('#tab_id').dataTable({
@@ -113,7 +113,7 @@ $(document).ready(function() {
             }
         ],
 			"order": [[ 2, "desc" ]],
-			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}{% endif %}&tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
+			"ajax": "/worksheets/list_json/?{% if machine_type %}machine_type={{machine_type}}&{% endif %}tab={{request.GET.tab}}&sample_type={{request.GET.sample_type}}",
 		});
 	{% endif %}
 });

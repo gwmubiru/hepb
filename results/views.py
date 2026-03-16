@@ -11,6 +11,7 @@ from django.db.models import Q
 from django.contrib.auth.decorators import permission_required
 from backend.models import Appendix,Facility,MedicalLab
 from home import utils
+from home import programs
 from .forms import UploadForm, CobasUploadForm
 from worksheets.models import Worksheet,WorksheetSample, ResultRunDetail, MACHINE_TYPES,ResultRun
 from samples.models import Sample
@@ -1143,6 +1144,7 @@ class ListJson(BaseDatatableView):
 		qs_params = Q()
 		if search:
 			qs_params = Q(sample__barcode__icontains=search) | Q(instrument_id__icontains=search)
+		qs = programs.filter_queryset_by_program(self.request, qs, 'sample__envelope__program_code')
 		return qs.filter(qs_params).order_by('instrument_id')	
 
 	

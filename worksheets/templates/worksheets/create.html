@@ -44,14 +44,6 @@
 					 {% csrf_token %}
 					 <div class="row">
 						<div class="col-md-4 list" id="list_col">
-							<div class="form-group required">
-								<label for="program_code">Program</label>
-								<select class="form-control select2" name="program_code" required="true" id="program_code">
-									<option value="">select program</option>
-									<option value="1" {% if request.GET.program_code == '1' %}selected="selected"{% endif %}>HepB</option>
-									<option value="2" {% if request.GET.program_code == '2' %}selected="selected"{% endif %}>HepC</option>
-								</select>
-						    </div>
 					 		<div class="form-group  required">
 								<label for="generated_by_id">Prepared for loading by</label>
 									<select class="form-control select2" name="generated_by_id" required="true" id="generated_by_id" style="width:;">
@@ -89,13 +81,7 @@
 			"processing": true,
 			"serverSide": true,
 			"order": [[ 1, "desc" ]],
-			"ajax": "/worksheets/create_worksheet_list_json/?sample_type={{request.GET.sample_type }}&program_code="+($("#program_code").val() || "")+"{% if global_search %}&global_search={{ global_search }}{% endif %}",
-		});
-
-		$("#program_code").change(function(){
-			var programCode = $(this).val() || "";
-			table.api().ajax.url("/worksheets/create_worksheet_list_json/?sample_type={{request.GET.sample_type }}&program_code="+programCode+"{% if global_search %}&global_search={{ global_search }}{% endif %}").load();
-			$("#envelopes_container").empty();
+			"ajax": "/worksheets/create_worksheet_list_json/?sample_type={{request.GET.sample_type }}{% if global_search %}&global_search={{ global_search }}{% endif %}",
 		});
 
 		//$("#envelopes_container .romve_env").click(function(){
