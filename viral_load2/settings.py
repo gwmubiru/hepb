@@ -16,6 +16,12 @@ import os
 #import mysql.connector
 import pymysql
 
+from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+
 pymysql.version_info = (1, 4, 6, 'final', 0)
 pymysql.install_as_MySQLdb()
 
@@ -32,7 +38,7 @@ SECRET_KEY = 'sf0bgysf((pz2_agu$7b^6(yyndq9n3dx4vs91v-6p_4d)y^5h'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG',True)
 
-ALLOWED_HOSTS = ["127.0.0.1","10.200.254.78","10.200.254.74","localhost"]
+ALLOWED_HOSTS = ["127.0.0.1","10.200.254.78","10.200.254.74","localhost","0.0.0.0"]
 
 
 # Application definition
@@ -103,11 +109,11 @@ DATABASES = {
         'OPTIONS': {
             'sql_mode': 'traditional',
         },
-		'NAME': os.environ.get('DB_NAME','hepb'),
-		'USER': os.environ.get('DB_USER','root'),
-		'PASSWORD': os.environ.get('DB_PASSWORD','password'),
-		'HOST': os.environ.get('DB_HOST','localhost'),
-		'PORT': os.environ.get('DB_PORT',''),
+		'NAME': os.getenv('DB_NAME'),
+		'USER': os.getenv('DB_USER'),
+		'PASSWORD': os.getenv('DB_PASSWORD'),
+		'HOST': os.getenv('DB_HOST'),
+		'PORT': os.getenv('DB_PORT'),
 	}
 }
 

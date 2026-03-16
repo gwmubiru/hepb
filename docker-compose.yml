@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - webapp
+    restart: always
+
+  webapp:
+    image: gwmubiru/hepb:latest
+    container_name: webapp
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=60        # check every 60 seconds
+      - WATCHTOWER_CLEANUP=true            # remove old images after update
+      - WATCHTOWER_LABEL_ENABLE=true       # only update labelled containers
+      - WATCHTOWER_INCLUDE_RESTARTING=true
+    restart: always
