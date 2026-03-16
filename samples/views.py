@@ -951,15 +951,22 @@ def edit_received(request, reception_id):
 @permission_required('samples.change_sample', login_url='/login/')
 def edit(request, sample_id):
 	sample = Sample.objects.get(pk=sample_id)
-	recep_fac = sample.patient.facility
-	patient = sample.patient
+	patient = sample.patient if sample.patient_id else Patient(
+		facility_id=sample.facility_id,
+		hep_number=sample.reception_hep_number,
+	)
 	count_dr = 0
 	drug_resistance = None
 	date_received = sample.date_received
+	preliminary_findings_instance = None
 	try:
 		drug_resistance = sample.drugresistancerequest
 		count_dr = PastRegimens.objects.filter(drug_resistance_request=drug_resistance).count()
 	except :
+		pass
+	try:
+		preliminary_findings_instance = PreliminaryFindings.objects.filter(patient_id=sample.patient_id).order_by('-id').first()
+	except:
 		pass
 	
 	PastRegimensFormSet = modelformset_factory(PastRegimens, form=PastRegimensForm, 
@@ -969,7 +976,7 @@ def edit(request, sample_id):
 	intervene = request.GET.get('intervene')
 	envelope_form = EnvelopeForm(instance=sample.envelope)
 	patient_form = PatientForm(instance=patient)
-	preliminary_findings = PreliminaryFindingsForm(instance=PreliminaryFindings)
+	preliminary_findings = PreliminaryFindingsForm(instance=preliminary_findings_instance)
 	if patient:
 		sample.facility = patient.facility
 	sample_form = SampleForm(instance=sample)
@@ -981,6 +988,7 @@ def edit(request, sample_id):
 		'sample_id': sample_id,
 		'patient_form': patient_form,
 		'preliminary_findings': preliminary_findings,
+		'preliminary_findings_form': preliminary_findings,
 		'sample_form': sample_form,
 		'vsi': sample.vl_sample_id,
 		'drug_resistance_form': drug_resistance_form,
@@ -992,6 +1000,8 @@ def edit(request, sample_id):
 		'from_page': request.GET.get('from_page'),
 		'page_type': 2,
 		'facilities':Facility.objects.values('id','facility'),
+		'treatment_indication_options': utils.TREATMENT_INFO_OPTIONS,
+		'selected_treatment_ids': '',
 	}
 		
 	return render(request, 'samples/create.html', context)
@@ -1072,8 +1082,10 @@ def get_barcode_details(request):
 
 def show(request, sample_id):
 	sample = Sample.objects.get(pk=sample_id)
-	return HttpResponse(sample.worksheetsample_set.count());
-	patient = sample.patient
+	patient = sample.patient if sample.patient_id else Patient(
+		facility_id=sample.facility_id,
+		hep_number=sample.reception_hep_number,
+	)
 	drug_resistance = None
 	try:
 		drug_resistance = sample.drugresistancerequest
