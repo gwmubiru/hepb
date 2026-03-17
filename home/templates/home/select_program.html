@@ -85,9 +85,9 @@
 				</div>
 				<div class="col-md-6">
 					<div class="program-card">
-						<div class="program-badge hepc">B&amp;C</div>
-						<h2>Hepatitis B &amp; C</h2>
-						<p>Open the HepB/C workflow and keep the session filtered to HepC with the green navigation theme.</p>
+						<div class="program-badge hepc">C</div>
+						<h2>Hepatitis C</h2>
+						<p>Open the Hep/C workflow and keep the session filtered to HepC with the green navigation theme.</p>
 						<form method="post" action="{% url 'set_program' %}">
 							{% csrf_token %}
 							<input type="hidden" name="next" value="{{ next|default:'/' }}">
