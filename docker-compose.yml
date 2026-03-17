@@ -12,9 +12,11 @@ services:
 
   watchtower:
     image: containrrr/watchtower
+    container_name: hepb-watchtower-1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
+      - DOCKER_API_VERSION=1.40
       - WATCHTOWER_POLL_INTERVAL=60
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_LABEL_ENABLE=true
