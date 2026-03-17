@@ -1,6 +1,6 @@
 services:
   webapp:
-    image: gwmubiru/hepb:latest
+    image: bokello/hepb:latest
     container_name: webapp
     ports:
       - "8000:8000"
