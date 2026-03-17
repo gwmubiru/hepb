@@ -2,99 +2,264 @@
 
 {% block css %}
 <style type="text/css">
+.program-page {
+	margin-top: 40px;
+}
+
 .program-landing {
-	background: linear-gradient(180deg, #f7f9fc 0%, #eef3f8 100%);
+	background: linear-gradient(180deg, #f8fbff 0%, #eef3f8 100%);
 	border-radius: 24px;
 	box-shadow: 0 18px 50px rgba(30, 53, 89, 0.08);
-	padding: 36px;
+	padding: 40px 36px 28px;
 }
+
+.program-header {
+	margin-bottom: 32px;
+	text-align: center;
+}
+
+.program-header h1 {
+	color: #1f2b3a;
+	font-size: 34px;
+	font-weight: 800;
+	margin: 0 0 10px;
+}
+
+.program-header p {
+	color: #6c7b8d;
+	font-size: 17px;
+	line-height: 1.6;
+	margin: 0 auto;
+	max-width: 760px;
+}
+
 .program-card {
-	background: #fff;
+	background: #ffffff;
+	border: 1px solid rgba(31, 43, 58, 0.05);
 	border-radius: 28px;
 	box-shadow: 0 12px 36px rgba(31, 50, 81, 0.08);
-	min-height: 420px;
-	padding: 42px 48px;
+	min-height: 460px;
+	padding: 36px 34px;
+	position: relative;
+	transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
+
+.program-card:hover {
+	box-shadow: 0 20px 46px rgba(31, 50, 81, 0.12);
+	transform: translateY(-4px);
+}
+
 .program-badge {
 	align-items: center;
 	border-radius: 22px;
 	display: inline-flex;
-	font-size: 28px;
+	font-size: 30px;
 	font-weight: 700;
-	height: 88px;
+	height: 86px;
 	justify-content: center;
-	margin-bottom: 34px;
-	width: 88px;
+	margin-bottom: 24px;
+	width: 86px;
 }
+
+.program-badge i {
+	font-size: 34px;
+}
+
 .program-badge.hepb {
-	background: rgba(41, 134, 185, 0.18);
+	background: rgba(41, 134, 185, 0.16);
 	color: #2986b9;
 }
+
 .program-badge.hepc {
-	background: rgba(100, 185, 42, 0.2);
+	background: rgba(100, 185, 42, 0.18);
 	color: #64b92a;
 }
+
+.program-tag {
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	margin-bottom: 12px;
+	text-transform: uppercase;
+}
+
+.program-tag.hepb {
+	color: #2986b9;
+}
+
+.program-tag.hepc {
+	color: #64b92a;
+}
+
 .program-card h2 {
 	color: #1f2b3a;
 	font-size: 28px;
 	font-weight: 700;
 	line-height: 1.25;
-	margin: 0 0 18px;
+	margin: 0 0 14px;
 }
+
 .program-card p {
 	color: #69788c;
-	font-size: 18px;
-	line-height: 1.5;
-	margin: 0 0 52px;
+	font-size: 17px;
+	line-height: 1.6;
+	margin: 0 0 24px;
 }
+
+.program-features {
+	list-style: none;
+	margin: 0 0 30px;
+	padding: 0;
+}
+
+.program-features li {
+	color: #506072;
+	font-size: 15px;
+	line-height: 1.6;
+	margin-bottom: 12px;
+	padding-left: 30px;
+	position: relative;
+}
+
+.program-features li i {
+	left: 0;
+	position: absolute;
+	top: 4px;
+}
+
+.program-features.hepb li i {
+	color: #2986b9;
+}
+
+.program-features.hepc li i {
+	color: #64b92a;
+}
+
 .program-card .btn {
+	align-items: center;
 	border-radius: 28px;
-	font-size: 24px;
+	display: inline-flex;
+	font-size: 18px;
 	font-weight: 700;
-	padding: 18px 24px;
+	justify-content: center;
+	padding: 14px 24px;
+	width: 100%;
 }
+
+.program-card .btn i {
+	margin-right: 10px;
+}
+
+.program-footer-note {
+	color: #7c8b9d;
+	font-size: 14px;
+	margin-top: 10px;
+	text-align: center;
+}
+
+.alert {
+	border-radius: 14px;
+	font-size: 15px;
+	margin-bottom: 24px;
+}
+
 @media (max-width: 991px) {
+	.program-landing {
+		padding: 28px 22px 18px;
+	}
+
+	.program-header h1 {
+		font-size: 28px;
+	}
+
 	.program-card {
 		margin-bottom: 24px;
 		min-height: 0;
-		padding: 32px 28px;
+		padding: 28px 24px;
 	}
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row" style="margin-top: 40px;">
+<div class="row program-page">
 	<div class="col-md-12">
 		<div class="program-landing">
 			{% if error_message %}
-				<div class="alert alert-danger">{{ error_message }}</div>
+				<div class="alert alert-danger">
+					<i class="fa fa-exclamation-circle"></i> {{ error_message }}
+				</div>
 			{% endif %}
+
+			<div class="program-header">
+				<h1><i class="fa fa-th-large"></i> Select Program</h1>
+				<p>
+					Choose the laboratory workflow you would like to continue with.
+					Your session will remain filtered to the selected program across the application.
+				</p>
+			</div>
+
 			<div class="row">
 				<div class="col-md-6">
 					<div class="program-card">
-						<div class="program-badge hepb">B</div>
+						<div class="program-badge hepb">
+							<i class="fa fa-shield"></i>
+						</div>
+						<div class="program-tag hepb">Program 01</div>
 						<h2>Hepatitis B</h2>
-						<p>Open the Hepatitis B workflow and keep the session filtered to HepB across the application.</p>
+						<p>
+							Open the Hepatitis B workflow and keep the session filtered to HepB
+							across the application.
+						</p>
+
+						<ul class="program-features hepb">
+							<li><i class="fa fa-check-circle"></i> Dedicated HepB workflow context</li>
+							<li><i class="fa fa-filter"></i> Session-based program filtering</li>
+							<li><i class="fa fa-tasks"></i> Streamlined navigation for related actions</li>
+						</ul>
+
 						<form method="post" action="{% url 'set_program' %}">
 							{% csrf_token %}
 							<input type="hidden" name="next" value="{{ next|default:'/' }}">
-							<button type="submit" name="program_code" value="1" class="btn btn-primary btn-lg btn-block">Enter</button>
+							<button type="submit" name="program_code" value="1" class="btn btn-primary btn-lg btn-block">
+								<i class="fa fa-arrow-right"></i> Enter Hepatitis B
+							</button>
 						</form>
 					</div>
 				</div>
+
 				<div class="col-md-6">
 					<div class="program-card">
-						<div class="program-badge hepc">C</div>
+						<div class="program-badge hepc">
+							<i class="fa fa-leaf"></i>
+						</div>
+						<div class="program-tag hepc">Program 02</div>
 						<h2>Hepatitis C</h2>
-						<p>Open the Hep/C workflow and keep the session filtered to HepC with the green navigation theme.</p>
+						<p>
+							Open the Hepatitis C workflow and keep the session filtered to HepC
+							with the green navigation theme.
+						</p>
+
+						<ul class="program-features hepc">
+							<li><i class="fa fa-check-circle"></i> Dedicated HepC workflow context</li>
+							<li><i class="fa fa-paint-brush"></i> Green-themed navigation experience</li>
+							<li><i class="fa fa-folder-open"></i> Focused access to relevant program screens</li>
+						</ul>
+
 						<form method="post" action="{% url 'set_program' %}">
 							{% csrf_token %}
 							<input type="hidden" name="next" value="{{ next|default:'/' }}">
-							<button type="submit" name="program_code" value="2" class="btn btn-success btn-lg btn-block">Enter</button>
+							<button type="submit" name="program_code" value="2" class="btn btn-success btn-lg btn-block">
+								<i class="fa fa-arrow-right"></i> Enter Hepatitis C
+							</button>
 						</form>
 					</div>
 				</div>
+			</div>
+
+			<div class="program-footer-note">
+				<i class="fa fa-info-circle"></i> You can switch programs later if needed.
 			</div>
 		</div>
 	</div>
