@@ -38,8 +38,7 @@ SECRET_KEY = 'sf0bgysf((pz2_agu$7b^6(yyndq9n3dx4vs91v-6p_4d)y^5h'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG',True)
 
-ALLOWED_HOSTS = ["127.0.0.1","10.200.254.78","10.200.254.74","localhost","0.0.0.0"]
-
+ALLOWED_HOSTS = ["127.0.0.1","10.200.254.78","10.200.254.74","10.200.254.144","localhost","0.0.0.0"]
 
 # Application definition
 
@@ -65,13 +64,13 @@ INSTALLED_APPS = [
 #MIDDLEWARE_CLASSES = [
 MIDDLEWARE = [
 	'django.middleware.security.SecurityMiddleware',
+	'whitenoise.middleware.WhiteNoiseMiddleware',
 	'django.contrib.sessions.middleware.SessionMiddleware',
 	'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	'home.middleware.ProgramSelectionMiddleware',
 	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-	'whitenoise.middleware.WhiteNoiseMiddleware',
 	'django.contrib.messages.middleware.MessageMiddleware',
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 	'simple_history.middleware.HistoryRequestMiddleware',
