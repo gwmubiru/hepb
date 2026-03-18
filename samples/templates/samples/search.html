@@ -9,9 +9,26 @@
 		.is_data_enterd0{
 			color: red;
 		}
+		.program-mismatch-row > td{
+			background-color: #f8d7da !important;
+			color: #8a1f2d;
+		}
+		.program-mismatch-badge{
+			background-color: #c9302c;
+			border-radius: 10px;
+			color: #fff;
+			display: inline-block;
+			font-size: 10px;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+			margin-left: 6px;
+			padding: 2px 8px;
+			text-transform: uppercase;
+			vertical-align: middle;
+		}
 
 		/* basic positioning */
-	.legend { list-style: none; }
+		.legend { list-style: none; }
 	.legend li { float: left; margin-right: 10px; }
 	.legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
 	/* your colors */
@@ -66,7 +83,7 @@
 		</thead>
 		<tbody>
 			{% for s in samples %}
-			<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}">
+			<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}{% if active_program_code and s.program_code and active_program_code != s.program_code|stringformat:'s' %} program-mismatch-row{% endif %}">
 				<td>{{ forloop.counter }}</td>													
 				<td>																						
 						{{s.facility_reference}}
@@ -104,7 +121,24 @@
 				</td>	
 				<td>{{ s.patient.gender }}</td>
 				<td>{{ s.get_sample_type_display }}</td>				
-				<td>{% if s.envelope_id %}{{ s.envelope.get_program_code_display }}{% endif %}</td>
+				<td>
+					{% if s.program_code|stringformat:"s" == "1" %}
+						HepB
+					{% elif s.program_code|stringformat:"s" == "2" %}
+						HepC
+					{% elif s.envelope_id %}
+						{% if s.envelope.program_code|stringformat:"s" == "1" %}
+							HepB
+						{% elif s.envelope.program_code|stringformat:"s" == "2" %}
+							HepC
+						{% else %}
+							{{ s.envelope.get_program_code_display }}
+						{% endif %}
+					{% endif %}
+					{% if active_program_code and s.program_code and active_program_code != s.program_code|stringformat:'s' %}
+						<span class="program-mismatch-badge">Program mismatch</span>
+					{% endif %}
+				</td>
 				<td>{{ s.date_collected | date:"Y-m-d" }}</td>
 				<td>
 					{% if s.is_data_entered %}

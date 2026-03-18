@@ -64,6 +64,8 @@ def get_program_mismatch_message(request, actual_program_code, item_label='sampl
 
 
 def get_sample_program_code(sample):
+	if sample and getattr(sample, 'program_code', None):
+		return int(sample.program_code)
 	if sample and sample.envelope_id and sample.envelope and sample.envelope.program_code:
 		return int(sample.envelope.program_code)
 	return None
@@ -1361,7 +1363,7 @@ def verify_list(request):
 	if facility_id:
 		filters = filters & Q(facility_id=int(facility_id))
 	#return HttpResponse(filters)
-	samples = programs.filter_queryset_by_program(request, Sample.objects.filter(filters), 'envelope__program_code').order_by('barcode')
+	samples = programs.filter_queryset_by_program(request, Sample.objects.filter(filters), 'program_code').order_by('barcode')
 	
 	page = request.GET.get('page', 1)
 	paginator = Paginator(samples, 100)
@@ -1407,7 +1409,7 @@ def verify_list_old(request):
 		'global_search':search_val,
 	}
 	if(verified=='0'):
-		pending_qs = programs.filter_queryset_by_program(request, Sample.objects.filter(created_at__gte=date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE),verified=False,envelope__sample_medical_lab=request.user.userprofile.medical_lab_id), 'envelope__program_code')
+		pending_qs = programs.filter_queryset_by_program(request, Sample.objects.filter(created_at__gte=date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE),verified=False,envelope__sample_medical_lab=request.user.userprofile.medical_lab_id), 'program_code')
 		context.update({
 			'pending': pending_qs.count(),
 			'pending_dbs': pending_qs.filter(sample_type='D').count(),
@@ -1535,7 +1537,7 @@ def release_rejects(request):
 		else:
 			rlsd = True if released=='1' else None
 
-		rejects = programs.filter_queryset_by_program(request, Verification.objects.filter(accepted=False, sample__rejectedsamplesrelease__released=rlsd,  sample__date_received__gte=date_rejected_fro, sample__date_received__lte=date_rejected_to), 'sample__envelope__program_code')
+		rejects = programs.filter_queryset_by_program(request, Verification.objects.filter(accepted=False, sample__rejectedsamplesrelease__released=rlsd,  sample__date_received__gte=date_rejected_fro, sample__date_received__lte=date_rejected_to), 'sample__program_code')
 		context = {	'rejects':rejects,
 					'date_rejected_fro':date_rejected_fro,
 					'date_rejected_to':date_rejected_to,
@@ -1545,13 +1547,13 @@ def release_rejects(request):
 
 @permission_required('results.add_result', login_url='/login/')
 def received(request):
-	samples = programs.filter_queryset_by_program(request, Sample.objects.filter(created_at__gte=date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE),is_data_entered=0), 'envelope__program_code').order_by('-created_at')[:1000]
+	samples = programs.filter_queryset_by_program(request, Sample.objects.filter(created_at__gte=date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE),is_data_entered=0), 'program_code').order_by('-created_at')[:1000]
 	context = {'samples': samples}
 	return render(request, 'samples/received_samples.html', context)
 
 
 def intervene_list(request):
-	intervene_rejects = programs.filter_queryset_by_program(request, RejectedSamplesRelease.objects.filter(released=False,sample__envelope__sample_medical_lab=utils.user_lab(request)), 'sample__envelope__program_code')[:500]
+	intervene_rejects = programs.filter_queryset_by_program(request, RejectedSamplesRelease.objects.filter(released=False,sample__envelope__sample_medical_lab=utils.user_lab(request)), 'sample__program_code')[:500]
 	return render(request, 'samples/intervene_list.html', {'intervene_rejects':intervene_rejects})
 
 def search(request):
@@ -1573,20 +1575,28 @@ def search(request):
 			if env:
 				env_id = env.id
 				search = search.replace("-","")
-				samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+				samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 		else:
 			if search_sample:
-				samples = Sample.objects.filter(Q(facility_reference=search) | Q(barcode=search) | Q(form_number=search))
+				direct_lookup = (
+					sample_utils.exact_or_legacy_duplicate_cond('facility_reference', search) |
+					sample_utils.exact_or_legacy_duplicate_cond('barcode', search) |
+					sample_utils.exact_or_legacy_duplicate_cond('form_number', search)
+				)
+				samples = Sample.objects.filter(direct_lookup).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 			else:
 				fn_cond = Q(form_number__icontains=search)
 				loc_cond = sample_utils.locator_cond(search)
 				cond = fn_cond | loc_cond if loc_cond else fn_cond
-				samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+				samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 	if samples is not None:
-		samples = programs.filter_queryset_by_program(request, samples, 'envelope__program_code')
+		filtered_samples = programs.filter_queryset_by_program(request, samples, 'program_code')
+		if not search_sample or filtered_samples.exists():
+			samples = filtered_samples
+		samples = samples[:300]
 	
 	if switch_sample:
 		return render(request, 'samples/switch_samples.html', {'samples':samples, 'approvals':approvals,'switch_sample':switch_sample,'envelope_id':env_id})

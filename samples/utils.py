@@ -123,6 +123,12 @@ def env_cond(search=""):
 		pass
 	return cond
 
+def exact_or_legacy_duplicate_cond(field_name, search_value):
+	value = (search_value or '').strip()
+	if not value:
+		return Q()
+	return Q(**{field_name: value}) | Q(**{field_name: '%s*' % value})
+
 def generate_ref_number():
 	return datetime.datetime.today().strftime("%y%m%d%H%M%S")
 

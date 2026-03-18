@@ -30,8 +30,8 @@ def quick_stats(request):
 
 	you_filter2 = Q(verified_by=request.user)
 
-	sample_qs = programs.filter_queryset_by_program(request, Sample.objects.all(), 'envelope__program_code')
-	verification_qs = programs.filter_queryset_by_program(request, Verification.objects.all(), 'sample__envelope__program_code')
+	sample_qs = programs.filter_queryset_by_program(request, Sample.objects.all(), 'program_code')
+	verification_qs = programs.filter_queryset_by_program(request, Verification.objects.all(), 'sample__program_code')
 
 	stats = {
 		'samples_everyone':{
