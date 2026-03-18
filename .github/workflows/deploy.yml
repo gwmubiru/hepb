@@ -7,13 +7,32 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Verify static assets exist
         run: |
           test -f static/home/vendor/bootstrap/dist/js/bootstrap.min.js
           test -f static/home/vendor/jquery/dist/jquery.min.js
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: bokello/hepb
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long
+            type=ref,event=branch
+            type=raw,value={{date 'YYYYMMDD-HHmmss'}}
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -26,6 +45,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            bokello/hepb:latest
-            bokello/hepb:${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=bokello/hepb:buildcache
+          cache-to: type=registry,ref=bokello/hepb:buildcache,mode=max
