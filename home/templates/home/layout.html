@@ -6,7 +6,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 
-        <title>Viral Load</title>
+        <title>Hep Viral Load</title>
         <link rel="Shortcut Icon" href='{% static "home/images/favicon.png" %}' />
         <link href='{% static "home/tisa-admin/assets/css/style.css"%}' rel="stylesheet" media="screen">
         <link rel="stylesheet" href='{% static "home/vendor/jquery-ui/themes/base/jquery-ui.min.css" %}'>
@@ -110,6 +110,17 @@
             margin-right: 10px;
             opacity: 0.9;
         }
+        .navbar-branding {
+            align-items: center;
+            display: flex;
+            gap: 8px;
+            min-height: 50px;
+            padding: 8px 0;
+        }
+        .navbar-branding img {
+            height: 34px;
+            width: auto;
+        }
         .btn-primary,
         #main_wrapper .btn.btn-danger,
         #main_wrapper .btn.btn-xs.btn-danger.dropdown-toggle,
@@ -170,6 +181,118 @@
         a:focus {
             color: var(--program-hover);
         }
+        @media (max-width: 767px) {
+            .navbar-fixed-top .container-fluid {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+            .navbar-header {
+                float: none;
+            }
+            .navbar-fixed-top .navbar-nav,
+            .navbar-fixed-top .navbar-nav.navbar-left,
+            .navbar-fixed-top .navbar-nav.navbar-right {
+                float: none !important;
+            }
+            .navbar-fixed-top .navbar-nav > li,
+            .navbar-fixed-top .navbar-nav.navbar-left > li,
+            .navbar-fixed-top .navbar-nav.navbar-right > li {
+                display: block;
+                float: none !important;
+                width: 100%;
+            }
+            .navbar-toggle {
+                border-color: rgba(255,255,255,0.45);
+                margin-right: 0;
+                margin-top: 8px;
+            }
+            .navbar-toggle .icon-bar {
+                background: #fff;
+            }
+            .navbar-collapse {
+                background: var(--program-bg);
+                border-top: 1px solid rgba(255,255,255,0.18);
+                box-shadow: none;
+                margin-top: 8px;
+                max-height: calc(100vh - 70px);
+                overflow-y: auto;
+                padding-bottom: 12px;
+            }
+            .navbar-fixed-top .navbar-nav {
+                margin: 0;
+            }
+            .navbar-fixed-top .navbar-nav > li > a {
+                border-bottom: 1px solid rgba(255,255,255,0.12);
+                padding-bottom: 12px;
+                padding-top: 12px;
+            }
+            .navbar-fixed-top .navbar-nav .caret {
+                float: right;
+                margin-top: 8px;
+            }
+            .navbar .dropdown-menu {
+                background: rgba(0,0,0,0.08) !important;
+                border: 0;
+                box-shadow: none;
+                float: none;
+                margin: 0;
+                min-width: 0;
+                padding: 0;
+                position: static;
+                width: 100%;
+            }
+            .navbar .dropdown-menu > li {
+                display: block;
+                float: none;
+                width: 100%;
+            }
+            .navbar .dropdown-menu > li > a {
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                display: block;
+                overflow-wrap: break-word;
+                padding-bottom: 10px;
+                padding-left: 24px;
+                padding-right: 36px;
+                padding-top: 10px;
+                white-space: normal;
+            }
+            .navbar .dropdown-menu .dropdown-headers {
+                display: block;
+                padding: 12px 24px 6px;
+            }
+            .program-pill {
+                line-height: 1.4;
+                margin: 12px 15px 4px;
+            }
+            .program-switcher {
+                border-bottom: 1px solid rgba(255,255,255,0.12);
+                margin: 0 15px 12px;
+                padding-bottom: 12px;
+            }
+            .program-switcher .form-inline {
+                display: block;
+            }
+            .program-switcher .form-control,
+            #search-sect .form-control {
+                width: 100%;
+            }
+            #search-sect {
+                border-bottom: 1px solid rgba(255,255,255,0.12);
+                padding: 0 15px 12px;
+            }
+            #search-sect .dropdown-menu {
+                margin-top: 8px;
+            }
+            .navbar-fixed-top .navbar-nav.navbar-right {
+                margin-top: 8px;
+            }
+            .navbar-fixed-top .open > .dropdown-menu {
+                overflow-x: hidden;
+            }
+            #main_wrapper {
+                margin-left: 0;
+            }
+        }
         </style>
 
         <link href='{% static "home/tisa-admin/assets/icons/font-awesome/css/font-awesome.min.css" %}' rel="stylesheet" media="screen">
@@ -188,13 +311,18 @@
         <header class="navbar navbar-fixed-top" role="banner">
             <div class="container-fluid">
                 <div class="navbar-header">
-
-                        <img src='{% static "home/images/logo.png" %}' >
-                        <span id='main-link'>VL LIMS</span>
-
-
+                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#primary-navbar" aria-expanded="false" aria-controls="primary-navbar">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <div class="navbar-branding">
+                            <img src='{% static "home/images/logo.png" %}'>
+                            <span id='main-link'>Hep LIMS</span>
+                        </div>
                 </div>
-
+                <div class="collapse navbar-collapse" id="primary-navbar">
                 <ul class="nav navbar-nav navbar-left">
 
                     <li><a href="{% url 'home_page' %}"><span class="vl-menu-items">Home</span></a></li>
@@ -376,6 +504,7 @@
                     </li>
                     <li><a href="javascript:void(0)" class="slidebar-toggle"><span class="navbar_el_icon ion-navicon-round"></span></a></li>
                 </ul>
+                </div>
             </div>
         </header>
 

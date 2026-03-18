@@ -18,12 +18,12 @@
 .program-badge {
 	align-items: center;
 	border-radius: 22px;
-	display: inline-flex;
+	display: flex;
 	font-size: 28px;
 	font-weight: 700;
 	height: 88px;
 	justify-content: center;
-	margin-bottom: 34px;
+	margin: 0 auto 34px;
 	width: 88px;
 }
 .program-badge.hepb {
@@ -40,12 +40,14 @@
 	font-weight: 700;
 	line-height: 1.25;
 	margin: 0 0 18px;
+	text-align: center;
 }
 .program-card p {
 	color: #69788c;
 	font-size: 18px;
 	line-height: 1.5;
 	margin: 0 0 52px;
+	text-align: center;
 }
 .program-card .btn {
 	border-radius: 28px;
@@ -59,12 +61,74 @@
 		min-height: 0;
 		padding: 32px 28px;
 	}
+	.program-landing {
+		padding: 28px;
+	}
+	.program-card h2 {
+		font-size: 24px;
+	}
+	.program-card p {
+		font-size: 17px;
+		margin-bottom: 40px;
+	}
+	.program-card .btn {
+		font-size: 21px;
+		padding: 16px 22px;
+	}
+}
+@media (max-width: 767px) {
+	.program-landing {
+		border-radius: 18px;
+		padding: 20px 16px;
+	}
+	.program-card {
+		border-radius: 22px;
+		padding: 24px 18px;
+	}
+	.program-badge {
+		border-radius: 18px;
+		font-size: 24px;
+		height: 72px;
+		margin-bottom: 24px;
+		width: 72px;
+	}
+	.program-card h2 {
+		font-size: 22px;
+		margin-bottom: 14px;
+	}
+	.program-card p {
+		font-size: 16px;
+		margin-bottom: 28px;
+	}
+	.program-card .btn {
+		border-radius: 22px;
+		font-size: 19px;
+		padding: 14px 18px;
+	}
+}
+@media (max-width: 480px) {
+	.program-landing {
+		padding: 16px 12px;
+	}
+	.program-card {
+		padding: 20px 14px;
+	}
+	.program-card h2 {
+		font-size: 20px;
+	}
+	.program-card p {
+		font-size: 15px;
+		line-height: 1.45;
+	}
+	.program-card .btn {
+		font-size: 18px;
+	}
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row" style="margin-top: 40px;">
+<div class="row" style="margin-top: 24px;">
 	<div class="col-md-12">
 		<div class="program-landing">
 			{% if error_message %}
