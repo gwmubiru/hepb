@@ -37,3 +37,8 @@ results/media/*.csv
 venv/
 __pycache__/
 *.pyc
+# ignore only root vendor folder
+/vendor/
+
+# allow frontend vendor assets
+!static/home/vendor/
