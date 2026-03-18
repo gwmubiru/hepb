@@ -1,6 +1,5 @@
 .env
 *.pyc
-/static
 /media
 *~
 .~lock.*
@@ -40,4 +39,3 @@ results/media/*.csv
 venv/
 __pycache__/
 *.pyc
-static/
