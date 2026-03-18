@@ -239,6 +239,7 @@ class Study(models.Model):
 
 class Sample(models.Model):
 	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No'), ('L', 'Left Blank') )
+	PROGRAM_CODES = ((1,'HepB'),(2,'HepC'))
 	id = models.AutoField(primary_key=True)
 	CONSENT_CHOICES = ( ('Y', 'Accept'), ('N', 'Decline'), ('L', 'Left Blank') )
 	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
@@ -249,6 +250,7 @@ class Sample(models.Model):
 	TX_CARE_APPROACHES = ((1, 'FBIM'), (2, 'FBG'), (3, 'FTDR'), (4, 'CDDP'), (5, 'CCLAD'),(5, 'CRPDDP'))
 	INDICATION_FOR_VL = ( (1, 'Routing Monitoring'), (2, 'Treatment Initiation') )
 	patient = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
+	program_code = models.PositiveSmallIntegerField(choices=PROGRAM_CODES, default=0)
 	study = models.ForeignKey(Study, null=True, blank=True, on_delete=models.CASCADE)
 	patient_unique_id = models.CharField(max_length=128)
 	reception_hep_number = models.CharField(max_length=40,null=True, blank=True)

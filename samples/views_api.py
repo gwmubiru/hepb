@@ -14,6 +14,7 @@ from django.forms import formset_factory
 from django.forms import *
 from .forms import *
 from home import utils
+from home import programs
 from . import utils as sample_utils
 from django.db import connections
 from django.db import transaction
@@ -1405,17 +1406,28 @@ def search(request):
 			if env:
 				env_id = env.id
 				search = search.replace("-","")
-				samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+				samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 		else:
 			if search_sample:
-				samples = Sample.objects.filter(Q(facility_reference=search) | Q(barcode=search) | Q(form_number=search))
+				direct_lookup = (
+					sample_utils.exact_or_legacy_duplicate_cond('facility_reference', search) |
+					sample_utils.exact_or_legacy_duplicate_cond('barcode', search) |
+					sample_utils.exact_or_legacy_duplicate_cond('form_number', search)
+				)
+				samples = Sample.objects.filter(direct_lookup).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 			else:
 				fn_cond = Q(form_number__icontains=search)
 				loc_cond = sample_utils.locator_cond(search)
 				cond = fn_cond | loc_cond if loc_cond else fn_cond
-				samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+				samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
+
+	if samples is not None:
+		filtered_samples = programs.filter_queryset_by_program(request, samples, 'program_code')
+		if not search_sample or filtered_samples.exists():
+			samples = filtered_samples
+		samples = samples[:300]
 	
 	if switch_sample:
 		return render(request, 'samples/switch_samples.html', {'samples':samples, 'approvals':approvals,'switch_sample':switch_sample,'envelope_id':env_id})

@@ -24,7 +24,7 @@ class ListJson(BaseDatatableView):
 		'facility_reference',
 		'barcode',
 		'sample_type',
-		'envelope__program_code',
+		'program_code',
 		'date_collected',
 		'treatment_initiation_date',
 		'date_received',
@@ -66,7 +66,7 @@ class ListJson(BaseDatatableView):
 			else:
 				return ''
 		elif column == 'program':
-			return row.envelope.get_program_code_display() if row.envelope_id else ''
+			return row.get_program_code_display() if row.program_code else ''
 		elif column == 'date_collected' and row.date_collected:
 			return row.date_collected.strftime("%d/%m/%Y").__str__()
 		elif column == 'pk':
@@ -109,7 +109,7 @@ class ListJson(BaseDatatableView):
 			qs = qs.filter(facility_reference__isnull=False, date_received__isnull=True)
 		else:
 		  	qs = qs.filter(patient_id__isnull=False)
-		qs = programs.filter_queryset_by_program(self.request, qs, 'envelope__program_code')
+		qs = programs.filter_queryset_by_program(self.request, qs, 'program_code')
 		if no_result:
 			qs = qs.filter(id__gte=6000000,result__isnull=True)
 		qs_params = Q()
@@ -146,7 +146,7 @@ class VerifyListJson(BaseDatatableView):
 		qs_params = Q(verified=0)
 		if search:
 			qs_params = Q(barcode=search) | Q(form_number=search) 
-		qs = programs.filter_queryset_by_program(self.request, qs, 'envelope__program_code')
+		qs = programs.filter_queryset_by_program(self.request, qs, 'program_code')
 		return qs.filter(qs_params).order_by('barcode')
 
 
@@ -207,7 +207,7 @@ def vl_list_data(request):
 			s.barcode,
 			'{0}{1}/{2}'.format(s.locator_category, s.envelope.envelope_number, s.locator_position),
 			s.get_sample_type_display(),
-			s.envelope.get_program_code_display() if s.envelope_id else '',
+			s.get_program_code_display() if s.program_code else '',
 			utils.local_date(s.date_collected),
 			utils.local_date(s.treatment_initiation_date),
 			s.date_received,
@@ -258,7 +258,7 @@ def __get_filter_query(r, request):
 	if verified=='0' or verified=='1':
 		qs_params = Q(verified=int(verified))
 	if active_program_code:
-		qs_params = qs_params & Q(envelope__program_code=int(active_program_code))
+		qs_params = qs_params & Q(program_code=int(active_program_code))
 	return qs_params
 
 
