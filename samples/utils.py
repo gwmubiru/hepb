@@ -48,6 +48,29 @@ def reception_date_valid(data):
 def initial_env_number():
 	return "%s%s-" %(utils.year('yy'), utils.month('mm'))
 
+
+def envelope_number_from_barcode(barcode):
+	if barcode and len(barcode) >= 8 and barcode[:8].isdigit():
+		return "%s-%s" % (barcode[:4], barcode[4:8])
+	return None
+
+
+def resolve_posted_envelope_id(request):
+	env_id = request.POST.get('envelope_id')
+	if env_id:
+		return env_id
+
+	envelope_number = request.POST.get('envelope_number')
+	if not envelope_number:
+		envelope_number = envelope_number_from_barcode(request.POST.get('the_barcode'))
+
+	if envelope_number:
+		envelope = Envelope.objects.filter(envelope_number=envelope_number).first()
+		if envelope:
+			return envelope.id
+
+	return get_envelope_id(request)
+
 def create_sample_id():
 	# smpl_id = 0
 

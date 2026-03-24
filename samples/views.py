@@ -571,7 +571,8 @@ def receive_batch(request,ret_to_fun = 0):
 		date_collected = posted_date(request.POST, 'date_collected')
 		sample_reception_form = SampleReceptionForm(pst)
 		tr_code_id = request.POST.get('tracking_code_id')
-		env_id = request.POST.get('envelope_id')
+		env_id = sample_utils.resolve_posted_envelope_id(request)
+		session_program_code = get_session_program_code(request)
 		mismatch_message = lock_envelope_to_session_program(request, env_id)
 		if mismatch_message:
 			ret = {
@@ -587,9 +588,9 @@ def receive_batch(request,ret_to_fun = 0):
 		facility_ref = request.POST.get('facility_reference')
 		form_number = request.POST.get('barcode') if facility_ref == '' else facility_ref		
 		if request.POST.get('facility') is None:
-			sample_reception_form.add_error('facility_id','The facility is required')
+			sample_reception_form.add_error('facility','The facility is required')
 			ret = {
-				'saved_sample': s.id,
+				'saved_sample': '',
 				'env_id':env_id,
 				'tracking_code_id':tr_code_id,
 				'err_msg':'Please select the facility'
@@ -605,10 +606,25 @@ def receive_batch(request,ret_to_fun = 0):
 		if saved_id:
 			mg = saved_id
 			s = Sample.objects.get(pk=saved_id)
+			if not env_id and s.envelope_id:
+				env_id = s.envelope_id
+			s.tracking_code_id = tr_code_id
+			s.locator_category = 'V'
+			s.locator_position = request.POST.get('the_position')
+			s.barcode = request.POST.get('the_barcode')
 			s.reception_hep_number = request.POST.get('reception_hep_number')
+			s.facility_id = request.POST.get('facility')
+			s.sample_type = request.POST.get('sample_type')
 			s.facility_patient = fac_pat
+			if session_program_code:
+				s.program_code = session_program_code
+			if env_id:
+				s.envelope_id = env_id
 			s.stage = 0
 			s.date_collected = date_collected
+			s.date_received = datetime.now()
+			s.form_number = form_number
+			s.facility_reference = facility_ref
 			if sample_only:
 				s.is_data_entered = 1
 			s.received_by = request.user
@@ -634,6 +650,8 @@ def receive_batch(request,ret_to_fun = 0):
 			barcode=request.POST.get('the_barcode'),created_by =request.user,date_received = datetime.now(),
 			form_number=form_number,reception_hep_number = request.POST.get('reception_hep_number'),facility_id = request.POST.get('facility'),
 			sample_type=request.POST.get('sample_type'),date_collected=date_collected,stage=0,is_data_entered=data_entered_val,patient_id=patient_id, received_by = request.user,envelope_id = env_id,facility_patient = fac_pat,verified=verified,facility_reference = facility_ref)
+			if session_program_code:
+				s.program_code = session_program_code
 			#if lab_sample:
 				#s.id = lab_sample.id
 			s.save()
@@ -677,6 +695,10 @@ def receive_batch(request,ret_to_fun = 0):
 	
 	if saved_sample:
 		sample = Sample.objects.filter(pk=saved_sample).first()
+		if sample and not env_id and sample.envelope_id:
+			env_id = sample.envelope_id
+		if sample and not tr_code_id and sample.tracking_code_id:
+			tr_code_id = sample.tracking_code_id
 		context.update({'sample':sample,'tr_code_id':tr_code_id,'env_id':env_id})
 
 	return render(request, 'samples/receive_bactch.html', context)
@@ -843,52 +865,46 @@ def create_range(request):
 	users = User.objects.all()
 	if request.method == 'POST':
 		year_month = request.POST.get('year')+request.POST.get('month')
-		number_of_envs = int(request.POST.get('number_of_envelopes'))	
+		l_limit = int(request.POST.get('lower_limit'))
+		u_limit = int(request.POST.get('upper_limit'))
+		number_of_envs = (u_limit - l_limit) + 1
+		if number_of_envs <= 0:
+			return HttpResponse('Upper limit must be greater than or equal to lower limit', status=400)
+		sample_type = request.POST.get('sample_type')
+		program_code = request.POST.get('program_code')
+		now = datetime.now()
 		env_range = EnvelopeRange()
 		env_range.year_month = year_month	
 		env_range.lower_limit = request.POST.get('lower_limit')	
 		env_range.upper_limit = request.POST.get('upper_limit')	
-		env_range.sample_type = request.POST.get('sample_type')	
+		env_range.sample_type = sample_type	
 		env_range.accessioned_by_id = request.POST.get('accessioned_by')	
 		#env_range.accessioned_at = request.POST.get('accessioned_at')	
-		env_range.accessioned_at = datetime.now().date()	
+		env_range.accessioned_at = now.date()	
 		env_range.entered_by = request.user	
-		env_range.created_at = datetime.now()
+		env_range.created_at = now
 		env_range.save()
-		l_limit = int(request.POST.get('lower_limit'))
-		#now create the envelopes
-		for y in range(0, (number_of_envs)):
-			lim = l_limit+y
-			env_num = str(lim).zfill(4)
-			env_number = year_month+'-'+env_num
-			envelope = Envelope.objects.filter(envelope_number=env_number).first()
-			if envelope is None:
-				envelope = Envelope()
-				envelope.envelope_number = env_number
-				envelope.sample_type = request.POST.get('sample_type')
-				envelope.program_code = request.POST.get('program_code')
-				envelope.accessioned_at = datetime.now()
-				envelope.envelope_range = env_range
-				envelope.accessioner = request.user
-				envelope.assignment_by = request.user
-				envelope.save()
-			else:
-				envelope.envelope_number = env_number
-				envelope.sample_type = request.POST.get('sample_type')
-				envelope.program_code = request.POST.get('program_code')
-				envelope.accessioned_at = datetime.now()
-				envelope.envelope_range = env_range
-				envelope.accessioner = request.user
-				envelope.assignment_by = request.user
-				envelope.save()		
 
-			
-			env_assignment = EnvelopeAssignment()
-			env_assignment.the_envelope = envelope
-			env_assignment.assigned_to_id= request.user.id
-			env_assignment.type = 1
-			env_assignment.assigned_by = request.user
-			env_assignment.save()			
+		for lim in range(l_limit, u_limit + 1):
+			env_number = year_month+'-'+str(lim).zfill(4)
+			envelope = Envelope.objects.select_for_update().filter(envelope_number=env_number).first()
+			if envelope is None:
+				envelope = Envelope(envelope_number=env_number)
+
+			envelope.sample_type = sample_type
+			envelope.program_code = program_code
+			envelope.accessioned_at = now
+			envelope.envelope_range = env_range
+			envelope.accessioner = request.user
+			envelope.assignment_by = request.user
+			envelope.save()
+
+			EnvelopeAssignment.objects.get_or_create(
+				the_envelope=envelope,
+				assigned_to_id=request.user.id,
+				assigned_by=request.user,
+				type=1,
+			)
 			
 	context = {
 		'users':users,

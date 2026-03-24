@@ -91,10 +91,10 @@
 				<div class="hidden">
 					<input type="text" name="envelope_number" id="envelope_number">
 					<input type="text" name="locator_position" id="locator_position">
-					<input type="text" name="tracking_code_id" id="tracking_code_id" value="{{request.GET.tracking_code_id}}">
+					<input type="text" name="tracking_code_id" id="tracking_code_id" value="{{ tr_code_id|default:'' }}">
 					<input type="text" name="date_received" id="date_received" value="">
-					<input type="text" name="envelope_id" id="envelope_id" value="{{request.GET.envelope_id}}">
-					<input type="text" name="current_tr_code" id="current_tr_code" value="{{request.GET.current_tr_code}}">
+					<input type="text" name="envelope_id" id="envelope_id" value="{{ env_id|default:'' }}">
+					<input type="text" name="current_tr_code" id="current_tr_code" value="{{ current_tr_code|default:'' }}">
 					<input type="text" name="reception_id" id="reception_id" value="{{reception_id}}">
 				</div>
 				<div class="form-inline required">						
