@@ -1,11 +1,11 @@
+import re
+
 from home import utils
 from worksheets.models import Worksheet,WorksheetSample, ResultRunDetail, MACHINE_TYPES,ResultRun
 from django.utils import timezone
 from django.db.models import Q
 from . import utils as result_utils
 from django.core.exceptions import ObjectDoesNotExist
-
-
 def repeat_test(machine_type, result, flag):
 	repeat = False
 	if machine_type == 'R':
@@ -45,7 +45,7 @@ def repeat_test(machine_type, result, flag):
 	return repeat
 
 
-def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_volume=200):
+def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_volume=200,active_program_code=None):
 	
 	numeric_result = 0
 	alphanumeric_result = ''
@@ -55,6 +55,8 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
     	'id': None,
     	'name': ''
     }
+
+	unit_label = 'IU / mL' if str(active_program_code) == '2' else 'Copies / mL'
 
 	if utils.isnan(result) or result == '':
 		result = 'Failed' 
@@ -70,44 +72,41 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 	elif eq(result, '< Titer min'):
 		if sample_volume is not None and sample_volume == 500:
 			numeric_result = 20
-			alphanumeric_result = '< 20.00 Copies / mL'
+			alphanumeric_result = '< 20.00 %s' % unit_label
 		else:
 			numeric_result = 50
-			alphanumeric_result = '< 50.00 Copies / mL'
+			alphanumeric_result = '< 50.00 %s' % unit_label
 	elif eq(result, '> Titer max'):
 		numeric_result = 10000000
-		alphanumeric_result = '> 10,000,000 Copies / mL'
+		alphanumeric_result = '> 10,000,000 %s' % unit_label
 		suppressed = 2
 	elif result.startswith('<') or result.startswith('>'):
-		if(machine_type =='N'):
+		if machine_type == 'N':
 			numeric_result = get_alinity_numeric_result(result)
 		else:
 			numeric_result = get_numeric_result(result)
-		alphanumeric_result = "%s {:,d} Copies / mL".format(numeric_result) %result[0]
-	elif result[-5:] == 'cp/ml':
+		alphanumeric_result = "%s {:,d} %s".format(numeric_result) % (result[0], unit_label)
+	elif result.lower().endswith('cp/ml'):
 		numeric_result = int(float(result[:-6]))
-		#numeric_result *= multiplier
-		alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
+		alphanumeric_result = "{:,d} %s".format(numeric_result) % unit_label
 	else:
-		if(machine_type == 'N'):
+		if machine_type == 'N':
 			numeric_result = get_alinity_numeric_result(result)
 		else:
 			numeric_result = get_numeric_result(result)
-		#numeric_result = numeric_result*multiplier
 		if numeric_result > 10000000:
 			suppressed = 2
-			alphanumeric_result = "> 10,000,000 Copies / mL"
+			alphanumeric_result = "> 10,000,000 %s" % unit_label
 		else:
-			alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
+			alphanumeric_result = "{:,d} %s".format(numeric_result) % unit_label
 			
 			
 	if is_diluted == 1 and not result.startswith('<') and not result.startswith('>'):
 		numeric_result = numeric_result*2
 		if numeric_result != 0:
-			alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
+			alphanumeric_result = "{:,d} %s".format(numeric_result) % unit_label
 	
-	
-	if sample_type is None:
+	if sample_type is None or str(active_program_code) in ('1', '2'):
 		suppressed = 4
 		suppression_cut_off_int = 0
 		supression_cut_off = 0
@@ -182,7 +181,10 @@ def get_numeric_result(result):
 	numeric_result = 0
 	rresult_new = result.strip()
 	result_new = result.replace('Copies / mL', '')
-	# result_new = result.replace('Copies/mL', '')
+	result_new = result_new.replace('Copies/mL', '')
+	result_new = result_new.replace('IU / mL', '')
+	result_new = result_new.replace('IU/mL', '')
+	result_new = result_new.replace('IU/ml', '')
 	result_new = result_new.replace('detected', '')
 	result_new = result_new.replace(' ', '')
 	result_new = result_new.replace(',', '')
@@ -191,6 +193,7 @@ def get_numeric_result(result):
 	result_new = result_new.replace(')', '')
 	result_new = result_new.replace('(', '')
 	result_new = result_new.replace('Log', '')
+	result_new = re.sub(r'(?i)[a-z/]+$', '', result_new)
 	# result_new = result_new.strip()
 	try:
 		numeric_result = int(float(result_new))
@@ -205,7 +208,10 @@ def get_alinity_numeric_result(result):
 	numeric_result = 0
 	rresult_new = result.strip()
 	result_new = result.replace('Copies / mL', '')
-	result_new = result.replace('Copies/mL', '')
+	result_new = result_new.replace('Copies/mL', '')
+	result_new = result_new.replace('IU / mL', '')
+	result_new = result_new.replace('IU/mL', '')
+	result_new = result_new.replace('IU/ml', '')
 	result_new = result_new.replace('detected', '')
 	result_new = result_new.replace(' ', '')
 	result_new = result_new.replace(',', '')
@@ -214,6 +220,7 @@ def get_alinity_numeric_result(result):
 	result_new = result_new.replace(')', '')
 	result_new = result_new.replace('(', '')
 	result_new = result_new.replace('Log', '')
+	result_new = re.sub(r'(?i)[a-z/]+$', '', result_new)
 	result_new = result_new.strip()
 	try:
 		numeric_result = int(float(result_new))

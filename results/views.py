@@ -29,6 +29,18 @@ from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.core.exceptions import ObjectDoesNotExist
 
+def _normalize_dataframe_columns(reader):
+	reader = reader.rename(
+		columns=lambda col: col.strip() if isinstance(col, str) else col
+	)
+	return reader
+
+def _get_row_value(row, *column_names, default=''):
+	for column_name in column_names:
+		if column_name in row.index:
+			return row[column_name]
+	return default
+
 def get_anomalies(request, machine_type):
 	#return HttpResponse(SI.StringIO(request.FILES['results_file'].read()))
 	uploaded_file = request.FILES['results_file']
@@ -214,7 +226,7 @@ def _process_row(self, data, result_run, m_type, multiplier, user, test_date, in
             user, test_date, result_run, index
         )
 
-def update_sample_and_save_result(machine_type,instrument_id,result, multiplier, user, test_date,result_run,row_index,sample_volume=''):
+def update_sample_and_save_result(machine_type,instrument_id,result, multiplier, user, test_date,result_run,row_index,sample_volume='',active_program_code=None):
 	if user.userprofile.medical_lab_id == 2:
 		save_upload_result(result, multiplier,machine_type,instrument_id,user)
 		return 0
@@ -238,7 +250,8 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 	            machine_type,
 	            ws.is_diluted,
 	            sample.sample_type, # Use the already fetched sample object
-	            sample_volume
+	            sample_volume,
+	            active_program_code
 	        )
 			#result_dict = result_utils.get_result(result, multiplier,machine_type,ws.is_diluted,ws.sample.sample_type)
 			if(machine_type == 'H'):
@@ -518,6 +531,7 @@ def override_results(request):
 @transaction.atomic
 def cobas_upload(request):
 	if(request.method == 'POST'):
+		active_program_code = programs.get_active_program_code(request)
 		
 		files = request.FILES.getlist('results_file')
 		for uploaded_file in files:
@@ -542,7 +556,7 @@ def cobas_upload(request):
 			if mtype == 'H':
 				process_hologic(uploaded_file.name,tmp_name, request)
 			else:
-				reader = pandas.read_csv(tmp_name, sep=',')
+				reader = _normalize_dataframe_columns(pandas.read_csv(tmp_name, sep=','))
 				no_of_lines = len(reader)
 				multiplier = 1
 				user = request.user
@@ -551,7 +565,14 @@ def cobas_upload(request):
 
 					test = data["Test"]
 					instrument_id = str(data["Sample ID"])
-					sample_volume = int(data["Sample volume (µL) "])
+					sample_volume_value = _get_row_value(
+						data,
+						"Sample volume (µL)",
+						"Sample volume (µL) ",
+						"Sample volume (uL)",
+						default='',
+					)
+					sample_volume = int(sample_volume_value) if str(sample_volume_value).strip() else ''
 					#get the controls
 					
 					if mtype == 'S':
@@ -600,8 +621,8 @@ def cobas_upload(request):
 							else:
 								start_date = dt.strptime(santized_date, '%m/%d/%Y %H:%M')
 
-						test_date =  start_date + timedelta(hours=3)
-						update_sample_and_save_result('C',instrument_id,result, multiplier, user, test_date,result_run,index,sample_volume)
+							test_date =  start_date + timedelta(hours=3)
+							update_sample_and_save_result('C',instrument_id,result, multiplier, user, test_date,result_run,index,sample_volume,active_program_code)
 						
 				update_run_with_contamination_info(result_run)
 				
@@ -632,6 +653,7 @@ def process_hologic(actual_file_name,tmp_name, request):
 	test_date = reader.iloc[0]["Completion Time UTC"]
 	test_date = timezone.now()
 	multiplier = request.POST.get('multiplier')
+	active_program_code = programs.get_active_program_code(request)
 	result_run = ResultRun.objects.filter(file_name=actual_file_name).first()
 	
 	reagent_expiry_date = reader.iloc[5]["Assay Reagent Kit ML Exp Date UTC"]
@@ -658,7 +680,7 @@ def process_hologic(actual_file_name,tmp_name, request):
 		reagent_expiry_date = data['Assay Reagent Kit ML Exp Date UTC']
 		#result_run.reagent_expiry_date = dt.strptime(reagent_expiry_date, '%d-%b-%y %H:%M:%S')
 		if analyte == 'HIV-1':
-			update_sample_and_save_result('H',vl_sample_id,result, multiplier, request.user, test_date,result_run,index)
+			update_sample_and_save_result('H',vl_sample_id,result, multiplier, request.user, test_date,result_run,index,active_program_code=active_program_code)
 	result_run.save();	
 	update_run_with_contamination_info(result_run)
 
