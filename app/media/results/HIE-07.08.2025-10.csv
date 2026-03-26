@@ -1,0 +1,596 @@
+Test,Sample ID,Validity,Flag,Type,Overall result,Target 1,Target 2,Target 3,Target 4,Target 5,Control batch ID,Date/time,Repeat test,Status,Instrument,Sample volume (µL) 
+HIV-1,C161420284207521500401,Valid,,HxV H (+) C,Titer,1.89e+005 cp/ml,,,,,13874,08/06/2025 16:45,FALSE,Not Released,IM1000-005141,500
+HIV-1,C161420284207521500402,Valid,,HxV L (+) C,Titer,4.57e+002 cp/ml,,,,,13874,08/06/2025 16:45,FALSE,Not Released,IM1000-005141,500
+HIV-1,C161420284205573265773,Valid,,(-) C,Target Not Detected,Target Not Detected,,,,,13874,08/06/2025 16:45,FALSE,Not Released,IM1000-005141,500
+HIV-1,2414711050,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2716,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711051,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2716,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711052,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2716,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711053,Valid,,Plasma,< Titer min,< Titer min,,,,,2716,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711054,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2716,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711056,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,2716,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711057,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2716,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711069,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711070,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711072,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711073,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711074,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711107,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711117,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711119,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711120,Valid,,Plasma,Titer,1.86e+002 cp/ml,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711121,Valid,,Plasma,< Titer min,< Titer min,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711122,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711123,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711142,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711172,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414711252,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2716,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414717105,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414717107,Valid,,Plasma,Titer,4.05e+002 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414717109,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414717110,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414717111,Valid,,Plasma,< Titer min,< Titer min,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414717112,Valid,,Plasma,Titer,1.10e+003 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414720785,Valid,,Plasma,Titer,5.53e+001 cp/ml,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414720786,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414720787,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414733105,Valid,,Plasma,< Titer min,< Titer min,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414733106,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414733107,Valid,,Plasma,Titer,4.97e+002 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414733108,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414733109,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414733110,Valid,,Plasma,Titer,7.59e+001 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414733111,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414733112,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414733114,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414737148,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414737149,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414737150,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414737151,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414737152,Valid,,Plasma,< Titer min,< Titer min,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414737153,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414737154,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414743930,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743931,Valid,,Plasma,Titer,6.20e+001 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743934,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743935,Valid,,Plasma,< Titer min,< Titer min,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743937,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743938,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743939,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743940,Valid,,Plasma,< Titer min,< Titer min,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743941,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743942,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743943,Valid,,Plasma,Titer,6.12e+001 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743946,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743947,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743948,Valid,,Plasma,< Titer min,< Titer min,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743951,Valid,,Plasma,Titer,1.60e+002 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743952,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743953,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743954,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743955,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743956,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743959,Valid,,Plasma,Titer,3.24e+003 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743960,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743961,Valid,,Plasma,Titer,8.20e+001 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743962,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743963,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743964,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743966,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743970,Valid,,Plasma,Titer,1.32e+002 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743973,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743974,Valid,,Plasma,Titer,5.68e+001 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414743976,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414744461,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414744462,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414744464,Valid,,Plasma,Titer,1.50e+002 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414744465,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414744466,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414744467,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414744468,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414786635,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414786636,Valid,,Plasma,< Titer min,< Titer min,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414786637,Valid,,Plasma,< Titer min,< Titer min,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414786638,Valid,,Plasma,Titer,9.57e+001 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414802329,Valid,,Plasma,Titer,6.24e+001 cp/ml,,,,,2706,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414813431,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813432,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813433,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813434,Valid,,Plasma,Titer,7.04e+001 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813435,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813436,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813437,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813438,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813439,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813440,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813442,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813443,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813444,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813445,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813446,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813447,Valid,,Plasma,Titer,1.19e+005 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813448,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813449,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813450,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813451,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813452,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813453,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813454,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813455,Valid,,Plasma,Titer,6.56e+001 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813456,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813457,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813458,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813459,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813460,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813461,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813463,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813464,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813465,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813466,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813467,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813468,Valid,,Plasma,< Titer min,< Titer min,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813469,Valid,,Plasma,Titer,5.74e+001 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813470,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813471,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813472,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813473,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813474,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813475,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813476,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813477,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813478,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813479,Valid,,Plasma,< Titer min,< Titer min,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813480,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813481,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813482,Valid,,Plasma,< Titer min,< Titer min,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813483,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813484,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813485,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813486,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813487,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813488,Valid,,Plasma,Titer,1.94e+002 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813489,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813490,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813491,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813492,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813493,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813494,Valid,,Plasma,Titer,6.66e+001 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813495,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813496,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813497,Valid,,Plasma,< Titer min,< Titer min,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813498,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813499,Valid,,Plasma,< Titer min,< Titer min,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813500,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813501,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813502,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813503,Valid,,Plasma,Titer,5.18e+001 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813504,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813505,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813506,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813507,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813508,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813509,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813510,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813511,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813522,Valid,,Plasma,Titer,5.45e+001 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813523,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813524,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813525,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813526,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813527,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813528,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813529,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813530,Valid,,Plasma,< Titer min,< Titer min,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813531,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813532,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813533,Valid,,Plasma,Titer,7.70e+003 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813563,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813564,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813565,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813566,Valid,,Plasma,Titer,3.52e+002 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813567,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813568,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813569,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813570,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813572,Valid,,Plasma,Titer,5.80e+001 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414813599,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813600,Valid,,Plasma,Titer,1.03e+002 cp/ml,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813601,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813602,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813603,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813604,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813605,Valid,,Plasma,< Titer min,< Titer min,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813606,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813607,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813608,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813609,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813611,Valid,,Plasma,< Titer min,< Titer min,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813612,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813613,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813614,Valid,,Plasma,< Titer min,< Titer min,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813615,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813616,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813617,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813618,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813619,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813620,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813621,Valid,,Plasma,< Titer min,< Titer min,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813632,Valid,,Plasma,Titer,1.05e+002 cp/ml,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813633,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813634,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813635,Valid,,Plasma,< Titer min,< Titer min,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813636,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813637,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813638,Valid,,Plasma,< Titer min,< Titer min,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813639,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813640,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813641,Valid,,Plasma,Titer,1.35e+002 cp/ml,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813642,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813643,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813644,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813645,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813646,Valid,,Plasma,Titer,5.23e+002 cp/ml,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813647,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813648,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813649,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813650,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813651,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813652,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813653,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813654,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813655,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813656,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813657,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813658,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813659,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813660,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414813661,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414817426,Valid,,Plasma,< Titer min,< Titer min,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817427,Valid,,Plasma,< Titer min,< Titer min,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817428,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817429,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817430,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817431,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817433,Valid,,Plasma,< Titer min,< Titer min,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817434,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817435,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817436,Valid,,Plasma,< Titer min,< Titer min,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817437,Valid,,Plasma,Titer,8.18e+004 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817440,Valid,,Plasma,Titer,8.51e+001 cp/ml,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414817441,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414825327,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414825328,Valid,,Plasma,< Titer min,< Titer min,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414825330,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414825331,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414825345,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414829104,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414829493,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414829494,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414829495,Valid,,Plasma,Titer,7.95e+001 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414829497,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414829508,Valid,,Plasma,Titer,6.44e+001 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414829509,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414833736,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414833738,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414833739,Valid,,Plasma,Titer,2.44e+004 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414833741,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414833743,Valid,,Plasma,Titer,8.12e+001 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414833744,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414833746,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414833747,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414833752,Valid,,Plasma,< Titer min,< Titer min,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414833753,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840670,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840671,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840672,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840673,Valid,,Plasma,Titer,6.89e+005 cp/ml,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840674,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840675,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840676,Valid,,Plasma,Titer,6.53e+003 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840677,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840678,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840679,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840913,Valid,,Plasma,< Titer min,< Titer min,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840915,Valid,,Plasma,< Titer min,< Titer min,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840916,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840917,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840918,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840919,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840920,Valid,,Plasma,< Titer min,< Titer min,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840921,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840922,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840923,Valid,,Plasma,Titer,5.72e+001 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840924,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840925,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840926,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840927,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840928,Valid,,Plasma,Titer,1.04e+002 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840929,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840930,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840931,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840932,Valid,,Plasma,< Titer min,< Titer min,,,,,14034,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414840933,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840934,Valid,,Plasma,< Titer min,< Titer min,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840946,Valid,,Plasma,Titer,9.84e+001 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840947,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840948,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840949,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840950,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840952,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840953,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840954,Valid,,Plasma,Titer,8.31e+001 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840955,Valid,,Plasma,Titer,7.56e+005 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840960,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840970,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414840971,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414850666,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850667,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850668,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850669,Valid,,Plasma,< Titer min,< Titer min,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850670,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850671,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850672,Valid,,Plasma,< Titer min,< Titer min,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850673,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850674,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850675,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850676,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850677,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850678,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850679,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850680,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850681,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850682,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850683,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850684,Valid,,Plasma,Titer,6.31e+001 cp/ml,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850685,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850686,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850687,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850688,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850689,Valid,,Plasma,Titer,4.44e+003 cp/ml,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850690,Valid,,Plasma,< Titer min,< Titer min,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850691,Valid,,Plasma,Titer,1.26e+002 cp/ml,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850692,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850693,Valid,,Plasma,Titer,2.50e+003 cp/ml,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850694,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850695,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850696,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850697,Valid,,Plasma,Titer,4.17e+004 cp/ml,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850698,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850699,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850700,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850701,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850702,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850703,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850704,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850712,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850713,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850714,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850715,Valid,,Plasma,< Titer min,< Titer min,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850717,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850718,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850719,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850720,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850721,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850722,Valid,,Plasma,Titer,2.13e+002 cp/ml,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850723,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14030,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850724,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850725,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850726,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850727,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850728,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850729,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850730,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850731,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850732,Valid,,Plasma,Titer,7.72e+004 cp/ml,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850733,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850734,Valid,,Plasma,Titer,2.24e+002 cp/ml,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850735,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414850736,Valid,,Plasma,Titer,9.51e+001 cp/ml,,,,,14032,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851150,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851151,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851152,Valid,,Plasma,Titer,5.22e+001 cp/ml,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851153,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851154,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851155,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851156,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851157,Valid,,Plasma,Titer,1.33e+002 cp/ml,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851158,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851159,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851160,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851161,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851162,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851163,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851164,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851165,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851166,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851167,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851168,Valid,,Plasma,Titer,5.70e+001 cp/ml,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851169,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851170,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851171,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851172,Valid,,Plasma,Titer,1.02e+002 cp/ml,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851173,Valid,,Plasma,Titer,3.40e+002 cp/ml,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851174,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851175,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851176,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851177,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851178,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851179,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851180,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851181,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851182,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851183,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851185,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851186,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851187,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851188,Valid,,Plasma,Titer,2.46e+002 cp/ml,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851189,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851190,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851191,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851192,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851193,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851194,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851195,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851196,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414851197,Valid,,Plasma,< Titer min,< Titer min,,,,,14028,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414856998,Valid,,Plasma,Titer,2.89e+002 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857001,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857002,Valid,,Plasma,Titer,6.91e+002 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857003,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857005,Valid,,Plasma,Titer,2.68e+002 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857007,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857008,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857009,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857010,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857011,Valid,,Plasma,Titer,1.17e+002 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857012,Invalid,C02H1,Plasma,Invalid,Invalid,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857014,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857016,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857017,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857018,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857019,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857020,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857021,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857022,Valid,,Plasma,Titer,1.79e+002 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857025,Valid,,Plasma,Titer,6.90e+001 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857027,Valid,,Plasma,Titer,1.04e+002 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857028,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857029,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857031,Valid,,Plasma,Titer,6.34e+001 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857033,Valid,,Plasma,Titer,1.53e+002 cp/ml,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857034,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857035,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414857037,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14026,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863098,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863099,Valid,,Plasma,Titer,7.33e+001 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863100,Valid,,Plasma,Titer,4.18e+005 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863101,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863102,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863103,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863104,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863105,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863106,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863107,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863109,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863111,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863112,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863113,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863114,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863115,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863117,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863118,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863119,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863120,Valid,,Plasma,Titer,8.06e+001 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863121,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863122,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863123,Valid,,Plasma,Titer,5.18e+001 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863124,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863125,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863126,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863128,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863129,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863130,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863131,Valid,,Plasma,Titer,1.21e+002 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863132,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863133,Valid,,Plasma,Titer,7.76e+001 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863134,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863136,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863137,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863138,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863139,Valid,,Plasma,Titer,3.34e+003 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863140,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863141,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863142,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863145,Valid,,Plasma,Titer,5.84e+001 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863146,Valid,,Plasma,Titer,1.47e+002 cp/ml,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863148,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863150,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863152,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863153,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863154,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863155,Valid,,Plasma,< Titer min,< Titer min,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414863157,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,14036,08/07/2025  19:00,FALSE,Not Released,IM1000-005141,200
+HIV-1,2414888204,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888224,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888228,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888267,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888268,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888269,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888270,Valid,,Plasma,Titer,6.79e+001 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888272,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888273,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888274,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888275,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888276,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888277,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888279,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2712,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888280,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888281,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888282,Valid,,Plasma,Titer,1.83e+005 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888283,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888284,Valid,,Plasma,Titer,1.98e+002 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888285,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888286,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888299,Valid,,Plasma,Titer,8.86e+001 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888300,Valid,,Plasma,Titer,1.34e+002 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888301,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888302,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888303,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888304,Valid,,Plasma,Titer,8.64e+001 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888305,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888306,Valid,,Plasma,Titer,7.83e+001 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888307,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888308,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888309,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888321,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888322,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888323,Valid,,Plasma,Titer,3.11e+002 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888324,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888325,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888326,Valid,,Plasma,Titer,6.46e+001 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888327,Valid,,Plasma,Titer,8.51e+001 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888328,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888339,Valid,,Plasma,Titer,6.05e+001 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888341,Valid,,Plasma,Titer,6.37e+001 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888342,Valid,,Plasma,Titer,1.01e+002 cp/ml,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888343,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888344,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888345,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888347,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888348,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888349,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888353,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888360,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888362,Valid,,Plasma,< Titer min,< Titer min,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888363,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414888364,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2714,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414928819,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928820,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928821,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928822,Valid,,Plasma,Titer,1.23e+006 cp/ml,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928823,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928828,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928829,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928830,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928831,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928832,Valid,,Plasma,< Titer min,< Titer min,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928833,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928834,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928835,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928836,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928838,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928839,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928841,Valid,,Plasma,< Titer min,< Titer min,,,,,35430,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414928842,Valid,,Plasma,Titer,1.19e+002 cp/ml,,,,,35428,08/07/2025  19:00,FALSE,Not Released,IM1000-005076,200
+HIV-1,2414958710,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414986002,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414986003,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414986004,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414986005,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414986007,Valid,,Plasma,Titer,7.21e+001 cp/ml,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2414986008,Valid,,Plasma,< Titer min,< Titer min,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2415011154,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2415011159,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,2415011160,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2710,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,009340312238,Valid,,Plasma,Titer,6.60e+001 cp/ml,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,009340338207,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200
+HIV-1,009340399717,Valid,,Plasma,Target Not Detected,Target Not Detected,,,,,2708,08/07/2025  19:00,FALSE,Not Released,IM1000-005518,200

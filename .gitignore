@@ -1,6 +1,5 @@
 .env
-*.pyc
-/media
+*.pyco
 *~
 .~lock.*
 /docs
@@ -22,9 +21,9 @@ __pycache__/
 *.pyc
 
 # data / generated reports
-results/media/reports/
-results/media/reports/detectables/
-results/media/*.csv
+#results/media/reports/
+#results/media/reports/detectables/
+#results/media/*.csv
 
 # installers / big binaries
 *.sh
