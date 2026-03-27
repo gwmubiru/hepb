@@ -756,19 +756,20 @@ def release_results(request):
 			si_pk = request.POST.get('sample_pk')
 			if si_pk:
 				#get the last worksheet sample for the sample
-				ws = WorksheetSample.objects.filter(sample_id = int(si_pk),stage=4).last()
+				ws = WorksheetSample.objects.filter(sample_id=_clean_autopk_value(si_pk), stage=4).last()
 
 			else:
-				ws = WorksheetSample.objects.filter(pk =int(request.POST.get('result_pk'))).first()
+				ws = WorksheetSample.objects.filter(pk=_clean_autopk_value(request.POST.get('result_pk'))).first()
 			release_retain_result(ws, request.POST.get('choice_type'),request.POST.get('comments'),
 				request.POST.get('completed'), request.user,request.POST.get('reason'))
 			return HttpResponse("saved")
 		elif request.POST.get('post_type') == 'full_run':
 			#get all worksheets on run
-			result_run = ResultRun.objects.filter(pk=int(request.POST.get('run_id'))).first()
+			result_run = ResultRun.objects.filter(pk=_clean_autopk_value(request.POST.get('run_id'))).first()
 			worksheet_samples = WorksheetSample.objects.filter(result_run_detail__the_result_run = result_run)
-			result_run.stage = 3
-			result_run.save()
+			if result_run is not None:
+				result_run.stage = 3
+				result_run.save()
 			for ws in worksheet_samples:
 				release_retain_result(ws, request.POST.get('choice_type'),'','', request.user)
 			return HttpResponse("saved")
@@ -777,16 +778,30 @@ def release_results(request):
 			#save the multiple approvals
 			worksheet_samples = request.POST.getlist('worksheet_samples')
 			for ws_id in worksheet_samples:
-				ws = WorksheetSample.objects.filter(pk = ws_id).first()
+				ws = WorksheetSample.objects.filter(pk=_clean_autopk_value(ws_id)).first()
 				release_retain_result(ws, request.POST.get('choice_type'),'',
 				'', request.user)
-			return redirect('/worksheets/authorize_runs/?stage=1&auth_by=runs&run_id=%d&stage=1' %int(request.POST.get('run_id')))
+			run_id = _clean_autopk_value(request.POST.get('run_id'))
+			if run_id is None:
+				return redirect('/worksheets/authorize_runs/?stage=1&auth_by=runs&stage=1')
+			return redirect('/worksheets/authorize_runs/?stage=1&auth_by=runs&run_id=%d&stage=1' % run_id)
 	else:
 		context = {'worksheetsamples':worksheetsamples,'facilities':facilities}
 		return render(request, 'results/release_results.html', context)
 
+def _clean_autopk_value(value):
+	if value in (None, '', 0, '0'):
+		return None
+	try:
+		value = int(value)
+	except (TypeError, ValueError):
+		return None
+	return value if value > 0 else None
+
 def release_retain_result(ws, choice,comments,completed, user, reason = ''): 
 	#create the result
+	if ws is None:
+		return False
 	if (choice == 'release' and ws.stage == 2) or (choice == 'invalid' and ws.stage == 4):
 		#if it was repeat that is being invalidated (due to hemolysis or insufficient vol), 
 		#delete this record and use the previous one	
@@ -803,12 +818,12 @@ def release_retain_result(ws, choice,comments,completed, user, reason = ''):
 		result.method = ws.method
 		result.test_date = ws.test_date
 		result.authorised_at = timezone.now()
-		result.authorised_by_id = ws.authoriser_id
-		result.test_by_id = ws.tester_id
-		result.sample_id = ws.sample_id
+		result.authorised_by_id = _clean_autopk_value(ws.authoriser_id)
+		result.test_by_id = _clean_autopk_value(ws.tester_id)
+		result.sample_id = _clean_autopk_value(ws.sample_id)
 		result.suppressed = ws.suppressed
-		result.worksheet_sample_id = ws.id
-		result.supression_cut_off_id = ws.supression_cut_off_id
+		result.worksheet_sample_id = _clean_autopk_value(ws.id)
+		result.supression_cut_off_id = _clean_autopk_value(ws.supression_cut_off_id)
 		result.has_low_level_viramia = ws.has_low_level_viramia
 		result.save()
 		#set release date based on whether sample's data is entered
@@ -831,9 +846,11 @@ def release_retain_result(ws, choice,comments,completed, user, reason = ''):
 		rqc, rqc_created = ResultsQC.objects.update_or_create(result=result, defaults=other_params)
 		ws.stage = 5
 		ws.failure_reason = reason
-		ws.sample.stage = 5
+		if ws.sample is not None:
+			ws.sample.stage = 5
 		ws.save()
-		ws.sample.save()
+		if ws.sample is not None:
+			ws.sample.save()
 		update_sample(ws)
 	else:
 		if ws.stage != 4 and ws.stage != 5:
