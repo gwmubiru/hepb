@@ -30,6 +30,7 @@ from results.models import Result
 from worksheets.models import ResultRun
 from . import utils as worksheet_utils
 from samples import utils as sample_utils
+from vl import services as vl_services
 
 from reportlab.graphics.barcode import code39, code128, code93
 from reportlab.graphics.barcode import eanbc, qr, usps
@@ -305,6 +306,12 @@ def list_page(request):
 	})
 
 def show(request, worksheet_id):
+	if vl_services.is_hiv_program(request):
+		worksheet, worksheet_samples = vl_services.worksheet_detail(worksheet_id)
+		if worksheet is None:
+			return HttpResponse("Worksheet not found", status=404)
+		context = {'worksheet': worksheet, 'sample_pads': 0, "worksheet_samples":worksheet_samples}
+		return render(request, 'worksheets/show.html', context)
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	worksheet_samples = WorksheetSample.objects.filter(worksheet_id = worksheet_id).order_by("sample__barcode")
 	
@@ -356,6 +363,24 @@ def authorize_list(request, machine_type):
 @permission_required('results.add_result', login_url='/login/')
 @transaction.atomic
 def authorize_results(request):
+	if vl_services.is_hiv_program(request):
+		rs_id = request.GET.get('run_id')
+		facilities = Facility.objects.all()
+		if request.method == 'POST':
+			if 'run_id' in request.POST and request.POST.get('is_multi_approval') == 'No':
+				run_id = request.POST.get('run_id')
+				for ws in vl_services.release_result_rows(run_id=run_id):
+					vl_services.authorize_worksheet_sample(ws.pk, request.POST.get('choice_type') or 'release', request.user)
+				return redirect("/worksheets/authorize_runs/")
+			if 'ws_pk' in request.POST:
+				vl_services.authorize_worksheet_sample(request.POST.get('ws_pk'), request.POST.get('choice'), request.user)
+				return HttpResponse("saved")
+			worksheet_samples = request.POST.getlist('worksheet_samples')
+			for ws_id in worksheet_samples:
+				vl_services.authorize_worksheet_sample(ws_id, request.POST.get('choice_type'), request.user)
+			return redirect('/worksheets/authorize_results/?run_id=%d&stage=1&tab=received' % int(request.POST.get('run_id')))
+		context = {'result_run_details': vl_services.authorize_result_rows(rs_id), 'run_id':rs_id,'facilities':facilities}
+		return render(request, 'worksheets/authorize_and_release_results.html', context)
 	
 	envelope_id = request.GET.get('envelope_id')
 	rs_id = request.GET.get('run_id')
@@ -443,6 +468,13 @@ def attach_results(request):
 
 @permission_required('results.add_result', login_url='/login/')
 def authorize_runs(request):
+	if vl_services.is_hiv_program(request) and request.GET.get('auth_by') == 'runs':
+		if request.method == 'POST':
+			pass
+		else:
+			stage = int(request.GET.get('stage'))
+			context = {'runs': vl_services.authorize_runs(stage=stage),'stage':stage}
+			return render(request, 'worksheets/authorize_runs.html', context)
 	
 	if request.GET.get('auth_by') == 'runs':		
 		if request.method == 'POST':
@@ -605,6 +637,23 @@ class ListJson(BaseDatatableView):
 	max_display_length = 500
 
 	def render_column(self, row, column):
+		if vl_services.is_hiv_program(self.request):
+			if column == 'pk':
+				return utils.dropdown_links([
+					{"label":"view", "url":"/worksheets/show/{0}".format(row.pk)},
+				])
+			elif column == 'envelopes':
+				return vl_services.worksheet_envelope_links(row.pk)
+			elif column == 'program':
+				return 'HIV Viral Load'
+			elif column == 'created_at':
+				return utils.set_page_dates_format(row.created_at)
+			elif column == 'Timestamp':
+				return utils.set_date_time_stamp(row.created_at)
+			elif column == 'eluted?':
+				return 'Repeat' if row.stage == 11 else 'Normal'
+			elif column == 'loaded?':
+				return 'No' if row.stage == 12 else 'Yes'
 		machine_type = self.request.GET.get('machine_type')
 		if column == 'pk':
 			url0 = "/worksheets/show/{0}".format(row.pk)
@@ -654,6 +703,22 @@ class ListJson(BaseDatatableView):
 			return super(ListJson, self).render_column(row, column)
 
 	def filter_queryset(self, qs):
+		if vl_services.is_hiv_program(self.request):
+			tab = self.request.GET.get('tab')
+			sample_type = self.request.GET.get('sample_type')
+			search = self.request.GET.get(u'search[value]', None)
+			qs = qs.using('vl_lims').filter(worksheet_medical_lab_id=utils.user_lab(self.request).id)
+			if sample_type:
+				qs = qs.filter(sample_type=sample_type)
+			if tab=='pending_e':
+				qs = qs.filter(stage=11)
+			elif tab=='pending_l':
+				qs = qs.filter(stage=12)
+			elif tab=='pending_r':
+				qs = qs.filter(stage=1)
+			if search:
+				qs = qs.filter(worksheet_reference_number__icontains=search)
+			return qs
 		tab = self.request.GET.get('tab')
 		sample_type = self.request.GET.get('sample_type')
 		search = self.request.GET.get(u'search[value]', None)
@@ -678,6 +743,12 @@ class ListJson(BaseDatatableView):
 		if machine_type:
 			qs = qs.filter(machine_type=machine_type, stage=1)
 		return qs
+
+	def get_initial_queryset(self):
+		if vl_services.is_hiv_program(self.request):
+			from vl.models import VLWorksheet
+			return VLWorksheet.objects.using('vl_lims').all()
+		return super(ListJson, self).get_initial_queryset()
 
 def lab_samples(request):
 	search_val = request.GET.get('search_val')
@@ -808,6 +879,19 @@ def __get_envelopes(r,request):
 
 @transaction.atomic
 def create(request,sample_type):
+	if vl_services.is_hiv_program(request):
+		if request.method == 'POST':
+			worksheet = vl_services.create_worksheet(request.POST, request.user, sample_type)
+			return redirect('worksheets:show', worksheet_id=worksheet.id)
+		if 'users' not in request.session:
+			users = User.objects.filter(is_active=1)
+			request.session['users'] = users
+		else:
+			users = request.session['users']
+		search_val = request.GET.get('search')
+		is_lab_completed = request.GET.get('is_lab_completed')
+		sample_type = request.GET.get('sample_type')
+		return render(request, 'worksheets/create.html', {'global_search':search_val,'is_lab_completed':is_lab_completed ,'sample_type':sample_type,'users':users})
 	
 	if request.method == 'POST':
 		generator_id = int(request.POST.get('generated_by_id'))
@@ -882,6 +966,22 @@ def create(request,sample_type):
 		return render(request, 'worksheets/create.html', {'global_search':search_val,'is_lab_completed':is_lab_completed ,'sample_type':sample_type,'is_lab_completed':is_lab_completed,'users':users})
 
 def create_worksheet_list_json(request):
+	if vl_services.is_hiv_program(request):
+		r = request.GET
+		rows = vl_services.worksheet_create_envelope_rows(request.GET.get('sample_type'), request.user, r.get('search[value]') or r.get('global_search[value]') or '')
+		data = []
+		for e in rows:
+			data.append([
+				'<input type="checkbox" onclick="addEnvelope(\'%s\',\'%s\')" class="envs" name="env_ids" value="%s">'%(e['id'],e['envelope_number'],e['id']),
+				"<a  href='/samples/search/?search_val=%s&approvals=1&search_env=1'>%s</a> (%s)"%(e['envelope_number'],e['envelope_number'],e['s_count']),
+				e['program'],
+			])
+		return HttpResponse(json.dumps({
+			"draw":r.get('draw'),
+			"recordsTotal": len(rows),
+			"recordsFiltered": len(rows),
+			"data":data,
+		}))
 	r = request.GET
 	envelopes = __get_worksheet_envelope_samples(r,request)
 	envelopes_data = envelopes.get('envelopes_data')

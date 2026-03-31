@@ -126,11 +126,15 @@
 						HepB
 					{% elif s.program_code|stringformat:"s" == "2" %}
 						HepC
+					{% elif s.program_code|stringformat:"s" == "3" %}
+						HIV Viral Load
 					{% elif s.envelope_id %}
 						{% if s.envelope.program_code|stringformat:"s" == "1" %}
 							HepB
 						{% elif s.envelope.program_code|stringformat:"s" == "2" %}
 							HepC
+						{% elif s.envelope.program_code|stringformat:"s" == "3" %}
+							HIV Viral Load
 						{% else %}
 							{{ s.envelope.get_program_code_display }}
 						{% endif %}

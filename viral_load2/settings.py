@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 	'results.apps.ResultsConfig',
 	'home.apps.HomeConfig',
 	'api.apps.ApiConfig',
+	'vl.apps.VlConfig',
 	'simple_history',
 ]
 
@@ -115,6 +116,19 @@ DATABASES = {
 		'PORT': os.getenv('DB_PORT'),
 	}
 }
+
+DATABASES['vl_lims'] = {
+	'ENGINE': 'django.db.backends.mysql',
+	'OPTIONS': {
+		'sql_mode': 'traditional',
+	},
+	'NAME': os.getenv('VL_DB_NAME'),
+	'USER': os.getenv('VL_DB_USER'),
+	'PASSWORD': os.getenv('VL_DB_PASSWORD'),
+	'HOST': os.getenv('VL_DB_HOST'),
+}
+
+DATABASE_ROUTERS = ['vl.router.VLRouter']
 
 
 # Password validation

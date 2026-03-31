@@ -407,6 +407,8 @@ def get_envelope_details(request):
 	envelope_number = request.GET.get('envelope_number')
 	ret = []
 	envelope = Envelope.objects.filter(id__gte=settings.ENVELOPE_SAMPLES_CUT_OFF,envelope_number=envelope_number).first()
+	if envelope is None:
+		envelope = Envelope.objects.filter(envelope_number=envelope_number).first()
 	env_status_update = request.GET.get('env_status_update')
 	env_id = ''
 	date_received = ''

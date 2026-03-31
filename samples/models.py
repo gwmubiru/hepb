@@ -131,7 +131,7 @@ class EnvelopeRange(models.Model):
 
 class Envelope(models.Model):
 	YES_NO = ((1,'Yes'),(2,'No'))
-	PROGRAM_CODES = ((1,'HepB'),(2,'HepC'))
+	PROGRAM_CODES = ((1,'HepB'),(2,'HepC'),(3,'HIV Viral Load'))
 	envelope_number = models.CharField(max_length=10)
 	id = models.AutoField(primary_key=True)
 	stage = models.PositiveSmallIntegerField(choices=((1,'not_verified'), (2, 'verified'), (3, 'in_worksheet'),(4, 'completed')), default=1)
@@ -239,7 +239,7 @@ class Study(models.Model):
 
 class Sample(models.Model):
 	YES_NO_CHOICES = ( ('Y', 'Yes'), ('N', 'No'), ('L', 'Left Blank') )
-	PROGRAM_CODES = ((1,'HepB'),(2,'HepC'))
+	PROGRAM_CODES = ((1,'HepB'),(2,'HepC'),(3,'HIV Viral Load'))
 	id = models.AutoField(primary_key=True)
 	CONSENT_CHOICES = ( ('Y', 'Accept'), ('N', 'Decline'), ('L', 'Left Blank') )
 	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
