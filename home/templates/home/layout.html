@@ -103,13 +103,6 @@
         .program-switcher .form-control option {
             color: #333;
         }
-        .program-pill {
-            color: #fff;
-            font-size: 12px;
-            line-height: 50px;
-            margin-right: 10px;
-            opacity: 0.9;
-        }
         .navbar-branding {
             align-items: center;
             display: flex;
@@ -120,6 +113,24 @@
         .navbar-branding img {
             height: 34px;
             width: auto;
+        }
+        .header-menu-toggle {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.45);
+            border-radius: 4px;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 3px;
+            justify-content: center;
+            margin: 0 0 0 6px;
+            padding: 8px 9px;
+        }
+        .header-menu-toggle .icon-bar {
+            background: #fff;
+            border-radius: 1px;
+            display: block;
+            height: 2px;
+            width: 18px;
         }
         .btn-primary,
         #main_wrapper .btn.btn-danger,
@@ -181,13 +192,91 @@
         a:focus {
             color: var(--program-hover);
         }
+        @media (min-width: 768px) {
+            .navbar-header {
+                align-items: center;
+                display: flex;
+                float: left;
+            }
+            .navbar-fixed-top .navbar-collapse {
+                border-top: 0;
+                box-shadow: none;
+                margin-top: 0;
+            }
+            .program-switcher {
+                margin: 0 8px 0 0;
+            }
+            .program-switcher .form-control {
+                padding-left: 8px;
+                padding-right: 8px;
+                width: 120px;
+            }
+            #search-sect {
+                width: 220px;
+            }
+            #search-sect .form-control {
+                width: 220px;
+            }
+        }
+        @media (min-width: 1200px) {
+            .navbar-fixed-top .container-fluid {
+                position: relative;
+            }
+            .navbar-fixed-top .navbar-collapse {
+                padding-right: 520px;
+            }
+            .navbar-fixed-top .navbar-nav.navbar-right {
+                align-items: center;
+                display: flex;
+                height: 50px;
+                margin: 0;
+                position: absolute;
+                right: 15px;
+                top: 0;
+            }
+            .navbar-fixed-top .navbar-nav.navbar-right > li {
+                align-items: center;
+                display: flex;
+                float: left;
+            }
+            .navbar-fixed-top .navbar-nav.navbar-left {
+                float: left;
+                margin-right: 0;
+            }
+            #search-sect,
+            .program-switcher {
+                padding-bottom: 0;
+                padding-top: 0;
+            }
+        }
+        @media (min-width: 1200px) {
+            #search-sect {
+                width: 260px;
+            }
+            #search-sect .form-control {
+                width: 260px;
+            }
+        }
         @media (max-width: 767px) {
             .navbar-fixed-top .container-fluid {
                 padding-left: 12px;
                 padding-right: 12px;
             }
             .navbar-header {
+                align-items: center;
+                display: flex;
                 float: none;
+            }
+            .navbar-toggle {
+                border-color: rgba(255,255,255,0.45);
+                margin-right: 0;
+                margin-top: 0;
+            }
+            .navbar-toggle .icon-bar {
+                background: #fff;
+            }
+            .header-menu-toggle {
+                margin-left: auto;
             }
             .navbar-fixed-top .navbar-nav,
             .navbar-fixed-top .navbar-nav.navbar-left,
@@ -200,14 +289,6 @@
                 display: block;
                 float: none !important;
                 width: 100%;
-            }
-            .navbar-toggle {
-                border-color: rgba(255,255,255,0.45);
-                margin-right: 0;
-                margin-top: 8px;
-            }
-            .navbar-toggle .icon-bar {
-                background: #fff;
             }
             .navbar-collapse {
                 background: var(--program-bg);
@@ -260,10 +341,6 @@
                 display: block;
                 padding: 12px 24px 6px;
             }
-            .program-pill {
-                line-height: 1.4;
-                margin: 12px 15px 4px;
-            }
             .program-switcher {
                 border-bottom: 1px solid rgba(255,255,255,0.12);
                 margin: 0 15px 12px;
@@ -311,15 +388,15 @@
         <header class="navbar navbar-fixed-top" role="banner">
             <div class="container-fluid">
                 <div class="navbar-header">
-                        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#primary-navbar" aria-expanded="false" aria-controls="primary-navbar">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
                         <div class="navbar-branding">
                             <img src='{% static "home/images/logo.png" %}'>
-                            <span id='main-link'>Hep LIMS</span>
+                            <span id='main-link'>LIMS</span>
+                            <button type="button" class="navbar-toggle header-menu-toggle collapsed" data-toggle="collapse" data-target="#primary-navbar" aria-expanded="false" aria-controls="primary-navbar">
+                                <span class="sr-only">Toggle navigation</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>
                         </div>
                 </div>
                 <div class="collapse navbar-collapse" id="primary-navbar">
@@ -466,7 +543,6 @@
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
-                    <li class="program-pill">Program: {{ active_program_label|default:"Not set" }}</li>
                     <li class="program-switcher">
                         <form method="post" action="{% url 'set_program' %}" class="form-inline">
                             {% csrf_token %}
@@ -502,7 +578,6 @@
                             <li><a href="{% url 'logout' %}">Log Out</a></li>
                         </ul>
                     </li>
-                    <li><a href="javascript:void(0)" class="slidebar-toggle"><span class="navbar_el_icon ion-navicon-round"></span></a></li>
                 </ul>
                 </div>
             </div>

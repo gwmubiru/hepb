@@ -53,7 +53,7 @@
 	<div id="success" class="alert alert-success vl-alert" role="alert">
 		Last received: 
 		<a href="{% url 'samples:edit_received' sample.pk %}">
-			{{sample.barcode }}</a>
+			{{ last_received_barcode|default:sample.barcode }}</a>
 		&nbsp;&nbsp;
 		<span class='x' id='x'>x</span>
 	</div>
@@ -152,7 +152,7 @@
 		
 		{% if sample %}
 			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
-			{% for s in sample.envelope.sample_set.all|dictsort:"barcode" %}
+			{% for s in envelope_samples %}
 				<span  style="margin-left:-60px">
 					{{ forloop.counter }}. 
 					
@@ -462,7 +462,14 @@
 		            
 		            if(barcodes.length - sample.index == 1 && 
 		              (json_data.receipt_type == 'hie' || json_data.receipt_type == 'non_hie')) {
-		                window.location.replace(currnt_url+'/samples/receive_sample_only/?saved_sample='+json_data.saved_sample);
+		            	var params = $.param({
+		            		saved_sample: json_data.saved_sample,
+		            		env_id: json_data.env_id || $("#envelope_id").val(),
+		            		tr_code_id: json_data.tracking_code_id || $("#tracking_code_id").val(),
+		            		current_tr_code: $("#id_code").val(),
+		            		last_barcode: json_data.s_barcode || sample.barcode
+		            	});
+		                window.location.replace(currnt_url+'/samples/receive_sample_only/?'+params);
 		            } else {
 		                // Process next sample
 		                processSamples(samples, currentIndex + 1, currnt_url);

@@ -69,7 +69,7 @@
 	<div id="success" class="alert alert-success vl-alert" role="alert">
 		Last received: 
 		<a href="{% url 'samples:edit_received' sample.pk %}">
-			{{sample.barcode }}</a>
+			{{ last_received_barcode|default:sample.barcode }}</a>
 		&nbsp;&nbsp;
 		<span class='x' id='x'>x</span>
 	</div>
@@ -163,7 +163,7 @@
 		
 		{% if sample %}
 			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
-			{% for s in sample.envelope.sample_set.all|dictsort:"locator_position" %}
+			{% for s in envelope_samples %}
 				<span  style="margin-left:-60px">
 					{{ forloop.counter }}. 
 					
@@ -459,8 +459,14 @@
 					       //display success message
 					       $("#span"+json_data.s_barcode).removeClass('hidden');
 					       if(barcodes.length - ind == 1){
-					       		
-					       		window.location.replace(currnt_url+'/samples/receive_batch/?saved_sample='+saved_sample);
+					       		var params = $.param({
+					       			saved_sample: saved_sample,
+					       			env_id: json_data.env_id || $("#envelope_id").val(),
+					       			tr_code_id: json_data.tracking_code_id || $("#tracking_code_id").val(),
+					       			current_tr_code: $("#id_code").val(),
+					       			last_barcode: json_data.s_barcode || barc
+					       		});
+					       		window.location.replace(currnt_url+'/samples/receive_batch/?'+params);
 					      }
 					   }
 					});
@@ -527,8 +533,14 @@
 						       var saved_sample = json_data.saved_sample;
 
 						       if(i == (barcodes.length)-1){
-						       		//window.location.href = currnt_url+'?saved_sample='+saved_sample;
-						       		window.location.replace(currnt_url+'/samples/receive_batch/?saved_sample='+saved_sample);
+						       		var params = $.param({
+						       			saved_sample: saved_sample,
+						       			env_id: json_data.env_id || $("#envelope_id").val(),
+						       			tr_code_id: json_data.tracking_code_id || $("#tracking_code_id").val(),
+						       			current_tr_code: $("#id_code").val(),
+						       			last_barcode: json_data.s_barcode || barc
+						       		});
+						       		window.location.replace(currnt_url+'/samples/receive_batch/?'+params);
 						       }
 						   }
 						});

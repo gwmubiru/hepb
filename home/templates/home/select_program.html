@@ -68,6 +68,11 @@
 	color: #64b92a;
 }
 
+.program-badge.hivvl {
+	background: rgba(217, 83, 79, 0.16);
+	color: #d9534f;
+}
+
 .program-card h2 {
 	color: #1f2b3a;
 	font-size: 28px;
@@ -120,6 +125,45 @@
 .program-card .btn i {
 	margin-left: 10px;
 	font-size: 18px;
+}
+
+.btn-program-hepb {
+	background: #2f6fdd;
+	border-color: #275ec0;
+	color: #fff;
+}
+
+.btn-program-hepb:hover,
+.btn-program-hepb:focus {
+	background: #275ec0;
+	border-color: #214fa3;
+	color: #fff;
+}
+
+.btn-program-hepc {
+	background: #2f9d57;
+	border-color: #278349;
+	color: #fff;
+}
+
+.btn-program-hepc:hover,
+.btn-program-hepc:focus {
+	background: #278349;
+	border-color: #206d3d;
+	color: #fff;
+}
+
+.btn-program-hivvl {
+	background: #d64545;
+	border-color: #ba3939;
+	color: #fff;
+}
+
+.btn-program-hivvl:hover,
+.btn-program-hivvl:focus {
+	background: #ba3939;
+	border-color: #9d2f2f;
+	color: #fff;
 }
 
 @media (max-width: 991px) {
@@ -261,7 +305,7 @@
 			</div>
 
 			<div class="row">
-				<div class="col-md-6">
+				<div class="col-md-4">
 					<div class="program-card">
 						<div class="program-badge hepb">
 							<i class="fa fa-shield"></i>
@@ -278,14 +322,14 @@
 						<form method="post" action="{% url 'set_program' %}">
 							{% csrf_token %}
 							<input type="hidden" name="next" value="{{ next|default:'/' }}">
-							<button type="submit" name="program_code" value="1" class="btn btn-primary btn-lg btn-block">
-								Enter Hepatitis B <i class="fa fa-arrow-right"></i>
+							<button type="submit" name="program_code" value="1" class="btn btn-program-hepb btn-lg btn-block">
+								Enter HepB <i class="fa fa-arrow-right"></i>
 							</button>
 						</form>
 					</div>
 				</div>
 
-				<div class="col-md-6">
+				<div class="col-md-4">
 					<div class="program-card">
 						<div class="program-badge hepc">
 							<i class="fa fa-medkit"></i>
@@ -296,14 +340,38 @@
 						<ul class="program-features">
 							<li><i class="fa fa-check-circle text-success"></i> Combined HepB/C workflow</li>
 							<li><i class="fa fa-leaf text-success"></i> Green themed navigation context</li>
-							<li><i class="fa fa-exchange text-success"></i> Smooth transition into program activities</li>
+							<li><i class="fa fa-exchange text-success"></i> For HepC program</li>
 						</ul>
 
 						<form method="post" action="{% url 'set_program' %}">
 							{% csrf_token %}
 							<input type="hidden" name="next" value="{{ next|default:'/' }}">
-							<button type="submit" name="program_code" value="2" class="btn btn-success btn-lg btn-block">
-								Enter HepB C <i class="fa fa-arrow-right"></i>
+							<button type="submit" name="program_code" value="2" class="btn btn-program-hepc btn-lg btn-block">
+								Enter HepC <i class="fa fa-arrow-right"></i>
+							</button>
+						</form>
+					</div>
+				</div>
+
+				<div class="col-md-4">
+					<div class="program-card">
+						<div class="program-badge hivvl">
+							<i class="fa fa-heartbeat"></i>
+						</div>
+						<h2>HIV Viral Load</h2>
+						<p>Open the HIV viral load workflow with the red-and-slate visual theme used by the VL system.</p>
+
+						<ul class="program-features">
+							<li><i class="fa fa-check-circle text-danger"></i> Dedicated HIV VL program context</li>
+							<li><i class="fa fa-tint text-danger"></i> Red themed navigation context</li>
+							<li><i class="fa fa-random text-danger"></i> VL Program</li>
+						</ul>
+
+						<form method="post" action="{% url 'set_program' %}">
+							{% csrf_token %}
+							<input type="hidden" name="next" value="{{ next|default:'/' }}">
+							<button type="submit" name="program_code" value="3" class="btn btn-program-hivvl btn-lg btn-block">
+								Enter HIV Viral Load <i class="fa fa-arrow-right"></i>
 							</button>
 						</form>
 					</div>

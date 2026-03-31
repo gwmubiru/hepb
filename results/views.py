@@ -28,6 +28,7 @@ import os
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 from django.core.exceptions import ObjectDoesNotExist
+from vl import services as vl_services
 
 def _normalize_dataframe_columns(reader):
 	reader = reader.rename(
@@ -404,6 +405,8 @@ def compare_results_for_adjacency_contamination(cohort,no_of_adjance_results_for
 
 @permission_required('worksheets.add_worksheet', login_url='/login/')
 def upload(request):
+	if vl_services.is_hiv_program(request):
+		return cobas_upload(request)
 
 	if(request.method == 'POST'):
 		form = UploadForm(request.POST, request.FILES)
@@ -426,6 +429,38 @@ def upload(request):
 @permission_required('worksheets.add_worksheet', login_url='/login/')
 @transaction.atomic
 def alinity_upload(request):
+	if vl_services.is_hiv_program(request):
+		if request.method == 'POST':
+			form = UploadForm(request.POST, request.FILES)
+			if form.is_valid():
+				user = request.user
+				files = request.FILES.getlist('results_file')
+				for uploaded_file in files:
+					tmp_name = settings.MEDIA_ROOT + "results/%s" % uploaded_file.name
+					result_run = vl_services.get_result_run(uploaded_file.name, user)
+					if result_run == 'completed':
+						return HttpResponse('This file has already been used')
+					with open(tmp_name, 'wb+') as destination:
+						for chunk in uploaded_file.chunks():
+							destination.write(chunk)
+					reader = pandas.read_excel(tmp_name, sheet_name=0, header=0)
+					for row in reader.iterrows():
+						index, data = row
+						result = data["Final Result Value"]
+						instrument_id = data["Sample ID"]
+						if index == 1:
+							result_run.reagent_lot = data["Amp Kit Lot Number"]
+							result_run.serial_number = data["System Serial Number"]
+							result_run.reagent_expiry_date = dt.strptime(data["Amp Kit Lot Expiration Date"], '%m.%d.%Y  %I:%M %p')
+							result_run.save(using='vl_lims')
+						multiplier = form.cleaned_data.get('multiplier')
+						test_date = timezone.now()
+						vl_services.update_sample_and_save_result('N', instrument_id, result, multiplier, user, test_date, result_run, index, active_program_code='3')
+					vl_services.update_run_with_contamination_info(result_run)
+				return redirect('/worksheets/authorize_runs/?stage=1&auth_by=runs&run_id=%d&stage=1&tab=received' % result_run.pk)
+		else:
+			form = UploadForm(initial={'multiplier': 1})
+		return render(request, 'results/cobas_upload.html', {'form': form})
 	if(request.method == 'POST'):
 		form = UploadForm(request.POST, request.FILES)
 		if form.is_valid():
@@ -532,6 +567,7 @@ def override_results(request):
 def cobas_upload(request):
 	if(request.method == 'POST'):
 		active_program_code = programs.get_active_program_code(request)
+		is_hiv_program = vl_services.is_hiv_program(request)
 		
 		files = request.FILES.getlist('results_file')
 		for uploaded_file in files:
@@ -540,7 +576,10 @@ def cobas_upload(request):
 			low_positive_ctrl = ''
 			negative_ctrl = ''
 			#save the result run sample run
-			result_run = get_result_run(uploaded_file.name,request.user)
+			if is_hiv_program:
+				result_run = vl_services.get_result_run(uploaded_file.name, request.user)
+			else:
+				result_run = get_result_run(uploaded_file.name,request.user)
 			#return HttpResponse(result_run)
 			if result_run == 'completed':
 				return HttpResponse('This file has already been used')
@@ -554,7 +593,10 @@ def cobas_upload(request):
 
 			mtype = request.POST.get('mtype')
 			if mtype == 'H':
-				process_hologic(uploaded_file.name,tmp_name, request)
+				if is_hiv_program:
+					result_run = vl_services.process_hologic(uploaded_file.name, tmp_name, request)
+				else:
+					process_hologic(uploaded_file.name,tmp_name, request)
 			else:
 				reader = _normalize_dataframe_columns(pandas.read_csv(tmp_name, sep=','))
 				no_of_lines = len(reader)
@@ -622,9 +664,15 @@ def cobas_upload(request):
 								start_date = dt.strptime(santized_date, '%m/%d/%Y %H:%M')
 
 							test_date =  start_date + timedelta(hours=3)
-							update_sample_and_save_result('C',instrument_id,result, multiplier, user, test_date,result_run,index,sample_volume,active_program_code)
+							if is_hiv_program:
+								vl_services.update_sample_and_save_result('C', instrument_id, result, multiplier, user, test_date, result_run, index, sample_volume, active_program_code)
+							else:
+								update_sample_and_save_result('C',instrument_id,result, multiplier, user, test_date,result_run,index,sample_volume,active_program_code)
 						
-				update_run_with_contamination_info(result_run)
+				if is_hiv_program:
+					vl_services.update_run_with_contamination_info(result_run)
+				else:
+					update_run_with_contamination_info(result_run)
 				
 			
 		return redirect('/worksheets/authorize_runs/?stage=1&auth_by=runs')
@@ -649,6 +697,8 @@ def get_result_run(filename,user):
 	return rn
 
 def process_hologic(actual_file_name,tmp_name, request):
+	if vl_services.is_hiv_program(request):
+		return vl_services.process_hologic(actual_file_name, tmp_name, request)
 	reader = pandas.read_csv(tmp_name, sep='\t')
 	test_date = reader.iloc[0]["Completion Time UTC"]
 	test_date = timezone.now()
@@ -698,11 +748,21 @@ def list(request):
 	return render(request,'worksheets/list.html',{'worksheets':worksheets})
 
 def worksheet_results(request, worksheet_id):
+	if vl_services.is_hiv_program(request):
+		worksheet, worksheet_samples = vl_services.worksheet_detail(worksheet_id)
+		if worksheet is None:
+			return HttpResponse("Worksheet not found", status=404)
+		return render(request, 'results/worksheet_results.html', {'worksheet':worksheet, 'worksheet_samples': worksheet_samples})
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	return render(request, 'results/worksheet_results.html', {'worksheet':worksheet})
 
 @permission_required('results.add_resultsqc', login_url='/login/')
 def release_list(request, machine_type):
+	if vl_services.is_hiv_program(request):
+		tab = request.GET.get('tab')
+		worksheets = vl_services.release_pending_worksheets(machine_type, released=(tab == 'released'), medical_lab_id=utils.user_lab(request).id if utils.user_lab(request) else None)
+		context = {'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)}
+		return render(request,'results/release_list.html',context)
 	tab = request.GET.get('tab')
 	if tab=='released':
 		filters = Q(stage=4, machine_type=machine_type,worksheet_medical_lab=utils.user_lab(request))
@@ -716,6 +776,28 @@ def release_list(request, machine_type):
 @permission_required('results.add_resultsqc', login_url='/login/')
 @transaction.atomic
 def release_results(request):
+	if vl_services.is_hiv_program(request):
+		run_id = request.GET.get('run_id')
+		worksheet_id = request.GET.get('worksheet_id')
+		facilities = Facility.objects.all()
+		if request.method == 'POST':
+			if request.POST.get('post_type') == 'single':
+				ws_id = _clean_autopk_value(request.POST.get('result_pk') or request.POST.get('sample_pk'))
+				vl_services.release_worksheet_sample(ws_id, request.POST.get('choice_type'), request.user, request.POST.get('comments', ''))
+				return HttpResponse("saved")
+			elif request.POST.get('post_type') == 'full_run':
+				for ws in vl_services.release_result_rows(run_id=_clean_autopk_value(request.POST.get('run_id'))):
+					vl_services.release_worksheet_sample(ws.pk, request.POST.get('choice_type'), request.user)
+				return HttpResponse("saved")
+			worksheet_samples = request.POST.getlist('worksheet_samples')
+			for ws_id in worksheet_samples:
+				vl_services.release_worksheet_sample(_clean_autopk_value(ws_id), request.POST.get('choice_type'), request.user)
+			run_id_post = _clean_autopk_value(request.POST.get('run_id'))
+			if run_id_post is None:
+				return redirect('/worksheets/authorize_runs/?stage=1&auth_by=runs&stage=1')
+			return redirect('/worksheets/authorize_runs/?stage=1&auth_by=runs&run_id=%d&stage=1' % run_id_post)
+		context = {'worksheetsamples': vl_services.release_result_rows(run_id=_clean_autopk_value(run_id), worksheet_id=_clean_autopk_value(worksheet_id), sample_type=request.GET.get('sample_type')), 'facilities':facilities}
+		return render(request, 'results/release_results.html', context)
 	r_tab = request.GET.get('tab')
 	facility_id = request.GET.get('facility_id')
 	sample_type = request.GET.get('sample_type')

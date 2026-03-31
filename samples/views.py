@@ -26,6 +26,7 @@ import requests
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .services import SampleService
+from vl import services as vl_services
 
 ENVS_LIMIT = 1000
 SAMPLES_LIMIT = 1000
@@ -116,6 +117,23 @@ def handle_post_request(request, facilities, PastRegimensFormSet,treatment_indic
     past_regimens_formset = PastRegimensFormSet(pst)
    
     if SampleService.validate_forms(patient_form, preliminary_findings_form,envelope_form, sample_form, drug_resistance_form, past_regimens_formset, pst):
+    	if vl_services.is_hiv_program(request):
+    		try:
+    			save_result = vl_services.save_sample_form(pst, request.user)
+    			next_barcode = save_result.get('next_barcode')
+    			if request.POST.get('from_page') == 'verify':
+    				return redirect("/samples/verify_list/?verified=0")
+    			elif request.POST.get('results_qc_id'):
+    				return redirect("/results/dr_results/")
+    			elif request.POST.get('from_page') == 'approvals':
+    				return redirect("/samples/search/?search_val=%s&search_env=1&approvals=1" % pst.get('envelope_number'))
+    			elif next_barcode:
+    				return redirect('/samples/create?barcode=%s&page_type=%s' % (next_barcode, pst.get('page_type')))
+    			return redirect('/samples/create?page_type=%s' % pst.get('page_type'))
+    		except Exception as e:
+    			sample_form.add_error('barcode', str(e))
+    			return render_create_page(request, facilities, envelope_form, patient_form, preliminary_findings_form,sample_form, drug_resistance_form, past_regimens_formset, page_type)
+
     	sample = Sample.objects.filter(pk=pst.get('id')).first()
     	#response_data = save_form_using_external_api(pst,request.user.id,sample)
     	#status = response_data.get("status")
@@ -278,6 +296,43 @@ def receive_api(request):
 	
 @transaction.atomic
 def receive(request):
+	if vl_services.is_hiv_program(request):
+		if request.method == 'POST':
+			try:
+				sample = vl_services.receive_sample(request.POST, request.user)
+				return redirect('/samples/receive?saved_sample=%s&env_id=%s&current_tr_code=%s' % (
+					sample.id,
+					sample.envelope_id,
+					request.POST.get('code', ''),
+				))
+			except Exception as e:
+				form = SampleReceptionForm(request.POST)
+				form.add_error('barcode', str(e))
+				context = {
+					'sample_reception_form': form,
+					'tr_code_id': request.POST.get('tracking_code_id'),
+					'env_id': request.POST.get('envelope_id'),
+					'current_tr_code': request.POST.get('current_tr_code'),
+					'reception_id': '',
+					'locator_category': request.POST.get('locator_category', ''),
+					'reception_hep_number': request.POST.get('reception_hep_number', ''),
+					'facility_reference': request.POST.get('facility_reference', ''),
+					'form_data': request.POST,
+				}
+				return render(request, 'samples/receive.html', context)
+		form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		return render(request, 'samples/receive.html', {
+			'sample_reception_form': form,
+			'tr_code_id': request.GET.get('tr_code_id'),
+			'env_id': request.GET.get('env_id'),
+			'current_tr_code': request.GET.get('current_tr_code'),
+			'reception_id':'',
+			'locator_category':'',
+			'reception_hep_number': '',
+			'facility_reference': '',
+			'form_data':'',
+		})
+
 	saved_sample = request.GET.get('saved_sample')
 	tr_code_id = request.GET.get('tr_code_id')
 	page_type = request.GET.get('page_type')
@@ -465,8 +520,12 @@ def reject_sample(request):
 
 def get_envelope_details(request):
 	envelope_number = request.GET.get('envelope_number')
+	if vl_services.is_hiv_program(request):
+		return HttpResponse(json.dumps(vl_services.get_envelope_details(envelope_number)))
 	ret = []
 	envelope = Envelope.objects.filter(id__gte=settings.ENVELOPE_SAMPLES_CUT_OFF,envelope_number=envelope_number).first()
+	if envelope is None:
+		envelope = Envelope.objects.filter(envelope_number=envelope_number).first()
 	env_status_update = request.GET.get('env_status_update')
 	env_id = ''
 	date_received = ''
@@ -528,6 +587,9 @@ def update_env_status(envelope,update_env_status):
 
 def get_tracking_code_details(request):
 	code = request.GET.get('code')
+	if vl_services.is_hiv_program(request):
+		tr = vl_services.get_or_create_tracking_code(code, request.user)
+		return HttpResponse(json.dumps({'tracking_code_id': tr.id}))
 	ret = []
 	tr = TrackingCode.objects.filter(code=code).first()
 	if tr is None:
@@ -558,6 +620,60 @@ def get_tracking_code_details(request):
 
 @transaction.atomic
 def receive_batch(request,ret_to_fun = 0):
+	if vl_services.is_hiv_program(request):
+		if request.method == 'POST' or ret_to_fun:
+			try:
+				sample = vl_services.receive_sample(request.POST, request.user)
+				ret = {
+					'saved_sample': sample.id,
+					'env_id': sample.envelope_id,
+					'tracking_code_id': sample.tracking_code_id,
+					's_barcode': sample.barcode,
+					'err_msg': '',
+				}
+				if ret_to_fun:
+					return sample
+				return HttpResponse(json.dumps(ret))
+			except Exception as e:
+				ret = {
+					'saved_sample': '',
+					'env_id': request.POST.get('envelope_id'),
+					'tracking_code_id': request.POST.get('tracking_code_id'),
+					's_barcode': request.POST.get('the_barcode', ''),
+					'err_msg': str(e),
+				}
+				return HttpResponse(json.dumps(ret))
+		saved_sample = request.GET.get('saved_sample')
+		tr_code_id = request.GET.get('tr_code_id')
+		env_id = request.GET.get('env_id')
+		current_tr_code = request.GET.get('current_tr_code') or ''
+		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		context = {
+			'sample_reception_form': sample_reception_form,
+			'tr_code_id': tr_code_id,
+			'env_id':env_id,
+			'current_tr_code':current_tr_code,
+			'reception_id':'',
+			'pending_reception':[],
+			'pending_reception_count':0,
+			'min_no_envelopes_pending':settings.MIN_NO_ENVELOPES_PENDING,
+			'envelope_samples': vl_services.get_envelope_samples(env_id),
+			'last_received_barcode': request.GET.get('last_barcode', ''),
+		}
+		if saved_sample:
+			sample = vl_services.get_adapted_sample(saved_sample)
+			if sample and not env_id and sample.envelope_id:
+				env_id = sample.envelope_id
+			if sample and not tr_code_id and getattr(sample, 'tracking_code_id', None):
+				tr_code_id = sample.tracking_code_id
+			context.update({
+				'sample': sample,
+				'tr_code_id': tr_code_id,
+				'env_id': env_id,
+				'envelope_samples': vl_services.get_envelope_samples(sample.envelope_id if sample else env_id),
+				'last_received_barcode': sample.barcode if sample and sample.barcode else request.GET.get('last_barcode', ''),
+			})
+		return render(request, 'samples/receive_bactch.html', context)
 	
 	saved_sample = request.GET.get('saved_sample')
 	tr_code_id = request.GET.get('tr_code_id')
@@ -627,6 +743,10 @@ def receive_batch(request,ret_to_fun = 0):
 			s.facility_reference = facility_ref
 			if sample_only:
 				s.is_data_entered = 1
+				s.verified = 1
+			else:
+				s.is_data_entered = 0
+				s.verified = 0
 			s.received_by = request.user
 			s.save()
 			update_envelope_program_code(env_id, get_session_program_code(request))
@@ -691,6 +811,8 @@ def receive_batch(request,ret_to_fun = 0):
 		'pending_reception':pending_reception,
 		'pending_reception_count':pending_reception.count(),
 		'min_no_envelopes_pending':settings.MIN_NO_ENVELOPES_PENDING,
+		'envelope_samples': [],
+		'last_received_barcode': request.GET.get('last_barcode', ''),
 	}
 	
 	if saved_sample:
@@ -699,7 +821,11 @@ def receive_batch(request,ret_to_fun = 0):
 			env_id = sample.envelope_id
 		if sample and not tr_code_id and sample.tracking_code_id:
 			tr_code_id = sample.tracking_code_id
-		context.update({'sample':sample,'tr_code_id':tr_code_id,'env_id':env_id})
+		envelope_samples = sample.envelope.sample_set.all().order_by('locator_position') if sample and sample.envelope_id else []
+		context.update({'sample':sample,'tr_code_id':tr_code_id,'env_id':env_id,'envelope_samples': envelope_samples,'last_received_barcode': sample.barcode if sample and sample.barcode else request.GET.get('last_barcode', '')})
+	elif env_id:
+		envelope = Envelope.objects.filter(pk=env_id).first()
+		context.update({'envelope_samples': envelope.sample_set.all().order_by('locator_position') if envelope else []})
 
 	return render(request, 'samples/receive_bactch.html', context)
 	
@@ -712,6 +838,8 @@ def receive_hie(request):
 	current_tr_code = request.GET.get('current_tr_code')
 	facility_reference = request.GET.get('facility_reference')
 	if facility_reference is not None:
+		if vl_services.is_hiv_program(request):
+			return HttpResponse(json.dumps(vl_services.get_receive_hie_details(facility_reference)))
 		
 		s = Sample.objects.filter(facility_reference=facility_reference).first()
 		mismatch_message = get_program_mismatch_message(request, get_sample_program_code(s), 'sample')
@@ -863,6 +991,19 @@ def receive_hie(request):
 @transaction.atomic
 def create_range(request):		
 	users = User.objects.all()
+	if vl_services.is_hiv_program(request):
+		if request.method == 'POST':
+			try:
+				vl_services.create_range(request.POST, request.user)
+				return redirect('/samples/create_range/')
+			except Exception as e:
+				return HttpResponse(str(e), status=400)
+		return render(request, 'samples/create_range.html', {
+			'users':users,
+			'years': range(int((datetime.now().strftime('%y')))-1, int((datetime.now().strftime('%y')))+1),
+			'months': utils.get_months(),
+			'logged_in_user_id': request.user.id,
+		})
 	if request.method == 'POST':
 		year_month = request.POST.get('year')+request.POST.get('month')
 		l_limit = int(request.POST.get('lower_limit'))
@@ -1573,6 +1714,25 @@ def intervene_list(request):
 	return render(request, 'samples/intervene_list.html', {'intervene_rejects':intervene_rejects})
 
 def search(request):
+	if vl_services.is_hiv_program(request):
+		search = request.GET.get('search_val')
+		approvals = request.GET.get('approvals')
+		remove_sample = request.GET.get('remove_sample')
+		switch_sample = request.GET.get('switch_sample')
+		with_results = request.GET.get('with_results')
+		search_env = request.GET.get('search_env')
+		search_sample = request.GET.get('search_sample')
+		samples = vl_services.search_samples(search, search_env=bool(search_env), search_sample=bool(search_sample))
+		if switch_sample:
+			return render(request, 'samples/switch_samples.html', {'samples':samples, 'approvals':approvals,'switch_sample':switch_sample,'envelope_id':''})
+		elif with_results:
+			return render(request, 'samples/with_results.html', {'samples':samples, 'approvals':approvals,'with_results':with_results,'envelope_id':''})
+		return render(request, 'samples/search.html', {
+			'samples':samples,
+			'approvals':approvals,
+			'remove_sample':remove_sample,
+			'switch_sample':switch_sample,
+		})
 	cond = Q()
 	search = request.GET.get('search_val')
 	approvals = request.GET.get('approvals')
@@ -1825,6 +1985,30 @@ def receive_sample_only(request):
 	if current_tr_code is None:
 		current_tr_code = ''
 	if request.method == 'POST':
+		if vl_services.is_hiv_program(request):
+			try:
+				sample = vl_services.receive_sample_only(request.POST, request.user)
+				ret = {
+					'saved_sample': sample.id,
+					'env_id': sample.envelope_id,
+					'tracking_code_id': sample.tracking_code_id,
+					's_barcode': sample.barcode,
+					'receipt_type': 'hie',
+					'message_type': 'success',
+					'err_msg': 'saved'
+				}
+				return HttpResponse(json.dumps(ret))
+			except Exception as e:
+				ret = {
+					'saved_sample':'',
+					'env_id':request.POST.get('envelope_id'),
+					'tracking_code_id':request.POST.get('tracking_code_id'),
+					's_barcode':request.POST.get('the_barcode', ''),
+					'receipt_type':'hie',
+					'message_type':'err',
+					'err_msg':str(e)
+				}
+				return HttpResponse(json.dumps(ret))
 		pst = request.POST
 		date_collected = posted_date(request.POST, 'date_collected')
 		sample_reception_form = SampleReceptionForm(pst)
@@ -1955,6 +2139,12 @@ def receive_sample_only(request):
 	else:
 		d = datetime.now()
 		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		envelope_samples = []
+		if vl_services.is_hiv_program(request):
+			envelope_samples = vl_services.get_envelope_samples(env_id)
+		elif env_id:
+			envelope = Envelope.objects.filter(pk=env_id).first()
+			envelope_samples = envelope.sample_set.all().order_by('barcode') if envelope else []
 
 		context = {
 			'sample_reception_form': sample_reception_form,
@@ -1963,11 +2153,21 @@ def receive_sample_only(request):
 			'current_tr_code':current_tr_code,
 			'reception_id':'',
 			'message_type':'',
+			'envelope_samples': envelope_samples,
+			'last_received_barcode': request.GET.get('last_barcode', ''),
 		}
 
 	if saved_sample:
-		sample = Sample.objects.filter(pk=saved_sample).first()
-		context.update({'sample':sample,'tr_code_id':tr_code_id,'env_id':env_id,})
+		if vl_services.is_hiv_program(request):
+			sample = vl_services.get_adapted_sample(saved_sample)
+			envelope_samples = vl_services.get_envelope_samples(sample.envelope_id if sample else env_id)
+			last_received_barcode = sample.barcode if sample and sample.barcode else request.GET.get('last_barcode', '')
+			context.update({'sample':sample,'tr_code_id':tr_code_id,'env_id':env_id,'envelope_samples': envelope_samples,'last_received_barcode': last_received_barcode})
+		else:
+			sample = Sample.objects.filter(pk=saved_sample).first()
+			envelope_samples = sample.envelope.sample_set.all().order_by('barcode') if sample and sample.envelope_id else []
+			last_received_barcode = sample.barcode if sample and sample.barcode else request.GET.get('last_barcode', '')
+			context.update({'sample':sample,'tr_code_id':tr_code_id,'env_id':env_id,'envelope_samples': envelope_samples,'last_received_barcode': last_received_barcode})
 
 	return render(request, 'samples/receive_sample_only.html', context)
 
