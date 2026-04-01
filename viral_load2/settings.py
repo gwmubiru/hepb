@@ -117,6 +117,30 @@ DATABASES = {
 	}
 }
 
+DATABASES['hepb'] = {
+	'ENGINE': 'django.db.backends.mysql',
+	'OPTIONS': {
+		'sql_mode': 'traditional',
+	},
+	'NAME': os.getenv('DB_NAME'),
+	'USER': os.getenv('DB_USER'),
+	'PASSWORD': os.getenv('DB_PASSWORD'),
+	'HOST': os.getenv('DB_HOST'),
+	'PORT': os.getenv('DB_PORT'),
+}
+
+DATABASES['hepc'] = {
+	'ENGINE': 'django.db.backends.mysql',
+	'OPTIONS': {
+		'sql_mode': 'traditional',
+	},
+	'NAME': os.getenv('HEPC_DB_NAME', os.getenv('DB_NAME')),
+	'USER': os.getenv('HEPC_DB_USER', os.getenv('DB_USER')),
+	'PASSWORD': os.getenv('HEPC_DB_PASSWORD', os.getenv('DB_PASSWORD')),
+	'HOST': os.getenv('HEPC_DB_HOST', os.getenv('DB_HOST')),
+	'PORT': os.getenv('HEPC_DB_PORT', os.getenv('DB_PORT')),
+}
+
 DATABASES['vl_lims'] = {
 	'ENGINE': 'django.db.backends.mysql',
 	'OPTIONS': {
@@ -126,6 +150,18 @@ DATABASES['vl_lims'] = {
 	'USER': os.getenv('VL_DB_USER'),
 	'PASSWORD': os.getenv('VL_DB_PASSWORD'),
 	'HOST': os.getenv('VL_DB_HOST'),
+	'PORT': os.getenv('VL_DB_PORT'),
+}
+
+DATABASES['old_db'] = {
+	'ENGINE': 'django.db.backends.mysql',
+	'OPTIONS': {
+		'sql_mode': 'traditional',
+	},
+	'NAME': os.getenv('OLD_DB_NAME'),
+	'USER': os.getenv('OLD_DB_USER'),
+	'PASSWORD': os.getenv('OLD_DB_PASSWORD'),
+	'HOST': os.getenv('OLD_DB_HOST'),
 }
 
 DATABASE_ROUTERS = ['vl.router.VLRouter']

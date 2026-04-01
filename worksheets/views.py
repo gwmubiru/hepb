@@ -22,6 +22,7 @@ from django.core import serializers
 
 from home import utils
 from home import programs
+from home import db_aliases
 from backend.models import DeleteLog, Facility
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample, WorksheetPrinting,ResultRunDetail, MACHINE_TYPES,WorksheetEnvelope
@@ -44,6 +45,10 @@ from django.db import transaction
 from django.db import connections
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import *
+
+
+def get_program_db_alias(request):
+	return db_aliases.get_program_db_alias(programs.get_active_program_code(request))
 
 # Create your views here.
 
@@ -894,6 +899,7 @@ def create(request,sample_type):
 		return render(request, 'worksheets/create.html', {'global_search':search_val,'is_lab_completed':is_lab_completed ,'sample_type':sample_type,'users':users})
 	
 	if request.method == 'POST':
+		db_alias = get_program_db_alias(request)
 		generator_id = int(request.POST.get('generated_by_id'))
 		worksheet = Worksheet()
 		worksheet.sample_type = sample_type
@@ -908,8 +914,8 @@ def create(request,sample_type):
 		envelope_ids = request.POST.getlist('envelope_ids')
 		worksheet_samples = []
 		for envelope_id in envelope_ids:
-			envelope_samples = Sample.objects.filter(envelope_id =envelope_id,stage=0)
-			env = Envelope.objects.get(pk=envelope_id)
+			envelope_samples = Sample.objects.using(db_alias).filter(envelope_id =envelope_id,stage=0)
+			env = Envelope.objects.using(db_alias).get(pk=envelope_id)
 			env.processed_at = dtime.now()
 			env.save()
 
@@ -1006,6 +1012,7 @@ def __get_worksheet_envelope_samples(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
 	sample_type = request.GET.get('sample_type')
+	db_alias = get_program_db_alias(request)
 	search = r.get(u'search[value]')
 	global_search = r.get(u'global_search[value]')
 	if global_search:
@@ -1021,8 +1028,8 @@ def __get_worksheet_envelope_samples(r,request):
 
 	s_count = models.Count(Case(When(Q(sample__locator_category='V') & Q(sample__stage=0), then=1),output_field=IntegerField()))
 
-	data = Envelope.objects.annotate(s_count=s_count).filter(f_query).exclude(s_count=0).order_by('created_at')[start:start+length]
+	data = Envelope.objects.using(db_alias).annotate(s_count=s_count).filter(f_query).exclude(s_count=0).order_by('created_at')[start:start+length]
 
 	recordsTotal =  data.count()
-	recordsFiltered = recordsTotal if not f_query else Envelope.objects.filter(f_query).count()
+	recordsFiltered = recordsTotal if not f_query else Envelope.objects.using(db_alias).filter(f_query).count()
 	return {'envelopes_data':data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
