@@ -16,6 +16,7 @@ from django.forms import *
 from .forms import *
 from home import utils
 from home import programs
+from home import db_aliases
 from . import utils as sample_utils
 from django.db import connections
 from django.db import transaction
@@ -44,6 +45,25 @@ def posted_date(post_data, field_name):
 def get_session_program_code(request):
 	code = programs.get_active_program_code(request)
 	return int(code) if code else None
+
+
+def get_dropdown_db_alias(request):
+	return db_aliases.get_program_db_alias(programs.get_active_program_code(request))
+
+
+def get_facilities_qs(request):
+	return Facility.objects.using(get_dropdown_db_alias(request)).values('id', 'facility')
+
+
+def get_regimens_qs(request):
+	return Appendix.objects.using(get_dropdown_db_alias(request)).filter(appendix_category=3)
+
+
+def bind_past_regimens_formset(formset, db_alias):
+	for form in formset.forms:
+		if 'regimen' in form.fields:
+			form.fields['regimen'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=3)
+	return formset
 
 
 def get_program_label(program_code):
@@ -87,7 +107,7 @@ def lock_envelope_to_session_program(request, envelope_id):
 @permission_required('samples.add_sample', login_url='/login/')
 @transaction.atomic
 def create(request):
-	facilities = Facility.objects.values('id', 'facility')
+	facilities = get_facilities_qs(request)
 	saved_sample = request.GET.get('saved_sample')
 	page_type = request.GET.get('page_type')
 	PastRegimensFormSet = modelformset_factory(PastRegimens, PastRegimensForm, extra=5)
@@ -102,6 +122,7 @@ def create(request):
 
 def handle_post_request(request, facilities, PastRegimensFormSet,treatment_indication_options,treatment_indication_selected_options,selected_treatment_ids):
     pst = request.POST.copy()
+    db_alias = get_dropdown_db_alias(request)
     patient_form = PatientForm(pst)
     envelope_form = EnvelopeForm(pst)
     preliminary_findings_form = PreliminaryFindingsForm(pst)
@@ -110,11 +131,11 @@ def handle_post_request(request, facilities, PastRegimensFormSet,treatment_indic
     page_type = pst.get('page_type')
     if sample_id:
     	sample_instance = Sample.objects.filter(pk=sample_id).first()
-    	sample_form = SampleForm(pst, instance=sample_instance)
+    	sample_form = SampleForm(pst, instance=sample_instance, db_alias=db_alias)
     else:
-    	sample_form = SampleForm(pst)
+    	sample_form = SampleForm(pst, db_alias=db_alias)
     drug_resistance_form = DrugResistanceRequestForm(pst)
-    past_regimens_formset = PastRegimensFormSet(pst)
+    past_regimens_formset = bind_past_regimens_formset(PastRegimensFormSet(pst), db_alias)
    
     if SampleService.validate_forms(patient_form, preliminary_findings_form,envelope_form, sample_form, drug_resistance_form, past_regimens_formset, pst):
     	if vl_services.is_hiv_program(request):
@@ -218,15 +239,16 @@ def save_form_using_external_api(pst,user_id,sample):
 
 def handle_get_request(request, facilities, saved_sample, page_type, PastRegimensFormSet,treatment_indication_options,treatment_indication_selected_options,selected_treatment_ids):
     barcode = ''
+    db_alias = get_dropdown_db_alias(request)
     if request.GET.get('barcode'):
     	barcode = request.GET.get('barcode')
 
     envelope_form = EnvelopeForm(initial={'envelope_number': sample_utils.initial_env_number()})
     patient_form = PatientForm
     preliminary_findings_form = PreliminaryFindingsForm
-    sample_form = SampleForm(initial={'barcode': barcode,'locator_category': 'V', 'date_collected': datetime.now().strftime("%d/%m/%Y")})
+    sample_form = SampleForm(initial={'barcode': barcode,'locator_category': 'V', 'date_collected': datetime.now().strftime("%d/%m/%Y")}, db_alias=db_alias)
     drug_resistance_form = DrugResistanceRequestForm
-    past_regimens_formset = PastRegimensFormSet(queryset=PastRegimens.objects.none())
+    past_regimens_formset = bind_past_regimens_formset(PastRegimensFormSet(queryset=PastRegimens.objects.none()), db_alias)
     return render_create_page(request, facilities, envelope_form, patient_form,preliminary_findings_form, sample_form, drug_resistance_form, past_regimens_formset, page_type,treatment_indication_options,treatment_indication_selected_options,selected_treatment_ids)
 
 def render_create_page(request, facilities, envelope_form, patient_form, preliminary_findings_form,sample_form, drug_resistance_form, past_regimens_formset, page_type='',treatment_indication_options=None,treatment_indication_selected_options=None,selected_treatment_ids=None):
@@ -241,7 +263,7 @@ def render_create_page(request, facilities, envelope_form, patient_form, prelimi
         'sample_form': sample_form,
         'drug_resistance_form': drug_resistance_form,
         'past_regimens_formset': past_regimens_formset,
-        'regimens': Appendix.objects.filter(appendix_category=3),
+        'regimens': get_regimens_qs(request),
         'facilities': facilities,
         'null_dob': None,
 		'null_treatment_initiation_date':None,
@@ -1138,10 +1160,14 @@ def edit(request, sample_id):
 	preliminary_findings = PreliminaryFindingsForm(instance=preliminary_findings_instance)
 	if patient:
 		sample.facility = patient.facility
-	sample_form = SampleForm(instance=sample)
+	db_alias = get_dropdown_db_alias(request)
+	sample_form = SampleForm(instance=sample, db_alias=db_alias)
 	drug_resistance_form = DrugResistanceRequestForm(instance=drug_resistance)
-	past_regimens_formset = PastRegimensFormSet(queryset=PastRegimens.objects.filter(drug_resistance_request=drug_resistance))
-	facilities = Facility.objects.values('id','facility')
+	past_regimens_formset = bind_past_regimens_formset(
+		PastRegimensFormSet(queryset=PastRegimens.objects.filter(drug_resistance_request=drug_resistance)),
+		db_alias,
+	)
+	facilities = get_facilities_qs(request)
 
 	context = {
 		'sample_id': sample_id,
@@ -1152,13 +1178,13 @@ def edit(request, sample_id):
 		'vsi': sample.vl_sample_id,
 		'drug_resistance_form': drug_resistance_form,
 		'past_regimens_formset': past_regimens_formset,
-		'facilities': Facility.objects.all(),
-		'regimens': Appendix.objects.filter(appendix_category=3),
+		'facilities': facilities,
+		'regimens': get_regimens_qs(request),
 		'intervene': intervene,
 		'date_received': date_received,
 		'from_page': request.GET.get('from_page'),
 		'page_type': 2,
-		'facilities':Facility.objects.values('id','facility'),
+		'facilities': facilities,
 		'treatment_indication_options': utils.TREATMENT_INFO_OPTIONS,
 		'selected_treatment_ids': '',
 	}
@@ -1509,7 +1535,8 @@ def verify_list(request):
 	facility_id = request.GET.get('facility_id')
 	verified = int(request.GET.get('verified'))
 	envelope_id = request.GET.get('envelope_id')
-	facilities = Facility.objects.all()
+	db_alias = get_dropdown_db_alias(request)
+	facilities = Facility.objects.using(db_alias).all()
 	if verified:
 		filters = Q(verified = 1,is_data_entered = 1,required_verification = 1)
 	else:
@@ -1520,7 +1547,7 @@ def verify_list(request):
 	if facility_id:
 		filters = filters & Q(facility_id=int(facility_id))
 	#return HttpResponse(filters)
-	samples = programs.filter_queryset_by_program(request, Sample.objects.filter(filters), 'program_code').order_by('barcode')
+	samples = programs.filter_queryset_by_program(request, Sample.objects.using(db_alias).filter(filters), 'program_code').order_by('barcode')
 	
 	page = request.GET.get('page', 1)
 	paginator = Paginator(samples, 100)
@@ -1743,15 +1770,16 @@ def search(request):
 	search_sample = request.GET.get('search_sample')
 	env_id = ''
 	samples = None
+	db_alias = get_dropdown_db_alias(request)
 	if search:
 		search = search.strip()
 		if search_env:
-			env = Envelope.objects.filter(sample_utils.env_cond(search)).first()
+			env = Envelope.objects.using(db_alias).filter(sample_utils.env_cond(search)).first()
 			
 			if env:
 				env_id = env.id
 				search = search.replace("-","")
-				samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
+				samples = Sample.objects.using(db_alias).filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 		else:
 			if search_sample:
@@ -1760,13 +1788,13 @@ def search(request):
 					sample_utils.exact_or_legacy_duplicate_cond('barcode', search) |
 					sample_utils.exact_or_legacy_duplicate_cond('form_number', search)
 				)
-				samples = Sample.objects.filter(direct_lookup).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
+				samples = Sample.objects.using(db_alias).filter(direct_lookup).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 			else:
 				fn_cond = Q(form_number__icontains=search)
 				loc_cond = sample_utils.locator_cond(search)
 				cond = fn_cond | loc_cond if loc_cond else fn_cond
-				samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
+				samples = Sample.objects.using(db_alias).filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 	if samples is not None:
 		filtered_samples = programs.filter_queryset_by_program(request, samples, 'program_code')

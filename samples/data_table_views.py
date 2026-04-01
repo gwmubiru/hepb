@@ -9,6 +9,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Sample, Envelope
 from home import utils
 from home import programs
+from home import db_aliases
 #import utils as sample_utils
 from . import utils as sample_utils
 from datetime import datetime, date, timedelta
@@ -36,6 +37,9 @@ class ListJson(BaseDatatableView):
 	]
 
 	max_display_length = 500		
+
+	def get_initial_queryset(self):
+		return Sample.objects.using(db_aliases.get_program_db_alias(programs.get_active_program_code(self.request))).all()
 
 	def render_column(self, row, column):
 		verified = self.request.GET.get('verified')
@@ -131,6 +135,9 @@ class VerifyListJson(BaseDatatableView):
 		 'pk']
 	order_columns = ['form_number', 'barcode']
 	max_display_length = 500
+
+	def get_initial_queryset(self):
+		return Sample.objects.using(db_aliases.get_program_db_alias(programs.get_active_program_code(self.request))).all()
 	def render_column(self, row, column):
 		if(column == 'pk'):
 			url = "/samples/verify/{0}".format(row.pk)
@@ -176,6 +183,7 @@ def envelope_list_json(request):
 def __get_envelopes(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
+	db_alias = db_aliases.get_program_db_alias(programs.get_active_program_code(request))
 	f_query = Q(sample_medical_lab=utils.user_lab(request))
 	active_program_code = programs.get_active_program_code(request)
 	if active_program_code:
@@ -185,10 +193,10 @@ def __get_envelopes(r,request):
 	p_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
 	entered_count = models.Count(models.Case(models.When(sample__is_data_entered=True, then=1)))
 
-	data = Envelope.objects.annotate(s_count=s_count, entered_count=entered_count, p_count=p_count,).filter(f_query).order_by('-created_at')[start:start+length]
+	data = Envelope.objects.using(db_alias).annotate(s_count=s_count, entered_count=entered_count, p_count=p_count,).filter(f_query).order_by('-created_at')[start:start+length]
 
-	recordsTotal =  Envelope.objects.count()
-	recordsFiltered = recordsTotal if not f_query else Envelope.objects.filter(f_query).count()
+	recordsTotal =  Envelope.objects.using(db_alias).count()
+	recordsFiltered = recordsTotal if not f_query else Envelope.objects.using(db_alias).filter(f_query).count()
 	return {'envelopes_data':data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 
 
@@ -231,11 +239,12 @@ def __get_samples(r, request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
 	filter_query = __get_filter_query(r, request)
+	db_alias = db_aliases.get_program_db_alias(programs.get_active_program_code(request))
 
-	samples_data = Sample.objects.filter(filter_query).order_by('-envelope__envelope_number')[start:start+length]
+	samples_data = Sample.objects.using(db_alias).filter(filter_query).order_by('-envelope__envelope_number')[start:start+length]
 
-	recordsTotal =  Sample.objects.count()
-	recordsFiltered = recordsTotal if not filter_query else Sample.objects.filter(filter_query).count()
+	recordsTotal =  Sample.objects.using(db_alias).count()
+	recordsFiltered = recordsTotal if not filter_query else Sample.objects.using(db_alias).filter(filter_query).count()
 	return {'samples_data':samples_data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 
 def __get_filter_query(r, request):

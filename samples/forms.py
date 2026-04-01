@@ -6,30 +6,21 @@ from django.db.models import Q
 from backend.models import Appendix, Facility
 from .models import *
 from home import utils
+from home import db_aliases
 from . import utils as sample_utils
 from django.core.cache import cache
 
 
-def appendix_field(category, required=True, attrs=False):
-		queryset = Appendix.objects.filter(
-						appendix_category_id=category
-						)
-		if not attrs:
-			attrs = utils.ATTRS if required else utils.ATTRS_OPTIONAL
-		widget = forms.Select(attrs=attrs)
-		return forms.ModelChoiceField(queryset=queryset, widget=widget)
-
-
-def appendix_field(category, required=True, attrs=False):
-	cache_key = f"appendix_category_{category}"
+def appendix_field(category, required=True, attrs=False, db_alias='default'):
+	cache_key = f"appendix_category_{db_alias}_{category}"
 	queryset = cache.get(cache_key)
 	if queryset is None:
-		queryset = list(Appendix.objects.filter(appendix_category_id=category))
+		queryset = list(Appendix.objects.using(db_alias).filter(appendix_category_id=category))
 		cache.set(cache_key, queryset, timeout=3600)  # cache for 1 hour
 	if not attrs:
 		attrs = utils.ATTRS if required else utils.ATTRS_OPTIONAL
 	widget = forms.Select(attrs=attrs)
-	return forms.ModelChoiceField(queryset=Appendix.objects.filter(pk__in=[obj.pk for obj in queryset]),
+	return forms.ModelChoiceField(queryset=Appendix.objects.using(db_alias).filter(pk__in=[obj.pk for obj in queryset]),
    
                                 widget=widget, required=required)
 
@@ -151,6 +142,11 @@ class PatientExistsFacilityForm(forms.ModelForm):
 	def clean(self):
 		cleaned_data = self.cleaned_data
 
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(PatientExistsFacilityForm, self).__init__(*args, **kwargs)
+		self.fields['facility'].queryset = Facility.objects.using(db_alias).all()
+
 class EnvelopeForm(forms.ModelForm):
 	class Meta:
 		model = Envelope
@@ -262,6 +258,16 @@ class SampleForm(forms.ModelForm):
 			'reason_for_vl':'Reason for VL',
 			}
 
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(SampleForm, self).__init__(*args, **kwargs)
+		self.fields['facility'].queryset = Facility.objects.using(db_alias).all()
+		self.fields['current_regimen'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=3)
+		self.fields['treatment_indication'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=6)
+		self.fields['failure_reason'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=2)
+		self.fields['tb_treatment_phase'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=5)
+		self.fields['arv_adherence'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=1)
+
 	def clean(self):
 		cleaned_data = self.cleaned_data
 
@@ -330,6 +336,11 @@ class SampleReceptionForm(forms.ModelForm):
 			'barcode':'Locator ID',
 			}
 
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(SampleReceptionForm, self).__init__(*args, **kwargs)
+		self.fields['facility'].queryset = Facility.objects.using(db_alias).all()
+
 	def clean(self):
 		cleaned_data = self.cleaned_data
 		#self.cleaned_data['date_collected'] = sample_utils.get_mysql_from_uk_date(cleaned_data.get('date_collected'))
@@ -370,3 +381,8 @@ class PastRegimensForm(forms.ModelForm):
 			'start_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'stop_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			}
+
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(PastRegimensForm, self).__init__(*args, **kwargs)
+		self.fields['regimen'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=3)
