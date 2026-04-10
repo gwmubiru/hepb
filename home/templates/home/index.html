@@ -11,6 +11,7 @@
 <div ng-app="vl_home" ng-controller="HomeController" class="ng-cloak">
 {% include "home/_sample_stats.html" %}
 {% include "home/_approval_stats.html" %}
+{% include "home/_operational_stats.html" %}
 </div>
 
 <script type="text/javascript">
@@ -40,6 +41,162 @@ app.controller(ctrller);
 
 .stat_box{
 	height: 70px;
+}
+.ops-dashboard{
+	margin-top: 24px;
+}
+.ops-header{
+	align-items: stretch;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	justify-content: space-between;
+	margin-bottom: 18px;
+}
+.ops-header h2{
+	font-size: 24px;
+	margin: 0 0 6px;
+}
+.ops-header p{
+	color: #6b7786;
+	margin: 0;
+}
+.ops-db-label{
+	background: rgba(0,0,0,0.06);
+	border-radius: 999px;
+	display: inline-block;
+	font-size: 11px;
+	margin-left: 8px;
+	padding: 3px 9px;
+	text-transform: uppercase;
+}
+.ops-trend-summary{
+	margin-bottom: 0;
+	min-width: 320px;
+}
+.ops-trend-summary-inner{
+	padding: 16px 18px;
+}
+.ops-kicker{
+	color: #6b7786;
+	display: block;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	margin-bottom: 6px;
+	text-transform: uppercase;
+}
+.ops-summary-value{
+	font-size: 34px;
+	font-weight: 700;
+	line-height: 1;
+	margin-bottom: 8px;
+}
+.ops-summary-meta{
+	color: #6b7786;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.ops-delta-up{
+	color: #2f8f46;
+}
+.ops-delta-down{
+	color: #c0392b;
+}
+.ops-card-grid{
+	margin-bottom: 10px;
+}
+.ops-card{
+	border-radius: 12px;
+	margin-bottom: 16px;
+	min-height: 132px;
+	overflow: hidden;
+}
+.ops-card-icon{
+	color: rgba(255,255,255,0.9);
+	font-size: 26px;
+	padding: 14px 16px 0;
+}
+.ops-card-body{
+	padding: 6px 16px 18px;
+}
+.ops-card-label{
+	color: rgba(255,255,255,0.86);
+	display: block;
+	font-size: 13px;
+	line-height: 1.4;
+	max-width: 220px;
+}
+.ops-card-value{
+	color: #fff;
+	display: block;
+	font-size: 32px;
+	font-weight: 700;
+	line-height: 1;
+	margin-top: 14px;
+}
+.ops-card-grid .col-lg-3:nth-child(1) .ops-card{
+	background: linear-gradient(135deg, #2f80ed, #3f5bd6);
+}
+.ops-card-grid .col-lg-3:nth-child(2) .ops-card{
+	background: linear-gradient(135deg, #8e44ad, #5e35b1);
+}
+.ops-card-grid .col-lg-3:nth-child(3) .ops-card{
+	background: linear-gradient(135deg, #f39c12, #d35400);
+}
+.ops-card-grid .col-lg-3:nth-child(4) .ops-card{
+	background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+.ops-trend-panel{
+	border-radius: 12px;
+	overflow: hidden;
+}
+.ops-trend-chart{
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+.ops-trend-row{
+	align-items: center;
+	display: grid;
+	gap: 12px;
+	grid-template-columns: 90px 1fr 70px;
+}
+.ops-trend-label{
+	color: #556170;
+	font-size: 13px;
+	font-weight: 600;
+}
+.ops-trend-bar-shell{
+	background: #edf1f5;
+	border-radius: 999px;
+	height: 14px;
+	overflow: hidden;
+}
+.ops-trend-bar{
+	background: linear-gradient(90deg, var(--program-bg), var(--program-hover));
+	border-radius: 999px;
+	height: 100%;
+	min-width: 8px;
+}
+.ops-trend-count{
+	color: #2b3440;
+	font-size: 13px;
+	font-weight: 700;
+	text-align: right;
+}
+.ops-loading{
+	color: #6b7786;
+	padding: 8px 0;
+}
+@media (max-width: 767px){
+	.ops-trend-summary{
+		min-width: 0;
+		width: 100%;
+	}
+	.ops-trend-row{
+		grid-template-columns: 72px 1fr 54px;
+	}
 }
 </style>				
 
