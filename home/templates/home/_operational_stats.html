@@ -1,0 +1,97 @@
+<div class="ops-dashboard">
+	<div class="ops-header">
+		<div>
+			<h2>Operational Snapshot</h2>
+			<p>
+				<% stats.program.label || 'Selected Program' %>
+				<span class="ops-db-label">DB: <% stats.program.db_alias || 'default' %></span>
+			</p>
+		</div>
+		<div class="ops-trend-summary panel panel-default">
+			<div class="ops-trend-summary-inner">
+				<span class="ops-kicker">Samples Tested</span>
+				<div class="ops-summary-value">
+					<span class="ion-loading-a" ng-if="still_loading"></span>
+					<% stats.operations.tested_trend_summary.current_value|number %>
+				</div>
+				<div class="ops-summary-meta">
+					<span><% stats.operations.tested_trend_summary.current_label %></span>
+					<span ng-class="{'ops-delta-up': stats.operations.tested_trend_summary.change_vs_previous >= 0, 'ops-delta-down': stats.operations.tested_trend_summary.change_vs_previous < 0}">
+						<% stats.operations.tested_trend_summary.change_vs_previous > 0 ? '+' : '' %><% stats.operations.tested_trend_summary.change_vs_previous|number %>
+						(<% stats.operations.tested_trend_summary.change_vs_previous_pct %>%)
+						vs <% stats.operations.tested_trend_summary.previous_label %>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row ops-card-grid">
+		<div class="col-lg-3 col-sm-6">
+			<div class="panel panel-default ops-card">
+				<div class="ops-card-icon"><i class="ion-loop"></i></div>
+				<div class="ops-card-body">
+					<span class="ops-card-label"><% stats.operations.tested_exactly_two.label %></span>
+					<span class="ops-card-value">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.operations.tested_exactly_two.value|number %>
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3 col-sm-6">
+			<div class="panel panel-default ops-card">
+				<div class="ops-card-icon"><i class="ion-stats-bars"></i></div>
+				<div class="ops-card-body">
+					<span class="ops-card-label"><% stats.operations.tested_more_than_two.label %></span>
+					<span class="ops-card-value">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.operations.tested_more_than_two.value|number %>
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3 col-sm-6">
+			<div class="panel panel-default ops-card">
+				<div class="ops-card-icon"><i class="ion-clock"></i></div>
+				<div class="ops-card-body">
+					<span class="ops-card-label"><% stats.operations.pending_testing_90_days.label %></span>
+					<span class="ops-card-value">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.operations.pending_testing_90_days.value|number %>
+					</span>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-3 col-sm-6">
+			<div class="panel panel-default ops-card">
+				<div class="ops-card-icon"><i class="ion-alert-circled"></i></div>
+				<div class="ops-card-body">
+					<span class="ops-card-label"><% stats.operations.without_results.label %></span>
+					<span class="ops-card-value">
+						<span class="ion-loading-a" ng-if="still_loading"></span>
+						<% stats.operations.without_results.value|number %>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="panel panel-default ops-trend-panel">
+		<div class="panel-heading">Three-Month Testing Trend</div>
+		<div class="panel-body">
+			<div class="ops-trend-chart" ng-if="!still_loading">
+				<div class="ops-trend-row" ng-repeat="item in stats.operations.tested_trend">
+					<div class="ops-trend-label"><% item.label %></div>
+					<div class="ops-trend-bar-shell">
+						<div class="ops-trend-bar" ng-style="{'width': item.width_pct + '%'}"></div>
+					</div>
+					<div class="ops-trend-count"><% item.count|number %></div>
+				</div>
+			</div>
+			<div class="ops-loading" ng-if="still_loading">
+				<span class="ion-loading-a"></span> Loading operational stats...
+			</div>
+		</div>
+	</div>
+</div>

@@ -4,11 +4,14 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout as auth_logout
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from home import utils
 from home import programs
+from home import db_aliases
 from samples.models import Sample, Verification, Patient, FacilityPatient
+from worksheets.models import WorksheetSample
+from results.models import Result
 from backend.models import DataEntryStats,Facility
 from backend.models import SampleApprovalStats
 from django.core.management.base import BaseCommand, CommandError
@@ -19,21 +22,110 @@ from django.db import connections
 def home(request):	
 	return render(request, 'home/index.html')
 
+
+def _shift_month_start(dt, months_back):
+	year = dt.year
+	month = dt.month - months_back
+	while month <= 0:
+		month += 12
+		year -= 1
+	return datetime.datetime(year, month, 1)
+
+
+def _next_month_start(dt):
+	if dt.month == 12:
+		return datetime.datetime(dt.year + 1, 1, 1)
+	return datetime.datetime(dt.year, dt.month + 1, 1)
+
+
+def _month_count(qs, field_name, start, end):
+	filters = {
+		'%s__gte' % field_name: start,
+		'%s__lt' % field_name: end,
+	}
+	return qs.filter(**filters).count()
+
+
+def _percent_change(current, previous):
+	if not previous:
+		return 0 if not current else 100
+	return int(round(((current - previous) * 100.0) / previous))
+
+
+def _program_scoped_queryset(model, request, field_name='program_code'):
+	program_code = programs.get_active_program_code(request)
+	db_alias = db_aliases.get_program_db_alias(program_code)
+	qs = model.objects.using(db_alias).all()
+	if program_code:
+		qs = qs.filter(**{field_name: int(program_code)})
+	return qs
+
+
 def quick_stats(request):
 	today = datetime.datetime.today()
 	last_month = utils.last_month()
+	month_start = datetime.datetime(today.year, today.month, 1)
+	last_month_start = _shift_month_start(month_start, 1)
+	two_months_ago_start = _shift_month_start(month_start, 2)
+	next_month_start = _next_month_start(month_start)
+	ninety_days_ago = today - datetime.timedelta(days=90)
 
 	last_month_filter = Q(created_at__year=last_month.get('year'), created_at__month=last_month.get('month'))
 	this_month_filter = Q(created_at__year=today.year, created_at__month=today.month)
 	today_filter =  Q(created_at__range=utils.today_range())
-	you_filter = Q(created_by=request.user)
+	you_filter = Q(created_by_id=request.user.id)
 
-	you_filter2 = Q(verified_by=request.user)
+	you_filter2 = Q(verified_by_id=request.user.id)
 
-	sample_qs = programs.filter_queryset_by_program(request, Sample.objects.all(), 'program_code')
-	verification_qs = programs.filter_queryset_by_program(request, Verification.objects.all(), 'sample__program_code')
+	program_code = programs.get_active_program_code(request)
+	db_alias = db_aliases.get_program_db_alias(program_code)
+	sample_qs = _program_scoped_queryset(Sample, request, 'program_code')
+	verification_qs = _program_scoped_queryset(Verification, request, 'sample__program_code')
+	worksheet_sample_qs = _program_scoped_queryset(WorksheetSample, request, 'sample__program_code').filter(sample__isnull=False)
+	result_qs = _program_scoped_queryset(Result, request, 'sample__program_code')
+
+	tested_exactly_two = worksheet_sample_qs.values('sample_id').annotate(total=Count('id')).filter(total=2).count()
+	tested_more_than_two = worksheet_sample_qs.values('sample_id').annotate(total=Count('id')).filter(total__gt=2).count()
+	samples_pending_testing = sample_qs.filter(stage__in=[0, 1], created_at__lt=ninety_days_ago).count()
+	samples_without_results = sample_qs.filter(stage__in=[0, 1, 2, 3, 4, 6]).count()
+
+	tested_current_month = result_qs.filter(
+		Q(test_date__gte=month_start, test_date__lt=next_month_start) |
+		Q(test_date__isnull=True, created_at__gte=month_start, created_at__lt=next_month_start)
+	).count()
+	tested_last_month = result_qs.filter(
+		Q(test_date__gte=last_month_start, test_date__lt=month_start) |
+		Q(test_date__isnull=True, created_at__gte=last_month_start, created_at__lt=month_start)
+	).count()
+	tested_two_months_ago = result_qs.filter(
+		Q(test_date__gte=two_months_ago_start, test_date__lt=last_month_start) |
+		Q(test_date__isnull=True, created_at__gte=two_months_ago_start, created_at__lt=last_month_start)
+	).count()
+
+	tested_trend = [
+		{
+			'label': two_months_ago_start.strftime('%b %Y'),
+			'count': tested_two_months_ago,
+		},
+		{
+			'label': last_month_start.strftime('%b %Y'),
+			'count': tested_last_month,
+		},
+		{
+			'label': month_start.strftime('%b %Y'),
+			'count': tested_current_month,
+		},
+	]
+	max_tested_trend = max([row['count'] for row in tested_trend] or [0])
+	for row in tested_trend:
+		row['width_pct'] = 0 if max_tested_trend == 0 else int(round((row['count'] * 100.0) / max_tested_trend))
 
 	stats = {
+		'program': {
+			'code': program_code,
+			'db_alias': db_alias,
+			'label': programs.template_context(request).get('active_program_label', ''),
+		},
 		'samples_everyone':{
 			'all':sample_qs.count(),
 			'last_month':sample_qs.filter(last_month_filter).count(),
@@ -57,7 +149,36 @@ def quick_stats(request):
 			'last_month':verification_qs.filter(you_filter2&last_month_filter).count(),
 			'this_month':verification_qs.filter(you_filter2&this_month_filter).count(),
 			'today':verification_qs.filter(you_filter2&today_filter).count()
-			}
+			},
+		'operations': {
+			'tested_exactly_two': {
+				'label': 'Samples tested two times',
+				'value': tested_exactly_two,
+			},
+			'tested_more_than_two': {
+				'label': 'Samples tested more than two times',
+				'value': tested_more_than_two,
+			},
+			'pending_testing_90_days': {
+				'label': 'Pending testing more than 90 days',
+				'value': samples_pending_testing,
+			},
+			'without_results': {
+				'label': 'Samples without results',
+				'value': samples_without_results,
+			},
+			'tested_trend': tested_trend,
+			'tested_trend_summary': {
+				'current_label': month_start.strftime('%b %Y'),
+				'current_value': tested_current_month,
+				'previous_label': last_month_start.strftime('%b %Y'),
+				'previous_value': tested_last_month,
+				'two_months_ago_label': two_months_ago_start.strftime('%b %Y'),
+				'two_months_ago_value': tested_two_months_ago,
+				'change_vs_previous': tested_current_month - tested_last_month,
+				'change_vs_previous_pct': _percent_change(tested_current_month, tested_last_month),
+			},
+		}
 		}
 	return HttpResponse(json.dumps(stats))
 

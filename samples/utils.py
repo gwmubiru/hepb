@@ -98,13 +98,13 @@ def get_facility_by_form(form_number):
 
 	return facility_id
 
-def get_district_hub_by_facility(facility_id):
+def get_district_hub_by_facility(facility_id, db_alias='default'):
 	ret = {}
 	try:
-		facility = Facility.objects.get(pk=facility_id)
+		facility = Facility.objects.using(db_alias).select_related('district', 'hub').get(pk=facility_id)
 		ret = {
-			'district': facility.district.district,
-			'hub': facility.hub.hub,
+			'district': getattr(facility.district, 'district', ''),
+			'hub': getattr(facility.hub, 'hub', ''),
 			}
 	except:
 		pass

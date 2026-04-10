@@ -933,7 +933,10 @@ def does_form_number_exist(request, form_number):
 		return HttpResponse('')
 
 def get_district_hub(request, facility_id):
-	district_hub = sample_utils.get_district_hub_by_facility(facility_id)
+	district_hub = sample_utils.get_district_hub_by_facility(
+		facility_id,
+		db_aliases.get_program_db_alias(programs.get_active_program_code(request)),
+	)
 	return HttpResponse(district_hub)
 
 def get_patient(request):

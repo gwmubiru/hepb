@@ -11,18 +11,29 @@ from . import utils as sample_utils
 from django.core.cache import cache
 
 
-def appendix_field(category, required=True, attrs=False, db_alias='default'):
-	cache_key = f"appendix_category_{db_alias}_{category}"
-	queryset = cache.get(cache_key)
-	if queryset is None:
-		queryset = list(Appendix.objects.using(db_alias).filter(appendix_category_id=category))
-		cache.set(cache_key, queryset, timeout=3600)  # cache for 1 hour
+def appendix_field(category, required=True, attrs=False, db_alias=None):
 	if not attrs:
 		attrs = utils.ATTRS if required else utils.ATTRS_OPTIONAL
 	widget = forms.Select(attrs=attrs)
-	return forms.ModelChoiceField(queryset=Appendix.objects.using(db_alias).filter(pk__in=[obj.pk for obj in queryset]),
-   
-                                widget=widget, required=required)
+	if db_alias is None:
+		queryset = Appendix.objects.none()
+	else:
+		cache_key = f"appendix_category_{db_alias}_{category}"
+		queryset = cache.get(cache_key)
+		if queryset is None:
+			queryset = list(Appendix.objects.using(db_alias).filter(appendix_category_id=category))
+			cache.set(cache_key, queryset, timeout=3600)
+		queryset = Appendix.objects.using(db_alias).filter(pk__in=[obj.pk for obj in queryset])
+	return forms.ModelChoiceField(queryset=queryset, widget=widget, required=required)
+
+
+def normalize_model_choice_instance(instance, target_alias='default'):
+	if instance is None:
+		return None
+	instance_db = getattr(getattr(instance, '_state', None), 'db', None)
+	if instance_db == target_alias:
+		return instance
+	return instance.__class__._default_manager.using(target_alias).get(pk=instance.pk)
 
 
 class PreliminaryFindingsForm(forms.ModelForm):
@@ -147,6 +158,9 @@ class PatientExistsFacilityForm(forms.ModelForm):
 		super(PatientExistsFacilityForm, self).__init__(*args, **kwargs)
 		self.fields['facility'].queryset = Facility.objects.using(db_alias).all()
 
+	def clean_facility(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('facility'))
+
 class EnvelopeForm(forms.ModelForm):
 	class Meta:
 		model = Envelope
@@ -268,6 +282,24 @@ class SampleForm(forms.ModelForm):
 		self.fields['tb_treatment_phase'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=5)
 		self.fields['arv_adherence'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=1)
 
+	def clean_facility(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('facility'))
+
+	def clean_current_regimen(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('current_regimen'))
+
+	def clean_treatment_indication(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('treatment_indication'))
+
+	def clean_failure_reason(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('failure_reason'))
+
+	def clean_tb_treatment_phase(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('tb_treatment_phase'))
+
+	def clean_arv_adherence(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('arv_adherence'))
+
 	def clean(self):
 		cleaned_data = self.cleaned_data
 
@@ -341,6 +373,9 @@ class SampleReceptionForm(forms.ModelForm):
 		super(SampleReceptionForm, self).__init__(*args, **kwargs)
 		self.fields['facility'].queryset = Facility.objects.using(db_alias).all()
 
+	def clean_facility(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('facility'))
+
 	def clean(self):
 		cleaned_data = self.cleaned_data
 		#self.cleaned_data['date_collected'] = sample_utils.get_mysql_from_uk_date(cleaned_data.get('date_collected'))
@@ -386,3 +421,6 @@ class PastRegimensForm(forms.ModelForm):
 		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
 		super(PastRegimensForm, self).__init__(*args, **kwargs)
 		self.fields['regimen'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=3)
+
+	def clean_regimen(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('regimen'))
