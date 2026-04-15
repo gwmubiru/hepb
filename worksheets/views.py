@@ -355,6 +355,7 @@ def vlprint(request, worksheet_id):
 
 @permission_required('results.add_result', login_url='/login/')
 def authorize_list(request, machine_type):
+	db_alias = get_program_db_alias(request)
 
 	tab = request.GET.get('tab')
 	if tab=='authorised':
@@ -362,7 +363,7 @@ def authorize_list(request, machine_type):
 	else:
 		filters = Q(stage=2, worksheet_medical_lab=utils.user_lab(request))
 
-	worksheets = Worksheet.objects.filter(filters)
+	worksheets = Worksheet.objects.using(db_alias).filter(filters)
 	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)})
 
 @permission_required('results.add_result', login_url='/login/')
@@ -389,73 +390,75 @@ def authorize_results(request):
 	
 	envelope_id = request.GET.get('envelope_id')
 	rs_id = request.GET.get('run_id')
+	db_alias = get_program_db_alias(request)
 	facilities = Facility.objects.all()
 	if request.method == 'POST':
 		if 'run_id' in request.POST and request.POST.get('is_multi_approval') == 'No':
 			run_id = request.POST.get('run_id')
-			WorksheetSample.objects.filter(result_run_id=run_id).update(stage=2)
-			run = ResultRun.objects.filter(pk=run_id).first()
+			WorksheetSample.objects.using(db_alias).filter(result_run_id=run_id).update(stage=2)
+			run = ResultRun.objects.using(db_alias).filter(pk=run_id).first()
 			run.stage = 2;
-			run.save()
+			run.save(using=db_alias)
 			return redirect("/worksheets/authorize_runs/")
 
 		if 'ws_pk' in request.POST:
-			manage_results(request.POST.get('ws_pk'),request.POST.get('choice'),request.user)
+			manage_results(request.POST.get('ws_pk'),request.POST.get('choice'),request.user, db_alias=db_alias)
 			return HttpResponse("saved")
 		else:
 			#save the multiple authorize, reschedule or invalid
 			worksheet_samples = request.POST.getlist('worksheet_samples')
 			for ws_id in worksheet_samples:
-				manage_results(ws_id, request.POST.get('choice_type'),request.user)
+				manage_results(ws_id, request.POST.get('choice_type'),request.user, db_alias=db_alias)
 			return redirect('/worksheets/authorize_results/?run_id=%d&stage=1&tab=received' %int(request.POST.get('run_id')))
 	else:
-		
-		result_run_details = ResultRunDetail.objects.filter(the_result_run_id = rs_id).order_by('result_run_position')
+
+		result_run_details = ResultRunDetail.objects.using(db_alias).filter(the_result_run_id = rs_id).order_by('result_run_position')
 		
 		context = {'result_run_details': result_run_details,'run_id':rs_id,'facilities':facilities}
 		return render(request, 'worksheets/authorize_and_release_results.html', context)
 
 # authorize, reschedule or invalidate
-def manage_results(ws_pk,choice,user):
-	ws = WorksheetSample.objects.filter(pk=ws_pk).first()
+def manage_results(ws_pk,choice,user, db_alias='default'):
+	ws = WorksheetSample.objects.using(db_alias).filter(pk=ws_pk).first()
 	#sample_id = request.POST.get('sample_pk')
 	if ws.result_alphanumeric == '':
 		#ignore this 
 		ws_ignored = ws
-		ws = WorksheetSample.objects.filter(instrument_id=ws_ignored.instrument_id, stage=4).last()
+		ws = WorksheetSample.objects.using(db_alias).filter(instrument_id=ws_ignored.instrument_id, stage=4).last()
 		ws_ignored.delete()
 	ws.stage = ws.sample.stage = 4 if choice == 'reschedule' else 3
 	ws.authorised_at = timezone.now()
-	ws.authoriser = user
+	ws.authoriser_id = user.id
 	if choice == 'reschedule' and ws.sample.sample_type == 'D':
 		ws.repeat_test = 1
-	ws.sample.save();
-	ws.save()
-	update_sample(ws)
+	ws.sample.save(using=db_alias);
+	ws.save(using=db_alias)
+	update_sample(ws, db_alias=db_alias)
 
-def update_sample(ws):
+def update_sample(ws, db_alias='default'):
 	if ws.sample.sample is None:
-		sample = Sample.objects.filter(barcode = ws.sample.barcode).first()
+		sample = Sample.objects.using(db_alias).filter(barcode = ws.sample.barcode).first()
 		if sample:
 			ws.sample.sample = sample
-			ws.sample.save()
+			ws.sample.save(using=db_alias)
 			ws.sample = sample
-			ws.save()
+			ws.save(using=db_alias)
 
 def attach_results(request):
-	worksheet_samples = WorksheetSample.objects.filter(result_run_id=request.GET.get('run_id'))
+	db_alias = get_program_db_alias(request)
+	worksheet_samples = WorksheetSample.objects.using(db_alias).filter(result_run_id=request.GET.get('run_id'))
 	for ws in worksheet_samples:
-		sample =  Sample.objects.filter(barcode=ws.instrument_id).first()
+		sample =  Sample.objects.using(db_alias).filter(barcode=ws.instrument_id).first()
 		if sample:
 
 			#check if sample has result
-			result = Result.objects.filter(sample=sample).first()
+			result = Result.objects.using(db_alias).filter(sample=sample).first()
 			if not result:
 				#create the result
 				result = Result()
 
 			ws.sample =sample
-			ws.save()
+			ws.save(using=db_alias)
 
 			result.repeat_test = ws.repeat_test
 			result.suppressed = ws.suppressed
@@ -465,8 +468,8 @@ def attach_results(request):
 			result.test_date = ws.test_date
 			result.result1 =ws.result_alphanumeric
 			result.sample =sample
-			result.test_by =ws.tester
-			result.save()
+			result.test_by_id = ws.tester_id
+			result.save(using=db_alias)
 
 	context = {'worksheet_samples': worksheet_samples,'run_id':request.GET.get('run_id')}
 	return render(request, 'worksheets/all_authorize_results.html', context)
@@ -480,16 +483,16 @@ def authorize_runs(request):
 			stage = int(request.GET.get('stage'))
 			context = {'runs': vl_services.authorize_runs(stage=stage),'stage':stage}
 			return render(request, 'worksheets/authorize_runs.html', context)
-	
-	if request.GET.get('auth_by') == 'runs':		
+	if request.GET.get('auth_by') == 'runs':
 		if request.method == 'POST':
 			push_worksheet = request.POST.get('push_worksheet')
-		else:			
+		else:
+			db_alias = get_program_db_alias(request)
 			stage = int(request.GET.get('stage'))
 			if stage == 1:
-				runs = ResultRun.objects.annotate(no_results=models.Count('the_run'),invalid_results=models.Count('the_run',filter=Q(the_run__result_alphanumeric='Invalid'))).filter(stage=1)
+				runs = ResultRun.objects.using(db_alias).annotate(no_results=models.Count('the_run'),invalid_results=models.Count('the_run',filter=Q(the_run__result_alphanumeric='Invalid'))).filter(stage=1)
 			else:
-				runs = ResultRun.objects.annotate(no_results=models.Count('the_run'),invalid_results=models.Count('the_run',filter=Q(the_run__result_alphanumeric='Invalid'))).filter(stage__lte=4)
+				runs = ResultRun.objects.using(db_alias).annotate(no_results=models.Count('the_run'),invalid_results=models.Count('the_run',filter=Q(the_run__result_alphanumeric='Invalid'))).filter(stage__lte=4)
 			
 			context = {'runs': runs,'stage':stage}
 			return render(request, 'worksheets/authorize_runs.html', context)
