@@ -11,10 +11,14 @@ def configured(alias):
 
 
 def get_hepb_db_alias():
-	if configured(HEPC_DB_ALIAS):
-		return HEPC_DB_ALIAS
 	if configured(HEPB_DB_ALIAS):
 		return HEPB_DB_ALIAS
+	return 'default'
+
+
+def get_hepc_db_alias():
+	if configured(HEPC_DB_ALIAS):
+		return HEPC_DB_ALIAS
 	return 'default'
 
 
@@ -25,6 +29,9 @@ def get_vl_db_alias():
 
 
 def get_program_db_alias(program_code):
-	if str(program_code or '') == '3':
+	program_code = str(program_code or '')
+	if program_code == '3':
 		return get_vl_db_alias()
+	if program_code == '2':
+		return get_hepc_db_alias()
 	return get_hepb_db_alias()
