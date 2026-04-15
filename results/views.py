@@ -47,28 +47,6 @@ def _get_row_value(row, *column_names, default=''):
 			return row[column_name]
 	return default
 
-
-def _resolve_worksheet_sample(ws, db_alias='default'):
-	try:
-		sample = ws.sample
-	except ObjectDoesNotExist:
-		sample = None
-	if sample is not None:
-		return sample
-
-	identifiers = [
-		value.strip()
-		for value in (ws.other_instrument_id, ws.instrument_id)
-		if isinstance(value, str) and value.strip()
-	]
-	if not identifiers:
-		return None
-	return Sample.objects.using(db_alias).filter(
-		Q(barcode__in=identifiers) |
-		Q(form_number__in=identifiers) |
-		Q(facility_reference__in=identifiers)
-	).first()
-
 def get_anomalies(request, machine_type):
 	#return HttpResponse(SI.StringIO(request.FILES['results_file'].read()))
 	uploaded_file = request.FILES['results_file']
@@ -271,12 +249,10 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 	if ws:
 		try:
 			# First verify sample exists before doing anything
-			sample = _resolve_worksheet_sample(ws, db_alias=db_alias)
+			sample = ws.sample
 			# Now we can safely access sample attributes
 			if not sample or not hasattr(sample, 'sample_type') or sample.sample_type is None:
 				raise ObjectDoesNotExist("Sample exists but sample_type is invalid")
-			if ws.sample_id != sample.id:
-				ws.sample_id = sample.id
 			result_dict = result_utils.get_result(
 	            result, 
 	            multiplier,
