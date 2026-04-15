@@ -232,12 +232,14 @@ def _process_row(self, data, result_run, m_type, multiplier, user, test_date, in
 	if sample_location not in ['A1', 'B1', 'C1']:
 		update_sample_and_save_result(
             m_type, instrument_id, result, multiplier,
-            user, test_date, result_run, index, db_alias=db_alias
+            user, test_date, result_run, index,
+            active_program_code=programs.get_active_program_code(request),
+            db_alias=db_alias
         )
 
 def update_sample_and_save_result(machine_type,instrument_id,result, multiplier, user, test_date,result_run,row_index,sample_volume='',active_program_code=None, db_alias='default'):
 	if user.userprofile.medical_lab_id == 2:
-		save_upload_result(result, multiplier,machine_type,instrument_id,user,db_alias=db_alias)
+		save_upload_result(result, multiplier,machine_type,instrument_id,user,active_program_code=active_program_code,db_alias=db_alias)
 		return 0
 	ins_filter = Q(instrument_id=instrument_id) | Q(other_instrument_id=instrument_id)
 	stage_filter = Q(stage__lte=3) | Q(stage=4)
@@ -251,8 +253,8 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 			# First verify sample exists before doing anything
 			sample = ws.sample
 			# Now we can safely access sample attributes
-			if not sample or not hasattr(sample, 'sample_type') or sample.sample_type is None:
-				raise ObjectDoesNotExist("Sample exists but sample_type is invalid")
+			if not sample:
+				raise ObjectDoesNotExist("Worksheet sample has no linked sample")
 			result_dict = result_utils.get_result(
 	            result, 
 	            multiplier,
@@ -327,9 +329,7 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 			logger = logging.getLogger(__name__)
 			logger.error(f"Invalid sample reference in worksheet {ws.id}")
 	        
-	        # Clear the invalid reference and save minimal worksheet info
-			ws.sample_id = None
-			ws.save(using=db_alias)
+			# Keep the worksheet linkage intact; data repair should be explicit.
 		
 
 #update sample run with information of contamination.
@@ -367,10 +367,10 @@ def update_run_with_contamination_info(result_run, db_alias='default'):
 	result_run.save(using=db_alias)
 	return True
 
-def save_upload_result(result, multiplier,machine_type,instrument_id,user, db_alias='default'):
+def save_upload_result(result, multiplier,machine_type,instrument_id,user, active_program_code=None, db_alias='default'):
 	sample = Sample.objects.using(db_alias).filter(barcode=instrument_id).first()
 	if sample and sample.is_data_entered ==1:
-		result_dict = result_utils.get_result(result, multiplier,machine_type,0,sample.sample_type)
+		result_dict = result_utils.get_result(result, multiplier,machine_type,0,sample.sample_type,active_program_code=active_program_code)
 		the_test_date = timezone.now()
 		result = Result()
 		result.repeat_test = 2
@@ -513,7 +513,11 @@ def alinity_upload(request):
 					#use the current date as the date of upload
 					test_date =  timezone.now()
 
-					update_sample_and_save_result('N',instrument_id,result, multiplier, user, test_date,result_run,index,db_alias=db_alias)
+					update_sample_and_save_result(
+						'N', instrument_id, result, multiplier, user, test_date, result_run, index,
+						active_program_code=programs.get_active_program_code(request),
+						db_alias=db_alias
+					)
 
 
 				update_run_with_contamination_info(result_run, db_alias=db_alias)

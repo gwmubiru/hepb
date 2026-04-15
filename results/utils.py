@@ -56,7 +56,7 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
     	'name': ''
     }
 
-	unit_label = 'IU / mL' if str(active_program_code) == '2' else 'Copies / mL'
+	unit_label = 'IU/ml' if str(active_program_code) in ('1', '2') else 'Copies / mL'
 
 	if utils.isnan(result) or result == '':
 		result = 'Failed' 
@@ -265,8 +265,8 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 			# First verify sample exists before doing anything
 			sample = ws.sample
 			# Now we can safely access sample attributes
-			if not sample or not hasattr(sample, 'sample_type') or sample.sample_type is None:
-				raise ObjectDoesNotExist("Sample exists but sample_type is invalid")
+			if not sample:
+				raise ObjectDoesNotExist("Worksheet sample has no linked sample")
 			result_dict = result_utils.get_result(
 	            result, 
 	            multiplier,
@@ -337,9 +337,7 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 			logger = logging.getLogger(__name__)
 			logger.error(f"Invalid sample reference in worksheet {ws.id}")
 	        
-	        # Clear the invalid reference and save minimal worksheet info
-			ws.sample_id = None
-			ws.save()
+			# Keep the worksheet linkage intact; data repair should be explicit.
 		
 
 #update sample run with information of contamination.
