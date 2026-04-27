@@ -44,6 +44,29 @@ def _parse_int(value):
 		return None
 
 
+def _posted_sample_type(post_data):
+	sample_type = post_data.get('sample_type')
+	if sample_type in (None, '', 'None'):
+		return None
+	return sample_type
+
+
+def _set_missing_sample_type(sample, post_data):
+	if sample.sample_type not in (None, ''):
+		return
+	sample_type = _posted_sample_type(post_data)
+	if sample_type:
+		sample.sample_type = sample_type
+
+
+def _set_sample_type_from_post_or_envelope(sample, post_data, envelope=None):
+	_set_missing_sample_type(sample, post_data)
+	if sample.sample_type not in (None, ''):
+		return
+	if envelope and envelope.sample_type:
+		sample.sample_type = envelope.sample_type
+
+
 def _envelope_number_from_barcode(barcode):
 	if barcode and len(barcode) >= 8 and barcode[:8].isdigit():
 		return "%s-%s" % (barcode[:4], barcode[4:8])
@@ -380,7 +403,7 @@ def receive_sample(post_data, user):
 	sample.locator_position = post_data.get('the_position') or post_data.get('locator_position') or ''
 	sample.facility_id = facility_id
 	sample.envelope_id = envelope.id
-	sample.sample_type = post_data.get('sample_type')
+	_set_sample_type_from_post_or_envelope(sample, post_data, envelope)
 	sample.date_collected = _parse_date(post_data.get('date_collected'))
 	sample.date_received = now
 	sample.reception_art_number = post_data.get('reception_hep_number') or None
@@ -458,7 +481,7 @@ def receive_sample_only(post_data, user):
 	sample.facility_id = facility_id
 	sample.data_facility_id = facility_id
 	sample.envelope_id = envelope.id
-	sample.sample_type = post_data.get('sample_type')
+	_set_sample_type_from_post_or_envelope(sample, post_data, envelope)
 	sample.date_collected = _parse_date(post_data.get('date_collected'))
 	sample.date_received = now
 	sample.reception_art_number = art_number or None
