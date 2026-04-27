@@ -42,6 +42,35 @@ def posted_date(post_data, field_name):
 	return utils.get_date(post_data, field_name)
 
 
+def _posted_sample_type(request):
+	sample_type = request.POST.get('sample_type')
+	if sample_type in (None, '', 'None'):
+		return None
+	return sample_type
+
+
+def _set_missing_sample_type(sample, request):
+	if sample.sample_type not in (None, ''):
+		return
+	sample_type = _posted_sample_type(request)
+	if sample_type:
+		sample.sample_type = sample_type
+
+
+def _set_sample_type_from_request_or_envelope(sample, request, envelope_id=None):
+	_set_missing_sample_type(sample, request)
+	if sample.sample_type not in (None, ''):
+		return
+	resolved_envelope_id = envelope_id or sample.envelope_id
+	if not resolved_envelope_id:
+		return
+	envelope = sample.envelope if sample.envelope_id == resolved_envelope_id and getattr(sample, 'envelope', None) else None
+	if envelope is None:
+		envelope = Envelope.objects.filter(pk=resolved_envelope_id).only('sample_type').first()
+	if envelope and envelope.sample_type:
+		sample.sample_type = envelope.sample_type
+
+
 def get_session_program_code(request):
 	code = programs.get_active_program_code(request)
 	return int(code) if code else None
@@ -376,6 +405,7 @@ def receive(request):
 		#if valid_sample:
 		tr_code_id = request.POST.get('tracking_code_id')
 		env_id = sample_utils.get_envelope_id(request)
+		session_program_code = get_session_program_code(request)
 		if env_id is None:
 			sample_reception_form.add_error('barcode', 'Envelope was not found, did you accession it?')
 		else:
@@ -383,7 +413,7 @@ def receive(request):
 			if mismatch_message:
 				sample_reception_form.add_error('barcode', mismatch_message)
 		if sample_reception_form.is_valid():
-			date_collected = posted_date(request.POST, 'date_collected')
+			date_collected = sample_reception_form.cleaned_data.get('date_collected')
 			if tr_code_id == ''  or (current_tr_code != '' and pst.get('code') != current_tr_code) :
 				tr = TrackingCode.objects.filter(code=pst.get('code')).first()
 				if tr is None:
@@ -437,12 +467,16 @@ def receive(request):
 				#s.date_received = request.POST.get('date_received')
 				s.date_received = datetime.now()
 				s.received_by = request.user
+				if session_program_code:
+					s.program_code = session_program_code
 				s.save()
 			else:
 				s = Sample(tracking_code_id = tr_code_id,locator_category = request.POST.get('locator_category'),locator_position=request.POST.get('locator_position'),
 					barcode=request.POST.get('barcode'),created_by =request.user,stage=stage,
 					form_number=form_number,facility_id = request.POST.get('facility'),
 					sample_type=request.POST.get('sample_type'),date_collected=date_collected,date_received=datetime.now(), envelope_id = env_id,received_by = request.user,reception_hep_number=request.POST.get('reception_hep_number'),facility_reference=facility_reference,facility_patient = fac_pat,verified=0)
+				if session_program_code:
+					s.program_code = session_program_code
 				s.save()
 
 			update_envelope_program_code(env_id, get_session_program_code(request))
@@ -752,7 +786,7 @@ def receive_batch(request,ret_to_fun = 0):
 			s.barcode = request.POST.get('the_barcode')
 			s.reception_hep_number = request.POST.get('reception_hep_number')
 			s.facility_id = request.POST.get('facility')
-			s.sample_type = request.POST.get('sample_type')
+			_set_sample_type_from_request_or_envelope(s, request, env_id)
 			s.facility_patient = fac_pat
 			if session_program_code:
 				s.program_code = session_program_code
@@ -791,7 +825,8 @@ def receive_batch(request,ret_to_fun = 0):
 			s = Sample(tracking_code_id = tr_code_id,locator_category = 'V',locator_position=request.POST.get('the_position'),
 			barcode=request.POST.get('the_barcode'),created_by =request.user,date_received = datetime.now(),
 			form_number=form_number,reception_hep_number = request.POST.get('reception_hep_number'),facility_id = request.POST.get('facility'),
-			sample_type=request.POST.get('sample_type'),date_collected=date_collected,stage=0,is_data_entered=data_entered_val,patient_id=patient_id, received_by = request.user,envelope_id = env_id,facility_patient = fac_pat,verified=verified,facility_reference = facility_ref)
+			sample_type=_posted_sample_type(request),date_collected=date_collected,stage=0,is_data_entered=data_entered_val,patient_id=patient_id, received_by = request.user,envelope_id = env_id,facility_patient = fac_pat,verified=verified,facility_reference = facility_ref)
+			_set_sample_type_from_request_or_envelope(s, request, env_id)
 			if session_program_code:
 				s.program_code = session_program_code
 			#if lab_sample:
@@ -2046,6 +2081,7 @@ def receive_sample_only(request):
 		tr_code_id = request.POST.get('tracking_code_id')
 		facility_reference = request.POST.get('facility_reference')
 		env_id = int(request.POST.get('envelope_id'))
+		session_program_code = get_session_program_code(request)
 		mismatch_message = lock_envelope_to_session_program(request, env_id)
 		if mismatch_message:
 			ret = {
@@ -2147,9 +2183,11 @@ def receive_sample_only(request):
 		sample.received_by = request.user
 		sample.locator_position=request.POST.get('the_position')
 		sample.barcode=request.POST.get('the_barcode')
-		sample.sample_type=request.POST.get('sample_type')
+		_set_sample_type_from_request_or_envelope(sample, request, env_id)
 		sample.date_collected = date_collected
 		sample.date_received = datetime.now()
+		if session_program_code:
+			sample.program_code = session_program_code
 		sample.save()
 		update_envelope_program_code(env_id, get_session_program_code(request))
 

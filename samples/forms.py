@@ -339,6 +339,16 @@ class SampleForm(forms.ModelForm):
 			self.add_error('form_number', "Form number exists")
 
 class SampleReceptionForm(forms.ModelForm):
+	date_collected = forms.DateField(
+		input_formats=['%d/%m/%Y', '%Y-%m-%d'],
+		widget=forms.DateInput(attrs={'class': 'form-control input-sm w-xs date_d'})
+	)
+	date_received = forms.DateField(
+		required=False,
+		input_formats=['%d/%m/%Y', '%Y-%m-%d'],
+		widget=forms.DateInput(attrs=utils.ATTRS_DATE)
+	)
+
 	class Meta:
 		model = Sample
 
@@ -354,8 +364,6 @@ class SampleReceptionForm(forms.ModelForm):
 		widgets = {
 			'barcode': forms.TextInput(attrs={'class':'form-control input-sm special_width','required':'required',}),
 			'facility': forms.Select(attrs={'class':'form-control input-sm special_width',}),
-			'date_collected': forms.DateInput(attrs={'class': 'form-control input-sm w-xs date_d'}),
-			'date_received': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'sample_type': forms.Select(attrs=utils.ATTRS3),
 			'locator_category': forms.Select(attrs=utils.ATTRS3),
 			}
