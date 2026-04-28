@@ -26,6 +26,15 @@
 			text-transform: uppercase;
 			vertical-align: middle;
 		}
+		.program-trigger{
+			margin-left: 6px;
+		}
+		.program-save-status{
+			color: #2e8b57;
+			display: none;
+			font-weight: 600;
+			margin-left: 6px;
+		}
 
 		/* basic positioning */
 		.legend { list-style: none; }
@@ -122,23 +131,37 @@
 				<td>{{ s.patient.gender }}</td>
 				<td>{{ s.get_sample_type_display }}</td>				
 				<td>
-					{% if s.program_code|stringformat:"s" == "1" %}
-						HepB
-					{% elif s.program_code|stringformat:"s" == "2" %}
-						HepC
-					{% elif s.program_code|stringformat:"s" == "3" %}
-						HIV Viral Load
-					{% elif s.envelope_id %}
-						{% if s.envelope.program_code|stringformat:"s" == "1" %}
+					<span class="program-label" id="program-label-{{ s.pk }}">
+						{% if s.program_code|stringformat:"s" == "1" %}
 							HepB
-						{% elif s.envelope.program_code|stringformat:"s" == "2" %}
+						{% elif s.program_code|stringformat:"s" == "2" %}
 							HepC
-						{% elif s.envelope.program_code|stringformat:"s" == "3" %}
+						{% elif s.program_code|stringformat:"s" == "3" %}
 							HIV Viral Load
-						{% else %}
-							{{ s.envelope.get_program_code_display }}
+						{% elif s.envelope_id %}
+							{% if s.envelope.program_code|stringformat:"s" == "1" %}
+								HepB
+							{% elif s.envelope.program_code|stringformat:"s" == "2" %}
+								HepC
+							{% elif s.envelope.program_code|stringformat:"s" == "3" %}
+								HIV Viral Load
+							{% else %}
+								{{ s.envelope.get_program_code_display }}
+							{% endif %}
 						{% endif %}
+					</span>
+					{% if can_edit_program %}
+						<a
+							href="#"
+							class="program-trigger"
+							data-sample-id="{{ s.pk }}"
+							data-program-code="{% if s.program_code %}{{ s.program_code }}{% elif s.envelope.program_code %}{{ s.envelope.program_code }}{% endif %}"
+							title="Change program"
+						>
+							<i class="fa fa-pencil"></i>
+						</a>
 					{% endif %}
+					<span class="program-save-status" id="program-saved-{{ s.pk }}">saved</span>
 					{% if active_program_code and s.program_code and active_program_code != s.program_code|stringformat:'s' %}
 						<span class="program-mismatch-badge">Program mismatch</span>
 					{% endif %}
@@ -304,6 +327,35 @@
   </div>
 </div>
 
+{% if can_edit_program %}
+<div id="programModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Change Program</h4>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="program_sample_id" value="">
+        <div class="form-group">
+        	<label for="program_code_select">Program</label>
+        	<select id="program_code_select" class="form-control input-sm">
+        		<option value="">---------</option>
+        		{% for value, label in program_choices %}
+        			<option value="{{ value }}">{{ label }}</option>
+        		{% endfor %}
+        	</select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="save-program-btn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <script type="text/javascript">
 $(document).ready(function() {
 	var oTable = $('#tab_id').dataTable({
@@ -358,6 +410,37 @@ $(document).ready(function() {
 		var sample_id = $(this).attr('sample_id');
 		$("#approval_details").html($("#verify_details"+sample_id).html());		
 	});
+
+	{% if can_edit_program %}
+	$(".program-trigger").on("click", function(e){
+		e.preventDefault();
+		$("#program_sample_id").val($(this).data("sample-id"));
+		$("#program_code_select").val($(this).data("program-code"));
+		$("#programModal").modal("show");
+	});
+
+	$("#save-program-btn").on("click", function(){
+		var sampleId = $("#program_sample_id").val();
+		var programCode = $("#program_code_select").val();
+		if(programCode === ''){
+			alert('Select a program');
+			return;
+		}
+		$.post("/samples/search/?search_val={{ request.GET.search_val|default:''|escapejs }}{% if request.GET.search_env %}&search_env={{ request.GET.search_env|escapejs }}{% endif %}{% if request.GET.search_sample %}&search_sample={{ request.GET.search_sample|escapejs }}{% endif %}", {
+			csrfmiddlewaretoken: "{{ csrf_token }}",
+			action: "update_program",
+			sample_id: sampleId,
+			program_code: programCode
+		}).done(function(data){
+			$("#program-label-" + sampleId).text(data.label);
+			$('.program-trigger[data-sample-id="' + sampleId + '"]').data("program-code", programCode);
+			$("#program-saved-" + sampleId).stop(true, true).fadeIn(120).delay(900).fadeOut(250);
+			$("#programModal").modal("hide");
+		}).fail(function(xhr){
+			alert(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : "Failed to save program");
+		});
+	});
+	{% endif %}
 });
 </script>
 {% endblock %}
