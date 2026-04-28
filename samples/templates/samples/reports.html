@@ -14,12 +14,20 @@
 {% block content %}
 
 <span class="page-title">
-{% if request.GET.dr %} Drug Resistance Samples
-{% elif request.GET.detectables %} Detectable Samples 
-{% else %} Reports 
-{% endif %}
+{{ report_title|default:"Reports" }}
 </span>
 
+{% if report_command %}
+<div style="margin-bottom: 10px;">
+	<form method="post" style="display:inline-block;">
+		{% csrf_token %}
+		<button type="submit" class="btn btn-danger btn-sm">Update Report</button>
+	</form>
+	{% if request.GET.updated %}
+		<span class="text-success" style="margin-left: 10px; font-weight: 600;">Report updated</span>
+	{% endif %}
+</div>
+{% endif %}
 
 <div class="panel panel-default">
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
@@ -34,8 +42,8 @@
 		<tbody>
 			{% for r in reports %}
 			<tr>
-				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1 {% elif request.GET.detectables %}?detectables=1 {% endif %}">{{ r.report }}</a></td>
-				<td><a href="/samples/download/{{ r.report }}{% if request.GET.dr %}?dr=1 {% elif request.GET.detectables %}?detectables=1 {% endif %}">{{ r.period }}</a></td>
+				<td><a href="/samples/download/{{ r.report }}{% if report_type %}?type={{ report_type }}{% elif request.GET.dr %}?dr=1{% elif request.GET.detectables %}?detectables=1{% endif %}">{{ r.report }}</a></td>
+				<td><a href="/samples/download/{{ r.report }}{% if report_type %}?type={{ report_type }}{% elif request.GET.dr %}?dr=1{% elif request.GET.detectables %}?detectables=1{% endif %}">{{ r.period }}</a></td>
 				<td>{{ r.last_modified }}</td>
 				<td>{{ r.size }}MB</td>
 			</tr>
