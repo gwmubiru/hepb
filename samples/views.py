@@ -26,6 +26,7 @@ from . import utils as worksheet_utils
 import requests
 from django_datatables_view.base_datatable_view import BaseDatatableView
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.management import call_command
 from .services import SampleService
 from vl import services as vl_services
 
@@ -1901,14 +1902,21 @@ def reverse_approval(request, verification_id):
 
 @permission_required('samples.view_reports', login_url='/login/')
 def download(request, path):
-	if request.GET.get('dr'):
+	report_type = (request.GET.get('type') or '').strip().lower()
+	if request.GET.get('cohort'):
+		folder = settings.MEDIA_ROOT
+	elif report_type == 'hepb':
+		folder = "hepb_reports"
+	elif report_type == 'hepc':
+		folder = "hepc_reports"
+	elif report_type == 'vl':
+		folder = "vl_reports"
+	elif request.GET.get('dr'):
 		folder = "reports/drug_resistance"
 	elif request.GET.get('detectables'):
 		folder = "reports/detectables"
-	elif request.GET.get('cohort'):
-		folder = settings.MEDIA_ROOT
 	else:
-		folder = "reports"
+		folder = "vl_reports"
 
 	file_path = os.path.join(settings.MEDIA_ROOT, "%s/%s"%(folder,path))
 	if os.path.exists(file_path):
@@ -1921,12 +1929,35 @@ def download(request, path):
 
 @permission_required('samples.view_reports', login_url='/login/')
 def reports(request):
-	if request.GET.get('dr'):
+	report_type = (request.GET.get('type') or '').strip().lower()
+	if report_type == 'hepb':
+		path = os.path.join(settings.MEDIA_ROOT, "hepb_reports/")
+		report_title = 'HepB Reports'
+		report_command = 'generate_hepb_report'
+	elif report_type == 'hepc':
+		path = os.path.join(settings.MEDIA_ROOT, "hepc_reports/")
+		report_title = 'HepC Reports'
+		report_command = 'generate_hepc_report'
+	elif report_type == 'vl':
+		path = os.path.join(settings.MEDIA_ROOT, "vl_reports/")
+		report_title = 'VL Reports'
+		report_command = 'generate_vl_report'
+	elif request.GET.get('dr'):
 		path = os.path.join(settings.MEDIA_ROOT, "reports/drug_resistance/")
+		report_title = 'Drug Resistance Samples'
+		report_command = ''
 	elif request.GET.get('detectables'):
 		path = os.path.join(settings.MEDIA_ROOT, "reports/detectables/")
+		report_title = 'Detectable Samples'
+		report_command = ''
 	else:
-		path = os.path.join(settings.MEDIA_ROOT, "reports/")
+		path = os.path.join(settings.MEDIA_ROOT, "vl_reports/")
+		report_title = 'VL Reports'
+		report_command = 'generate_vl_report'
+
+	if request.method == 'POST' and report_command:
+		call_command(report_command)
+		return redirect('%s?type=%s&updated=1' % (request.path, report_type or 'vl'))
 
 	reports = []
 	for r in glob.glob("%s*.zip"%path):
@@ -1936,7 +1967,7 @@ def reports(request):
 		report = os.path.basename(r)
 		period = "%s, %s" %(calendar.month_abbr[int(report[4:6])], report[0:4])
 		reports.append({'report':report, 'period':period, 'last_modified':last_modified, 'size':size})
-	return render(request,'samples/reports.html', {'reports': reports})
+	return render(request,'samples/reports.html', {'reports': reports, 'report_title': report_title, 'report_type': report_type, 'report_command': report_command})
 
 class RejectionReasons(Appendix):
 	"""docstring for RejectionReason"""
