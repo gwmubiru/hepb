@@ -1779,6 +1779,22 @@ def intervene_list(request):
 	return render(request, 'samples/intervene_list.html', {'intervene_rejects':intervene_rejects})
 
 def search(request):
+	allowed_program_edit_user_ids = (31, 69)
+	can_edit_program = request.user.id in allowed_program_edit_user_ids
+	if request.method == 'POST':
+		if request.POST.get('action') == 'update_program':
+			if not can_edit_program:
+				return JsonResponse({'error': 'Not allowed'}, status=403)
+			sample = Sample.objects.filter(pk=request.POST.get('sample_id')).first()
+			program_code = request.POST.get('program_code')
+			if sample is None:
+				return JsonResponse({'error': 'Sample not found'}, status=404)
+			if str(program_code) not in ('1', '2', '3'):
+				return JsonResponse({'error': 'Invalid program'}, status=400)
+			sample.program_code = int(program_code)
+			sample.save()
+			return JsonResponse({'saved': True, 'label': sample.get_program_code_display(), 'program_code': str(sample.program_code)})
+		return JsonResponse({'error': 'Invalid action'}, status=400)
 	if vl_services.is_hiv_program(request):
 		search = request.GET.get('search_val')
 		approvals = request.GET.get('approvals')
@@ -1797,6 +1813,8 @@ def search(request):
 			'approvals':approvals,
 			'remove_sample':remove_sample,
 			'switch_sample':switch_sample,
+			'program_choices': Sample.PROGRAM_CODES,
+			'can_edit_program': can_edit_program,
 		})
 	cond = Q()
 	search = request.GET.get('search_val')
@@ -1850,6 +1868,8 @@ def search(request):
 			'approvals':approvals,
 			'remove_sample':remove_sample,
 			'switch_sample':switch_sample,
+			'program_choices': Sample.PROGRAM_CODES,
+			'can_edit_program': can_edit_program,
 		})
 
 def envelope_list(request):

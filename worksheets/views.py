@@ -327,8 +327,19 @@ def show(request, worksheet_id):
 def edit(request, worksheet_id):
 	if request.method == 'POST':
 		pst = request.POST
+		pk = pst.get('pk')
+		instrument_id = pst.get('instrument_id')
+		if pk:
+			ws = WorksheetSample.objects.get(pk=pk)
+			if instrument_id is not None:
+				ws.instrument_id = instrument_id
+			rack_id = pst.get('rack_id')
+			if rack_id is not None:
+				ws.rack_id = rack_id
+			ws.save()
+			return HttpResponse("saved")
 		rack_id = pst.get('rack_id')
-		for x in xrange(1,6):
+		for x in range(1,6):
 			pk = pst.get('pk%s'%x)
 			instrument_id = pst.get('instrument%s'%x)
 			if pk and instrument_id:
