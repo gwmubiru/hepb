@@ -106,7 +106,7 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 		if numeric_result != 0:
 			alphanumeric_result = "{:,d} %s".format(numeric_result) % unit_label
 	
-	if sample_type is None or str(active_program_code) in ('1', '2'):
+	if sample_type is None:
 		suppressed = 4
 		suppression_cut_off_int = 0
 		supression_cut_off = 0

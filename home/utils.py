@@ -323,5 +323,5 @@ def get_users():
     return User.objects.all()
 
 def getSupressionCutOff(sample_type):
-    cut_off_dict = Appendix.objects.filter(appendix_category_id=9,tag=sample_type,is_active=True).values('id','appendix').first()
+    cut_off_dict = Appendix.objects.filter(appendix_category_id=11,tag=sample_type,is_active=True).values('id','appendix').first()
     return cut_off_dict;
