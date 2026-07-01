@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pandas
 from django.contrib.auth.models import User
-from django.db import connections
+from django.db import connections, transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.conf import settings
@@ -14,6 +14,10 @@ from backend.models import Facility
 from results import utils as result_utils
 
 from .models import VLEnvelope, VLEnvelopeAssignment, VLEnvelopeRange, VLPatient, VLResult, VLResultRun, VLResultRunDetail, VLResultsQC, VLSample, VLTrackingCode, VLVerification, VLWorksheet, VLWorksheetSample
+
+
+DUPLICATE_FACILITY_REFERENCE_MESSAGE = "Olaba kisoboka? Taracking code cant be shared between facilities"
+DUPLICATE_BARCODE_MESSAGE = "This position has already been received. Enter a different position."
 
 
 def is_hiv_program(request):
@@ -42,6 +46,18 @@ def _parse_int(value):
 		return int(value)
 	except (TypeError, ValueError):
 		return None
+
+
+def _facility_reference_conflict(facility_reference, facility_id, exclude_sample_id=None):
+	facility_reference = (facility_reference or '').strip()
+	facility_id = _parse_int(facility_id)
+	if facility_reference == '' or not facility_id:
+		return None
+
+	conflict_qs = VLSample.objects.using('vl_lims').filter(facility_reference=facility_reference).exclude(facility_id=facility_id)
+	if exclude_sample_id:
+		conflict_qs = conflict_qs.exclude(pk=exclude_sample_id)
+	return conflict_qs.first()
 
 
 def _posted_sample_type(post_data):
@@ -82,6 +98,7 @@ def _sync_legacy_envelope(legacy_envelope, sample_type=None):
 		envelope = VLEnvelope(envelope_number=legacy_envelope.envelope_number)
 
 	envelope.sample_type = sample_type or legacy_envelope.sample_type or envelope.sample_type or ''
+	envelope.type = getattr(legacy_envelope, 'type', None) or envelope.type or 1
 	envelope.stage = legacy_envelope.stage or envelope.stage or 2
 	envelope.is_received = bool(legacy_envelope.is_received) if legacy_envelope.is_received is not None else envelope.is_received
 	envelope.is_data_entered = bool(legacy_envelope.is_data_entered) if legacy_envelope.is_data_entered is not None else envelope.is_data_entered
@@ -260,7 +277,6 @@ def save_sample_form(post_data, user):
 	sample.verified = True
 	sample.required_verification = False
 	sample.is_data_entered = True
-	sample.medical_lab_id = medical_lab_id
 	sample.facility_reference = post_data.get('facility_reference') or None
 	sample.is_study_sample = bool(post_data.get('is_study_sample'))
 	sample.stage = 0
@@ -289,11 +305,28 @@ def create_range(post_data, user):
 		raise ValueError("Current user has no vl_id mapping in hepb.auth_user")
 
 	now = datetime.now()
+	current_period = (int(now.strftime('%y')), now.month)
+	previous_month_date = now.replace(day=1) - timedelta(days=1)
+	previous_period = (int(previous_month_date.strftime('%y')), previous_month_date.month)
 	year_month = post_data.get('year') + post_data.get('month')
+	try:
+		year_int = int(post_data.get('year'))
+		month_int = int(post_data.get('month'))
+	except (TypeError, ValueError):
+		raise ValueError("Invalid accession period")
+	if (year_int, month_int) not in [current_period, previous_period]:
+		raise ValueError("Accessioning is restricted to the current month and previous month only.")
 	lower_limit = int(post_data.get('lower_limit'))
 	upper_limit = int(post_data.get('upper_limit'))
 	if upper_limit < lower_limit:
 		raise ValueError("Upper limit must be greater than or equal to lower limit")
+	lower_sample_type = 'P' if lower_limit < 3000 else 'D'
+	upper_sample_type = 'P' if upper_limit < 3000 else 'D'
+	if lower_sample_type != upper_sample_type:
+		raise ValueError("Mixed ranges are not allowed. Split Plasma and DBS envelopes into separate accession batches.")
+	if post_data.get('sample_type') != lower_sample_type:
+		raise ValueError("Sample type does not match the selected envelope range.")
+	envelope_type = _parse_int(post_data.get('envelope_type')) or 1
 
 	env_range = VLEnvelopeRange(
 		year_month=year_month,
@@ -312,6 +345,7 @@ def create_range(post_data, user):
 		if envelope is None:
 			envelope = VLEnvelope(envelope_number=env_number)
 		envelope.sample_type = post_data.get('sample_type')
+		envelope.type = envelope_type
 		envelope.accessioned_at = now
 		envelope.envelope_range_id = env_range.id
 		envelope.accessioner_id = _parse_int(post_data.get('accessioned_by')) or vl_user_id
@@ -379,18 +413,35 @@ def get_envelope_details(envelope_number):
 	}
 
 
+def get_barcode_details(barcode):
+	"""Return reception status for a VL locator barcode."""
+	barcode = (barcode or '').strip()
+	sample = VLSample.objects.using('vl_lims').filter(barcode=barcode).first() if barcode else None
+	return {
+		'barcode_exists': sample is not None,
+		's_id': sample.id if sample else '',
+		'err_msg': DUPLICATE_BARCODE_MESSAGE if sample else '',
+	}
+
+
 def receive_sample(post_data, user):
 	vl_user_id = get_vl_user_id(user)
 	if not vl_user_id:
 		raise ValueError("Current user has no vl_id mapping in hepb.auth_user")
 	now = datetime.now()
-	barcode = post_data.get('the_barcode') or post_data.get('barcode')
+	barcode = (post_data.get('the_barcode') or post_data.get('barcode') or '').strip()
+	if barcode and VLSample.objects.using('vl_lims').filter(barcode=barcode).exists():
+		raise ValueError(DUPLICATE_BARCODE_MESSAGE)
 	facility_id = _parse_int(post_data.get('facility'))
+	facility_reference = (post_data.get('facility_reference') or '').strip()
+	conflict_sample = _facility_reference_conflict(facility_reference, facility_id)
+	if conflict_sample:
+		raise ValueError(DUPLICATE_FACILITY_REFERENCE_MESSAGE)
 	envelope = _resolve_envelope(post_data)
 	if envelope is None:
 		raise ValueError("Envelope was not found, did you accession it?")
 	tracking_code = resolve_tracking_code(post_data, user, facility_id)
-	form_number = post_data.get('facility_reference') or post_data.get('barcode') or barcode
+	form_number = facility_reference or post_data.get('barcode') or barcode
 	sample = VLSample.objects.using('vl_lims').filter(barcode=barcode).first()
 	if sample is None:
 		sample = VLSample(
@@ -407,10 +458,9 @@ def receive_sample(post_data, user):
 	sample.date_collected = _parse_date(post_data.get('date_collected'))
 	sample.date_received = now
 	sample.reception_art_number = post_data.get('reception_hep_number') or None
-	sample.facility_reference = post_data.get('facility_reference') or None
+	sample.facility_reference = facility_reference or None
 	sample.received_by_id = vl_user_id
 	sample.updated_by_id = vl_user_id
-	sample.medical_lab_id = _resolve_medical_lab_id(user)
 	sample.stage = 0
 	sample.verified = False
 	sample.required_verification = False
@@ -428,7 +478,9 @@ def receive_sample_only(post_data, user):
 		raise ValueError("Current user has no vl_id mapping in hepb.auth_user")
 
 	now = datetime.now()
-	barcode = post_data.get('the_barcode') or post_data.get('barcode')
+	barcode = (post_data.get('the_barcode') or post_data.get('barcode') or '').strip()
+	if barcode and VLSample.objects.using('vl_lims').filter(barcode=barcode).exists():
+		raise ValueError(DUPLICATE_BARCODE_MESSAGE)
 	facility_reference = (post_data.get('facility_reference') or '').strip()
 	art_number = (post_data.get('reception_hep_number') or '').strip()
 	if not art_number:
@@ -438,6 +490,9 @@ def receive_sample_only(post_data, user):
 	envelope = _resolve_envelope(post_data)
 	if envelope is None:
 		raise ValueError("Envelope was not found, did you accession it?")
+	conflict_sample = _facility_reference_conflict(facility_reference, facility_id)
+	if conflict_sample:
+		raise ValueError(DUPLICATE_FACILITY_REFERENCE_MESSAGE)
 
 	tracking_code = resolve_tracking_code(post_data, user, facility_id)
 	sanitized_art_number = utils.removeSpecialCharactersFromString(art_number) if art_number else None
@@ -463,7 +518,9 @@ def receive_sample_only(post_data, user):
 
 	sample = None
 	if facility_reference:
-		sample = VLSample.objects.using('vl_lims').filter(facility_reference=facility_reference).first()
+		sample = VLSample.objects.using('vl_lims').filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference)).first()
+		if sample and sample.barcode2 == facility_reference and sample.barcode2 != sample.facility_reference:
+			raise ValueError("This is a DR sample.")
 	if sample is None and barcode:
 		sample = VLSample.objects.using('vl_lims').filter(barcode=barcode).first()
 	if sample is None:
@@ -493,7 +550,6 @@ def receive_sample_only(post_data, user):
 	sample.data_entered_at = now
 	sample.verifier_id = vl_user_id
 	sample.verified_at = now
-	sample.medical_lab_id = _resolve_medical_lab_id(user)
 	sample.stage = 0
 	sample.verified = True
 	sample.required_verification = False
@@ -517,21 +573,40 @@ def receive_sample_only(post_data, user):
 	return sample
 
 
-def get_receive_hie_details(facility_reference):
+def get_receive_hie_details(facility_reference, facility_id=None):
 	facility_reference = (facility_reference or '').strip()
 	if not facility_reference:
 		return {
 			'hep_number': '',
 			'date_collected': '',
 			'err_msg': 'Not found',
+			'is_dr': 0,
 		}
 
-	sample = VLSample.objects.using('vl_lims').filter(facility_reference=facility_reference).first()
+	conflict_sample = _facility_reference_conflict(facility_reference, facility_id)
+	if conflict_sample:
+		return {
+			'hep_number': '',
+			'date_collected': '',
+			'err_msg': DUPLICATE_FACILITY_REFERENCE_MESSAGE,
+			'is_dr': 0,
+			'facility_reference_conflict': 1,
+		}
+
+	sample = VLSample.objects.using('vl_lims').filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference)).first()
 	if sample is None:
 		return {
 			'hep_number': '',
 			'date_collected': '',
 			'err_msg': 'Not found',
+			'is_dr': 0,
+		}
+	if sample.barcode2 == facility_reference and sample.barcode2 != sample.facility_reference:
+		return {
+			'hep_number': sample.data_art_number or sample.reception_art_number or '',
+			'date_collected': sample.date_collected.strftime('%Y-%m-%d') if sample.date_collected else '',
+			'err_msg': 'This is a DR sample.',
+			'is_dr': 1,
 		}
 
 	if sample.date_received is not None:
@@ -539,12 +614,14 @@ def get_receive_hie_details(facility_reference):
 			'hep_number': '',
 			'date_collected': '',
 			'err_msg': 'Already received',
+			'is_dr': 0,
 		}
 
 	return {
 		'hep_number': sample.data_art_number or sample.reception_art_number or '',
 		'date_collected': sample.date_collected.strftime('%Y-%m-%d') if sample.date_collected else '',
 		'err_msg': '',
+		'is_dr': 0,
 	}
 
 
@@ -715,6 +792,33 @@ def worksheet_detail(worksheet_id):
 	return worksheet, samples
 
 
+def delete_worksheet_sample(worksheet_sample_id):
+	with transaction.atomic(using='vl_lims'):
+		worksheet_sample = VLWorksheetSample.objects.using('vl_lims').select_for_update().filter(pk=worksheet_sample_id).first()
+		if worksheet_sample is None:
+			return None
+		if worksheet_sample.stage != 1:
+			return False
+		if worksheet_sample.sample_id is None:
+			raise ValueError("Worksheet sample has no sample record.")
+
+		worksheet = VLWorksheet.objects.using('vl_lims').select_for_update().get(pk=worksheet_sample.worksheet_id)
+		sample = VLSample.objects.using('vl_lims').select_for_update().get(pk=worksheet_sample.sample_id)
+		if worksheet.is_repeat == 1:
+			sample.stage = 4
+			sample.save(using='vl_lims', update_fields=['stage'])
+		else:
+			envelope = VLEnvelope.objects.using('vl_lims').select_for_update().get(pk=sample.envelope_id)
+			sample.stage = 0
+			sample.save(using='vl_lims', update_fields=['stage'])
+			envelope.stage = 1
+			envelope.save(using='vl_lims', update_fields=['stage'])
+
+		worksheet_id = worksheet_sample.worksheet_id
+		worksheet_sample.delete(using='vl_lims')
+		return worksheet_id
+
+
 def authorize_runs(stage=1):
 	if int(stage) == 1:
 		qs = VLResultRun.objects.using('vl_lims').filter(stage=1).order_by('-id')
@@ -879,12 +983,13 @@ def search_samples(search, search_env=False, search_sample=False):
 			return []
 		samples = VLSample.objects.using('vl_lims').filter(envelope_id=envelope.id).order_by('locator_position')[:300]
 		return [_adapt_sample(sample) for sample in samples]
-	direct_filter = Q(barcode=search) | Q(form_number=search) | Q(facility_reference=search)
+	direct_filter = Q(barcode=search) | Q(barcode2=search) | Q(form_number=search) | Q(facility_reference=search)
 	samples = VLSample.objects.using('vl_lims').filter(direct_filter).order_by('-id')[:300]
 	if not samples and not search_sample:
 		samples = VLSample.objects.using('vl_lims').filter(
 			Q(form_number__icontains=search) |
 			Q(barcode__icontains=search) |
+			Q(barcode2__icontains=search) |
 			Q(facility_reference__icontains=search) |
 			Q(reception_art_number__icontains=search) |
 			Q(data_art_number__icontains=search)

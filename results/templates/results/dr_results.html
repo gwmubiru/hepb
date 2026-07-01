@@ -3,16 +3,40 @@
 
 {% block css %}
 	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
 {% endblock %}
 
 {% block js %}
 	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
 {% endblock %}
 
 {% block content %}	
-	<span class="page-title">results review for DR </span>		
-	<div class="panel panel-default" style="overflow-y:auto">
+	<span class="page-title">results review for DR </span>
+	<div class="panel panel-default">
 		<div class="panel-body">
+			<div class="row" style="margin-bottom: 15px;">
+				<div class="col-md-3">
+					<label for="envelope_number">Envelope</label>
+					<input type="text" class="form-control input-sm" id="envelope_number" placeholder="Envelope number">
+				</div>
+				<div class="col-md-3">
+					<label for="barcode">Barcode</label>
+					<input type="text" class="form-control input-sm" id="barcode" placeholder="Barcode">
+				</div>
+				<div class="col-md-4">
+					<label for="facility_id">Facility</label>
+					<select class="form-control input-sm" id="facility_id">
+						<option value="">All facilities</option>
+						{% for facility in facilities %}
+						<option value="{{ facility.id }}">{{ facility.facility }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="col-md-2" style="padding-top: 25px;">
+					<a href="#" class="btn btn-default btn-sm" id="clear_filters">Clear</a>
+				</div>
+			</div>
 			<table class="table table-condensed table-striped table-bordered" id="tab_id">
 				<thead>
 					<th>Barcode</th>
@@ -26,31 +50,7 @@
 	                <th>Current Regimen</th>
 	                <th>Data Source</th>
 	                <th></th>
-			    </thead>			
-				<tbody>
-					{% for i in dr_results %}
-					<tr>
-						<td>{{ i.result.sample.barcode }}</td>
-						<td>{% if i.result.sample.sample_type == 'D' %}
-							DBS
-							{% else %}
-							Plasma
-							{% endif %}</td>
-						<td><a href="/samples/edit/{{ i.result.sample.pk }}?results_qc_id={{i.id}}">{{ i.result.sample.form_number }}</a></td>
-						<td>{{ i.result.sample.patient.facility }}</td>
-						<td>{{ i.result.sample.patient.hep_number }}</td>
-						<td>{{ i.result.sample.patient.dob }}</td>
-						<td>{{ i.result.sample.patient.get_age }}</td>
-						<td>{{ i.result.sample.viral_load_testing }}</td>
-						<td>{{ i.result.sample.current_regimen}}</td>
-						<td>
-							{{i.result.sample.source_system}}
-						</td>
-						<th><a href="#" class="approve_for_dr" result-pk="{{i.result.pk}}">Mark as reviewed</a></th>
-					</tr>
-					{% endfor %}
-				</tbody>
-			
+			    </thead>
 			</table>
 
 		</div>
@@ -58,22 +58,59 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-	var oTable = $('#tab_id').dataTable({
-		"processing": true,
-	});	
-});
+	$("#facility_id").select2({
+		placeholder: "All facilities",
+		allowClear: true,
+		width: '100%'
+	});
 
-$(".approve_for_dr").on("click", function(){
-	var that = $(this);
-	var result_pk = $(this).attr('result-pk');
-	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk};
-	$.post("/results/approve_for_dr/"+result_pk+"/", params).done(function(data) {
-		if(data==1){
-			that.parent().html("reviewed");
-		}else{
-			//that.parent().html("Failed");
+	var table = $('#tab_id').DataTable({
+		"processing": true,
+		"serverSide": true,
+		"searching": false,
+		"lengthMenu": [[25, 50, 100, -1], [25, 50, 100, "All"]],
+		"ajax": {
+			"url": "/results/dr_results_json/",
+			"data": function(d) {
+				d.envelope_number = $("#envelope_number").val();
+				d.barcode = $("#barcode").val();
+				d.facility_id = $("#facility_id").val();
+			}
 		}
-		
+	});
+
+	function reloadTable() {
+		table.ajax.reload();
+	}
+
+	$("#envelope_number, #barcode").on("keyup", function(e) {
+		if (e.keyCode === 13) {
+			reloadTable();
+		}
+	});
+
+	$("#facility_id").on("change", function(){
+		reloadTable();
+	});
+
+	$("#clear_filters").on("click", function(e){
+		e.preventDefault();
+		$("#envelope_number").val('');
+		$("#barcode").val('');
+		$("#facility_id").val('');
+		reloadTable();
+	});
+
+	$('#tab_id').on("click", ".approve_for_dr", function(e){
+		e.preventDefault();
+		var that = $(this);
+		var result_pk = that.attr('result-pk');
+		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: result_pk};
+		$.post("/results/approve_for_dr/"+result_pk+"/", params).done(function(data) {
+			if(data==1){
+				table.row(that.closest('tr')).remove().draw(false);
+			}
+		});
 	});
 });
 </script>

@@ -42,7 +42,7 @@
 <div class="panel panel-default">
 <div class="row panel-body reception-panel-row">
 	<div id="success" class="alert alert-info alert-dismissible " role="alert">
-		<span style="color:red">Wekkaanye, I mean, NOTE well!!!!!</span>This screen is used when you have both the form and the sample!! <br><br> After entering facility barcode, the system will search for the barcode and populate the art number. If the barcode is <i>NOT found</i>, enter art number. <br><br>When done with all samples, click the <b>Save and get new form</b> button
+		<span style="color:red">Wekkaanye, I mean, NOTE well!!!!!</span>This screen is used when you have both the form and the sample!! <br><br> After entering facility barcode, the system will search for the barcode and populate the {% if active_program_code == '3' %}ART number{% else %}Hep number{% endif %}. If the barcode is <i>NOT found</i>, enter the {% if active_program_code == '3' %}ART number{% else %}Hep number{% endif %}. <br><br>When done with all samples, click the <b>Save and get new form</b> button
 		<button type="button" class="close" data-dismiss="alert" aria-label="Close">
 		    <span aria-hidden="true">&times;</span>
 		  </button>
@@ -135,7 +135,7 @@
 			<div class="row" id="generate_samples_container">
 				<div class="col-md-4" style="text-align:center">Locator ID</div>
 				<div class="col-md-3" style="text-align:center">Facility Identifier</div>
-				<div class="col-md-2" style="text-align:center">Hep No</div>
+				<div class="col-md-2" style="text-align:center">{% if active_program_code == '3' %}ART No{% else %}Hep No{% endif %}</div>
 				<div class="col-md-2" style="text-align:center">Date Collected</div>
 				<div class="col-md-1" style="text-align:center"></div>
 			</div>
@@ -188,6 +188,16 @@
 		return false;
 	}
 
+	function hasReceivedFirstPosition(dataArr){
+		if (dataArr.barcode_exists){
+			alert(dataArr.err_msg || 'This position has already been received. Enter a different position.');
+			resetHieSelection();
+			$("#id_barcode").val('').focus();
+			return true;
+		}
+		return false;
+	}
+
 	$(document).ready(function() {	
 		
 	
@@ -229,6 +239,9 @@
     		$.get(url, function(data, status){
 				var data_arr = JSON.parse(data);
 				if(hasProgramMismatch(data_arr)){
+					return;
+				}
+				if(hasReceivedFirstPosition(data_arr)){
 					return;
 				}
     			var year_month = barc.substring(0, 4);
@@ -339,10 +352,16 @@
     		var ind = $quan.index(this);
     		var barc = $("#bar"+ind).val();
 			var fac_ref = $("#fac_ref"+ind).val();
-			var url =  "/samples/receive_hie/?facility_reference="+fac_ref;
+			var facilityId = $("#id_facility").val();
+			var url =  "/samples/receive_hie/?facility_reference="+encodeURIComponent(fac_ref)+"&facility_id="+encodeURIComponent(facilityId || '');
 			var span_color = "#ff0000";
 			$.get(url, function(data, status){
 				var data_arr = JSON.parse(data);
+				if(data_arr.facility_reference_conflict == 1){
+		        	alert(data_arr.err_msg);
+		        	$("#fac_ref"+ind).val('').focus();
+		        	return;
+		        }
 				if(data_arr.hep_number == ''){
 					$("#span"+barc).html(data_arr.err_msg);
 		        	$("#span"+barc).css({"color":span_color});
@@ -363,14 +382,29 @@
 				
 			});
     	});
-    	$('#id_code').on('change', function(e){
-    		var tr_code = $('#id_code').val();
-    		var url =  "/samples/get_tracking_code_details/?code="+tr_code;
-            $.get(url, function(data, status){
-                var data_arr = JSON.parse(data);
-                $("#tracking_code_id").val(data_arr.tracking_code_id);	
-            });	
-    	})
+		$('#id_code').on('change', function(){
+			var trCode = ($('#id_code').val() || '').trim();
+			if(!trCode){
+				$('#tracking_code_id').val('');
+				return;
+			}
+			$.get('/samples/get_tracking_code_details/?lookup_only=1&code=' + encodeURIComponent(trCode), function(data){
+				var details = JSON.parse(data);
+				if(!details.exists){
+					$('#tracking_code_id').val('');
+					return;
+				}
+				$('#tracking_code_id').val(details.tracking_code_id || '');
+				if(details.facility_id){
+					var currentFacilityId = String($('#id_facility').val() || '');
+					var trackingFacilityId = String(details.facility_id);
+					if(currentFacilityId !== trackingFacilityId){
+						$('#id_facility_reference, #locator_id_container .facilityreference').val('');
+					}
+					$('#id_facility').val(trackingFacilityId).trigger('change');
+				}
+			});
+		});
     	$('#submit_form').on('click', function(e) {
 		    e.preventDefault();
 		    tr_code_id = $("#tracking_code_id").val();

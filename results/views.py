@@ -986,10 +986,113 @@ def intervene_list(request):
 	return render(request, 'results/intervene_list.html', {'intervene_results':intervene_results})
 
 def dr_results(request):
-	#results after 2022-11-08
 	db_alias = get_program_db_alias(request)
-	dr_results = ResultsQC.objects.using(db_alias).filter(released=True,result__result_numeric__gte=1000, result__id__gte=9039314, is_reviewed_for_dr=False, result__sample__verified=True, result__sample__envelope__sample_medical_lab=utils.user_lab(request))
-	return render(request, 'results/dr_results.html', {'dr_results':dr_results,'stats':dr_results.count()})
+	facility_ids = Sample.objects.using(db_alias).filter(
+		result__resultsqc__released=True,
+		result__resultsqc__is_reviewed_for_dr=False,
+		result__result_numeric__gte=1000,
+		verified=True,
+		envelope__sample_medical_lab=utils.user_lab(request),
+	).values_list('facility_id', flat=True).distinct()
+	facilities = Facility.objects.filter(id__in=facility_ids).order_by('facility')
+	return render(request, 'results/dr_results.html', {'facilities': facilities})
+
+
+def _dr_results_queryset(request):
+	db_alias = get_program_db_alias(request)
+	return ResultsQC.objects.using(db_alias).select_related(
+		'result',
+		'result__sample',
+		'result__sample__patient',
+		'result__sample__facility',
+		'result__sample__current_regimen',
+		'result__sample__source_system',
+		'result__sample__viral_load_testing',
+		'result__sample__envelope',
+	).filter(
+		released=True,
+		result__result_numeric__gte=1000,
+		is_reviewed_for_dr=False,
+		result__sample__verified=True,
+		result__sample__envelope__sample_medical_lab=utils.user_lab(request),
+	)
+
+
+def dr_results_json(request):
+	r = request.GET
+	start = int(r.get('start', 0))
+	length = int(r.get('length', 10))
+	envelope_number = (r.get('envelope_number') or '').strip()
+	barcode = (r.get('barcode') or '').strip()
+	facility_id = (r.get('facility_id') or '').strip()
+
+	qs = _dr_results_queryset(request)
+	records_total = qs.count()
+
+	if envelope_number:
+		qs = qs.filter(result__sample__envelope__envelope_number__icontains=envelope_number)
+	if barcode:
+		qs = qs.filter(result__sample__barcode__icontains=barcode)
+	if facility_id:
+		qs = qs.filter(result__sample__facility_id=facility_id)
+
+	records_filtered = qs.count()
+
+	order_columns = {
+		0: 'result__sample__barcode',
+		1: 'result__sample__sample_type',
+		2: 'result__sample__form_number',
+		3: 'result__sample__facility__facility',
+		4: 'result__sample__patient__hep_number',
+		5: 'result__sample__patient__dob',
+		7: 'result__sample__viral_load_testing__appendix',
+		8: 'result__sample__current_regimen__appendix',
+		9: 'result__sample__source_system__appendix',
+	}
+	order_column = int(r.get('order[0][column]', 0))
+	order_dir = r.get('order[0][dir]', 'asc')
+	order_field = order_columns.get(order_column, 'result__sample__barcode')
+	if order_dir == 'desc':
+		order_field = '-' + order_field
+	qs = qs.order_by(order_field, '-id')
+
+	if length != -1:
+		qs = qs[start:start+length]
+	else:
+		qs = qs[start:]
+
+	data = []
+	for item in qs:
+		sample = item.result.sample
+		patient = sample.patient
+		form_number = sample.form_number or ''
+		facility = sample.facility.facility if sample.facility else ''
+		hep_number = patient.hep_number if patient else ''
+		dob = patient.dob.strftime("%Y-%m-%d") if patient and patient.dob else ''
+		age = patient.get_age() if patient else ''
+		testing = sample.viral_load_testing.appendix if sample.viral_load_testing else ''
+		regimen = sample.current_regimen.appendix if sample.current_regimen else ''
+		source_system = sample.source_system.appendix if sample.source_system else ''
+		data.append([
+			sample.barcode or '',
+			'DBS' if sample.sample_type == 'D' else 'Plasma',
+			"<a href='/samples/edit/{0}?results_qc_id={1}'>{2}</a>".format(sample.pk, item.id, form_number),
+			facility,
+			hep_number,
+			dob,
+			age,
+			testing,
+			regimen,
+			source_system,
+			"<a href='#' class='approve_for_dr' result-pk='{0}'>Mark as reviewed</a>".format(item.result.pk),
+		])
+
+	return HttpResponse(json.dumps({
+		"draw": r.get('draw'),
+		"recordsTotal": records_total,
+		"recordsFiltered": records_filtered,
+		"data": data,
+	}))
 
 
 def reschedule(request, result_pk):

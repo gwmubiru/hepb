@@ -147,7 +147,7 @@
 		<div class="row" id="sub-t-b" style="margin-top:5px;">
 			<div class="row" id="generate_samples_container">
 				<div class="col-md-6" style="text-align:center">Locator ID</div>
-				<div class="col-md-3" style="text-align:center">Art Number</div>
+				<div class="col-md-3" style="text-align:center">{% if active_program_code == '3' %}ART No{% else %}Hep No{% endif %}</div>
 				<div class="col-md-1" style="text-align:center"></div>
 			</div>
 		</div>
@@ -201,6 +201,16 @@
 			alert(dataArr.err_msg);
 			resetBatchSelection();
 			$("#id_barcode").val('');
+			return true;
+		}
+		return false;
+	}
+
+	function hasReceivedFirstPosition(dataArr){
+		if (dataArr.barcode_exists){
+			alert(dataArr.err_msg || 'This position has already been received. Enter a different position.');
+			resetBatchSelection();
+			$("#id_barcode").val('').focus();
 			return true;
 		}
 		return false;
@@ -279,6 +289,30 @@
 	    		set_district_hub();   		    		
 	    	}).change();
 
+			$('#id_code').on('change', function(){
+				var trCode = ($('#id_code').val() || '').trim();
+				if(!trCode){
+					$('#tracking_code_id').val('');
+					return;
+				}
+				$.get('/samples/get_tracking_code_details/?lookup_only=1&code=' + encodeURIComponent(trCode), function(data){
+					var details = JSON.parse(data);
+					if(!details.exists){
+						$('#tracking_code_id').val('');
+						return;
+					}
+					$('#tracking_code_id').val(details.tracking_code_id || '');
+					if(details.facility_id){
+						var currentFacilityId = String($('#id_facility').val() || '');
+						var trackingFacilityId = String(details.facility_id);
+						if(currentFacilityId !== trackingFacilityId){
+							$('#id_facility_reference, #locator_id_container .facilityreference').val('');
+						}
+						$('#id_facility').val(trackingFacilityId).trigger('change');
+					}
+				});
+			});
+
 			$("#id_barcode").change(function(){
 	    		var barc = $(this).val();
 	    		if(barc === ''){
@@ -288,6 +322,9 @@
 	    		$.get(url, function(data, status){
 					var data_arr = JSON.parse(data);
 					if(hasProgramMismatch(data_arr)){
+						return;
+					}
+					if(hasReceivedFirstPosition(data_arr)){
 						return;
 					}
 	    			var year_month = barc.substring(0, 4);

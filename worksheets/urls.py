@@ -21,6 +21,7 @@ urlpatterns  = [
 	re_path(r'^pending_samples/$', login_required(views.pending_samples), name='get_pending_samples'),
 	re_path(r'^pending_envelopes/$', login_required(views.pending_envelopes), name='pending_envelopes'),
 	re_path(r'^delete/(?P<pk>[0-9]+)/$', login_required(views.delete), name='delete'),
+	re_path(r'^samples/(?P<pk>[0-9]+)/delete/$', login_required(views.delete_worksheet_sample), name='delete_worksheet_sample'),
 	re_path(r'^reg_info/(?P<machine_type>[A|R|C|H])/$', login_required(views.reg_info), name='reg_info'),
 	re_path(r'^get_instrument_id/$', login_required(views.get_instrument_id), name='get_instrument_id'),
 	re_path(r'^attach_results/$', login_required(views.attach_results), name='attach_results'),

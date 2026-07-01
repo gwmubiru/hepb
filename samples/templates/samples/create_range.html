@@ -27,6 +27,9 @@
 	<div class="panel panel-default" style="overflow-y:auto">
 		<div class="panel-body">
 			<div class="worksheet" id="content" >
+				{% if error_message %}
+				<div class="alert alert-danger">{{ error_message }}</div>
+				{% endif %}
 				<div class="row">
 					<div class="col-lg-6">
 						<form action=" {% url 'samples:create_range'  %}" method="post" id="create_range" role="form">
@@ -45,9 +48,6 @@
 									</select>
 									<select class="form-control" name="month" id="month" required="true" style="width:100px;">
 								 <option value="">Month</option>
-									{% for m in months %}
-									    <option value="{{m}}">{{ m }}</option>
-									{% endfor %}
 									</select>
 								
 							</div>
@@ -77,6 +77,13 @@
 							<div class="form-group  required">
 								<label for="lower_limit">Starting Envelope</label>
 								 <input type="text" name="lower_limit" required="true" class="form-control" id="lower_limit">									
+							</div>
+							<div class="form-group required">
+								<label for="envelope_type">Envelope Type</label>
+								<select name="envelope_type" class="form-control" required="true" id="envelope_type">
+									<option value="1" selected>Routine</option>
+									<option value="2">Drug Resistance</option>
+								</select>
 							</div>
 							<div class="form-group  required">
 								<label for="number_of_envelopes">No. Envelopes</label>
@@ -112,6 +119,65 @@
 
 	<script type="text/javascript">
 		$(document).ready(function() {	
+			var allowedPeriods = [
+				{year: "{{ current_year }}", month: "{{ current_month|stringformat:'02d' }}"},
+				{year: "{{ previous_year }}", month: "{{ previous_month|stringformat:'02d' }}"}
+			];
+			var monthNames = {
+				"01": "01",
+				"02": "02",
+				"03": "03",
+				"04": "04",
+				"05": "05",
+				"06": "06",
+				"07": "07",
+				"08": "08",
+				"09": "09",
+				"10": "10",
+				"11": "11",
+				"12": "12"
+			};
+
+			function allowedMonthsForYear(year) {
+				return allowedPeriods.filter(function(period) {
+					return period.year === year;
+				});
+			}
+
+			function syncMonthOptions(selectedMonth) {
+				var selectedYear = $("#year").val();
+				var months = allowedMonthsForYear(selectedYear);
+				var monthSelect = $("#month");
+				monthSelect.empty().append('<option value="">Month</option>');
+				months.forEach(function(period) {
+					monthSelect.append('<option value="' + period.month + '">' + monthNames[period.month] + '</option>');
+				});
+				if (selectedMonth && months.some(function(period) { return period.month === selectedMonth; })) {
+					monthSelect.val(selectedMonth);
+				}
+			}
+
+			function isAllowedPeriod(year, month) {
+				return allowedPeriods.some(function(period) {
+					return period.year === year && period.month === month;
+				});
+			}
+
+			function validateRangeBoundary() {
+				var lower = $("#lower_limit").val();
+				var upper = $("#upper_limit").val();
+				if (lower === '' || upper === '') {
+					return true;
+				}
+				var lowerVal = Number(lower);
+				var upperVal = Number(upper);
+				if ((lowerVal < 3000 && upperVal >= 3000) || (lowerVal >= 3000 && upperVal < 3000)) {
+					alert('Mixed ranges are not allowed. Split Plasma and DBS envelopes into separate accession batches.');
+					return false;
+				}
+				return true;
+			}
+
 		 	//$('.select2').select2();
 		 	$('.select2').val({{logged_in_user_id}}).change();
 		 	$(".date").datepicker({
@@ -119,19 +185,8 @@
 				maxDate: 0
 			});
 			$(this).val({{logged_in_user_id}});
-		 	$("#year, #month").change(function(){
-		 		const d = new Date();
-				let year = d.getFullYear().toString().substr(-2);
-				let month = d.getMonth()+1;
-				var selected_year = $('#year').val();
-				var selected_month = $('#month').val();
-				if(selected_year.length  && selected_month.length){
-					if(parseInt(selected_year) == parseInt(year) && parseInt(selected_month) > month){
-						alert('Month cannot not be in future');
-						$("#month").val('');
-					}
-				}
-				
+		 	$("#year").change(function(){
+		 		syncMonthOptions('');
 		 	});
 		 	$("#lower_limit").change(function(){
 	    		var lower_limit_val = $(this).val();
@@ -145,7 +200,17 @@
 	    			var year = lower_limit_val.substring(0,2);
 	    			$('#year').val(year).trigger('change');
 	    			var month = lower_limit_val.substring(2,4);
-	    			$('#month').val(month).trigger('change');
+	    			if(isAllowedPeriod(year, month)){
+	    				syncMonthOptions(month);
+	    			}else{
+	    				alert('Accessioning is restricted to the current month and previous month only.');
+	    				$('#year').val('');
+	    				syncMonthOptions('');
+	    				$(this).val('');
+	    				$('#sample_type').val('');
+	    				$('#id_sample_type').val('');
+	    				return;
+	    			}
 	    		}else if(lower_limit_val.length < 4){
 	    			$(this).val(pad(lower_limit_val,4));
 	    		}
@@ -167,7 +232,7 @@
 				 }
 
 	    		if(upper_limit_val.length == 10){
-	    			var env_number = upper_limit_val_val.substring(4,8);
+	    			var env_number = upper_limit_val.substring(4,8);
 	    			$(this).val(env_number);
 	    		}else if(upper_limit_val.length < 4){
 	    			$(this).val(pad(upper_limit_val,4));
@@ -180,6 +245,10 @@
 	    				$(this).val('');
 	    			}else{
 	    				$("#number_of_envelopes").val(no_envs);
+	    				if(!validateRangeBoundary()){
+	    					$(this).val('');
+	    					$("#number_of_envelopes").val('');
+	    				}
 	    			}
 	    		}
 
@@ -191,9 +260,28 @@
 	    		if(lower_limit_val != ''){
 	    			var last_env = Number(lower_limit_val) + Number(no_envs)-1;
 	    			$("#upper_limit").val(pad(last_env,4));
+	    			if(!validateRangeBoundary()){
+	    				$("#upper_limit").val('');
+	    				$(this).val('');
+	    			}
 	    		}
 
 	    	});
+
+	    	$("#create_range").submit(function(e){
+	    		var year = $("#year").val();
+	    		var month = $("#month").val();
+	    		if(!isAllowedPeriod(year, month)){
+	    			alert('Accessioning is restricted to the current month and previous month only.');
+	    			e.preventDefault();
+	    			return;
+	    		}
+	    		if(!validateRangeBoundary()){
+	    			e.preventDefault();
+	    		}
+	    	});
+
+	    	syncMonthOptions('');
 
 	     }); 
 	 	function pad (str, max) {

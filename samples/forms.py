@@ -341,7 +341,10 @@ class SampleForm(forms.ModelForm):
 class SampleReceptionForm(forms.ModelForm):
 	date_collected = forms.DateField(
 		input_formats=['%d/%m/%Y', '%Y-%m-%d'],
-		widget=forms.DateInput(attrs={'class': 'form-control input-sm w-xs date_d'})
+		widget=forms.DateInput(
+			format='%d/%m/%Y',
+			attrs={'class': 'form-control input-sm w-xs date_d'},
+		)
 	)
 	date_received = forms.DateField(
 		required=False,

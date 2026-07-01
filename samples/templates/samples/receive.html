@@ -97,16 +97,16 @@
 				<div class="hidden">
 					<input type="text" name="envelope_number" id="envelope_number">
 					<input type="text" name="locator_position" id="locator_position">
-					<input type="text" name="tracking_code_id" id="tracking_code_id" value="{{request.GET.tracking_code_id}}">
+					<input type="text" name="tracking_code_id" id="tracking_code_id" value="{{ tracking_code_id|default:'' }}">
 					<input type="text" name="date_received" id="date_received" value="">
-					<input type="text" name="envelope_id" id="envelope_id" value="{{request.GET.envelope_id}}">
-					<input type="text" name="page_type" id="page_type" value="{{request.GET.page_type}}">
-					<input type="text" name="current_tr_code" id="current_tr_code" value="{{request.GET.current_tr_code}}">
+					<input type="text" name="envelope_id" id="envelope_id" value="{{ env_id|default:'' }}">
+					<input type="text" name="page_type" id="page_type" value="{{ page_type|default:'' }}">
+					<input type="text" name="current_tr_code" id="current_tr_code" value="{{ current_tr_code|default:'' }}">
 					<input type="text" name="reception_id" id="reception_id" value="{{reception_id}}">
 				</div>
 				<div class="form-inline required">						
 					<label for="tracking_code">Tracking Code</label><br>					
-					<input class="form-control input-sm w-md" id="id_code" name="code" value="{{current_tr_code}}" required="true" type="text" >
+					<input class="form-control input-sm w-md" id="id_code" name="code" value="{{current_tr_code}}" {% if not reception_id %}required="true"{% endif %} type="text" >
 				</div>
 				<div class="form-inline required">
 					
@@ -146,7 +146,7 @@
 				
 				
 				<div class="form-inline">						
-					<label for="reception_hep_number">Art Number</label><br>					
+					<label for="reception_hep_number">{% if active_program_code == '3' %}ART No{% else %}Hep No{% endif %}</label><br>					
 					<input class="form-control input-sm w-md" id="id_reception_hep_number" name="reception_hep_number" value="{{reception_hep_number}}"  type="text" >
 				</div>
 			</div>
@@ -174,7 +174,7 @@
 			<div class="col-lg-6">
 
 				<div class="form-group required">
-					{{ sample_reception_form.hep_number.label_tag }}
+					<label for="{{ sample_reception_form.hep_number.id_for_label }}">{% if active_program_code == '3' %}ART No{% else %}Hep No{% endif %}</label>
 					{{ sample_reception_form.hep_number }}
 				</div> 
 
@@ -206,6 +206,11 @@
 	
 
 <script type="text/javascript">
+	{% if sample_reception_form.facility_reference.errors %}
+		alert("{{ sample_reception_form.facility_reference.errors|striptags|escapejs }}");
+	{% elif sample_reception_form.barcode.errors %}
+		alert("{{ sample_reception_form.barcode.errors|striptags|escapejs }}");
+	{% endif %}
 	function resetReceiveFormSelection(){
 		$("#envelope_id,#date_received,#envelope_number,#locator_position").val('');
 	}
@@ -219,6 +224,7 @@
 		}
 		return false;
 	}
+	var initialRejectionReasonId = "{{ rejection_reason_id|default:''|escapejs }}";
 
 	$(document).ready(function() {	
 	
@@ -239,6 +245,7 @@
 			                    }
 		                    }
 		                },
+		            {% if not reception_id %}
 		            code: {
 		                    validators: {
 		                        notEmpty: {
@@ -246,10 +253,11 @@
 		                        }
 		                    }
 		                },
+		            {% endif %}
 					reception_hep_number: {
 		                    validators: {
 		                        notEmpty: {
-		                            message: 'Please enter the art number'
+		                            message: 'Please enter the {% if active_program_code == '3' %}ART number{% else %}Hep number{% endif %}'
 		                        }
 		                    }
 		                },
@@ -302,9 +310,33 @@
 			dateFormat: "yy-mm-dd",
 			maxDate: 0
 		});
-    	$("#id_facility").change(function(){
-    		set_district_hub();   		    		
-    	}).change();
+		$("#id_facility").change(function(){
+			set_district_hub();   		    		
+		}).change();
+
+		$('#id_code').on('change', function(){
+			var trCode = ($('#id_code').val() || '').trim();
+			if(!trCode){
+				$('#tracking_code_id').val('');
+				return;
+			}
+			$.get('/samples/get_tracking_code_details/?lookup_only=1&code=' + encodeURIComponent(trCode), function(data){
+				var details = JSON.parse(data);
+				if(!details.exists){
+					$('#tracking_code_id').val('');
+					return;
+				}
+				$('#tracking_code_id').val(details.tracking_code_id || '');
+				if(details.facility_id){
+					var currentFacilityId = String($('#id_facility').val() || '');
+					var trackingFacilityId = String(details.facility_id);
+					if(currentFacilityId !== trackingFacilityId){
+						$('#id_facility_reference, #locator_id_container .facilityreference').val('');
+					}
+					$('#id_facility').val(trackingFacilityId).trigger('change');
+				}
+			});
+		});
 
 		$("#id_barcode").change(function(){
     		var barc = $(this).val();
@@ -390,6 +422,9 @@
 			  slct +="</select>";
 			  //console.log(slct);
 			  $("#rejection_reasons_container").html(slct);
+			  if(initialRejectionReasonId){
+				$("#" + id).val(initialRejectionReasonId).trigger('change');
+			  }
 
 		});	
 	  //return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);

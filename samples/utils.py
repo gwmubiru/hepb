@@ -122,11 +122,11 @@ def locator_cond(search=""):
 		if "/" in search:
 			search_arr = search.split("/")
 			cond = Q(
-				envelope__envelope_number__icontains=search_arr[0],
+				envelope__envelope_number__startswith=search_arr[0],
 				locator_position=search_arr[1]
 				)
 		else:
-			cond = Q(envelope__envelope_number__icontains=search)
+			cond = Q(envelope__envelope_number__startswith=search)
 	except:
 		pass
 	return cond
@@ -273,17 +273,18 @@ def get_envelope_id(request):
 	return env_id
 
 def save_verification_details(sample,request):
-	v = Verification.objects.filter(sample=sample).first()
+	db_alias = sample._state.db or 'default'
+	v = Verification.objects.using(db_alias).filter(sample_id=sample.pk).first()
 	v = v if v else Verification()
 	v.pat_edits = 0
 	v.sample_edits = 0
-	v.sample = sample
+	v.sample_id = sample.pk
 	
 	v.accepted = True 		
 	v.rejection_reason_id = None
 
-	v.verified_by = request.user
-	v.save()
+	v.verified_by_id = request.user.id
+	v.save(using=db_alias)
 	return True
 	
 def update_worksheet_sample(s):

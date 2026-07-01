@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.serializers import serialize
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 #from easy_pdf.views import PDFTemplateView
 #from easy_pdf.rendering import render_to_pdf_response
 from django.contrib.auth.decorators import permission_required
@@ -323,6 +323,50 @@ def show(request, worksheet_id):
 	sample_pads = worksheet_utils.sample_pads(worksheet)
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
 	return render(request, 'worksheets/show.html', context)
+
+def delete_worksheet_sample(request, pk):
+	if request.method != 'POST':
+		return HttpResponseNotAllowed(['POST'])
+
+	if vl_services.is_hiv_program(request):
+		worksheet_id = vl_services.delete_worksheet_sample(pk)
+		if worksheet_id is None:
+			return HttpResponse("Worksheet sample not found.", status=404)
+		if worksheet_id is False:
+			return HttpResponse(
+				"Worksheet sample cannot be deleted unless it is at stage 1.",
+				status=400,
+			)
+		return redirect('worksheets:show', worksheet_id=worksheet_id)
+
+	with transaction.atomic():
+		worksheet_sample = get_object_or_404(
+			WorksheetSample.objects.select_for_update().select_related('worksheet'),
+			pk=pk,
+		)
+		if worksheet_sample.stage != 1:
+			return HttpResponse(
+				"Worksheet sample cannot be deleted unless it is at stage 1.",
+				status=400,
+			)
+		if worksheet_sample.sample_id is None:
+			return HttpResponse("Worksheet sample has no sample record.", status=400)
+
+		sample = Sample.objects.select_for_update().get(pk=worksheet_sample.sample_id)
+		if worksheet_sample.worksheet.is_repeat == 1:
+			sample.stage = 4
+			sample.save(update_fields=['stage'])
+		else:
+			envelope = Envelope.objects.select_for_update().get(pk=sample.envelope_id)
+			sample.stage = 0
+			sample.save(update_fields=['stage'])
+			envelope.stage = 1
+			envelope.save(update_fields=['stage'])
+
+		worksheet_id = worksheet_sample.worksheet_id
+		worksheet_sample.delete()
+
+	return redirect('worksheets:show', worksheet_id=worksheet_id)
 
 def edit(request, worksheet_id):
 	if request.method == 'POST':
