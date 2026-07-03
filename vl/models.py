@@ -83,6 +83,30 @@ class VLTrackingCode(models.Model):
 		managed = False
 
 
+class VLClinician(models.Model):
+	id = models.AutoField(primary_key=True)
+	cname = models.CharField(max_length=128)
+	cphone = models.CharField(max_length=64, null=True, blank=True)
+	facility_id = models.IntegerField(null=True, blank=True)
+
+	class Meta:
+		app_label = 'vl'
+		db_table = 'vl_clinicians'
+		managed = False
+
+
+class VLLabTech(models.Model):
+	id = models.AutoField(primary_key=True)
+	lname = models.CharField(max_length=128)
+	lphone = models.CharField(max_length=64, null=True, blank=True)
+	facility_id = models.IntegerField(null=True, blank=True)
+
+	class Meta:
+		app_label = 'vl'
+		db_table = 'vl_lab_techs'
+		managed = False
+
+
 class VLPatient(models.Model):
 	id = models.AutoField(primary_key=True)
 	unique_id = models.CharField(max_length=128, null=True, blank=True)
@@ -123,6 +147,8 @@ class VLSample(models.Model):
 	facility_patient_id = models.IntegerField(null=True, blank=True)
 	envelope_id = models.IntegerField(null=True, blank=True)
 	tracking_code_id = models.IntegerField(null=True, blank=True)
+	clinician_id = models.IntegerField(null=True, blank=True)
+	lab_tech_id = models.IntegerField(null=True, blank=True)
 	sample_type = models.CharField(max_length=1, null=True, blank=True)
 	date_collected = models.DateField(null=True, blank=True)
 	date_received = models.DateTimeField(null=True, blank=True)

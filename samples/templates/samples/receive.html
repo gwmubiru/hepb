@@ -56,7 +56,7 @@
 {% endblock %}
 
 
-{% block content %}	
+{% block content %}
 
 <div class="page-title">Receive sample</div>
 <div class="panel panel-default">
@@ -64,7 +64,7 @@
 	<div class="col-lg-6">
 	{% if sample %}
 	<div id="success" class="alert alert-success vl-alert" role="alert">
-		just received: 
+		just received:
 		<a href="{% url 'samples:edit_received' sample.pk %}">
 			{{sample.barcode }}</a>
 		&nbsp;&nbsp;
@@ -72,7 +72,7 @@
 	</div>
 	{% endif %}
 	{% if messages %}
-    	<div class="messages">
+	<div class="messages">
 	        {% for message in messages %}
 	            <div class="alert alert-danger {% if message.tags %}alert-{{ message.tags }}{% endif %}">
 	                {{ message }}
@@ -80,16 +80,16 @@
 	        {% endfor %}
 	    </div>
 	{% endif %}
-	
+
 	<form action=" {% if reception_id %} {% url 'samples:edit_received' reception_id %} {% else %}  {% url 'samples:receive'  %} {% endif %}" method="post" id="receive_form" role="form">
 		{% csrf_token %}
 		<ul>
-		
+
 		{% for field in sample_reception_form %}
 			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
 		{% endfor %}
-			
-		
+
+
 		</ul>
 		<div class="row reception-main-row">
 			<div class="col-lg-6 reception-left-col">
@@ -104,12 +104,12 @@
 					<input type="text" name="current_tr_code" id="current_tr_code" value="{{ current_tr_code|default:'' }}">
 					<input type="text" name="reception_id" id="reception_id" value="{{reception_id}}">
 				</div>
-				<div class="form-inline required">						
-					<label for="tracking_code">Tracking Code</label><br>					
+				<div class="form-inline required">
+					<label for="tracking_code">Tracking Code</label><br>
 					<input class="form-control input-sm w-md" id="id_code" name="code" value="{{current_tr_code}}" {% if not reception_id %}required="true"{% endif %} type="text" >
 				</div>
 				<div class="form-inline required">
-					
+
 					<label for="locator_envelope">Location/Rejection ID</label><br>
 					<div class="locator-entry">
 						<select class="form-control input-sm w-xs locator-category" id="id_locator_category" name="locator_category" required="true">
@@ -128,7 +128,7 @@
 					<select id="rej_res"></select>
 
 				</div>
-				
+
 				<div class="form-group required">
 					{{ sample_reception_form.facility.label_tag }}<br>
 					{{ sample_reception_form.facility }}
@@ -138,15 +138,15 @@
 						Hub: <u id="id_hub">_______________</u>
 					</div>
 				</div>
-				
-				<div class="form-inline">						
-					<label for="facility_reference">Facility Reference</label><br>					
+
+				<div class="form-inline">
+					<label for="facility_reference">Facility Reference</label><br>
 					<input class="form-control input-sm w-md" id="id_facility_reference" name="facility_reference" value="{{facility_reference}}"  type="text" >
 				</div>
-				
-				
-				<div class="form-inline">						
-					<label for="reception_hep_number">{% if active_program_code == '3' %}ART No{% else %}Hep No{% endif %}</label><br>					
+
+
+				<div class="form-inline">
+					<label for="reception_hep_number">{% if active_program_code == '3' %}ART No{% else %}Hep No{% endif %}</label><br>
 					<input class="form-control input-sm w-md" id="id_reception_hep_number" name="reception_hep_number" value="{{reception_hep_number}}"  type="text" >
 				</div>
 			</div>
@@ -154,13 +154,13 @@
 			<div class="col-lg-6 reception-right-col">
 
 				<span class='sub-title'>sample details</span>
-				
+
 				<div class="form-group required">
 					{{ sample_reception_form.sample_type.label_tag }}
 					{{ sample_reception_form.sample_type }}
 					<input type="hidden" name="sample_type" id="sample_type" value='{{ sample_reception_form.sample_type.value }}'>
 				</div>
-				<div class="form-group required">
+				<div class="form-group">
 					{{ sample_reception_form.date_collected.label_tag }}
 					{{ sample_reception_form.date_collected }}
 				</div>
@@ -176,10 +176,10 @@
 				<div class="form-group required">
 					<label for="{{ sample_reception_form.hep_number.id_for_label }}">{% if active_program_code == '3' %}ART No{% else %}Hep No{% endif %}</label>
 					{{ sample_reception_form.hep_number }}
-				</div> 
+				</div>
 
 			</div>
-			
+
 
 		</div>
 
@@ -191,8 +191,8 @@
 			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
 			{% for s in sample.envelope.sample_set.all|dictsort:"locator_position" %}
 				<span  style="margin-left:-60px">
-					{{ forloop.counter }}. 
-					
+					{{ forloop.counter }}.
+
 					<a href="{% url 'samples:edit_received' s.pk %}">
 						{{s.barcode }}
 					</a>
@@ -200,10 +200,10 @@
 			{% endfor %}
 		{%endif%}
 	</div>
-	
+
 </div>
 </div>
-	
+
 
 <script type="text/javascript">
 	{% if sample_reception_form.facility_reference.errors %}
@@ -211,6 +211,8 @@
 	{% elif sample_reception_form.barcode.errors %}
 		alert("{{ sample_reception_form.barcode.errors|striptags|escapejs }}");
 	{% endif %}
+	{% include "samples/_locator_id_helpers.html" %}
+
 	function resetReceiveFormSelection(){
 		$("#envelope_id,#date_received,#envelope_number,#locator_position").val('');
 	}
@@ -224,25 +226,30 @@
 		}
 		return false;
 	}
+
+	function hasReceivedPosition(dataArr){
+		if (dataArr.barcode_exists){
+			alert(dataArr.err_msg || 'This position has already been received. Enter a different position.');
+			resetReceiveFormSelection();
+			$("#id_barcode").val('').focus();
+			return true;
+		}
+		return false;
+	}
 	var initialRejectionReasonId = "{{ rejection_reason_id|default:''|escapejs }}";
 
-	$(document).ready(function() {	
-	
+	$(document).ready(function() {
+
 		if ($.fn.bootstrapValidator) {
 			$('#receive_form').bootstrapValidator({
-		       
+
 		        fields: {
-					
+
 					barcode: {
 		                    validators: {
 		                        notEmpty: {
 		                            message: 'Please locator Id'
-		                        },
-		                         stringLength: {
-			                        min: 10,
-			                        max: 10,
-			                        message: 'Barcode must be 10 digits long'
-			                    }
+		                        }
 		                    }
 		                },
 		            {% if not reception_id %}
@@ -258,13 +265,6 @@
 		                    validators: {
 		                        notEmpty: {
 		                            message: 'Please enter the {% if active_program_code == '3' %}ART number{% else %}Hep number{% endif %}'
-		                        }
-		                    }
-		                },
-		            date_collected: {
-		                    validators: {
-		                        notEmpty: {
-		                            message: 'Please select the collection date'
 		                        }
 		                    }
 		                },
@@ -295,23 +295,26 @@
 		$('#id_facility').select2();
 		$("#id_facility").val("{{ sample_reception_form.facility.value|default:'' }}");
 
-				
+
 		$("#id_sample_type").attr("disabled", "true");
+		if(isHepProgram()){
+			setSampleTypeValue('P');
+		}
 
-    	$(".date_d").combodate({
-    		format: "DD/MM/YYYY",
-    		template: "D MMM YYYY",
-    		customClass: "form-control input-sm w-xs",
-    		minYear: 1900,
-    		maxYear: date_now.getFullYear(),
-    	});
+	$(".date_d").combodate({
+		format: "DD/MM/YYYY",
+		template: "D MMM YYYY",
+		customClass: "form-control input-sm w-xs",
+		minYear: 1900,
+		maxYear: date_now.getFullYear(),
+	});
 
-    	$(".date").datepicker({
+	$(".date").datepicker({
 			dateFormat: "yy-mm-dd",
 			maxDate: 0
 		});
 		$("#id_facility").change(function(){
-			set_district_hub();   		    		
+			set_district_hub();
 		}).change();
 
 		$('#id_code').on('change', function(){
@@ -339,35 +342,48 @@
 		});
 
 		$("#id_barcode").change(function(){
-    		var barc = $(this).val();
-    		if(barc === ''){
-    			return;
-    		}
-    		var url =  "/samples/get_barcode_details/?barcode="+barc;
-    		$.get(url, function(data, status){
+		var barc = $(this).val();
+		if(barc === ''){
+			return;
+		}
+		var url =  "/samples/get_barcode_details/?barcode="+barc;
+		$.get(url, function(data, status){
 				var data_arr = JSON.parse(data);
 				if(hasProgramMismatch(data_arr)){
 					return;
 				}
-    			var year_month = barc.substring(0, 4);
-    			var env_number = barc.substring(4,8);
-    			var locator_posn = barc.substr(barc.length - 2);
-    			$("#envelope_number").val(year_month +'-'+env_number).change();
-    			$("#locator_position").val(locator_posn).change();
-    		});
-    	});
+				if(hasReceivedPosition(data_arr)){
+					return;
+				}
+				var parsedLocator = parseReceptionLocator(barc);
+				if(!parsedLocator){
+					resetReceiveFormSelection();
+					return;
+				}
+				$("#id_barcode").val(parsedLocator.barcode);
+			applyParsedLocator(parsedLocator);
+		});
+	});
 
-    	
+		$("#receive_form").on("submit", function(e){
+			var parsedLocator = parseReceptionLocator($("#id_barcode").val());
+			if(!parsedLocator){
+				e.preventDefault();
+				return false;
+			}
+			$("#id_barcode").val(parsedLocator.barcode);
+			$("#envelope_number").val(parsedLocator.envelopeNumber);
+			$("#locator_position").val(parsedLocator.locatorPosition);
+			setSampleTypeValue(parsedLocator.sampleType);
+		});
+
+
 		$("#envelope_number").change(function(){
 			var val = $(this).val();
-			var env_num = Number(val.substr(-4));
-			var s_type = '';
-			var s_type =  (env_num<=999?'P':'D');
-			
-			$("#id_sample_type").val(s_type);
-			$("#sample_type").val(s_type);
+			var s_type = sampleTypeForEnvelope(val);
+			setSampleTypeValue(s_type);
 			var url =  "/samples/get_envelope_details/?envelope_number="+val+"&sample_type="+s_type+"&env_status_update=received";
-    		$.get(url, function(data, status){
+		$.get(url, function(data, status){
 				var data_arr = JSON.parse(data);
 				if(hasProgramMismatch(data_arr)){
 					return;
@@ -377,46 +393,46 @@
 		});
 
 
-    	$("#add_reason").hide();
+	$("#add_reason").hide();
 
-    	$(".optional").removeAttr('required');   
+	$(".optional").removeAttr('required');
 
-    	$("#id_locator_category,#sample_type,#id_barcode").change(function(){
-    		var sample_type = $("#sample_type").val();
-    		var id_barcode = $("#id_barcode").val();
-    		var cat =  $("#id_locator_category").val();
-    		if(cat == 'R' && sample_type != '' && cat != '' && id_barcode != ''){
-    			reasonsDropDown("rejection_reason_id", "rejection_reason_id",sample_type);
-    			$('#rejection_reasons_container').removeClass('hidden');
-    		}else{
-    			$("#rejection_reason_id").val();
-    			$('#rejection_reasons_container').addClass('hidden');
-    		}
-    		
-    	}).change(); 	
+	$("#id_locator_category,#sample_type,#id_barcode").change(function(){
+		var sample_type = $("#sample_type").val();
+		var id_barcode = $("#id_barcode").val();
+		var cat =  $("#id_locator_category").val();
+		if(cat == 'R' && sample_type != '' && cat != '' && id_barcode != ''){
+			reasonsDropDown("rejection_reason_id", "rejection_reason_id",sample_type);
+			$('#rejection_reasons_container').removeClass('hidden');
+		}else{
+			$("#rejection_reason_id").val();
+			$('#rejection_reasons_container').addClass('hidden');
+		}
 
-    	$("#add_reason").click(function(){
-    		addOtherReasons();
-    	})
+	}).change();
 
-  	});
-	
-	
+	$("#add_reason").click(function(){
+		addOtherReasons();
+	})
+
+	});
+
+
 	function reasonsDropDown(nme,id, sample_type){
 	  var url =  "/samples/get_rejection_reasons/?sample_type="+sample_type;
 		$.get(url, function(data){
-			var rejection_reasons = JSON.parse(JSON.parse(data));			
+			var rejection_reasons = JSON.parse(JSON.parse(data));
 			var other_options="id='"+id+"' class='form-control input-sm w-md' ";
 			  var slct = "<label for='rejection_reason_id'>Rejection Reason </label><br />";
 			  slct += "<select name='"+nme+"' id='"+id+"' class='form-control input-sm w-md' required style='width: 300px;'><option value=''>---------</option>";
-			  for (var r in rejection_reasons){	  	
-			  	slct += "<optgroup label="+r+">";
-			  	var rrs = rejection_reasons[r];
+			  for (var r in rejection_reasons){
+				slct += "<optgroup label="+r+">";
+				var rrs = rejection_reasons[r];
 
-			  	for(var i in rrs){
-			  		slct += "<option value='"+i+"'>"+rrs[i]+"</option>";
-			  	}
-			  	slct += "</optgroup>";
+				for(var i in rrs){
+					slct += "<option value='"+i+"'>"+rrs[i]+"</option>";
+				}
+				slct += "</optgroup>";
 			  }
 
 			  slct +="</select>";
@@ -426,7 +442,7 @@
 				$("#" + id).val(initialRejectionReasonId).trigger('change');
 			  }
 
-		});	
+		});
 	  //return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);
 	}
 
@@ -451,33 +467,33 @@
 		return Math.floor(val);
 	}
 
-	
+
 	function set_district_hub(){
 		var facility_id = $('#id_facility').val();
 		//only get district and hub if value not 0, null, NaN or empty
 		if(!facility_id){
 			//do nothing
-		}else{ 
+		}else{
 			var url =  "/samples/get_district_hub/"+facility_id+"/";
 			$.get(url, function(data, status){
 				var json_data = JSON.parse(data);
 				$("#id_district").html(json_data.district);
 				$("#id_hub").html(json_data.hub);
-			});	
+			});
 		}
-					
+
 	}
-	
+
 	// calculation of no. of days between two date
 	//date formate - mm/dd/YYYY - 06/30/2019, 07/30/2019
 	function getDaysBetweenDates(start_date, end_date){
 	    // To set two dates to two variables
 	    var date1 = new Date(start_date);
 		var date2 = new Date(end_date);
-		  
+
 		// To calculate the time difference of two dates
 		var Difference_In_Time = date2.getTime() - date1.getTime();
-		  
+
 		// To calculate the no. of days between two dates
 		//alert(end_date.getDate());
 		return Difference_In_Time / (1000 * 3600 * 24);
@@ -487,7 +503,7 @@
 	  var datearray = date.split("/");
 	  var newdate = datearray[1] + '/' + datearray[0] + '/' + datearray[2];
 	  return newdate;
-	  
+
 	}
 
 	function getCurrentDate(){
@@ -501,9 +517,9 @@
 
 <style type="text/css">
     .x{
-    	color: rgb(210, 190, 220);
-    	cursor: pointer;
-    	font-size: 18px;
+	color: rgb(210, 190, 220);
+	cursor: pointer;
+	font-size: 18px;
     }
 
     .form-group.required label:before, .form-inline.required label:before {

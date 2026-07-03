@@ -6,7 +6,7 @@
 	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
 	<link rel="stylesheet" href='{% static "home/vendor/chosen/chosen.min.css" %}'>
 	<style>
-		
+
 	</style>
 {% endblock %}
 
@@ -16,25 +16,25 @@
 	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
 	<script type="text/javascript" src='{% static "home/vendor/angular/angular.min.js" %}'></script>
 	<script type="text/javascript" src='{% static "home/vendor/chosen/chosen.jquery.min.js" %}'></script>
-	
-        
+
+
 {% endblock %}
 
 
-{% block content %}	
+{% block content %}
 
 <div class="page-title">capture sample details</div>
 <div class="panel panel-default">
 	{% if pending_entry_count > 0 %}
 		<div id="success" class="alert alert-warning hidden" role="alert">
 			<h2 style="font-size:11px; margin-top: 0; padding-top: 0;">Envelopes with results</h2>
-			
+
 			<p>
 				{% for e in pending_entry %}
-								
+
 				<span style="padding-right:5px;">{{ e.envelope_number }}</span>,
 				{% endfor %}
-				
+
 			</p>
 		</div>
 	{% endif %}
@@ -42,7 +42,7 @@
 	<div class="col-lg-11">
 		{% if sample %}
 		<div id="success" class="alert alert-success vl-alert" role="alert">
-			just saved: 
+			just saved:
 			<a href="{% url 'samples:show' sample.pk %}">
 				({{ sample.barcode }})</a>
 			&nbsp;&nbsp;
@@ -50,34 +50,34 @@
 		</div>
 		{% endif %}
 
-		
+
 		<form id="sample_form" action="
-					    {% url 'samples:create'  %} 
+					    {% url 'samples:create'  %}
 					  " method="post" role="form">
 			{% csrf_token %}
 
 			<ul>
-			
+
 			{% for field in sample_form %}
 				{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
 			{% endfor %}
 			{% for field in patient_form %}
 				{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
 			{% endfor %}
-			
+
 			{% for field in preliminary_findings %}
 				{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
 			{% endfor %}
-			
+
 			</ul>
-			
+
 
 			<div class="container section" >
 				<div class="row">
-				
+
 				<div class="col-lg-4">
 					<div class="form-inline required">
-					
+
 					<label for="locator_envelope">Location/Rejection ID</label><br>
 					{{ sample_form.locator_category }}
 					<input type="text" name="envelope_number" id="envelope_number" class="hidden">
@@ -125,7 +125,7 @@
 					<div class="col-lg-4">
 					</div>
 				</div>
-			
+
 		</div>
 			<!-- end section -->
 			<!-- start new section -->
@@ -162,7 +162,7 @@
 							&nbsp;
 							<input type="checkbox" name="null_dob"
 							{% if null_dob %} checked='true' {% endif %}
-							>&nbsp;Blank												
+							>&nbsp;Blank
 						</div>
 					</div>
 				</div>
@@ -171,17 +171,17 @@
 						<div class="form-group required">
 							{{ patient_form.hep_number.label_tag }}
 							{{ patient_form.hep_number }}
-						</div> 
+						</div>
 					</div>
 					<div class="col-lg-4">
 						<div class="form-group">
 							{{ patient_form.other_id.label_tag }}
 							{{ patient_form.other_id }}
-						</div> 
+						</div>
 					</div>
 				</div>
 				<div class="row">
-					
+
 					<div class="col-lg-4">
 						<div class="form-group required">
 							{{ patient_form.gender.label_tag }}
@@ -196,7 +196,7 @@
 						</div>
 					</div>
 					<div class="col-lg-4">
-						
+
 					</div>
 				</div>
 			</div>
@@ -263,14 +263,14 @@
 						{{ preliminary_findings_form.alt_value_1 }}
 						{{ preliminary_findings_form.alt_value_2 }}
 						{{ preliminary_findings_form.alt_value_3 }}
-						{{ preliminary_findings_form.alt_value_normal_range }}			
+						{{ preliminary_findings_form.alt_value_normal_range }}
 					</div>
 				</div>
 				<div class="col-lg-6">
 					<div class="form-inline">
 						<label class="form-inline" for="platelet_count">Platelet count:</label>
 						{{ preliminary_findings_form.platelet_count }}
-						{{ preliminary_findings_form.platelet_normal_range }}													
+						{{ preliminary_findings_form.platelet_normal_range }}
 					</div>
 				</div>
 			</div>
@@ -283,13 +283,13 @@
 						{{ preliminary_findings_form.ast_value_2 }}
 						{{ preliminary_findings_form.ast_value_3 }}
 						{{ preliminary_findings_form.ast_value_normal_range }}
-																				
+
 					</div>
 				</div>
 				<div class="col-lg-6">
 					<div class="form-inline required">
 						<label class="form-inline" for="alt_value">AST/PLT ratio > 2:</label>
-						{{ preliminary_findings_form.ast_plt_ratio_greater_than_2 }}															
+						{{ preliminary_findings_form.ast_plt_ratio_greater_than_2 }}
 					</div>
 				</div>
 			</div>
@@ -298,15 +298,15 @@
 				<div class="col-lg-6">
 					<div class="form-inline">
 						<label class="form-inline" for="alt_value">Fatal Protein Value:</label>
-						{{ preliminary_findings_form.fetal_protein_value}}					
-						{{ preliminary_findings_form.fetal_protein_value_normal_range}}														
+						{{ preliminary_findings_form.fetal_protein_value}}
+						{{ preliminary_findings_form.fetal_protein_value_normal_range}}
 					</div>
 				</div>
 				<div class="col-lg-6">
 					<div class="form-inline">
 						<label class="form-inline" for="serum_creatinine">Serum Creatinine:</label>
 						{{ preliminary_findings_form.serum_creatinine}}
-						{{ preliminary_findings_form.serum_creatinine_normal_range}}													
+						{{ preliminary_findings_form.serum_creatinine_normal_range}}
 					</div>
 				</div>
 			</div>
@@ -347,7 +347,7 @@
 					{{ sample_form.current_drug_name}}
 				</div>
 				</div>
-				
+
 			</div>
 			<div class="row" style="margin-top: 5px;">
 				<div class="col-lg-4">
@@ -361,7 +361,7 @@
 					<div class="form-group">
 
 						{{ sample_form.treatment_indication.label_tag }}
-						{% checkbox  "treatment_indication" selected_treatment_ids  treatment_indication_options %}			
+						{% checkbox  "treatment_indication" selected_treatment_ids  treatment_indication_options %}
 					</div>
 				</div>
 			</div>
@@ -369,12 +369,12 @@
 				<div class="col-lg-4">
 					<div class="form-group">
 						<label for="id_age">If HBV/HIV Co-Infected, Regimen Type</label><br>
-						{{ sample_form.current_regimen }}		
+						{{ sample_form.current_regimen }}
 					</div>
 				</div>
 				<div class="col-lg-4">
 					<div class="form-group">
-								
+
 					</div>
 				</div>
 			</div>
@@ -415,7 +415,7 @@
 				<div class="col-lg-4">
 					<div class="form-inline" id="vl_last_date_container">
 						{{ sample_form.last_test_date.label_tag }}<br>
-						{{ sample_form.last_test_date }}							
+						{{ sample_form.last_test_date }}
 					</div>
 				</div>
 				<div class="col-lg-4">
@@ -427,7 +427,7 @@
 				<div class="col-lg-4">
 					<div class="form-group">
 						{{ sample_form.last_sample_type.label_tag }}
-						{{ sample_form.last_sample_type }}	
+						{{ sample_form.last_sample_type }}
 					</div>
 				</div>
 			</div>
@@ -446,7 +446,7 @@
 				<div class="col-lg-4">
 					<div class="form-inline required">
 						<label>Date of Sample Collection</label><br>
-						{{ sample_form.date_collected }}													
+						{{ sample_form.date_collected }}
 					</div>
 				</div>
 				<div class="col-lg-4">
@@ -474,14 +474,14 @@
 			</div>
 		</div>
 		<div class="container section">
-			
 
-			<div class="row">		
+
+			<div class="row">
 				<div class="col-lg-4">
 					<div class="form-group required">
 						{{ sample_form.consented_sample_keeping.label_tag }}
 						{{ sample_form.consented_sample_keeping }}
-						
+
 					</div>
 				</div>
 			</div>
@@ -500,7 +500,7 @@
 			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
 			{% for s in sample.envelope.sample_set.all|dictsort:"locator_position" %}
 				{% if s.is_data_entered %}<span  style="margin-left:-60px">
-					{{ s.locator_position }}. 
+					{{ s.locator_position }}.
 						<a href='{% url 'samples:show' s.pk %}' >
 							{{s.locator_category }}{{s.barcode}}
 						</a>
@@ -510,16 +510,18 @@
 		{%endif%}
 	</div>
 </div>
-	
- 
-        
+
+
+
 <script type="text/javascript">
+	{% include "samples/_locator_id_helpers.html" %}
+
 	{% if sample_id %}
 		//no need to enforce envelope entry on edit
 
 		var number_of_boxes_pending_now = 0;
 		var min_no_envelopes_pending = 0;
-		var min_no_envelopes_pending = 0;		
+		var min_no_envelopes_pending = 0;
 	{% else %}
 		var number_of_boxes_pending_now = {{pending_entry_count}};
 		var min_no_envelopes_pending = {{min_no_envelopes_pending}};
@@ -585,10 +587,13 @@
 			set_district_hub();
 		{% endif %}
 		//set_age();
-		
+
 		$("#id_treatment_line").attr("readonly","true");
 		$("#id_anc_number").attr("readonly","true");
 		$("#id_sample_type").attr("disabled", "true");
+		if(isHepProgram()){
+			setSampleTypeValue('P');
+		}
 		$("#id_tb_treatment_phase").attr("disabled", "true");
 		$("#id_other_regimen").attr("readonly","true");
 
@@ -600,99 +605,99 @@
 
 		$("#id_locator_position").keypress(function(e){
 			return pick_num(e);
-		});	
+		});
 
-		
+
 
 
 		//$("#anc_sect").hide();
 
-    	/*$("ity").select2({	
-    		placeholder: "Select facility", 
-    		allowClear: true,
-    		width: "58%",
-    	});*/
-    	//$(".optional").removeAttr('required');
-    	//update facility and 
-    	$('#confirm_details').on('click', function(){
-    		var vali_fac = $('#validate_facility').val();
-    		var hep_no = $('#validate_hep_number').val();
-    		$('#reception_facility').val(vali_fac);
-    		$('#reception_hep_number').val(hep_no);
+	/*$("ity").select2({
+		placeholder: "Select facility",
+		allowClear: true,
+		width: "58%",
+	});*/
+	//$(".optional").removeAttr('required');
+	//update facility and
+	$('#confirm_details').on('click', function(){
+		var vali_fac = $('#validate_facility').val();
+		var hep_no = $('#validate_hep_number').val();
+		$('#reception_facility').val(vali_fac);
+		$('#reception_hep_number').val(hep_no);
 
-    		$('#id_facility').val(vali_fac);
-    		$('#id_hep_number').val(hep_no);
-    		//trigger change on art number so that system can pick patient details afresh
-    		//$('#id_hep_number').change();
+		$('#id_facility').val(vali_fac);
+		$('#id_hep_number').val(hep_no);
+		//trigger change on art number so that system can pick patient details afresh
+		//$('#id_hep_number').change();
 
-    		$('#reception_modal').modal('hide');
-    		$("#id_other_id").focus();
-    		//$('#id_facility').select2();
+		$('#reception_modal').modal('hide');
+		$("#id_other_id").focus();
+		//$('#id_facility').select2();
 			//$('#validate_facility').select2();
-    	});
-    	
+	});
 
-    	/*$(".date, #id_treatment_initiation_date").datepicker({
+
+	/*$(".date, #id_treatment_initiation_date").datepicker({
 			dateFormat: "dd/mm/yy",
 			maxDate: 0
 		});*/
 		$(".date, #id_treatment_initiation_date,#id_current_regimen_initiation_date").combodate({
-    		format: "YYYY-MM-DD",
-    		template: "D MMM YYYY",
-    		customClass: "form-control input-sm w-xs",
-    		minYear: 1900,
-    		maxYear: date_now.getFullYear(),
-    	});
-    	$(".day").each(function( index ) {
-    		$(this).find(":selected").prependTo($(this));
-    	});
+		format: "YYYY-MM-DD",
+		template: "D MMM YYYY",
+		customClass: "form-control input-sm w-xs",
+		minYear: 1900,
+		maxYear: date_now.getFullYear(),
+	});
+	$(".day").each(function( index ) {
+		$(this).find(":selected").prependTo($(this));
+	});
 
-    	$("#id_locator_position").change(function(){
-    		var val = $(this).val();
-    		$(this).val(pad(val, 2, '0', 1));
-    	});
+	$("#id_locator_position").change(function(){
+		var val = $(this).val();
+		$(this).val(pad(val, 2, '0', 1));
+	});
 
-    	$("#id_facility").change(function(){
-    		set_district_hub();
-    		/*setTimeout(function(){
-    			$(".day").first().focus();
-    		},100);*/    		    		
-    	})
+	$("#id_facility").change(function(){
+		set_district_hub();
+		/*setTimeout(function(){
+			$(".day").first().focus();
+		},100);*/
+	})
 
-    	$("#id_gender").change(function(){
-    		var gender = $(this).val();
-    		if(gender=="M"){
-    			$("#id_pregnant").attr("disabled","true");
-    			$("#id_breast_feeding").attr("disabled","true");
-    		}else{
-    			$("#id_pregnant").removeAttr("disabled");
-    			$("#id_breast_feeding").removeAttr("disabled");
-    		}
-    	});
+	$("#id_gender").change(function(){
+		var gender = $(this).val();
+		if(gender=="M"){
+			$("#id_pregnant").attr("disabled","true");
+			$("#id_breast_feeding").attr("disabled","true");
+		}else{
+			$("#id_pregnant").removeAttr("disabled");
+			$("#id_breast_feeding").removeAttr("disabled");
+		}
+	});
 
-    	$("#id_pregnant").change(function(){
-    		var preggas = $(this).val();
-    		if(preggas=="Y"){
-    			$("#id_anc_number").removeAttr("readonly");
-    		}else{
-    			$("#id_anc_number").attr("readonly","true");
-    		}
-    	});
+	$("#id_pregnant").change(function(){
+		var preggas = $(this).val();
+		if(preggas=="Y"){
+			$("#id_anc_number").removeAttr("readonly");
+		}else{
+			$("#id_anc_number").attr("readonly","true");
+		}
+	});
 
-    	$("#id_form_number").change(function(){
-    		var barcode = $('#id_barcode').val();
-    		var url =  "/samples/does_form_number_exist/"+$(this).val()+"/?barcode="+barcode;
-    		$.get(url, function(data, status){
-    			if(data != ''){
-    				alert('The form_number has already been used. Either find details about it or append a R')
-    				
-    			}    			
-    		});
+	$("#id_form_number").change(function(){
+		var barcode = $('#id_barcode').val();
+		var url =  "/samples/does_form_number_exist/"+$(this).val()+"/?barcode="+barcode;
+		$.get(url, function(data, status){
+			if(data != ''){
+				alert('The form_number has already been used. Either find details about it or append a R')
+
+			}
+		});
 		});
 
 		$("#id_current_regimen").change(function(){
 			var val = $(this).val();
-			$("#id_treatment_line").val(regimen_json[val]); 
+			$("#id_treatment_line").val(regimen_json[val]);
 			if(val==37){
 				$("#id_other_regimen").removeAttr("readonly");
 			}else{
@@ -701,16 +706,16 @@
 		});
 
 		$("#id_dob").change(function(){
-			//if(strtotime($(this).val())>0 && !valid_dob($(this).val())){ alert("invalid dob"); }			
-			set_age();			
+			//if(strtotime($(this).val())>0 && !valid_dob($(this).val())){ alert("invalid dob"); }
+			set_age();
 		});
 
 		$("#id_age").change(function(){
-			set_dob();			
+			set_dob();
 		});
 
 		$("#id_age_units").change(function(){
-			set_dob();			
+			set_dob();
 		});
 
 		$("#id_viral_load_testing").change(function(){
@@ -740,35 +745,29 @@
 			var barc = $(this).val();
 
 			if(barc != ''){
-	    		//get detailso the barcode
-	    		var edit_id = $("#edit_id").val();
-	    		var year_month = barc.substring(0, 4);
-	    		var env_number = barc.substring(4,8);
-	    		var env_year = year_month +'-'+env_number;
-	    		var locator_posn = barc.substr(barc.length - 2);
-	    		var is_env_among_pending = isValueInArray(pending_rect,env_year);
-	    		
-	    		/*if(Number(number_of_boxes_pending_now) > Number(min_no_envelopes_pending) && locator_posn == '01' && is_env_among_pending){
+			//get detailso the barcode
+			var edit_id = $("#edit_id").val();
+			var parsedLocator = parseReceptionLocator(barc);
+			if(!parsedLocator){
+				$("#id_barcode").val('');
+				return;
+			}
+			$("#id_barcode").val(parsedLocator.barcode);
+			var env_year = parsedLocator.envelopeNumber;
+			var locator_posn = parsedLocator.locatorPosition;
+			var is_env_among_pending = isValueInArray(pending_rect,env_year);
+
+			/*if(Number(number_of_boxes_pending_now) > Number(min_no_envelopes_pending) && locator_posn == '01' && is_env_among_pending){
 					alert('priority should be given to envelopes which already have results');
 					$(this).val('');
 
 				}else{*/
-		    		$("#envelope_number").val(env_year).change();
-		    		//set the sample type
-		    		var val = year_month +'-'+env_number;
-					var env_num = Number(val.substr(-4));
-					var s_type = '';
-					if(env_num < 3000){
-						//plasma study samples === from 900 up to 999
-						s_type = 'P'; 
-					}else{
-						s_type = 'D';
-					}
-					$("#id_sample_type").val(s_type);
-					$("#sample_type").val(s_type);
-		    		$("#locator_position").val(locator_posn).change();
-		    		var url =  "/samples/get_barcode_details/?barcode="+barc;
-		    		$.get(url, function(data, status){
+				$("#envelope_number").val(env_year).change();
+				//set the sample type
+					setSampleTypeValue(parsedLocator.sampleType);
+				$("#locator_position").val(locator_posn).change();
+				var url =  "/samples/get_barcode_details/?barcode="+barc;
+				$.get(url, function(data, status){
 						var data_arr = JSON.parse(data);
 						if(data_arr.length == 0){
 							alert('Sorry dear! this sample has not yet been received');
@@ -792,11 +791,11 @@
 					});
 				//} //close if pending boxes are not yet done
 			}
-    	}).change();
+	}).change();
 
-		
+
 		$("#id_treatment_duration").on("change", function(){
-			var val = $(this).val();			
+			var val = $(this).val();
 			$("#treatment_duration").val(val);
 		});
 		$("#id_active_tb_status").on("change", function(){
@@ -808,9 +807,9 @@
 			}
 		});
 
-		
-  	});
-	
+
+	});
+
 	function pick_num(e){
 		var c = e.which||e.keyCode;
 		//alert(c);
@@ -830,15 +829,15 @@
 		//only get district and hub if value not 0, null, NaN or empty
 		if(!facility_id){
 			//do nothing
-		}else{ 
+		}else{
 			var url =  "/samples/get_district_hub/"+facility_id+"/";
 			$.get(url, function(data, status){
 				var json_data = JSON.parse(data);
 				$("#id_district").html(json_data.district);
 				$("#id_hub").html(json_data.hub);
-			});	
+			});
 		}
-					
+
 	}
 	function set_age(){
 		var dob = new Date($("#id_dob").val());
@@ -885,7 +884,7 @@
 	      return [day, month,year].join('/');
 	 }
 
-	
+
 //422551
 
 
@@ -926,7 +925,7 @@ app.controller('SampleController', function($scope, $http, $timeout) {
             if (facility_id && hep_no) {
                 if (reception_facility !== facility_id || sanitized_recep_hep_number !== sanitized_hep_number) {
                     alert('Kindly double check! Either the Facility or the ART number you entered does not match what was entered at reception');
-                    
+
                     // Optional: Reset the fields if needed
                     // $scope.facility = '';
                     // $scope.hep_number = '';
@@ -939,7 +938,7 @@ app.controller('SampleController', function($scope, $http, $timeout) {
     $scope.patHist = function() {
         $http.get("/samples/patient_history/" + $scope.facility + "/?hep_number=" + $scope.hep_number)
             .success(function(data) {
-            	if (data && data.length > 0) { // Ensure data is not empty
+	if (data && data.length > 0) { // Ensure data is not empty
 	                $scope.patient_history = data;
 	                // Set the 'dob' field value to the last record's dob
 	                if ($scope.patient_history.length > 0) {
@@ -961,11 +960,11 @@ app.controller('SampleController', function($scope, $http, $timeout) {
 							}else{
 								$("#id_age").val(round1(yrs));
 								$("#id_age_units").val("Y");
-							}							
-							$("#id_dob").combodate('setValue', dob);							
+							}
+							$("#id_dob").combodate('setValue', dob);
 						}
 	                }else{
-	                	$("#id_dob").combodate('setValue', null);
+		$("#id_dob").combodate('setValue', null);
 	                }
 	                //now set other patient details
 	                if(typeof lastRecord.patient_id != 'undefined' ){
@@ -1000,7 +999,7 @@ app.controller('SampleController', function($scope, $http, $timeout) {
 					$("#id_treatment_initiation_date").combodate('setValue', null);
 					$("#id_dob").combodate('setValue', null);
 					$("#patient_id").val('');
-					$("#other_id").val('');				
+					$("#other_id").val('');
 					$("#id_gender").val('');
 				}
             });
@@ -1012,22 +1011,22 @@ $(document).on('keypress',function(e) {
         //alert('You pressed enter!');
         //2202300084
         if(keep_sample_consent != ''){
-        	//$("#sample_form").submit();
+	//$("#sample_form").submit();
         }
-        
+
     }
 
 });
-$(document).ready(function() {	
+$(document).ready(function() {
 	$('#id_facility').chosen();
-	
+
 	//$('#validate_facility').select2();
 	$("#has_dr").click(function(){
-    	if($(this).is(":checked")){
-    		$('.drug_resistance_container').addClass('hidden');
-    	}else{
-    		$('.drug_resistance_container').addClass('hidden');
-    	} 		    		
+	if($(this).is(":checked")){
+		$('.drug_resistance_container').addClass('hidden');
+	}else{
+		$('.drug_resistance_container').addClass('hidden');
+	}
     });
     function sanitizeString(str) {
         //return str ? str.replace(/\s+/g, '').toLowerCase() : '';
@@ -1045,7 +1044,7 @@ $(document).ready(function() {
 		if(facility_id != '' & hep_no != '' & locator_id != ''){
 
 			if(reception_facility != facility_id || sanitized_recep_hep_number != sanitized_hep_number){
-			
+
 				//$("#id_facility").val('');
 				//$("#id_hep_number").val('');
 				//$('#reception_modal').modal('show');
@@ -1055,9 +1054,9 @@ $(document).ready(function() {
 		}
 	});
 	$('#sample_form_wait').bootstrapValidator({
-       
+
         fields: {
-			
+
 			barcode: {
                     validators: {
                         notEmpty: {
@@ -1071,7 +1070,7 @@ $(document).ready(function() {
                             message: 'Please enter lab number'
                         }
                     }
-                }, 
+                },
                 gender: {
                     validators: {
                         notEmpty: {
@@ -1086,7 +1085,7 @@ $(document).ready(function() {
                         }
                     }
                 },
-				
+
                 form_number: {
                     validators: {
                         notEmpty: {
@@ -1096,7 +1095,7 @@ $(document).ready(function() {
                 }
 		}//endo of validation rules
     });// close form validation function
-    
+
 });
 
 //manage the selec
@@ -1121,9 +1120,9 @@ $(document).on('focus', '.select2-selection.select2-selection--single', function
 
 <style type="text/css">
     .x{
-    	color: rgb(210, 190, 220);
-    	cursor: pointer;
-    	font-size: 18px;
+	color: rgb(210, 190, 220);
+	cursor: pointer;
+	font-size: 18px;
     }
 
     .form-group.required label:before, .form-inline.required label:before {
@@ -1152,24 +1151,24 @@ $(document).on('focus', '.select2-selection.select2-selection--single', function
         <button type="button" class="close" data-dismiss="modal">×</button>
         <h4 class="modal-title" style="color:red">Validate Samples</h4>
       </div>
-      
+
       <div class="modal-body">
         <div class="form-group">
-          <label for="validate_facility" >Facility:</label>          
-          	<select class="form-control" id="validate_facility" name="validate_facility" style="width:100%">
+          <label for="validate_facility" >Facility:</label>
+	<select class="form-control" id="validate_facility" name="validate_facility" style="width:100%">
 			{% for fac in facilities %}
 			    <option value="{{ fac.id }}">{{ fac.facility }}</option>
 			{% endfor %}
-			</select> 
+			</select>
         </div> <br>
         <div class="form-group">
           <label for="validate_hep_number" class="">Art Number:</label>
           <input class="form-control" id="validate_hep_number" name="validate_hep_number" type="text">
-        </div>        
+        </div>
       </div>
       <div class="modal-footer">
-      	<button type="button" class="btn btn-danger"  data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" id="confirm_details">Change Details</button>        
+	<button type="button" class="btn btn-danger"  data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirm_details">Change Details</button>
       </div>
     </div>
   </div>

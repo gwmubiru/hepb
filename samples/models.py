@@ -219,6 +219,32 @@ class TrackingCode(models.Model):
 	class Meta:
 		db_table = 'vl_tracking_codes'
 
+class Clinician(models.Model):
+	id = models.AutoField(primary_key=True)
+	cname = models.CharField(max_length=128)
+	cphone = models.CharField(max_length=64, null=True, blank=True)
+	facility = models.ForeignKey(backend.Facility, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return self.cname
+
+	class Meta:
+		db_table = 'vl_clinicians'
+		unique_together = (('facility', 'cname'),)
+
+class LabTech(models.Model):
+	id = models.AutoField(primary_key=True)
+	lname = models.CharField(max_length=128)
+	lphone = models.CharField(max_length=64, null=True, blank=True)
+	facility = models.ForeignKey(backend.Facility, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return self.lname
+
+	class Meta:
+		db_table = 'vl_lab_techs'
+		unique_together = (('facility', 'lname'),)
+
 class PendingReceptionQueue(models.Model):
 	id = models.AutoField(primary_key=True)
 	status = models.PositiveSmallIntegerField(default=False)
@@ -279,6 +305,8 @@ class Sample(models.Model):
 	facility_patient = models.ForeignKey(FacilityPatient,null=True, blank=True, on_delete=models.CASCADE)
 	sample_reception = models.ForeignKey(SampleReception,null=True, blank=True, on_delete=models.CASCADE)
 	tracking_code = models.ForeignKey(TrackingCode, on_delete=models.CASCADE)
+	clinician = models.ForeignKey(Clinician, null=True, blank=True, on_delete=models.CASCADE)
+	lab_tech = models.ForeignKey(LabTech, null=True, blank=True, on_delete=models.CASCADE)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen',null=True, blank=True, on_delete=models.CASCADE)
 	source_system = models.ForeignKey(backend.Appendix, related_name='source_system',null=True, blank=True, on_delete=models.CASCADE)
 	other_regimen = models.CharField(max_length=128, null=True, blank=True)

@@ -1,5 +1,6 @@
 from datetime import date, datetime
 import json
+import re
 from django.db.models import Q
 
 from home import utils
@@ -48,11 +49,150 @@ def reception_date_valid(data):
 def initial_env_number():
 	return "%s%s-" %(utils.year('yy'), utils.month('mm'))
 
+HEP_PROGRAM_PREFIXES = {'1': 'B', '2': 'C'}
+HEP_PREFIX_PROGRAMS = {'B': '1', 'C': '2'}
+
+
+def is_hep_program_code(program_code):
+	return str(program_code or '') in HEP_PROGRAM_PREFIXES
+
+
+def envelope_prefix_for_program(program_code):
+	return HEP_PROGRAM_PREFIXES.get(str(program_code or ''))
+
+
+def program_code_for_envelope_prefix(prefix):
+	return HEP_PREFIX_PROGRAMS.get((prefix or '').upper())
+
+
+def format_hep_envelope_number(program_code_or_prefix, year_month, increment):
+	prefix = str(program_code_or_prefix or '').upper()
+	if prefix not in HEP_PREFIX_PROGRAMS:
+		prefix = envelope_prefix_for_program(program_code_or_prefix)
+	if not prefix:
+		raise ValueError('HepB/HepC envelopes require a B or C prefix.')
+
+	year_month = str(year_month or '').strip()
+	if not re.match(r'^\d{4}$', year_month):
+		raise ValueError('Envelope year/month must be in YYMM format.')
+
+	increment = int(increment)
+	if increment < 1 or increment > 99:
+		raise ValueError('HepB/HepC envelope numbers must be between 01 and 99.')
+	return '%s%s-%s' % (prefix, year_month, str(increment).zfill(2))
+
+
+def compact_envelope_number(envelope_number):
+	return re.sub(r'[\s\-/]+', '', (envelope_number or '').strip().upper())
+
+
+def format_locator_barcode(envelope_number, locator_position):
+	return '%s%s' % (
+		compact_envelope_number(envelope_number),
+		str(locator_position or '').zfill(2),
+	)
+
+
+def parse_locator_id(locator_id, program_code=None):
+	value = compact_envelope_number(locator_id)
+	if not value:
+		return None
+
+	if value[0] in HEP_PREFIX_PROGRAMS:
+		prefix = value[0]
+		expected_prefix = envelope_prefix_for_program(program_code)
+		if expected_prefix and prefix != expected_prefix:
+			raise ValueError('Locator prefix does not match the active program.')
+		digits = value[1:]
+		if len(digits) < 6 or not digits.isdigit():
+			raise ValueError('Invalid HepB/HepC locator ID.')
+		year_month = digits[:4]
+		envelope_serial = digits[4:-2]
+		locator_position = digits[-2:]
+		if not envelope_serial:
+			raise ValueError('Invalid HepB/HepC envelope number.')
+		envelope_number = format_hep_envelope_number(prefix, year_month, int(envelope_serial))
+		return {
+			'barcode': format_locator_barcode(envelope_number, locator_position),
+			'envelope_number': envelope_number,
+			'locator_position': locator_position,
+			'program_code': int(HEP_PREFIX_PROGRAMS[prefix]),
+			'sample_type': 'P',
+			'year_month': year_month,
+			'increment': int(envelope_serial),
+		}
+
+	if len(value) >= 10 and value[:8].isdigit():
+		envelope_digits = value[4:8]
+		return {
+			'barcode': value,
+			'envelope_number': '%s-%s' % (value[:4], envelope_digits),
+			'locator_position': value[-2:],
+			'program_code': 3 if str(program_code or '') == '3' else None,
+			'sample_type': 'P' if int(envelope_digits) < 3000 else 'D',
+			'year_month': value[:4],
+			'increment': int(envelope_digits),
+		}
+	return None
+
+
+def parse_envelope_range_boundary(value, program_code, selected_year_month=None):
+	raw = (value or '').strip().upper()
+	if is_hep_program_code(program_code):
+		prefix = envelope_prefix_for_program(program_code)
+		compact = compact_envelope_number(raw)
+		has_envelope_dash = '-' in raw
+		has_locator_separator = '/' in raw
+		if compact.startswith(prefix):
+			digits = compact[1:]
+			if (not has_envelope_dash or has_locator_separator) and len(digits) > 7:
+				digits = digits[:-2]
+			if len(digits) < 5 or not digits.isdigit():
+				raise ValueError('Invalid HepB/HepC envelope.')
+			year_month = digits[:4]
+			increment_text = digits[4:]
+		else:
+			compact_digits = re.sub(r'\D+', '', raw)
+			if len(compact_digits) > 4:
+				if '-' not in raw and len(compact_digits) > 7:
+					compact_digits = compact_digits[:-2]
+				year_month = compact_digits[:4]
+				increment_text = compact_digits[4:]
+			else:
+				increment_text = compact_digits
+				year_month = selected_year_month
+		if not year_month:
+			raise ValueError('Select a year and month for this envelope range.')
+		increment = int(increment_text)
+		envelope_number = format_hep_envelope_number(program_code, year_month, increment)
+		return {
+			'year_month': year_month,
+			'increment': increment,
+			'envelope_number': envelope_number,
+			'stored_limit': envelope_number,
+			'sample_type': 'P',
+		}
+
+	compact = compact_envelope_number(raw)
+	if len(compact) >= 10 and compact[:8].isdigit():
+		year_month = compact[:4]
+		increment_text = compact[4:8]
+	else:
+		year_month = selected_year_month
+		increment_text = re.sub(r'\D+', '', raw)
+	increment = int(increment_text)
+	return {
+		'year_month': year_month,
+		'increment': increment,
+		'envelope_number': '%s-%s' % (year_month, str(increment).zfill(4)),
+		'stored_limit': str(increment).zfill(4),
+		'sample_type': 'P' if increment < 3000 else 'D',
+	}
+
 
 def envelope_number_from_barcode(barcode):
-	if barcode and len(barcode) >= 8 and barcode[:8].isdigit():
-		return "%s-%s" % (barcode[:4], barcode[4:8])
-	return None
+	parsed = parse_locator_id(barcode)
+	return parsed.get('envelope_number') if parsed else None
 
 
 def resolve_posted_envelope_id(request):
@@ -177,13 +317,15 @@ def set_page_dates_format(post_data):
 		pst['last_test_date'] =  utils.set_page_dates_format(pst.get('last_test_date'))
 	return pst
 def get_next_barcode(barcode,sample_type):
-	next_barcode = int(barcode)+1
-	position = int(barcode[-2:])+1
+	parsed = parse_locator_id(barcode)
+	if not parsed:
+		return 'kl'
+	position = int(parsed['locator_position'])+1
 	ret_barc = 'kl'
 	if sample_type == 'P' and position < 100:
-		ret_barc = next_barcode
+		ret_barc = format_locator_barcode(parsed['envelope_number'], position)
 	if sample_type == 'D' and position < 21:
-		ret_barc = next_barcode
+		ret_barc = format_locator_barcode(parsed['envelope_number'], position)
 	return  ret_barc
 
 def update_envelope_status(sample,status):
@@ -260,7 +402,12 @@ def get_envelope_id(request):
 		if envelope is None:
 			envelope = Envelope()
 			envelope.envelope_number=request.POST.get('envelope_number')
-			envelope.sample_type=request.POST.get('sample_type')
+			posted_locator = request.POST.get('the_barcode') or request.POST.get('barcode') or request.POST.get('envelope_number')
+			try:
+				parsed_locator = parse_locator_id(posted_locator)
+			except ValueError:
+				parsed_locator = None
+			envelope.sample_type='P' if parsed_locator and parsed_locator.get('program_code') in (1, 2) else request.POST.get('sample_type')
 			envelope.sample_medical_lab=utils.user_lab(request)
 			envelope.stage=2
 			envelope.is_received=1

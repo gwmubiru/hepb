@@ -92,13 +92,34 @@
 		</thead>
 		<tbody>
 			{% for s in samples %}
-			<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}{% if active_program_code and s.program_code and active_program_code != s.program_code|stringformat:'s' %} program-mismatch-row{% endif %}">
-				<td>{{ forloop.counter }}</td>													
-				<td>																						
-						{{s.facility_reference}}
-				</td>
-				<td>																						
-						{{ s.tracking_code.code }}
+				<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}{% if active_program_code and s.program_code and active_program_code != s.program_code|stringformat:'s' %} program-mismatch-row{% endif %}">
+					<td>{{ forloop.counter }}</td>
+					<td>
+						{% if s.facility_reference %}
+							<a href="#" class="facility-ref-link" data-toggle="modal" data-target="#facilityContactModal" sample_id="{{ s.pk }}">{{ s.facility_reference }}</a>
+						{% endif %}
+						<span style="display:none" id="facility_contact_details{{ s.pk }}">
+							<table class="table table-bordered table-condensed table-striped">
+								<tr>
+									<th>Role</th>
+									<th>Name</th>
+									<th>Phone</th>
+								</tr>
+								<tr>
+									<td>Requesting clinician</td>
+									<td>{% if s.clinician_id %}{{ s.clinician.cname }}{% else %}Not recorded{% endif %}</td>
+									<td>{% if s.clinician_id and s.clinician.cphone %}{{ s.clinician.cphone }}{% else %}Not recorded{% endif %}</td>
+								</tr>
+								<tr>
+									<td>Lab tech who collected</td>
+									<td>{% if s.lab_tech_id %}{{ s.lab_tech.lname }}{% else %}Not recorded{% endif %}</td>
+									<td>{% if s.lab_tech_id and s.lab_tech.lphone %}{{ s.lab_tech.lphone }}{% else %}Not recorded{% endif %}</td>
+								</tr>
+							</table>
+						</span>
+					</td>
+					<td>
+							{{ s.tracking_code.code }}
 				</td>
 				<td>
 
@@ -320,12 +341,31 @@
       </div>
     </div>
 
-  </div>
+	  </div>
+	</div>
+
+<div id="facilityContactModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal">&times;</button>
+	    <h4 class="modal-title">Facility Reference Contacts</h4>
+	  </div>
+	  <div class="modal-body">
+	    <div id="facility_contact_details"></div>
+	  </div>
+	  <div class="modal-footer">
+	    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	  </div>
+	</div>
+
+	</div>
 </div>
 
-{% if dr_sample_matches %}
-<div id="drSampleModal" class="modal fade" role="dialog">
-  <div class="modal-dialog">
+	{% if dr_sample_matches %}
+	<div id="drSampleModal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal">&times;</button>
@@ -439,14 +479,20 @@ $(document).ready(function() {
 	 });
 	
 
-	$(".approved").click(function(){
-		var sample_id = $(this).attr('sample_id');
-		$("#approval_details").html($("#verify_details"+sample_id).html());		
-	});
+		$(".approved").click(function(){
+			var sample_id = $(this).attr('sample_id');
+			$("#approval_details").html($("#verify_details"+sample_id).html());
+		});
 
-	{% if dr_sample_matches %}
-	$("#drSampleModal").modal("show");
-	{% endif %}
+		$(".facility-ref-link").click(function(e){
+			e.preventDefault();
+			var sample_id = $(this).attr('sample_id');
+			$("#facility_contact_details").html($("#facility_contact_details"+sample_id).html());
+		});
+
+		{% if dr_sample_matches %}
+		$("#drSampleModal").modal("show");
+		{% endif %}
 
 	{% if can_edit_program %}
 	$(".program-trigger").on("click", function(e){

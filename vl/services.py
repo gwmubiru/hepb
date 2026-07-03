@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 import pandas
@@ -13,7 +13,7 @@ from samples import utils as sample_utils
 from backend.models import Facility
 from results import utils as result_utils
 
-from .models import VLEnvelope, VLEnvelopeAssignment, VLEnvelopeRange, VLPatient, VLResult, VLResultRun, VLResultRunDetail, VLResultsQC, VLSample, VLTrackingCode, VLVerification, VLWorksheet, VLWorksheetSample
+from .models import VLEnvelope, VLEnvelopeAssignment, VLEnvelopeRange, VLClinician, VLLabTech, VLPatient, VLResult, VLResultRun, VLResultRunDetail, VLResultsQC, VLSample, VLTrackingCode, VLVerification, VLWorksheet, VLWorksheetSample
 
 
 DUPLICATE_FACILITY_REFERENCE_MESSAGE = "Olaba kisoboka? Taracking code cant be shared between facilities"
@@ -625,9 +625,40 @@ def get_receive_hie_details(facility_reference, facility_id=None):
 	}
 
 
-def _adapt_sample(sample):
+def _sample_contact_maps(samples):
+	clinician_ids = set()
+	lab_tech_ids = set()
+	for sample in samples:
+		clinician_id = getattr(sample, 'clinician_id', None)
+		lab_tech_id = getattr(sample, 'lab_tech_id', None)
+		if clinician_id:
+			clinician_ids.add(clinician_id)
+		if lab_tech_id:
+			lab_tech_ids.add(lab_tech_id)
+	clinicians = {
+		clinician.id: clinician
+		for clinician in VLClinician.objects.using('vl_lims').filter(pk__in=clinician_ids)
+	} if clinician_ids else {}
+	lab_techs = {
+		lab_tech.id: lab_tech
+		for lab_tech in VLLabTech.objects.using('vl_lims').filter(pk__in=lab_tech_ids)
+	} if lab_tech_ids else {}
+	return clinicians, lab_techs
+
+
+def _adapt_sample(sample, clinicians=None, lab_techs=None):
 	facility = _facility_obj(sample.facility_id or sample.data_facility_id)
 	patient_facility = facility
+	clinician_id = getattr(sample, 'clinician_id', None)
+	lab_tech_id = getattr(sample, 'lab_tech_id', None)
+	clinicians = clinicians or {}
+	lab_techs = lab_techs or {}
+	clinician = clinicians.get(clinician_id)
+	lab_tech = lab_techs.get(lab_tech_id)
+	if clinician is None and clinician_id:
+		clinician = VLClinician.objects.using('vl_lims').filter(pk=clinician_id).first()
+	if lab_tech is None and lab_tech_id:
+		lab_tech = VLLabTech.objects.using('vl_lims').filter(pk=lab_tech_id).first()
 	patient = SimpleNamespace(
 		hep_number=sample.data_art_number or sample.reception_art_number or '',
 		gender='',
@@ -640,6 +671,10 @@ def _adapt_sample(sample):
 		id=sample.id,
 		pk=sample.id,
 		tracking_code_id=sample.tracking_code_id,
+		clinician_id=clinician_id,
+		clinician=clinician,
+		lab_tech_id=lab_tech_id,
+		lab_tech=lab_tech,
 		facility_reference=sample.facility_reference,
 		form_number=sample.form_number,
 		barcode=sample.barcode,
@@ -981,20 +1016,22 @@ def search_samples(search, search_env=False, search_sample=False):
 		envelope = VLEnvelope.objects.using('vl_lims').filter(envelope_number=search).first()
 		if envelope is None:
 			return []
-		samples = VLSample.objects.using('vl_lims').filter(envelope_id=envelope.id).order_by('locator_position')[:300]
-		return [_adapt_sample(sample) for sample in samples]
+		samples = list(VLSample.objects.using('vl_lims').filter(envelope_id=envelope.id).order_by('locator_position')[:300])
+		clinicians, lab_techs = _sample_contact_maps(samples)
+		return [_adapt_sample(sample, clinicians, lab_techs) for sample in samples]
 	direct_filter = Q(barcode=search) | Q(barcode2=search) | Q(form_number=search) | Q(facility_reference=search)
-	samples = VLSample.objects.using('vl_lims').filter(direct_filter).order_by('-id')[:300]
+	samples = list(VLSample.objects.using('vl_lims').filter(direct_filter).order_by('-id')[:300])
 	if not samples and not search_sample:
-		samples = VLSample.objects.using('vl_lims').filter(
+		samples = list(VLSample.objects.using('vl_lims').filter(
 			Q(form_number__icontains=search) |
 			Q(barcode__icontains=search) |
 			Q(barcode2__icontains=search) |
 			Q(facility_reference__icontains=search) |
 			Q(reception_art_number__icontains=search) |
 			Q(data_art_number__icontains=search)
-		).order_by('-id')[:300]
-	return [_adapt_sample(sample) for sample in samples]
+		).order_by('-id')[:300])
+	clinicians, lab_techs = _sample_contact_maps(samples)
+	return [_adapt_sample(sample, clinicians, lab_techs) for sample in samples]
 
 
 def get_result_run(filename, user):

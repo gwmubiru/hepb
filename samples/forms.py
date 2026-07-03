@@ -398,8 +398,6 @@ class SampleReceptionForm(forms.ModelForm):
 		pk = self.instance.pk
 
 		utils.non_future_dates(self, ['date_collected'])
-		if not date_collected:
-			self.add_error('date_collected', 'Date collected is required')
 		form_fltr = Q(barcode=cleaned_data.get('barcode'))
 		if pk:
 			form_fltr = ~Q(pk=pk) & form_fltr
