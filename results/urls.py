@@ -17,6 +17,7 @@ urlpatterns  = [
 	re_path(r'^anomalies/(?P<machine_type>[0-9]+)/$', login_required(views.get_anomalies), name='anomalies'),
 	re_path(r'^intervene_list/$', login_required(views.intervene_list), name='intervene_list'),
 	re_path(r'^dr_results/$', login_required(views.dr_results), name='dr_results'),
+	re_path(r'^dr_results_json/$', login_required(views.dr_results_json), name='dr_results_json'),
 	re_path(r'^force_create_result/$', login_required(views.force_create_result), name='force_create_result'),
 	re_path(r'^reschedule/(?P<result_pk>[0-9]+)/$', login_required(views.reschedule), name='reschedule'),
 	re_path(r'^approve_for_dr/(?P<result_pk>[0-9]+)/$', login_required(views.approve_for_dr), name='approve_for_dr'),

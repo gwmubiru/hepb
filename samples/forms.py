@@ -341,7 +341,10 @@ class SampleForm(forms.ModelForm):
 class SampleReceptionForm(forms.ModelForm):
 	date_collected = forms.DateField(
 		input_formats=['%d/%m/%Y', '%Y-%m-%d'],
-		widget=forms.DateInput(attrs={'class': 'form-control input-sm w-xs date_d'})
+		widget=forms.DateInput(
+			format='%d/%m/%Y',
+			attrs={'class': 'form-control input-sm w-xs date_d'},
+		)
 	)
 	date_received = forms.DateField(
 		required=False,
@@ -395,8 +398,6 @@ class SampleReceptionForm(forms.ModelForm):
 		pk = self.instance.pk
 
 		utils.non_future_dates(self, ['date_collected'])
-		if not date_collected:
-			self.add_error('date_collected', 'Date collected is required')
 		form_fltr = Q(barcode=cleaned_data.get('barcode'))
 		if pk:
 			form_fltr = ~Q(pk=pk) & form_fltr

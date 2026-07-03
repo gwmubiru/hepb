@@ -40,7 +40,7 @@
 {% endblock %}
 
 
-{% block content %}	
+{% block content %}
 
 <div class="page-title">Receive sample</div>
 
@@ -48,7 +48,7 @@
 {% if pending_reception_count > 0 %}
 <div id="success" class="alert alert-warning hidden" role="alert">
 		<h2 style="font-size:11px; margin-top: 0; padding-top: 0;">Envelopes with results</h2>
-		
+
 		<p><script type="text/javascript">
 			var pending_rect = new Array();
 		</script>
@@ -59,7 +59,7 @@
 			</script>
 			<span style="padding-right:5px;">{{ e.envelope_number }}</span>,
 			{% endfor %}
-			
+
 		</p>
 </div>
 {% endif %}
@@ -67,7 +67,7 @@
 	<div class="col-lg-4 reception-left-pane" style="border-right-style: dotted;">
 	{% if sample %}
 	<div id="success" class="alert alert-success vl-alert" role="alert">
-		Last received: 
+		Last received:
 		<a href="{% url 'samples:edit_received' sample.pk %}">
 			{{ last_received_barcode|default:sample.barcode }}</a>
 		&nbsp;&nbsp;
@@ -75,16 +75,16 @@
 	</div>
 	{% endif %}
 
-	
+
 	<form action=" {% url 'samples:receive_batch'  %}" method="post" id="receive_batch_form" role="form">
 		{% csrf_token %}
 		<ul>
-		
+
 		{% for field in sample_reception_form %}
 			{% if field.errors %}<li>{{ field.label_tag }} {{ field.errors }}</li>{% endif %}
 		{% endfor %}
-			
-		
+
+
 		</ul>
 		<div class="row">
 			<div class="col-lg-12 reception-left-col">
@@ -97,8 +97,8 @@
 					<input type="text" name="current_tr_code" id="current_tr_code" value="{{ current_tr_code|default:'' }}">
 					<input type="text" name="reception_id" id="reception_id" value="{{reception_id}}">
 				</div>
-				<div class="form-inline required">						
-					<label for="tracking_code">Tracking Code</label><br>					
+				<div class="form-inline required">
+					<label for="tracking_code">Tracking Code</label><br>
 					<input class="form-control input-sm special_width" id="id_code" name="code" value="{{current_tr_code}}" required="true" type="text">
 				</div>
 				<div class="form-group required">
@@ -111,7 +111,7 @@
 					</div>
 				</div>
 				<div class="form-inline required">
-					
+
 					<label for="locator_envelope">First Locator ID</label><br>
 					{{ sample_reception_form.barcode }}
 
@@ -133,13 +133,13 @@
 				<div id="rejection_reasons_container" class="form-inline ">
 					<select id="rej_res"></select>
 
-				</div>			
-				
+				</div>
+
 			</div>
 
-			
+
 		</div>
-		
+
 	</form>
 	</div>
 	<div class="col-lg-6 reception-center-pane">
@@ -147,26 +147,26 @@
 		<div class="row" id="sub-t-b" style="margin-top:5px;">
 			<div class="row" id="generate_samples_container">
 				<div class="col-md-6" style="text-align:center">Locator ID</div>
-				<div class="col-md-3" style="text-align:center">Art Number</div>
+				<div class="col-md-3" style="text-align:center">{% if active_program_code == '3' %}ART No{% else %}Hep No{% endif %}</div>
 				<div class="col-md-1" style="text-align:center"></div>
 			</div>
 		</div>
 		<div class="form-inline required" id="locator_id_container" style="margin-top:5px;">
-							
-		
+
+
 		</div>
 		<br />
 		<input type="submit" value="Save and get new form" class="btn btn-danger hidden" id="submit_form">
-		
+
 	</div>
 	<div class="col-lg-2">
-		
+
 		{% if sample %}
 			<span class='sub-title' style="margin-left:-60px">in envelope</span><br>
 			{% for s in envelope_samples %}
 				<span  style="margin-left:-60px">
-					{{ forloop.counter }}. 
-					
+					{{ forloop.counter }}.
+
 					<a href="{% url 'samples:edit_received' s.pk %}">
 						{{s.barcode }}
 					</a>
@@ -174,12 +174,14 @@
 			{% endfor %}
 		{%endif%}
 	</div>
-	
+
 </div>
 </div>
-	
+
 
 <script type="text/javascript">
+	{% include "samples/_locator_id_helpers.html" %}
+
 	function isValueInArray(array,obj){
 	    for(var i = 0; i < array.length; i++) {
 	        if(obj === array[i]) {
@@ -206,20 +208,30 @@
 		return false;
 	}
 
-	var tr_code_id = 0;	
+	function hasReceivedFirstPosition(dataArr){
+		if (dataArr.barcode_exists){
+			alert(dataArr.err_msg || 'This position has already been received. Enter a different position.');
+			resetBatchSelection();
+			$("#id_barcode").val('').focus();
+			return true;
+		}
+		return false;
+	}
+
+	var tr_code_id = 0;
 	var number_of_boxes_pending_now = {{pending_reception_count}};
 	var min_no_envelopes_pending = {{min_no_envelopes_pending}};
 	var pending_rect = new Array();
 	{% for e in pending_reception %}
 		pending_rect.push('{{e.envelope_number }}');
 	{% endfor %}
-	$(document).ready(function() {	
+	$(document).ready(function() {
 
 		if ($.fn.bootstrapValidator) {
 			$('#receive_batch_form').bootstrapValidator({
-		       
+
 		        fields: {
-					
+
 					facility_id: {
 		                    validators: {
 		                        notEmpty: {
@@ -249,76 +261,104 @@
 				}//endo of validation rules
 		    });// close form validation function
 		}
-	
+
 	var date_now = new Date();
 	//console.log(date_now.toDateString());
 	var now_s = date_now.getTime();
 	var regimen_json = {};
 
-	
-		
+
+
 		$('#id_facility').select2();
 		$("#id_facility").val("{{ sample_reception_form.facility.value|default:'' }}");
 
-				
+
 		$("#id_sample_type").attr("disabled", "true");
+		if(isHepProgram()){
+			setSampleTypeValue('P');
+		}
 
-    	$(".date_d").combodate({
-    		format: "DD/MM/YYYY",
-    		template: "D MMM YYYY",
-    		customClass: "form-control input-sm w-xs",
-    		minYear: 1900,
-    		maxYear: date_now.getFullYear(),
-    	});
+	$(".date_d").combodate({
+		format: "DD/MM/YYYY",
+		template: "D MMM YYYY",
+		customClass: "form-control input-sm w-xs",
+		minYear: 1900,
+		maxYear: date_now.getFullYear(),
+	});
 
-    	$(".date").datepicker({
+	$(".date").datepicker({
 			dateFormat: "yy-mm-dd",
 			maxDate: 0
 		});
-	    	$("#id_facility").change(function(){
-	    		set_district_hub();   		    		
-	    	}).change();
+		$("#id_facility").change(function(){
+			set_district_hub();
+		}).change();
+
+			$('#id_code').on('change', function(){
+				var trCode = ($('#id_code').val() || '').trim();
+				if(!trCode){
+					$('#tracking_code_id').val('');
+					return;
+				}
+				$.get('/samples/get_tracking_code_details/?lookup_only=1&code=' + encodeURIComponent(trCode), function(data){
+					var details = JSON.parse(data);
+					if(!details.exists){
+						$('#tracking_code_id').val('');
+						return;
+					}
+					$('#tracking_code_id').val(details.tracking_code_id || '');
+					if(details.facility_id){
+						var currentFacilityId = String($('#id_facility').val() || '');
+						var trackingFacilityId = String(details.facility_id);
+						if(currentFacilityId !== trackingFacilityId){
+							$('#id_facility_reference, #locator_id_container .facilityreference').val('');
+						}
+						$('#id_facility').val(trackingFacilityId).trigger('change');
+					}
+				});
+			});
 
 			$("#id_barcode").change(function(){
-	    		var barc = $(this).val();
-	    		if(barc === ''){
-	    			return;
-	    		}
-	    		var url =  "/samples/get_barcode_details/?barcode="+barc;
-	    		$.get(url, function(data, status){
+			var barc = $(this).val();
+			if(barc === ''){
+				return;
+			}
+			var url =  "/samples/get_barcode_details/?barcode="+barc;
+			$.get(url, function(data, status){
 					var data_arr = JSON.parse(data);
 					if(hasProgramMismatch(data_arr)){
 						return;
 					}
-	    			var year_month = barc.substring(0, 4);
-	    			var env_number = barc.substring(4,8);
-	    			var env_year = year_month +'-'+env_number;
-	    			var locator_posn = barc.substr(barc.length - 2);
-	    			var is_env_among_pending = isValueInArray(pending_rect,env_year);
+					if(hasReceivedFirstPosition(data_arr)){
+						return;
+					}
+					var parsedLocator = parseReceptionLocator(barc);
+					if(!parsedLocator){
+						resetBatchSelection();
+						return;
+					}
+					$("#id_barcode").val(parsedLocator.barcode);
+				var env_year = parsedLocator.envelopeNumber;
+				var is_env_among_pending = isValueInArray(pending_rect,env_year);
 
 					/*if(Number(number_of_boxes_pending_now) > Number(min_no_envelopes_pending) && locator_posn == '01' && !is_env_among_pending){
 						alert('priority should be given to envelopes which already have results');
 					}else{*/
-		    			$("#envelope_number").val(env_year).change();
-		    			$("#locator_position").val(locator_posn).change();
-		    			$('#number_of_samples').change();
-		    		/*}*/
-	    		});
-	    	});
+					applyParsedLocator(parsedLocator);
+					$('#number_of_samples').change();
+				/*}*/
+			});
+		});
 
-    	
+
 		$("#envelope_number").change(function(){
 			var val = $(this).val();
-			var env_num_str = val.substr(-4);
-			var env_num = Number(env_num_str);
-			var s_type = '';
-			var s_type =  (env_num<=999?'P':'D');
-			$("#id_sample_type").val(s_type);
-			$("#sample_type").val(s_type);
+			var s_type = sampleTypeForEnvelope(val);
+			setSampleTypeValue(s_type);
 			var date_rec = '{{request.GET.date_received}}';
 			if(date_rec == ''){
 				var url =  "/samples/get_envelope_details/?envelope_number="+val+"&sample_type="+s_type+"&env_status_update=received";
-	    		$.get(url, function(data, status){
+			$.get(url, function(data, status){
 					var data_arr = JSON.parse(data);
 					if(hasProgramMismatch(data_arr)){
 						return;
@@ -333,7 +373,7 @@
 						$("#envelope_id").val(data_arr.envelope_id);
 						$("#date_received").val(data_arr.date_received);
 					}
-					
+
 				});
 			}else{
 				$("#date_received").val(date_rec);
@@ -342,72 +382,79 @@
 
 		$("#number_of_samples").change(function(){
 			var no_samples = $(this).val();
-    		var barc = $("#id_barcode").val();
-    		var loc_category = $("#id_locator_category").val();
-    		if(no_samples>0 && barc != ''){
-	    		var s_type = $("#sample_type").val();
-	    		var barcode_stem = barc.substring(0, 8);
-	    		var locator_posn = parseInt(barc.substr(barc.length - 2));
-	    		//compute the last barcode
-	    		var last_bac = parseInt(barc) + parseInt(no_samples)-1;
-	    		$("#last_barcode").val(last_bac);
-	    		var the_html = '';
-	    		for (let i = 0; i < no_samples; i++) {
-	    			var new_pos = i+locator_posn;
-	    			var max_no_loc_ids  = 20;
-	    			if(s_type == 'P'){
-	    				var max_no_loc_ids = 99;
-	    			}
-	    			if (new_pos < 10){
-	    				new_pos = '0'+new_pos;
-	    			}
-	    			if (new_pos <= max_no_loc_ids){
-	    				var new_bar = barcode_stem + new_pos;
-		    			var row = generateRow(i, new_bar,loc_category);		    			
-		    			the_html = the_html+row;
-	    			}
+		var barc = $("#id_barcode").val();
+		var loc_category = $("#id_locator_category").val();
+		if(no_samples>0 && barc != ''){
+				var parsedLocator = parseReceptionLocator(barc);
+				if(!parsedLocator){
+					return;
+				}
+			var s_type = $("#sample_type").val();
+			var locator_posn = parseInt(parsedLocator.locatorPosition, 10);
+			//compute the last barcode
+			var last_bac = locatorBarcodeAtPosition(parsedLocator, locator_posn + parseInt(no_samples, 10) - 1);
+			$("#last_barcode").val(last_bac);
+			var the_html = '';
+			for (let i = 0; i < no_samples; i++) {
+				var new_pos = i+locator_posn;
+				var max_no_loc_ids  = 20;
+				if(s_type == 'P'){
+					var max_no_loc_ids = 99;
+				}
+				if (new_pos < 10){
+					new_pos = '0'+new_pos;
+				}
+				if (new_pos <= max_no_loc_ids){
+					var new_bar = locatorBarcodeAtPosition(parsedLocator, new_pos);
+					var row = generateRow(i, new_bar,loc_category);
+					the_html = the_html+row;
+				}
 				}
 				$("#locator_id_container").html(the_html);
 				$("#sub-t,#sub-t-b").removeClass('hidden');
 				$("#submit_form").removeClass('hidden');
 
-    		}
-    		//console.log(the_html);
-    		
-    	});
+		}
+		//console.log(the_html);
 
-    	$("#last_barcode").change(function(){
-    		var barc = $("#id_barcode").val();
-    		var last_bac = $(this).val();
-    		if(barc != '' && barc != 'undefined' && last_bac != '' && last_bac != 'undefined' ){
-    			var no_of_samples = (parseInt(last_bac) - parseInt(barc))+1;
-    			$('#number_of_samples').val(no_of_samples);
-    			$('#number_of_samples').change();
+	});
 
-    		}
+	$("#last_barcode").change(function(){
+		var barc = $("#id_barcode").val();
+		var last_bac = $(this).val();
+		if(barc != '' && barc != 'undefined' && last_bac != '' && last_bac != 'undefined' ){
+			var no_of_samples = locatorRangeCount(barc, last_bac);
+			if(no_of_samples === null){
+				$(this).val('');
+				return;
+			}
+			$('#number_of_samples').val(no_of_samples);
+			$('#number_of_samples').change();
 
-    	});
-    	$(".optional").removeAttr('required');   
+		}
 
-    	$("#id_locator_category,#sample_type").change(function(){
-    		var sample_type = $("#sample_type").val();
-    		var cat =  $("#id_locator_category").val();
-    		if(cat == 'R' && sample_type != '' && cat != ''){
-    			reasonsDropDown("rejection_reason_id", "rejection_reason_id",sample_type);
-    			$('#rejection_reasons_container').removeClass('hidden');
-    		}else{
-    			$("#rejection_reason_id").val();
-    			$('#rejection_reasons_container').addClass('hidden');
-    		}
-    		
-    	}).change(); 	
+	});
+	$(".optional").removeAttr('required');
 
-    	$("#add_reason").click(function(){
-    		addOtherReasons();
-    	});
+	$("#id_locator_category,#sample_type").change(function(){
+		var sample_type = $("#sample_type").val();
+		var cat =  $("#id_locator_category").val();
+		if(cat == 'R' && sample_type != '' && cat != ''){
+			reasonsDropDown("rejection_reason_id", "rejection_reason_id",sample_type);
+			$('#rejection_reasons_container').removeClass('hidden');
+		}else{
+			$("#rejection_reason_id").val();
+			$('#rejection_reasons_container').addClass('hidden');
+		}
 
-    	$('#locator_id_container').on('change', '.artnumber', function(e){
-    		var $quan = $('#locator_id_container .artnumber');
+	}).change();
+
+	$("#add_reason").click(function(){
+		addOtherReasons();
+	});
+
+	$('#locator_id_container').on('change', '.artnumber', function(e){
+		var $quan = $('#locator_id_container .artnumber');
 		    var ind = $quan.index(this);
 		    $quan.eq(ind + 1).focus();
 		    $quan = '';
@@ -416,24 +463,30 @@
 			var facility_id = $("#id_facility").val();
 			var art_id = e.target.id;
 			var barc = $("#bar"+art_id).val();
-			var art_no = $(this).val();
+			var art_no = ($(this).val() || '').trim();
 			var saved_id = $("#saved_barcode_id"+barc).val();
 			var barcodes = $(".barcode").map(function() {
-			    return $(this).val();			    
+			    return $(this).val();
 			}).get();
 			var no_samples = parseInt($("#number_of_samples").val());
-			if(facility_id == '' || facility_id == undefined){
+			if(art_no == ''){
+				alert('Hep number is required.');
+				$(this).focus();
+			}else if($("#envelope_id").val() == ''){
+				alert('Envelope was not found, did you accession it?');
+				$("#id_barcode").focus();
+			}else if(facility_id == '' || facility_id == undefined){
 				alert('Please select the facility');
 			}else{
 				var url =  "/samples/get_tracking_code_details/?code="+tr_code;
 				var currnt_url= window.location.origin;
-				
+
 				$.get(url, function(data, status){
 					var data_arr = JSON.parse(data);
-					tr_code_id = data_arr.tracking_code_id;			
+					tr_code_id = data_arr.tracking_code_id;
 					var form = $('form')[0];
 					var form_data = new FormData(form);
-					var locator_posn = barc.substr(barc.length - 2);
+					var locator_posn = locatorPositionFromBarcode(barc);
 					form_data.append('the_barcode', barc);
 					form_data.append('reception_hep_number', art_no);
 					form_data.append('the_position', locator_posn);
@@ -448,73 +501,89 @@
 					   processData: false,  // tell jQuery not to process the data
 					   contentType: false,  // tell jQuery not to set contentType
 					   success : function(data) {
-					   	   console.log(data);
+						   console.log(data);
 					       var json_data = JSON.parse(data);
-					       if(json_data.err_msg && !json_data.saved_sample){
-					       	alert(json_data.err_msg);
-					       	return;
+					       if(!json_data.saved_sample){
+						var err_msg = json_data.err_msg || 'Sample was not saved. Check the required fields.';
+						alert(err_msg);
+						$("#span"+(json_data.s_barcode || barc)).html(err_msg);
+						$("#span"+(json_data.s_barcode || barc)).css({"color":"#ff0000"});
+						$("#span"+(json_data.s_barcode || barc)).removeClass('hidden');
+						return;
 					       }
 					       var saved_sample	= json_data.saved_sample
-					       $("#saved_barcode_id"+json_data.s_barcode).val(saved_sample);			       
+					       $("#saved_barcode_id"+json_data.s_barcode).val(saved_sample);
 					       //display success message
 					       $("#span"+json_data.s_barcode).removeClass('hidden');
 					       if(barcodes.length - ind == 1){
-					       		var params = $.param({
-					       			saved_sample: saved_sample,
-					       			env_id: json_data.env_id || $("#envelope_id").val(),
-					       			tr_code_id: json_data.tracking_code_id || $("#tracking_code_id").val(),
-					       			current_tr_code: $("#id_code").val(),
-					       			last_barcode: json_data.s_barcode || barc
-					       		});
-					       		window.location.replace(currnt_url+'/samples/receive_batch/?'+params);
+							var params = $.param({
+								saved_sample: saved_sample,
+								env_id: json_data.env_id || $("#envelope_id").val(),
+								tr_code_id: json_data.tracking_code_id || $("#tracking_code_id").val(),
+								current_tr_code: $("#id_code").val(),
+								last_barcode: json_data.s_barcode || barc
+							});
+							window.location.replace(currnt_url+'/samples/receive_batch/?'+params);
 					      }
+					   },
+					   error : function() {
+						   alert('Sample was not saved. Please try again.');
 					   }
 					});
-					
+
 				});
 			}
 		});
-    	
-    	/*var $quan = $('#locator_id_container .artnumber');
+
+	/*var $quan = $('#locator_id_container .artnumber');
 		$quan.on('keyup', function(e) {
 		    if (e.which === 9) {
-		    	alert('sdf');
+			alert('sdf');
 		        var ind = $quan.index(this);
 		        $quan.eq(ind + 1).focus()
 		    }
 		});*/
-    	$("#submit_form").click(function(e){
-        	e.preventDefault();
-        	var barcodes = $(".barcode").map(function() {
-			    return $(this).val();			    
+	$("#submit_form").click(function(e){
+	e.preventDefault();
+	var barcodes = $(".barcode").map(function() {
+			    return $(this).val();
 			}).get();
 			var hep_numbers = $(".artnumber").map(function() {
-			    return $(this).val();			    
+			    return $(this).val();
 			}).get();
 			//form.submit();
 			var tr_code = $("#id_code").val();
 			var facility_id = $("#id_facility").val();
-			if(facility_id == '' || facility_id == undefined){
+			var $missingHepNumber = $(".artnumber").filter(function() {
+				return ($(this).val() || '').trim() == '';
+			}).first();
+			if($("#envelope_id").val() == ''){
+				alert('Envelope was not found, did you accession it?');
+				$("#id_barcode").focus();
+			}else if($missingHepNumber.length){
+				alert('Hep number is required.');
+				$missingHepNumber.focus();
+			}else if(facility_id == '' || facility_id == undefined){
 				alert('Please select the facility');
 			}else{
 				var url =  "/samples/get_tracking_code_details/?code="+tr_code;
 				var currnt_url= window.location.origin;
-				
+
 				$.get(url, function(data, status){
 					var data_arr = JSON.parse(data);
 					tr_code_id = data_arr.tracking_code_id;
-					for (let i = 0; i < barcodes.length; i++) {				
+					for (let i = 0; i < barcodes.length; i++) {
 						var form = $('form')[0];
 						var form_data = new FormData(form);
 						var barc = barcodes[i];
-						var art_no = hep_numbers[i];
-						var locator_posn = barc.substr(barc.length - 2);
+						var art_no = (hep_numbers[i] || '').trim();
+						var locator_posn = locatorPositionFromBarcode(barc);
 						form_data.append('the_barcode', barc);
 						form_data.append('reception_hep_number', art_no);
 						form_data.append('the_position', locator_posn);
 						form_data.append('tracking_code_id', tr_code_id);
 						form_data.append('sample_only', 3);
-		    
+
 						//console.log(tr_code_id);
 						//return false;
 						$.ajax({
@@ -524,35 +593,42 @@
 						   processData: false,  // tell jQuery not to process the data
 						   contentType: false,  // tell jQuery not to set contentType
 						   success : function(data) {
-						   	   console.log(data);
+							   console.log(data);
 						       var json_data = JSON.parse(data);
-						       if(json_data.err_msg && !json_data.saved_sample){
-						       	alert(json_data.err_msg);
-						       	return;
+						       if(!json_data.saved_sample){
+							var err_msg = json_data.err_msg || 'Sample was not saved. Check the required fields.';
+							alert(err_msg);
+							$("#span"+(json_data.s_barcode || barc)).html(err_msg);
+							$("#span"+(json_data.s_barcode || barc)).css({"color":"#ff0000"});
+							$("#span"+(json_data.s_barcode || barc)).removeClass('hidden');
+							return;
 						       }
 						       var saved_sample = json_data.saved_sample;
 
 						       if(i == (barcodes.length)-1){
-						       		var params = $.param({
-						       			saved_sample: saved_sample,
-						       			env_id: json_data.env_id || $("#envelope_id").val(),
-						       			tr_code_id: json_data.tracking_code_id || $("#tracking_code_id").val(),
-						       			current_tr_code: $("#id_code").val(),
-						       			last_barcode: json_data.s_barcode || barc
-						       		});
-						       		window.location.replace(currnt_url+'/samples/receive_batch/?'+params);
+								var params = $.param({
+									saved_sample: saved_sample,
+									env_id: json_data.env_id || $("#envelope_id").val(),
+									tr_code_id: json_data.tracking_code_id || $("#tracking_code_id").val(),
+									current_tr_code: $("#id_code").val(),
+									last_barcode: json_data.s_barcode || barc
+								});
+								window.location.replace(currnt_url+'/samples/receive_batch/?'+params);
 						       }
+						   },
+						   error : function() {
+								alert('Sample was not saved. Please try again.');
 						   }
 						});
 					}
 				});
 			}
-				        		
+
 		});
 		//currnt_url+'?saved_sample'
 
-  	});
-	
+	});
+
 	function generateRow(position, barcode,loc_category){
 		var input_str = '<div class="row"><div class="col-md-6"><select class="form-control input-sm w-xs" name="locator_category" required="true"><option value="V" selected="selected">V</option></select> <input type="text" name="locator_id" value="'+barcode+'" class="form-control input-sm wider barcode" id="bar'+position+'" required="required"><input type="text" name="saved_barcode_id"  class="hidden" id="saved_barcode_id'+barcode+'" ></div><div class = "col-md-3"><input type="text" name="hep_number"  class="form-control input-sm wider artnumber" id="'+position+'" data-barccode="'+barcode+'" required="required"></div><div class ="col-md-1"><span id="span'+barcode+'" class="message_span hidden">saved</span></div></div></div>';
 		return input_str;
@@ -561,23 +637,23 @@
 	function reasonsDropDown(nme,id, sample_type){
 	  var url =  "/samples/get_rejection_reasons/?sample_type="+sample_type;
 		$.get(url, function(data){
-			var rejection_reasons = JSON.parse(JSON.parse(data));			
+			var rejection_reasons = JSON.parse(JSON.parse(data));
 			var other_options="id='"+id+"' class='form-control input-sm w-md' ";
 			  var slct = "<label for='rejection_reason_id'>Rejection Reason </label><br />";
 			  slct += "<select name='"+nme+"' id='"+id+"' class='form-control input-sm w-md' required style='width: 300px;'><option value=''>---------</option>";
-			  for (var r in rejection_reasons){	  	
-			  	slct += "<optgroup label="+r+">";
-			  	var rrs = rejection_reasons[r];
-			  	for(var i in rrs){
-			  		slct += "<option value='"+i+"'>"+rrs[i]+"</option>";
-			  	}
-			  	slct += "</optgroup>";
+			  for (var r in rejection_reasons){
+				slct += "<optgroup label="+r+">";
+				var rrs = rejection_reasons[r];
+				for(var i in rrs){
+					slct += "<option value='"+i+"'>"+rrs[i]+"</option>";
+				}
+				slct += "</optgroup>";
 			  }
 
 			  slct +="</select>";
 			  $("#rejection_reasons_container").html(slct);
 
-		});	
+		});
 	  //return generalSelect(nme,rejection_reasons,"Select Rejection Reason","",other_options);
 	}
 
@@ -602,33 +678,33 @@
 		return Math.floor(val);
 	}
 
-	
+
 	function set_district_hub(){
 		var facility_id = $('#id_facility').val();
 		//only get district and hub if value not 0, null, NaN or empty
 		if(!facility_id){
 			//do nothing
-		}else{ 
+		}else{
 			var url =  "/samples/get_district_hub/"+facility_id+"/";
 			$.get(url, function(data, status){
 				var json_data = JSON.parse(data);
 				$("#id_district").html(json_data.district);
 				$("#id_hub").html(json_data.hub);
-			});	
+			});
 		}
-					
+
 	}
-	
+
 	// calculation of no. of days between two date
 	//date formate - mm/dd/YYYY - 06/30/2019, 07/30/2019
 	function getDaysBetweenDates(start_date, end_date){
 	    // To set two dates to two variables
 	    var date1 = new Date(start_date);
 		var date2 = new Date(end_date);
-		  
+
 		// To calculate the time difference of two dates
 		var Difference_In_Time = date2.getTime() - date1.getTime();
-		  
+
 		// To calculate the no. of days between two dates
 		//alert(end_date.getDate());
 		return Difference_In_Time / (1000 * 3600 * 24);
@@ -638,7 +714,7 @@
 	  var datearray = date.split("/");
 	  var newdate = datearray[1] + '/' + datearray[0] + '/' + datearray[2];
 	  return newdate;
-	  
+
 	}
 
 	function getCurrentDate(){
@@ -652,9 +728,9 @@
 
 <style type="text/css">
     .x{
-    	color: rgb(210, 190, 220);
-    	cursor: pointer;
-    	font-size: 18px;
+	color: rgb(210, 190, 220);
+	cursor: pointer;
+	font-size: 18px;
     }
 
     .form-group.required label:before, .form-inline.required label:before {

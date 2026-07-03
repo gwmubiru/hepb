@@ -779,7 +779,7 @@ def edit_received(request, reception_id):
 		sample_reception = Sample.objects.get(pk=reception_id)
 		context = {
 			'sample_reception_form':SampleReceptionForm(instance=sample_reception),
-			'current_tr_code':sample_reception.tracking_code.code,
+			'current_tr_code': sample_reception.tracking_code.code if sample_reception.tracking_code_id else '',
 			'reception_id':reception_id,
 			'locator_category':sample_reception.locator_category,
 			'reception_hep_number':sample_reception.reception_hep_number,

@@ -4,6 +4,7 @@ from django.db import models
 class VLEnvelope(models.Model):
 	id = models.AutoField(primary_key=True)
 	envelope_number = models.CharField(max_length=10)
+	type = models.PositiveSmallIntegerField(default=1)
 	stage = models.PositiveSmallIntegerField(default=2)
 	is_received = models.BooleanField(null=True, blank=True)
 	is_data_entered = models.BooleanField(default=False)
@@ -82,6 +83,30 @@ class VLTrackingCode(models.Model):
 		managed = False
 
 
+class VLClinician(models.Model):
+	id = models.AutoField(primary_key=True)
+	cname = models.CharField(max_length=128)
+	cphone = models.CharField(max_length=64, null=True, blank=True)
+	facility_id = models.IntegerField(null=True, blank=True)
+
+	class Meta:
+		app_label = 'vl'
+		db_table = 'vl_clinicians'
+		managed = False
+
+
+class VLLabTech(models.Model):
+	id = models.AutoField(primary_key=True)
+	lname = models.CharField(max_length=128)
+	lphone = models.CharField(max_length=64, null=True, blank=True)
+	facility_id = models.IntegerField(null=True, blank=True)
+
+	class Meta:
+		app_label = 'vl'
+		db_table = 'vl_lab_techs'
+		managed = False
+
+
 class VLPatient(models.Model):
 	id = models.AutoField(primary_key=True)
 	unique_id = models.CharField(max_length=128, null=True, blank=True)
@@ -115,12 +140,15 @@ class VLSample(models.Model):
 	locator_category = models.CharField(max_length=1, null=True, blank=True)
 	locator_position = models.CharField(max_length=4, null=True, blank=True)
 	barcode = models.CharField(max_length=250, unique=True, null=True, blank=True)
+	barcode2 = models.CharField(max_length=250, null=True, blank=True)
 	form_number = models.CharField(max_length=64, null=True, blank=True)
 	facility_id = models.IntegerField(null=True, blank=True)
 	data_facility_id = models.IntegerField(null=True, blank=True)
 	facility_patient_id = models.IntegerField(null=True, blank=True)
 	envelope_id = models.IntegerField(null=True, blank=True)
 	tracking_code_id = models.IntegerField(null=True, blank=True)
+	clinician_id = models.IntegerField(null=True, blank=True)
+	lab_tech_id = models.IntegerField(null=True, blank=True)
 	sample_type = models.CharField(max_length=1, null=True, blank=True)
 	date_collected = models.DateField(null=True, blank=True)
 	date_received = models.DateTimeField(null=True, blank=True)
@@ -160,7 +188,6 @@ class VLSample(models.Model):
 	verified = models.BooleanField(default=True)
 	is_data_entered = models.BooleanField(default=True)
 	is_study_sample = models.BooleanField(default=False)
-	medical_lab_id = models.IntegerField(null=True, blank=True)
 	facility_reference = models.CharField(max_length=128, unique=True, null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)

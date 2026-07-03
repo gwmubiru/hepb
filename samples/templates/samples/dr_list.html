@@ -1,0 +1,122 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+<span class="page-title">DR Samples</span>
+{% csrf_token %}
+
+<div class="panel panel-default">
+	<div class="panel-body">
+		<div class="row" style="margin-bottom: 15px;">
+			<div class="col-md-3">
+				<label for="level_identified_at_filter">Level Identified At</label>
+				<select class="form-control input-sm" id="level_identified_at_filter">
+					<option value="">All</option>
+					<option value="1">Reception</option>
+					<option value="2">Lab</option>
+				</select>
+			</div>
+			<div class="col-md-2" style="padding-top: 25px;">
+				<button type="button" class="btn btn-default btn-sm" id="clear_dr_filters">Clear</button>
+			</div>
+		</div>
+
+		<div style="margin-bottom: 15px;">
+			<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#addDrSampleModal">Add Sample</button>
+			<a href="#" class="btn btn-default" id="export_dr_list">Export to Excel</a>
+		</div>
+
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#dr_pending_decision_tab" data-toggle="tab">Pending decision</a></li>
+			<li><a href="#dr_without_sample_tab" data-toggle="tab">Dr samples without sample</a></li>
+			<li><a href="#lab_archival_tab" data-toggle="tab">Lab archival</a></li>
+			<li><a href="#dr_samples_tab" data-toggle="tab">All</a></li>
+		</ul>
+
+		<div class="tab-content" style="padding-top: 15px;">
+			<div class="tab-pane active" id="dr_pending_decision_tab">
+				<table class='table table-bordered table-striped table-condensed' id='dr_pending_decision_table' style='width:100%'>
+					<thead><tr><th>DR Barcode</th><th>Lab Barcode</th><th>Form Number</th><th>Facility Ref</th><th>Sample Type</th><th>Facility</th><th>Hep Number</th><th>Result</th><th>Decision</th><th>...</th></tr></thead>
+				</table>
+			</div>
+			<div class="tab-pane" id="dr_without_sample_tab">
+				<table class='table table-bordered table-striped table-condensed' id='dr_requests_table' style='width:100%'>
+					<thead><tr><th>DR Barcode</th><th>Decision</th><th>Created At</th><th>...</th></tr></thead>
+				</table>
+			</div>
+			<div class="tab-pane" id="lab_archival_tab">
+				<div class="row" style="margin-bottom: 15px;">
+					<div class="col-md-3">
+						<label for="lab_envelope_number_filter">Envelope</label>
+						<input type="text" class="form-control input-sm" id="lab_envelope_number_filter" placeholder="Envelope number">
+					</div>
+					<div class="col-md-3">
+						<label for="lab_barcode_filter">Barcode</label>
+						<input type="text" class="form-control input-sm" id="lab_barcode_filter" placeholder="Barcode">
+					</div>
+					<div class="col-md-4">
+						<label for="lab_facility_reference_filter">Facility Ref</label>
+						<input type="text" class="form-control input-sm" id="lab_facility_reference_filter" placeholder="Facility reference">
+					</div>
+					<div class="col-md-2" style="padding-top: 25px;">
+						<button type="button" class="btn btn-default btn-sm" id="apply_lab_filters">Apply</button>
+					</div>
+				</div>
+				<table class='table table-bordered table-striped table-condensed' id='lab_archival_table' style='width:100%'>
+					<thead><tr><th>Envelope</th><th>Lab Barcode</th><th>Form Number</th><th>Facility Ref</th><th>Sample Type</th><th>Facility</th><th>Hep Number</th><th>Result</th><th>Box Position</th><th>...</th></tr></thead>
+				</table>
+			</div>
+			<div class="tab-pane" id="dr_samples_tab">
+				<table class='table table-bordered table-striped table-condensed' id='dr_samples_table' style='width:100%'>
+					<thead><tr><th>DR Barcode</th><th>Lab Barcode</th><th>Form Number</th><th>Facility Ref</th><th>Sample Type</th><th>Facility</th><th>Hep Number</th><th>Decision</th><th>...</th></tr></thead>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="addDrSampleModal" class="modal fade" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h4 class="modal-title">Add DR Sample</h4></div><div class="modal-body"><div class="alert alert-danger hidden" id="add-dr-error"></div><div class="form-group"><label for="dr_barcode">DR Barcode</label><div class="input-group"><span class="input-group-addon" id="dr_barcode_prefix">{{ dr_box_prefix }}</span><input type="text" id="dr_barcode_suffix" class="form-control" placeholder="5001"></div><input type="hidden" id="dr_barcode"></div></div><div class="modal-footer"><button type="button" class="btn btn-primary" id="save-dr-sample">Save</button><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>
+<div id="attachDrSampleModal" class="modal fade" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h4 class="modal-title">Attach Sample</h4></div><div class="modal-body"><div class="alert alert-danger hidden" id="attach-dr-error"></div><input type="hidden" id="attach_dr_request_id"><div class="form-group"><label for="attach_barcode">Barcode / Form Number / Facility Reference</label><input type="text" id="attach_barcode" class="form-control"></div></div><div class="modal-footer"><button type="button" class="btn btn-primary" id="confirm-attach-dr-sample">Attach</button><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>
+<div id="decideDrRequestModal" class="modal fade" role="dialog"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal">&times;</button><h4 class="modal-title">Decide DR Sample</h4></div><div class="modal-body"><div class="alert alert-danger hidden" id="decide-dr-error"></div><input type="hidden" id="decide_dr_request_id"><div class="form-group"><label for="decide_dr_value">Decision</label><select id="decide_dr_value" class="form-control"><option value="">---------</option><option value="1">Archived</option><option value="2">Destroyed</option></select></div></div><div class="modal-footer"><button type="button" class="btn btn-primary" id="confirm-decide-dr-request">Save</button><button type="button" class="btn btn-default" data-dismiss="modal">Close</button></div></div></div></div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	function csrfToken(){ return $('input[name="csrfmiddlewaretoken"]').first().val(); }
+	function showError(selector, message){ $(selector).text(message).removeClass('hidden'); }
+	function levelIdentifiedAt(){ return $('#level_identified_at_filter').val(); }
+	function syncDrBarcode(){ var prefix=$('#dr_barcode_prefix').text(); var suffix=($('#dr_barcode_suffix').val()||'').replace(/\s+/g,''); $('#dr_barcode').val(suffix ? prefix + suffix : ''); }
+
+	var drSamplesTable = $('#dr_samples_table').DataTable({processing:true,serverSide:true,ajax:{url:'/samples/dr_samples_json/',data:function(d){d.level_identified_at=levelIdentifiedAt();}}});
+	var drPendingDecisionTable = $('#dr_pending_decision_table').DataTable({processing:true,serverSide:true,ajax:{url:'/samples/dr_pending_decision_json/',data:function(d){d.level_identified_at=levelIdentifiedAt();}}});
+	var drRequestsTable = $('#dr_requests_table').DataTable({processing:true,serverSide:true,ajax:{url:'/samples/dr_requests_without_sample_json/',data:function(d){d.level_identified_at=levelIdentifiedAt();}}});
+	var labArchivalTable = $('#lab_archival_table').DataTable({processing:true,serverSide:true,searching:false,ajax:{url:'/samples/lab_archival_json/',data:function(d){d.envelope_number=$('#lab_envelope_number_filter').val();d.barcode=$('#lab_barcode_filter').val();d.facility_reference=$('#lab_facility_reference_filter').val();}}});
+
+	function reloadAllDrTables(){ drPendingDecisionTable.ajax.reload(null,false); drRequestsTable.ajax.reload(null,false); labArchivalTable.ajax.reload(null,false); drSamplesTable.ajax.reload(null,false); }
+	function adjustDrTables(){ drPendingDecisionTable.columns.adjust().draw(false); drRequestsTable.columns.adjust().draw(false); labArchivalTable.columns.adjust().draw(false); drSamplesTable.columns.adjust().draw(false); }
+	function currentTabKey(){ var activeHref=$('.nav-tabs li.active a').attr('href'); if(activeHref==='#dr_without_sample_tab') return 'without_sample'; if(activeHref==='#lab_archival_tab') return 'lab_archival'; if(activeHref==='#dr_samples_tab') return 'all'; return 'pending'; }
+	function currentSearchValue(){ var tabKey=currentTabKey(); if(tabKey==='without_sample') return drRequestsTable.search(); if(tabKey==='all') return drSamplesTable.search(); if(tabKey==='pending') return drPendingDecisionTable.search(); return ''; }
+
+	$('a[data-toggle="tab"]').on('shown.bs.tab', function(){ adjustDrTables(); });
+	setTimeout(function(){ adjustDrTables(); },0);
+	$('#level_identified_at_filter').on('change', function(){ drPendingDecisionTable.ajax.reload(); drRequestsTable.ajax.reload(); drSamplesTable.ajax.reload(); });
+	$('#apply_lab_filters').on('click', function(){ labArchivalTable.ajax.reload(); });
+	$('#lab_envelope_number_filter, #lab_barcode_filter, #lab_facility_reference_filter').on('keyup', function(e){ if(e.keyCode===13){ labArchivalTable.ajax.reload(); }});
+	$('#clear_dr_filters').on('click', function(){ $('#level_identified_at_filter').val(''); $('#lab_envelope_number_filter').val(''); $('#lab_barcode_filter').val(''); $('#lab_facility_reference_filter').val(''); reloadAllDrTables(); });
+	$('#export_dr_list').on('click', function(e){ e.preventDefault(); var params={tab:currentTabKey(),level_identified_at:levelIdentifiedAt()}; if(params.tab==='lab_archival'){ params.envelope_number=$('#lab_envelope_number_filter').val(); params.barcode=$('#lab_barcode_filter').val(); params.facility_reference=$('#lab_facility_reference_filter').val(); } else { params.search=currentSearchValue(); } window.location='/samples/dr_list_export/?'+$.param(params); });
+	$('#save-dr-sample').on('click', function(){ $('#add-dr-error').addClass('hidden').text(''); syncDrBarcode(); $.post('/samples/create_dr_request/', {csrfmiddlewaretoken: csrfToken(), barcode: $('#dr_barcode').val()}).done(function(){ $('#addDrSampleModal').modal('hide'); $('#dr_barcode').val(''); $('#dr_barcode_suffix').val(''); reloadAllDrTables(); }).fail(function(xhr){ var response=xhr.responseJSON||{}; showError('#add-dr-error', response.message || 'Failed to create DR sample.'); }); });
+	$(document).on('click', '.attach-dr-sample', function(e){ e.preventDefault(); $('#attach-dr-error').addClass('hidden').text(''); $('#attach_dr_request_id').val($(this).data('dr-request')); $('#attach_barcode').val(''); $('#attachDrSampleModal').modal('show'); });
+	$('#confirm-attach-dr-sample').on('click', function(){ var drRequestId=$('#attach_dr_request_id').val(); $('#attach-dr-error').addClass('hidden').text(''); $.post('/samples/attach_dr_sample/'+drRequestId+'/', {csrfmiddlewaretoken: csrfToken(), barcode: $('#attach_barcode').val()}).done(function(){ $('#attachDrSampleModal').modal('hide'); reloadAllDrTables(); }).fail(function(xhr){ var response=xhr.responseJSON||{}; showError('#attach-dr-error', response.message || 'Failed to attach sample.'); }); });
+	$(document).on('click', '.decide-dr-request', function(e){ e.preventDefault(); $('#decide-dr-error').addClass('hidden').text(''); $('#decide_dr_request_id').val($(this).data('dr-request')); $('#decide_dr_value').val(''); $('#decideDrRequestModal').modal('show'); });
+	$('#confirm-decide-dr-request').on('click', function(){ var drRequestId=$('#decide_dr_request_id').val(); $('#decide-dr-error').addClass('hidden').text(''); $.post('/samples/decide_dr_request/'+drRequestId+'/', {csrfmiddlewaretoken: csrfToken(), decision: $('#decide_dr_value').val()}).done(function(){ $('#decideDrRequestModal').modal('hide'); reloadAllDrTables(); }).fail(function(xhr){ var response=xhr.responseJSON||{}; showError('#decide-dr-error', response.message || 'Failed to save decision.'); }); });
+	$(document).on('click', '.save-lab-archival', function(e){ e.preventDefault(); var sampleId=$(this).data('sample'); var boxPosition=$(".lab-archival-box-position[data-sample='"+sampleId+"']").val(); $.post('/samples/save_lab_archival/'+sampleId+'/', {csrfmiddlewaretoken: csrfToken(), box_position: boxPosition}).done(function(){ reloadAllDrTables(); }).fail(function(xhr){ var response=xhr.responseJSON||{}; alert(response.message || 'Failed to save lab archival.'); }); });
+});
+</script>
+{% endblock %}

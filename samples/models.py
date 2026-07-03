@@ -131,9 +131,11 @@ class EnvelopeRange(models.Model):
 
 class Envelope(models.Model):
 	YES_NO = ((1,'Yes'),(2,'No'))
+	TYPES = ((1, 'Routine'), (2, 'Drug Resistance'))
 	PROGRAM_CODES = ((1,'HepB'),(2,'HepC'),(3,'HIV Viral Load'))
 	envelope_number = models.CharField(max_length=10)
 	id = models.AutoField(primary_key=True)
+	type = models.PositiveSmallIntegerField(choices=TYPES, default=1)
 	stage = models.PositiveSmallIntegerField(choices=((1,'not_verified'), (2, 'verified'), (3, 'in_worksheet'),(4, 'completed')), default=1)
 	is_received = models.PositiveSmallIntegerField(choices=YES_NO, default=0)
 	is_lab_completed = models.PositiveSmallIntegerField(choices=YES_NO, default=0)
@@ -155,6 +157,18 @@ class Envelope(models.Model):
 
 	class Meta:
 		db_table = 'vl_envelopes'
+
+
+class ArchivalEnvelope(models.Model):
+	box_number = models.CharField(max_length=64, unique=True)
+	id = models.AutoField(primary_key=True)
+	sample_type = models.CharField(max_length=1, choices=(('P', 'Plasma'), ('D', 'DBS')))
+	date_archived = models.DateField()
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		db_table = 'vl_archival_envelopes'
 
 class EnvelopeAssignment(models.Model):
 	TYPES = ((1,'Sample Reception'),(2,'Lab'))
@@ -205,6 +219,32 @@ class TrackingCode(models.Model):
 	class Meta:
 		db_table = 'vl_tracking_codes'
 
+class Clinician(models.Model):
+	id = models.AutoField(primary_key=True)
+	cname = models.CharField(max_length=128)
+	cphone = models.CharField(max_length=64, null=True, blank=True)
+	facility = models.ForeignKey(backend.Facility, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return self.cname
+
+	class Meta:
+		db_table = 'vl_clinicians'
+		unique_together = (('facility', 'cname'),)
+
+class LabTech(models.Model):
+	id = models.AutoField(primary_key=True)
+	lname = models.CharField(max_length=128)
+	lphone = models.CharField(max_length=64, null=True, blank=True)
+	facility = models.ForeignKey(backend.Facility, on_delete=models.CASCADE)
+
+	def __str__(self):
+		return self.lname
+
+	class Meta:
+		db_table = 'vl_lab_techs'
+		unique_together = (('facility', 'lname'),)
+
 class PendingReceptionQueue(models.Model):
 	id = models.AutoField(primary_key=True)
 	status = models.PositiveSmallIntegerField(default=False)
@@ -246,7 +286,7 @@ class Sample(models.Model):
 	DRUG_NAMES = ( (1, 'Tenofovir'), (2, 'Entecavir') )
 	TX_DURATION_CHOICES = ( (1, '6 months -< 1yr'), (2, '1 -< 2yrs'), (3, '2 -< 5yrs'), (4, '5yrs and above'), (5, 'Left Blank'),(5, '< 6 months') )
 	WHO_STAGES = ((1, 'I'), (2, 'II'), (3, 'III'), (4, 'IV'))
-	STAGES = ((1, 'Created'), (2, 'Pending_result_auth'), (3, 'panding_result_release'), (4, 'completed'))
+	STAGES = ((1, 'Created'), (2, 'Pending_result_auth'), (3, 'panding_result_release'), (4, 'completed'), (20, 'Pending sample collection'), (25, 'Pending packaging'), (30, 'Pending pickup'), (40, 'In transit'))
 	TX_CARE_APPROACHES = ((1, 'FBIM'), (2, 'FBG'), (3, 'FTDR'), (4, 'CDDP'), (5, 'CCLAD'),(5, 'CRPDDP'))
 	INDICATION_FOR_VL = ( (1, 'Routing Monitoring'), (2, 'Treatment Initiation') )
 	patient = models.ForeignKey(Patient, null=True, blank=True, on_delete=models.CASCADE)
@@ -256,8 +296,8 @@ class Sample(models.Model):
 	reception_hep_number = models.CharField(max_length=40,null=True, blank=True)
 	data_hep_number = models.CharField(max_length=40,null=True, blank=True)
 	locator_category = models.CharField(max_length=1, choices=( ('V', 'V'), ('R', 'R'),('W', 'W') ))
-	envelope = models.ForeignKey(Envelope,null=False, blank=False, on_delete=models.CASCADE)
-	locator_position = models.CharField(max_length=4)
+	envelope = models.ForeignKey(Envelope,null=True, blank=True, on_delete=models.CASCADE)
+	locator_position = models.CharField(max_length=4, null=True, blank=True)
 	vl_sample_id = models.CharField(max_length=128, unique=True, null=True, blank=True)
 	form_number = models.CharField(max_length=64, unique=True)
 	facility = models.ForeignKey(backend.Facility,null=False, blank=False, on_delete=models.CASCADE)
@@ -265,6 +305,8 @@ class Sample(models.Model):
 	facility_patient = models.ForeignKey(FacilityPatient,null=True, blank=True, on_delete=models.CASCADE)
 	sample_reception = models.ForeignKey(SampleReception,null=True, blank=True, on_delete=models.CASCADE)
 	tracking_code = models.ForeignKey(TrackingCode, on_delete=models.CASCADE)
+	clinician = models.ForeignKey(Clinician, null=True, blank=True, on_delete=models.CASCADE)
+	lab_tech = models.ForeignKey(LabTech, null=True, blank=True, on_delete=models.CASCADE)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen',null=True, blank=True, on_delete=models.CASCADE)
 	source_system = models.ForeignKey(backend.Appendix, related_name='source_system',null=True, blank=True, on_delete=models.CASCADE)
 	other_regimen = models.CharField(max_length=128, null=True, blank=True)
@@ -347,8 +389,16 @@ class SampleIdentifier(models.Model):
 		db_table = 'vl_sample_identifiers'
 
 class DrugResistanceRequest(models.Model):
-	sample = models.OneToOneField(Sample, on_delete=models.CASCADE)
+	DECISIONS = ((1, 'Archived'), (2, 'Destroyed'))
+	LEVEL_IDENTIFIED_AT_CHOICES = ((1, 'Reception'), (2, 'Lab'))
+	sample = models.OneToOneField(Sample, null=True, blank=True, on_delete=models.SET_NULL)
+	archival_envelope = models.ForeignKey(ArchivalEnvelope, null=True, blank=True, on_delete=models.SET_NULL)
 	id = models.AutoField(primary_key=True)
+	barcode = models.TextField(null=True, blank=True)
+	hep_number = models.CharField(max_length=64, null=True, blank=True)
+	box_position = models.CharField(max_length=16, null=True, blank=True)
+	decision = models.PositiveSmallIntegerField(choices=DECISIONS, null=True, blank=True)
+	level_identified_at = models.PositiveSmallIntegerField(choices=LEVEL_IDENTIFIED_AT_CHOICES, null=True, blank=True)
 	body_weight = models.PositiveSmallIntegerField(null=True, blank=True)
 	patient_on_rifampicin = models.CharField(max_length=1, choices=( ('Y', 'Yes'), ('N', 'No'),), null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
