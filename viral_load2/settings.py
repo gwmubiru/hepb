@@ -252,11 +252,8 @@ SESSION_COOKIE_AGE = 28800  # close session if idle for 8 hours
 SESSION_SAVE_EVERY_REQUEST = True 
 
 SAMPLE_TRACKING_URL = 'http://10.200.254.44/api/restrack/receive_small_package'
-IRRDS_ALIS_BARCODE_SEARCH_URL = os.environ.get(
-	'IRRDS_ALIS_BARCODE_SEARCH_URL',
-	'https://irrds.cphl.go.ug/api/alis/barcode/search',
-)
-IRRDS_ALIS_BARCODE_SEARCH_TOKEN = os.environ.get('IRRDS_ALIS_BARCODE_SEARCH_TOKEN', '')
+IRRDS_ALIS_BARCODE_SEARCH_URL = os.environ.get('IRRDS_ALIS_BARCODE_SEARCH_URL')
+IRRDS_ALIS_BARCODE_SEARCH_TOKEN = os.environ.get('IRRDS_ALIS_BARCODE_SEARCH_TOKEN')
 
 #Celery settings
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
