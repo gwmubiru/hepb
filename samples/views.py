@@ -3,6 +3,7 @@ import json, os, glob, calendar
 import csv, pandas, io, json
 import openpyxl
 import re
+from urllib.parse import urlencode
 from datetime import *
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
@@ -38,6 +39,7 @@ ENVS_LIMIT = 1000
 SAMPLES_LIMIT = 1000
 TRACKING_CODE_RECEPTION_FILTER = Q(date_received__isnull=True)
 DUPLICATE_FACILITY_REFERENCE_MESSAGE = "Olaba kisoboka? Taracking code cant be shared between facilities"
+TRACKING_CODE_FACILITY_LOCK_MESSAGE = "Tekisoboka. Tracking code can't be shared between facilities."
 TRACKING_CODE_FACILITY_MISMATCH_MESSAGE = "Warning: this tracking code belongs to a different facility. Please check the selected facility or use the correct tracking code."
 TRACKING_CODE_SAMPLE_FACILITY_MISMATCH_MESSAGE = "Warning: this sample belongs to a different facility from the tracking code. Please check the facility reference or tracking code."
 DUPLICATE_BARCODE_MESSAGE = "This position has already been received. Enter a different position."
@@ -173,6 +175,10 @@ def _sample_patient_facility_mismatch(sample, tracking_code):
 	return patient_facility_id != tracking_code.facility_id
 
 
+def _sample_matches_tracking_code(sample, tracking_code):
+	return bool(sample and tracking_code and sample.tracking_code_id and sample.tracking_code_id == tracking_code.id)
+
+
 def _tracking_code_package_samples(tracking_code, db_alias='default'):
 	if tracking_code is None:
 		return []
@@ -206,18 +212,19 @@ def _lookup_existing_sample_for_reception(facility_reference, facility_id=None, 
 		ret['err_msg'] = 'Not found'
 		return ret
 
-	conflict_sample = _get_facility_reference_conflict(facility_reference, facility_id)
-	if conflict_sample:
-		ret['err_msg'] = DUPLICATE_FACILITY_REFERENCE_MESSAGE
-		ret['facility_reference_conflict'] = 1
-		return ret
-
 	sample = (
 		Sample.objects.using(db_alias)
 		.select_related('patient', 'tracking_code')
 		.filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference))
 		.first()
 	)
+	exclude_sample_id = sample.pk if _sample_matches_tracking_code(sample, tracking_code) else None
+	conflict_sample = _get_facility_reference_conflict(facility_reference, facility_id, exclude_sample_id)
+	if conflict_sample:
+		ret['err_msg'] = DUPLICATE_FACILITY_REFERENCE_MESSAGE
+		ret['facility_reference_conflict'] = 1
+		return ret
+
 	if _sample_patient_facility_mismatch(sample, tracking_code):
 		ret['err_msg'] = TRACKING_CODE_SAMPLE_FACILITY_MISMATCH_MESSAGE
 		ret['tracking_facility_conflict'] = 1
@@ -230,12 +237,12 @@ def _lookup_existing_sample_for_reception(facility_reference, facility_id=None, 
 			'err_msg': 'This is a DR sample.',
 			'is_dr': 1,
 		})
-	elif sample and sample.patient_id and sample.date_received is None:
+	elif sample and not sample.envelope_id and not sample.barcode:
 		ret.update({
-			'hep_number': sample.patient.hep_number or '',
+			'hep_number': getattr(getattr(sample, 'patient', None), 'hep_number', '') or sample.reception_hep_number or '',
 			'date_collected': sample.date_collected.strftime('%Y-%m-%d') if sample.date_collected else '',
 		})
-	elif sample and sample.date_received is not None:
+	elif sample and (sample.envelope_id or sample.barcode):
 		ret['err_msg'] = 'Already received'
 	else:
 		ret['err_msg'] = 'Not found'
@@ -391,17 +398,96 @@ def get_dropdown_db_alias(request):
 	return db_aliases.get_program_db_alias(programs.get_active_program_code(request))
 
 
+def _get_existing_tracking_code(request, tracking_code_id='', code=''):
+	db_alias = get_dropdown_db_alias(request)
+	tracking_code = _get_tracking_code_by_id(tracking_code_id, db_alias=db_alias)
+	if tracking_code is None and code:
+		tracking_code = (
+			TrackingCode.objects.using(db_alias)
+			.select_related('facility')
+			.filter(code=(code or '').strip())
+			.first()
+		)
+	return tracking_code
+
+
+def _sample_reception_initial(tracking_code=None):
+	initial = {
+		'locator_category': 'V',
+		'date_collected': datetime.now().date(),
+		'date_received': datetime.now().date(),
+	}
+	if tracking_code and tracking_code.facility_id:
+		initial['facility'] = tracking_code.facility_id
+	return initial
+
+
+def _receive_batch_tracking_context(tracking_code=None):
+	return {
+		'tracking_facility_id': tracking_code.facility_id if tracking_code and tracking_code.facility_id else '',
+		'tracking_facility_lock_message': TRACKING_CODE_FACILITY_LOCK_MESSAGE,
+	}
+
+
+def _locator_lookup_values(request, barcode):
+	raw_barcode = (barcode or '').strip()
+	values = []
+
+	def add(value):
+		value = (value or '').strip()
+		if value and value not in values:
+			values.append(value)
+
+	add(raw_barcode)
+	compact_barcode = sample_utils.compact_envelope_number(raw_barcode)
+	add(compact_barcode)
+
+	active_program_code = programs.get_active_program_code(request)
+	for candidate in (raw_barcode, compact_barcode):
+		try:
+			parsed_candidate = sample_utils.parse_locator_id(candidate, active_program_code)
+		except ValueError:
+			parsed_candidate = None
+		if parsed_candidate:
+			add(parsed_candidate.get('barcode'))
+
+	if sample_utils.is_hep_program_code(active_program_code) and compact_barcode:
+		expected_prefix = sample_utils.envelope_prefix_for_program(active_program_code)
+		has_hep_prefix = compact_barcode[0] in sample_utils.HEP_PREFIX_PROGRAMS
+		if expected_prefix and not has_hep_prefix and compact_barcode.isdigit() and len(compact_barcode) >= 6:
+			try:
+				parsed_candidate = sample_utils.parse_locator_id(expected_prefix + compact_barcode, active_program_code)
+			except ValueError:
+				parsed_candidate = None
+			if parsed_candidate:
+				add(parsed_candidate.get('barcode'))
+
+	return values
+
+
 def _get_received_barcode_conflict(request, barcode):
-	barcode = (barcode or '').strip()
-	if not barcode:
+	for lookup_barcode in _locator_lookup_values(request, barcode):
+		sample = Sample.objects.using(get_dropdown_db_alias(request)).filter(barcode=lookup_barcode).first()
+		if sample:
+			return sample
+	return None
+
+
+def _apply_received_sample_to_post(request, post_data):
+	sample = _get_received_barcode_conflict(request, post_data.get('barcode'))
+	if sample is None:
 		return None
-	try:
-		parsed_barcode = sample_utils.parse_locator_id(barcode, programs.get_active_program_code(request))
-		if parsed_barcode:
-			barcode = parsed_barcode.get('barcode')
-	except ValueError:
-		pass
-	return Sample.objects.using(get_dropdown_db_alias(request)).filter(barcode=barcode).first()
+
+	post_data['id'] = str(sample.pk)
+	post_data['barcode'] = sample.barcode or post_data.get('barcode')
+	post_data['date_received'] = sample.date_received.strftime('%Y-%m-%d') if sample.date_received else ''
+	if sample.envelope_id:
+		post_data['envelope_number'] = sample.envelope.envelope_number
+	if sample.locator_position:
+		post_data['locator_position'] = sample.locator_position
+	if sample.sample_type:
+		post_data['sample_type'] = sample.sample_type
+	return sample
 
 
 def get_facilities_qs(request):
@@ -475,6 +561,8 @@ def create(request):
 
 def handle_post_request(request, facilities, PastRegimensFormSet,treatment_indication_options,treatment_indication_selected_options,selected_treatment_ids):
     pst = request.POST.copy()
+    is_hiv_program = vl_services.is_hiv_program(request)
+    received_sample = None if is_hiv_program else _apply_received_sample_to_post(request, pst)
     if sample_utils.is_hep_program_code(programs.get_active_program_code(request)):
         pst['sample_type'] = 'P'
     db_alias = get_dropdown_db_alias(request)
@@ -492,8 +580,13 @@ def handle_post_request(request, facilities, PastRegimensFormSet,treatment_indic
     drug_resistance_form = DrugResistanceRequestForm(pst)
     past_regimens_formset = bind_past_regimens_formset(PastRegimensFormSet(pst), db_alias)
 
+    if not is_hiv_program and received_sample is None and not sample_id:
+        sample_form.is_valid()
+        sample_form.add_error('barcode', 'Sorry dear! this sample has not yet been received')
+        return render_create_page(request, facilities, envelope_form, patient_form, preliminary_findings_form,sample_form, drug_resistance_form, past_regimens_formset, page_type)
+
     if SampleService.validate_forms(patient_form, preliminary_findings_form,envelope_form, sample_form, drug_resistance_form, past_regimens_formset, pst):
-        if vl_services.is_hiv_program(request):
+        if is_hiv_program:
             try:
                 save_result = vl_services.save_sample_form(pst, request.user)
                 next_barcode = save_result.get('next_barcode')
@@ -1089,6 +1182,173 @@ def get_tracking_code_details(request):
 	}
 	return HttpResponse(json.dumps(ret))
 
+
+def _render_receive_batch_error(request, sample_reception_form, error, tr_code_id='', env_id='', current_tr_code=''):
+	pending_reception = PendingReceptionQueue.objects.all()
+	envelope_samples = []
+	if env_id:
+		envelope = Envelope.objects.filter(pk=env_id).first()
+		envelope_samples = envelope.sample_set.all().order_by('locator_position') if envelope else []
+	tracking_code = _get_existing_tracking_code(request, tr_code_id, current_tr_code)
+	context = {
+		'sample_reception_form': sample_reception_form,
+		'tr_code_id': getattr(tracking_code, 'id', None) or tr_code_id,
+		'env_id': env_id,
+		'current_tr_code': current_tr_code or getattr(tracking_code, 'code', ''),
+		'reception_id': '',
+		'pending_reception': pending_reception,
+		'pending_reception_count': pending_reception.count(),
+		'min_no_envelopes_pending': settings.MIN_NO_ENVELOPES_PENDING,
+		'envelope_samples': envelope_samples,
+		'last_received_barcode': request.POST.get('last_barcode', ''),
+		'batch_error': error,
+	}
+	context.update(_receive_batch_tracking_context(tracking_code))
+	return render(request, 'samples/receive_bactch.html', context)
+
+
+def _batch_receive_error(request, sample_reception_form, error, tr_code_id='', env_id='', current_tr_code=''):
+	return _render_receive_batch_error(request, sample_reception_form, error, tr_code_id, env_id, current_tr_code)
+
+
+def _batch_receive_rows(request):
+	locator_ids = [(locator_id or '').strip() for locator_id in request.POST.getlist('locator_id')]
+	hep_numbers = [(hep_number or '').strip() for hep_number in request.POST.getlist('hep_number')]
+	rows = []
+	for index, locator_id in enumerate(locator_ids):
+		if locator_id == '':
+			continue
+		hep_number = hep_numbers[index] if index < len(hep_numbers) else ''
+		rows.append({
+			'locator_id': locator_id,
+			'hep_number': hep_number,
+		})
+	return rows
+
+
+def _normalise_batch_row(request, row, envelope):
+	try:
+		parsed_locator = sample_utils.parse_locator_id(row.get('locator_id'), programs.get_active_program_code(request))
+	except ValueError as e:
+		raise ValidationError(str(e))
+	if not parsed_locator:
+		raise ValidationError('Invalid locator ID: {0}'.format(row.get('locator_id')))
+	if envelope and parsed_locator.get('envelope_number') != envelope.envelope_number:
+		raise ValidationError('Locator ID {0} is not in envelope {1}.'.format(row.get('locator_id'), envelope.envelope_number))
+	row['barcode'] = parsed_locator.get('barcode')
+	row['locator_position'] = parsed_locator.get('locator_position')
+	row['sample_type'] = parsed_locator.get('sample_type') or (envelope.sample_type if envelope else None)
+	return row
+
+
+def _save_receive_batch_row(request, row, tracking_code_id, env_id, facility_id, date_collected, session_program_code):
+	hep_number = row.get('hep_number')
+	sanitized_art_no = utils.removeSpecialCharactersFromString(hep_number)
+	unique_id = "%s-A-%s" % (facility_id, sanitized_art_no)
+	facility_pat = FacilityPatient.objects.filter(unique_id=unique_id).first()
+	sample = Sample(
+		tracking_code_id=tracking_code_id,
+		locator_category='V',
+		locator_position=row.get('locator_position'),
+		barcode=row.get('barcode'),
+		created_by=request.user,
+		date_received=datetime.now(),
+		form_number=row.get('barcode'),
+		reception_hep_number=hep_number,
+		facility_id=facility_id,
+		sample_type=row.get('sample_type') or _posted_sample_type(request),
+		date_collected=date_collected,
+		stage=0,
+		is_data_entered=0,
+		patient_id=None,
+		received_by=request.user,
+		envelope_id=env_id,
+		facility_patient=facility_pat,
+		verified=0,
+		facility_reference=None,
+	)
+	_set_sample_type_from_request_or_envelope(sample, request, env_id)
+	if session_program_code:
+		sample.program_code = session_program_code
+	sample.save()
+	sample_utils.update_envelope_status(sample, 'received')
+	sample_utils.save_verification_details(sample, request)
+	sample_utils.update_worksheet_sample(sample)
+	sample_utils.update_result_models(sample)
+	return sample
+
+
+def _handle_receive_batch_submit(request):
+	pst = request.POST
+	sample_reception_form = SampleReceptionForm(pst, db_alias=get_dropdown_db_alias(request))
+	tr_code_id = pst.get('tracking_code_id')
+	current_tr_code = pst.get('current_tr_code') or pst.get('code') or ''
+	facility_id = pst.get('facility')
+	env_id = sample_utils.resolve_posted_envelope_id(request)
+	rows = _batch_receive_rows(request)
+
+	try:
+		date_collected = posted_date(pst, 'date_collected')
+	except ValidationError as e:
+		return _batch_receive_error(request, sample_reception_form, str(e), tr_code_id, env_id, current_tr_code)
+
+	if not pst.get('code') and not tr_code_id:
+		return _batch_receive_error(request, sample_reception_form, 'Tracking code is required.', tr_code_id, env_id, current_tr_code)
+	if not env_id:
+		return _batch_receive_error(request, sample_reception_form, 'Envelope was not found, did you accession it?', tr_code_id, env_id, current_tr_code)
+	if not facility_id:
+		return _batch_receive_error(request, sample_reception_form, 'Facility is required.', tr_code_id, env_id, current_tr_code)
+	if not rows:
+		return _batch_receive_error(request, sample_reception_form, 'No generated samples were submitted.', tr_code_id, env_id, current_tr_code)
+
+	session_program_code = get_session_program_code(request)
+	mismatch_message = lock_envelope_to_session_program(request, env_id)
+	if mismatch_message:
+		return _batch_receive_error(request, sample_reception_form, mismatch_message, tr_code_id, env_id, current_tr_code)
+
+	envelope = Envelope.objects.filter(pk=env_id).first()
+	if envelope is None:
+		return _batch_receive_error(request, sample_reception_form, 'Envelope was not found, did you accession it?', tr_code_id, env_id, current_tr_code)
+
+	try:
+		rows = [_normalise_batch_row(request, row, envelope) for row in rows]
+	except ValidationError as e:
+		return _batch_receive_error(request, sample_reception_form, str(e), tr_code_id, env_id, current_tr_code)
+
+	seen_barcodes = set()
+	for row in rows:
+		barcode = row.get('barcode')
+		hep_number = row.get('hep_number')
+		if not hep_number:
+			return _batch_receive_error(request, sample_reception_form, 'Hep number is required for {0}.'.format(barcode), tr_code_id, env_id, current_tr_code)
+		if barcode in seen_barcodes:
+			return _batch_receive_error(request, sample_reception_form, 'Duplicate locator ID in this batch: {0}.'.format(barcode), tr_code_id, env_id, current_tr_code)
+		seen_barcodes.add(barcode)
+		if _get_received_barcode_conflict(request, barcode):
+			return _batch_receive_error(request, sample_reception_form, '{0}: {1}'.format(barcode, DUPLICATE_BARCODE_MESSAGE), tr_code_id, env_id, current_tr_code)
+
+	tracking_code = _resolve_tracking_code(tr_code_id, pst.get('code'), request.user.id, facility_id, db_alias=get_dropdown_db_alias(request))
+	if tracking_code is None:
+		return _batch_receive_error(request, sample_reception_form, 'Tracking code is required.', tr_code_id, env_id, current_tr_code)
+	if _get_tracking_code_facility_mismatch(tracking_code, facility_id):
+		return _batch_receive_error(request, sample_reception_form, TRACKING_CODE_FACILITY_MISMATCH_MESSAGE, tracking_code.id, env_id, current_tr_code)
+
+	saved_samples = [
+		_save_receive_batch_row(request, row, tracking_code.id, env_id, facility_id, date_collected, session_program_code)
+		for row in rows
+	]
+	update_envelope_program_code(env_id, get_session_program_code(request))
+	last_sample = saved_samples[-1]
+	params = urlencode({
+		'saved_sample': last_sample.pk,
+		'env_id': env_id,
+		'tr_code_id': tracking_code.id,
+		'current_tr_code': pst.get('code') or current_tr_code,
+		'last_barcode': last_sample.barcode,
+	})
+	return redirect('/samples/receive_batch/?{0}'.format(params))
+
+
 @transaction.atomic
 def receive_batch(request,ret_to_fun = 0):
 	if (request.method == 'POST' or ret_to_fun) and not vl_services.is_hiv_program(request):
@@ -1164,10 +1424,16 @@ def receive_batch(request,ret_to_fun = 0):
 	patient_id = None
 	if current_tr_code is None:
 		current_tr_code = ''
+	tracking_code = _get_existing_tracking_code(request, tr_code_id, current_tr_code)
+	if tracking_code:
+		tr_code_id = tr_code_id or tracking_code.id
+		current_tr_code = current_tr_code or tracking_code.code
+	if request.method == 'POST' and not ret_to_fun and _batch_receive_rows(request):
+		return _handle_receive_batch_submit(request)
 	if request.method == 'POST' or ret_to_fun:
 		pst = request.POST
 		date_collected = posted_date(request.POST, 'date_collected')
-		sample_reception_form = SampleReceptionForm(pst)
+		sample_reception_form = SampleReceptionForm(pst, db_alias=get_dropdown_db_alias(request))
 		tr_code_id = request.POST.get('tracking_code_id')
 		env_id = sample_utils.resolve_posted_envelope_id(request)
 		session_program_code = get_session_program_code(request)
@@ -1321,7 +1587,7 @@ def receive_batch(request,ret_to_fun = 0):
 
 	else:
 		d = datetime.now()
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial=_sample_reception_initial(tracking_code), db_alias=get_dropdown_db_alias(request))
 
 	pending_reception = PendingReceptionQueue.objects.all()
 	context = {
@@ -1343,11 +1609,19 @@ def receive_batch(request,ret_to_fun = 0):
 			env_id = sample.envelope_id
 		if sample and not tr_code_id and sample.tracking_code_id:
 			tr_code_id = sample.tracking_code_id
+		if sample and not tracking_code and sample.tracking_code_id:
+			tracking_code = _get_existing_tracking_code(request, sample.tracking_code_id, '')
+			if tracking_code:
+				tr_code_id = tracking_code.id
+				current_tr_code = current_tr_code or tracking_code.code
+				sample_reception_form = SampleReceptionForm(initial=_sample_reception_initial(tracking_code), db_alias=get_dropdown_db_alias(request))
 		envelope_samples = sample.envelope.sample_set.all().order_by('locator_position') if sample and sample.envelope_id else []
 		context.update({'sample':sample,'tr_code_id':tr_code_id,'env_id':env_id,'envelope_samples': envelope_samples,'last_received_barcode': sample.barcode if sample and sample.barcode else request.GET.get('last_barcode', '')})
 	elif env_id:
 		envelope = Envelope.objects.filter(pk=env_id).first()
 		context.update({'envelope_samples': envelope.sample_set.all().order_by('locator_position') if envelope else []})
+	context.update({'tr_code_id': tr_code_id, 'current_tr_code': current_tr_code})
+	context.update(_receive_batch_tracking_context(tracking_code))
 
 	return render(request, 'samples/receive_bactch.html', context)
 
@@ -1475,6 +1749,9 @@ def receive_hie(request):
 			}
 			return HttpResponse(json.dumps(ret))
 		saved_id = request.POST.get('saved_id')
+		s = Sample.objects.using(get_dropdown_db_alias(request)).select_related('tracking_code').filter(facility_reference=facility_reference).first()
+		if not saved_id and _sample_matches_tracking_code(s, _get_tracking_code_by_id(tr_code_id, db_alias=get_dropdown_db_alias(request))):
+			saved_id = s.pk
 		conflict_sample = _get_facility_reference_conflict(facility_reference, facility_id, saved_id)
 		if conflict_sample:
 			ret = {
@@ -1488,8 +1765,6 @@ def receive_hie(request):
 			}
 			return HttpResponse(json.dumps(ret))
 
-		#s = Sample.objects.filter(Q(facility_reference=facility_reference) | Q(form_number=facility_reference)).first()
-		s = Sample.objects.filter(facility_reference=facility_reference).first()
 		sample_program_mismatch = get_program_mismatch_message(request, get_sample_program_code(s), 'sample')
 		if sample_program_mismatch:
 			ret = {
@@ -1885,19 +2160,19 @@ def myconverter(o):
 
 def get_barcode_details(request):
 	barcode = request.GET.get('barcode')
-	try:
-		parsed_barcode = sample_utils.parse_locator_id(barcode, programs.get_active_program_code(request))
-		if parsed_barcode:
-			barcode = parsed_barcode.get('barcode')
-	except ValueError:
-		pass
 	if vl_services.is_hiv_program(request):
+		try:
+			parsed_barcode = sample_utils.parse_locator_id(barcode, programs.get_active_program_code(request))
+			if parsed_barcode:
+				barcode = parsed_barcode.get('barcode')
+		except ValueError:
+			pass
 		return HttpResponse(json.dumps(vl_services.get_barcode_details(barcode)))
 	ret = {'barcode_exists': False, 'err_msg': ''}
 	sample = _get_received_barcode_conflict(request, barcode)
 	if sample:
-		#rec_date = sample.envelope.created_at
-		rec_date = sample.created_at
+		rec_date = sample.date_received
+		date_received = rec_date.strftime('%Y-%m-%d') if rec_date else ''
 		err_msg = get_program_mismatch_message(request, get_sample_program_code(sample), 'sample')
 		ret = {
 			'barcode_exists': True,
@@ -1905,7 +2180,12 @@ def get_barcode_details(request):
 			's_id': sample.id,
 			'is_data_entered': sample.is_data_entered,
 			'reception_hep_number': sample.reception_hep_number,
-			'date_received': "{}-{}-{}".format(rec_date.year, rec_date.month, rec_date.day),
+			'date_received': date_received,
+			'barcode': sample.barcode or '',
+			'envelope_number': sample.envelope.envelope_number if sample.envelope_id else '',
+			'locator_position': sample.locator_position or '',
+			'locator_category': sample.locator_category or '',
+			'sample_type': sample.sample_type or '',
 			'program_mismatch': bool(err_msg),
 			'err_msg': err_msg or DUPLICATE_BARCODE_MESSAGE,
 			}
@@ -2980,6 +3260,9 @@ def receive_sample_only(request):
 			}
 			return HttpResponse(json.dumps(ret))
 		saved_id = request.POST.get('saved_id')
+		sample = Sample.objects.using(db_alias).select_related('patient', 'tracking_code').filter(facility_reference=facility_reference).first()
+		if not saved_id and _sample_matches_tracking_code(sample, tracking_code):
+			saved_id = sample.pk
 		conflict_sample = _get_facility_reference_conflict(facility_reference, facility_id, saved_id)
 		if conflict_sample:
 			ret = {
@@ -2992,8 +3275,6 @@ def receive_sample_only(request):
 				'err_msg':DUPLICATE_FACILITY_REFERENCE_MESSAGE
 			}
 			return HttpResponse(json.dumps(ret))
-		#sample = Sample.objects.filter(barcode=request.POST.get('the_barcode')).first()
-		sample = Sample.objects.using(db_alias).select_related('patient', 'tracking_code').filter(facility_reference=facility_reference).first()
 		patient = sample.patient if sample else None
 		sample_program_mismatch = get_program_mismatch_message(request, get_sample_program_code(sample), 'sample')
 		if sample_program_mismatch:

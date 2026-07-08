@@ -741,55 +741,79 @@
 			$("#success").slideUp("slow");
 		});
 
+		function setTestingLabDateReceived(dateReceived){
+			var $dateReceived = $("#id_date_received");
+			if(!$dateReceived.length){
+				return;
+			}
+			$dateReceived.val(dateReceived || '');
+			if($dateReceived.data('combodate')){
+				$dateReceived.combodate('setValue', dateReceived || null);
+			}
+			var $dateWidget = $dateReceived.next('.combodate');
+			if(dateReceived){
+				$dateReceived.attr("readonly", "true");
+				$dateWidget.find('select').prop('disabled', true);
+			}else{
+				$dateReceived.removeAttr("readonly");
+				$dateWidget.find('select').prop('disabled', false);
+			}
+		}
+
 		$("#id_barcode").change(function(){
-			var barc = $(this).val();
+			var $barcodeInput = $(this);
+			var barc = $barcodeInput.val();
 
 			if(barc != ''){
 			//get detailso the barcode
 			var edit_id = $("#edit_id").val();
-			var parsedLocator = parseReceptionLocator(barc);
-			if(!parsedLocator){
-				$("#id_barcode").val('');
-				return;
-			}
-			$("#id_barcode").val(parsedLocator.barcode);
-			var env_year = parsedLocator.envelopeNumber;
-			var locator_posn = parsedLocator.locatorPosition;
-			var is_env_among_pending = isValueInArray(pending_rect,env_year);
-
-			/*if(Number(number_of_boxes_pending_now) > Number(min_no_envelopes_pending) && locator_posn == '01' && is_env_among_pending){
-					alert('priority should be given to envelopes which already have results');
-					$(this).val('');
-
-				}else{*/
-				$("#envelope_number").val(env_year).change();
-				//set the sample type
-					setSampleTypeValue(parsedLocator.sampleType);
-				$("#locator_position").val(locator_posn).change();
-				var url =  "/samples/get_barcode_details/?barcode="+barc;
-				$.get(url, function(data, status){
+				var url =  "/samples/get_barcode_details/?barcode="+encodeURIComponent(barc);
+					$.get(url, function(data, status){
 						var data_arr = JSON.parse(data);
-						if(data_arr.length == 0){
+						if(!data_arr.barcode_exists){
+							setTestingLabDateReceived('');
 							alert('Sorry dear! this sample has not yet been received');
-							$(this).val('');
+							$barcodeInput.val('').focus();
+						}else if(data_arr.program_mismatch){
+							setTestingLabDateReceived('');
+							alert(data_arr.err_msg);
+							$barcodeInput.val('').focus();
 						}else if(data_arr.is_data_entered == 1 && edit_id == ''){
+							setTestingLabDateReceived('');
 							alert('Weebereremu! data for this locatorId has already been entered');
-							$(this).val('');
+							$barcodeInput.val('').focus();
 						}else{
+							var receivedBarcode = data_arr.barcode || barc;
+							$barcodeInput.val(receivedBarcode);
+							if(data_arr.envelope_number && data_arr.locator_position){
+								$("#envelope_number").val(data_arr.envelope_number).change();
+								setSampleTypeValue(data_arr.sample_type || sampleTypeForEnvelope(data_arr.envelope_number));
+								$("#locator_position").val(data_arr.locator_position).change();
+							}else{
+								var parsedLocator = parseReceptionLocator(receivedBarcode);
+								if(!parsedLocator){
+									alert('Received sample is missing location details.');
+									$barcodeInput.val('').focus();
+									return;
+								}
+								$("#envelope_number").val(parsedLocator.envelopeNumber).change();
+								setSampleTypeValue(parsedLocator.sampleType);
+								$("#locator_position").val(parsedLocator.locatorPosition).change();
+							}
 							//now generate the locator positions etc
 							$("#reception_facility").val(data_arr.reception_facility);
 							$("#reception_hep_number").val(data_arr.reception_hep_number);
 							//also update the modal with art and facility details
 							$("#validate_facility").val(data_arr.reception_facility);
-							$("#date_received").val(data_arr.date_received);
-							$("#txt_date_received").html(data_arr.date_received);
+							setTestingLabDateReceived(data_arr.date_received);
 							$("#validate_hep_number").val(data_arr.reception_hep_number);
 							$("#s_id").val(data_arr.s_id);
 							$("#id_id").val(data_arr.s_id);
 						}
 						//$('#validate_facility').select2();
 					});
-				//} //close if pending boxes are not yet done
+			}else{
+				setTestingLabDateReceived('');
 			}
 	}).change();
 
