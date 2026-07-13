@@ -205,6 +205,8 @@
 
 	var tr_code_id = 0;
 	var packageSamples = [];
+	var lockedTrackingFacilityId = "{{ tracking_facility_id|default:''|escapejs }}";
+	var trackingFacilityLockMessage = "{{ tracking_facility_lock_message|default:"Tekisoboka. Tracking code can't be shared between facilities."|escapejs }}";
 
 	function resetSampleOnlySelection(){
 		$("#envelope_id,#envelope_number,#locator_position,#last_barcode,#number_of_samples").val('');
@@ -245,7 +247,12 @@
 
 
 		$('#id_facility').select2();
-		$("#id_facility").val("{{ sample_reception_form.facility.value|default:'' }}");
+		var initialFacilityId = "{{ sample_reception_form.facility.value|default:''|escapejs }}";
+		if(lockedTrackingFacilityId){
+			$("#id_facility").val(lockedTrackingFacilityId).trigger('change.select2');
+		}else{
+			$("#id_facility").val(initialFacilityId).trigger('change.select2');
+		}
 
 
 		$("#id_sample_type").attr("disabled", "true");
@@ -268,10 +275,19 @@
 			dateFormat: "yy-mm-dd",
 			maxDate: 0
 		});
+	var facilityChangeReady = false;
 	$("#id_facility").change(function(){
+		var selectedFacilityId = String($(this).val() || '');
+		if(lockedTrackingFacilityId && selectedFacilityId !== String(lockedTrackingFacilityId)){
+			if(facilityChangeReady){
+				alert(trackingFacilityLockMessage);
+			}
+			$(this).val(lockedTrackingFacilityId).trigger('change.select2');
+		}
 		set_district_hub();
-		syncTrackingCodeDetails();
+		syncTrackingCodeDetails({ silent: !facilityChangeReady });
 	}).change();
+	facilityChangeReady = true;
 
 		$("#id_barcode").change(function(){
 			syncTrackingCodeDetails({ preferTrackingFacility: true, silent: true });
@@ -742,6 +758,7 @@
 			$("#tracking_code_id").val('');
 			$("#tracking_sample_count").html('_______________');
 			packageSamples = [];
+			lockedTrackingFacilityId = '';
 			return;
 		}
 		var facilityId = $("#id_facility").val() || '';
@@ -752,21 +769,32 @@
 				$("#tracking_code_id").val('');
 				$("#tracking_sample_count").html('0');
 				packageSamples = [];
+				lockedTrackingFacilityId = '';
 				return;
 			}
 			if(options.preferTrackingFacility && data_arr.facility_id){
 				var trackingFacilityId = String(data_arr.facility_id);
+				lockedTrackingFacilityId = trackingFacilityId;
 				if(String(facilityId || '') !== trackingFacilityId){
 					$('#id_facility_reference, #locator_id_container .facilityreference').val('');
 				}
 				$('#id_facility').val(trackingFacilityId).trigger('change.select2');
 				$('#id_district').html(data_arr.district || '_______________');
 				$('#id_hub').html(data_arr.hub || '_______________');
+			}else if(data_arr.facility_id){
+				lockedTrackingFacilityId = String(data_arr.facility_id);
+			}else{
+				lockedTrackingFacilityId = '';
 			}
 			if(data_arr.facility_mismatch == 1 && !options.preferTrackingFacility){
-				$("#tracking_code_id").val('');
-				if(data_arr.err_msg && !options.silent){
-					alert(data_arr.err_msg);
+				$("#tracking_code_id").val(data_arr.tracking_code_id || '');
+				if(data_arr.facility_id){
+					$('#id_facility').val(String(data_arr.facility_id)).trigger('change.select2');
+					$('#id_district').html(data_arr.district || '_______________');
+					$('#id_hub').html(data_arr.hub || '_______________');
+				}
+				if(!options.silent){
+					alert(trackingFacilityLockMessage || data_arr.err_msg);
 				}
 				return;
 			}

@@ -94,15 +94,38 @@ def _current_dr_box_prefix():
 	return "DR" + datetime.now().strftime('%y%m')
 
 
-def _get_facility_reference_conflict(facility_reference, facility_id, exclude_sample_id=None):
+def _get_facility_reference_conflict(facility_reference, facility_id, exclude_sample_id=None, db_alias='default'):
 	facility_reference = (facility_reference or '').strip()
 	if facility_reference == '' or not facility_id:
 		return None
 
-	conflict_qs = Sample.objects.filter(facility_reference=facility_reference).exclude(facility_id=facility_id)
+	# Pending package samples can arrive before reception without a tracking code.
+	# Only tracked samples can prove that a tracking code is being reused across facilities.
+	conflict_qs = (
+		Sample.objects.using(db_alias)
+		.filter(facility_reference=facility_reference, tracking_code_id__isnull=False)
+		.exclude(facility_id=facility_id)
+	)
 	if exclude_sample_id:
 		conflict_qs = conflict_qs.exclude(pk=exclude_sample_id)
 	return conflict_qs.first()
+
+
+def _find_existing_sample_for_reception(facility_reference, facility_id=None, db_alias='default'):
+	facility_reference = (facility_reference or '').strip()
+	if facility_reference == '':
+		return None
+
+	qs = (
+		Sample.objects.using(db_alias)
+		.select_related('patient')
+		.filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference))
+	)
+	if facility_id:
+		sample = qs.filter(facility_id=facility_id).first()
+		if sample:
+			return sample
+	return qs.first()
 
 
 def _get_or_create_tracking_code(code, user_id, facility_id=None, db_alias='default'):
@@ -212,18 +235,15 @@ def _lookup_existing_sample_for_reception(facility_reference, facility_id=None, 
 		ret['err_msg'] = 'Not found'
 		return ret
 
-	sample = (
-		Sample.objects.using(db_alias)
-		.select_related('patient', 'tracking_code')
-		.filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference))
-		.first()
-	)
+	sample = _find_existing_sample_for_reception(facility_reference, facility_id, db_alias=db_alias)
 	exclude_sample_id = sample.pk if _sample_matches_tracking_code(sample, tracking_code) else None
-	conflict_sample = _get_facility_reference_conflict(facility_reference, facility_id, exclude_sample_id)
+	conflict_sample = _get_facility_reference_conflict(facility_reference, facility_id, exclude_sample_id, db_alias=db_alias)
 	if conflict_sample:
 		ret['err_msg'] = DUPLICATE_FACILITY_REFERENCE_MESSAGE
 		ret['facility_reference_conflict'] = 1
 		return ret
+	if sample:
+		ret['facility_id'] = sample.facility_id or getattr(getattr(sample, 'patient', None), 'facility_id', None) or ''
 
 	if _sample_patient_facility_mismatch(sample, tracking_code):
 		ret['err_msg'] = TRACKING_CODE_SAMPLE_FACILITY_MISMATCH_MESSAGE
@@ -409,6 +429,16 @@ def _get_existing_tracking_code(request, tracking_code_id='', code=''):
 			.first()
 		)
 	return tracking_code
+
+
+def _get_tracking_context_from_request(request):
+	tracking_code_id = request.GET.get('tracking_code_id') or request.GET.get('tr_code_id') or ''
+	current_tr_code = request.GET.get('current_tr_code') or request.GET.get('tracking_code') or request.GET.get('code') or ''
+	tracking_code = _get_existing_tracking_code(request, tracking_code_id, current_tr_code)
+	if tracking_code:
+		tracking_code_id = tracking_code.id
+		current_tr_code = tracking_code.code
+	return tracking_code, tracking_code_id or '', current_tr_code or ''
 
 
 def _sample_reception_initial(tracking_code=None):
@@ -792,13 +822,14 @@ def receive(request):
 					'form_data': request.POST,
 				}
 				return render(request, 'samples/receive.html', context)
-		form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		tracking_code, tr_code_id, current_tr_code = _get_tracking_context_from_request(request)
+		form = SampleReceptionForm(initial=_sample_reception_initial(tracking_code), db_alias=get_dropdown_db_alias(request))
 		return render(request, 'samples/receive.html', {
 			'sample_reception_form': form,
-			'tr_code_id': request.GET.get('tr_code_id'),
-			'tracking_code_id': request.GET.get('tr_code_id'),
+			'tr_code_id': tr_code_id,
+			'tracking_code_id': tr_code_id,
 			'env_id': request.GET.get('env_id'),
-			'current_tr_code': request.GET.get('current_tr_code'),
+			'current_tr_code': current_tr_code,
 			'page_type': request.GET.get('page_type'),
 			'reception_id':'',
 			'locator_category':'',
@@ -808,14 +839,14 @@ def receive(request):
 		})
 
 	saved_sample = request.GET.get('saved_sample')
-	tr_code_id = request.GET.get('tr_code_id')
+	tracking_code, tr_code_id, current_tr_code = _get_tracking_context_from_request(request)
 	page_type = request.GET.get('page_type')
 	env_id = request.GET.get('env_id')
-	current_tr_code = request.GET.get('current_tr_code')
 
 	if request.method == 'POST':
 		form_data = request.POST.copy()
 		pst = form_data
+		current_tr_code = pst.get('current_tr_code') or current_tr_code or ''
 		accepted = pst.get('locator_category')
 		rejection_reason_id = pst.get('rejection_reason_id')
 		page_type = pst.get('page_type')
@@ -892,7 +923,11 @@ def receive(request):
 			fac_pat = facility_pat if facility_pat else None
 			facility_ref = pst.get('facility_reference')
 			facility_reference = None if facility_ref == '' else facility_ref
-			conflict_sample = _get_facility_reference_conflict(facility_reference, pst.get('facility'))
+			conflict_sample = _get_facility_reference_conflict(
+				facility_reference,
+				pst.get('facility'),
+				db_alias=get_dropdown_db_alias(request),
+			)
 			if conflict_sample:
 				sample_reception_form.add_error('facility_reference', DUPLICATE_FACILITY_REFERENCE_MESSAGE)
 				form_data = pst
@@ -918,7 +953,11 @@ def receive(request):
 				stage = 0
 			s = ''
 			if facility_reference is  not None:
-				s = Sample.objects.filter(facility_reference=facility_reference).first()
+				s = _find_existing_sample_for_reception(
+					facility_reference,
+					pst.get('facility'),
+					db_alias=get_dropdown_db_alias(request),
+				)
 			if s:
 				s.tracking_code_id = tr_code_id
 				s.locator_category = pst.get('locator_category')
@@ -985,7 +1024,7 @@ def receive(request):
 	else:
 		form_data = ''
 		d = datetime.now()
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial=_sample_reception_initial(tracking_code), db_alias=get_dropdown_db_alias(request))
 
 	context = {
 		'sample_reception_form': sample_reception_form,
@@ -1386,10 +1425,9 @@ def receive_batch(request,ret_to_fun = 0):
 				}
 				return HttpResponse(json.dumps(ret))
 		saved_sample = request.GET.get('saved_sample')
-		tr_code_id = request.GET.get('tr_code_id')
+		tracking_code, tr_code_id, current_tr_code = _get_tracking_context_from_request(request)
 		env_id = request.GET.get('env_id')
-		current_tr_code = request.GET.get('current_tr_code') or ''
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial=_sample_reception_initial(tracking_code), db_alias=get_dropdown_db_alias(request))
 		context = {
 			'sample_reception_form': sample_reception_form,
 			'tr_code_id': tr_code_id,
@@ -1418,16 +1456,11 @@ def receive_batch(request,ret_to_fun = 0):
 		return render(request, 'samples/receive_bactch.html', context)
 
 	saved_sample = request.GET.get('saved_sample')
-	tr_code_id = request.GET.get('tr_code_id')
+	tracking_code, tr_code_id, current_tr_code = _get_tracking_context_from_request(request)
 	env_id = request.GET.get('env_id')
-	current_tr_code = request.GET.get('current_tr_code')
 	patient_id = None
 	if current_tr_code is None:
 		current_tr_code = ''
-	tracking_code = _get_existing_tracking_code(request, tr_code_id, current_tr_code)
-	if tracking_code:
-		tr_code_id = tr_code_id or tracking_code.id
-		current_tr_code = current_tr_code or tracking_code.code
 	if request.method == 'POST' and not ret_to_fun and _batch_receive_rows(request):
 		return _handle_receive_batch_submit(request)
 	if request.method == 'POST' or ret_to_fun:
@@ -1476,7 +1509,12 @@ def receive_batch(request,ret_to_fun = 0):
 			if ret_to_fun:
 				return ret
 			return HttpResponse(json.dumps(ret))
-		conflict_sample = _get_facility_reference_conflict(facility_ref, facility_id, saved_id)
+		conflict_sample = _get_facility_reference_conflict(
+			facility_ref,
+			facility_id,
+			saved_id,
+			db_alias=get_dropdown_db_alias(request),
+		)
 		if conflict_sample:
 			ret = {
 				'saved_sample': '',
@@ -1629,9 +1667,8 @@ def receive_batch(request,ret_to_fun = 0):
 def receive_hie(request):
 
 	saved_sample = request.GET.get('saved_sample')
-	tr_code_id = request.GET.get('tr_code_id')
+	tracking_code, tr_code_id, current_tr_code = _get_tracking_context_from_request(request)
 	env_id = request.GET.get('env_id')
-	current_tr_code = request.GET.get('current_tr_code')
 	facility_reference = request.GET.get('facility_reference')
 	barcode_lookup = (request.GET.get('barcode') or '').strip()
 	if barcode_lookup != '':
@@ -1661,7 +1698,11 @@ def receive_hie(request):
 			tracking_code=tracking_code,
 			db_alias=get_dropdown_db_alias(request),
 		)
-		s = Sample.objects.using(get_dropdown_db_alias(request)).filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference)).first()
+		s = _find_existing_sample_for_reception(
+			facility_reference,
+			facility_id,
+			db_alias=get_dropdown_db_alias(request),
+		)
 		mismatch_message = get_program_mismatch_message(request, get_sample_program_code(s), 'sample')
 		if mismatch_message:
 			ret.update({
@@ -1749,10 +1790,19 @@ def receive_hie(request):
 			}
 			return HttpResponse(json.dumps(ret))
 		saved_id = request.POST.get('saved_id')
-		s = Sample.objects.using(get_dropdown_db_alias(request)).select_related('tracking_code').filter(facility_reference=facility_reference).first()
+		s = _find_existing_sample_for_reception(
+			facility_reference,
+			facility_id,
+			db_alias=get_dropdown_db_alias(request),
+		)
 		if not saved_id and _sample_matches_tracking_code(s, _get_tracking_code_by_id(tr_code_id, db_alias=get_dropdown_db_alias(request))):
 			saved_id = s.pk
-		conflict_sample = _get_facility_reference_conflict(facility_reference, facility_id, saved_id)
+		conflict_sample = _get_facility_reference_conflict(
+			facility_reference,
+			facility_id,
+			saved_id,
+			db_alias=get_dropdown_db_alias(request),
+		)
 		if conflict_sample:
 			ret = {
 				'saved_sample': '',
@@ -1851,11 +1901,12 @@ def receive_hie(request):
 
 	else:
 		d = datetime.now()
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial=_sample_reception_initial(tracking_code), db_alias=get_dropdown_db_alias(request))
 
 	context = {
 		'sample_reception_form': sample_reception_form,
 		'tr_code_id': tr_code_id,
+		'tracking_code_id': tr_code_id,
 		'env_id':env_id,
 		'current_tr_code':current_tr_code,
 		'reception_id':'',
@@ -3140,9 +3191,8 @@ def merge_envelopes(request):
 def receive_sample_only(request):
 
 	saved_sample = request.GET.get('saved_sample')
-	tr_code_id = request.GET.get('tr_code_id')
+	tracking_code, tr_code_id, current_tr_code = _get_tracking_context_from_request(request)
 	env_id = request.GET.get('env_id')
-	current_tr_code = request.GET.get('current_tr_code')
 	if current_tr_code is None:
 		current_tr_code = ''
 	if request.method == 'POST':
@@ -3171,17 +3221,6 @@ def receive_sample_only(request):
 				}
 				return HttpResponse(json.dumps(ret))
 		pst = request.POST
-		conflict_sample = _get_received_barcode_conflict(request, pst.get('the_barcode'))
-		if conflict_sample:
-			return HttpResponse(json.dumps({
-				'saved_sample': '',
-				'env_id': pst.get('envelope_id'),
-				'tracking_code_id': pst.get('tracking_code_id'),
-				's_barcode': pst.get('the_barcode', ''),
-				'receipt_type': 'hie',
-				'message_type': 'err',
-				'err_msg': DUPLICATE_BARCODE_MESSAGE,
-			}))
 		sample_reception_form = SampleReceptionForm(pst)
 		tr_code_id = request.POST.get('tracking_code_id')
 		facility_reference = request.POST.get('facility_reference')
@@ -3260,10 +3299,26 @@ def receive_sample_only(request):
 			}
 			return HttpResponse(json.dumps(ret))
 		saved_id = request.POST.get('saved_id')
-		sample = Sample.objects.using(db_alias).select_related('patient', 'tracking_code').filter(facility_reference=facility_reference).first()
+		sample = _find_existing_sample_for_reception(facility_reference, facility_id, db_alias=db_alias)
+		barcode_conflict = _get_received_barcode_conflict(request, barcode)
+		if barcode_conflict and (sample is None or barcode_conflict.pk != sample.pk):
+			return HttpResponse(json.dumps({
+				'saved_sample': '',
+				'env_id': env_id,
+				'tracking_code_id': tr_code_id,
+				's_barcode': barcode or '',
+				'receipt_type': 'hie',
+				'message_type': 'err',
+				'err_msg': DUPLICATE_BARCODE_MESSAGE,
+			}))
 		if not saved_id and _sample_matches_tracking_code(sample, tracking_code):
 			saved_id = sample.pk
-		conflict_sample = _get_facility_reference_conflict(facility_reference, facility_id, saved_id)
+		conflict_sample = _get_facility_reference_conflict(
+			facility_reference,
+			facility_id,
+			saved_id,
+			db_alias=db_alias,
+		)
 		if conflict_sample:
 			ret = {
 				'saved_sample':'',
@@ -3396,7 +3451,7 @@ def receive_sample_only(request):
 
 	else:
 		d = datetime.now()
-		sample_reception_form = SampleReceptionForm(initial={'locator_category':'V', 'date_collected': datetime.now().date(), 'date_received': datetime.now().date()})
+		sample_reception_form = SampleReceptionForm(initial=_sample_reception_initial(tracking_code), db_alias=get_dropdown_db_alias(request))
 		envelope_samples = []
 		if vl_services.is_hiv_program(request):
 			envelope_samples = vl_services.get_envelope_samples(env_id)
@@ -3421,12 +3476,27 @@ def receive_sample_only(request):
 			sample = vl_services.get_adapted_sample(saved_sample)
 			envelope_samples = vl_services.get_envelope_samples(sample.envelope_id if sample else env_id)
 			last_received_barcode = sample.barcode if sample and sample.barcode else request.GET.get('last_barcode', '')
+			if sample and not tr_code_id and getattr(sample, 'tracking_code_id', None):
+				tr_code_id = sample.tracking_code_id
 			context.update({'sample':sample,'tr_code_id':tr_code_id,'tracking_code_id':tr_code_id,'env_id':env_id,'envelope_samples': envelope_samples,'last_received_barcode': last_received_barcode})
 		else:
-			sample = Sample.objects.filter(pk=saved_sample).first()
+			db_alias = get_dropdown_db_alias(request)
+			sample = Sample.objects.using(db_alias).filter(pk=saved_sample).first()
+			if sample and not env_id and sample.envelope_id:
+				env_id = sample.envelope_id
+			if sample and not tr_code_id and sample.tracking_code_id:
+				tracking_code = _get_existing_tracking_code(request, sample.tracking_code_id, '')
+				if tracking_code:
+					tr_code_id = tracking_code.id
+					current_tr_code = current_tr_code or tracking_code.code
+			initial = _sample_reception_initial(tracking_code)
+			if sample and sample.facility_id and not initial.get('facility'):
+				initial['facility'] = sample.facility_id
+			sample_reception_form = SampleReceptionForm(initial=initial, db_alias=db_alias)
 			envelope_samples = sample.envelope.sample_set.all().order_by('barcode') if sample and sample.envelope_id else []
 			last_received_barcode = sample.barcode if sample and sample.barcode else request.GET.get('last_barcode', '')
-			context.update({'sample':sample,'tr_code_id':tr_code_id,'tracking_code_id':tr_code_id,'env_id':env_id,'envelope_samples': envelope_samples,'last_received_barcode': last_received_barcode})
+			context.update({'sample_reception_form': sample_reception_form,'sample':sample,'tr_code_id':tr_code_id,'tracking_code_id':tr_code_id,'env_id':env_id,'current_tr_code': current_tr_code,'envelope_samples': envelope_samples,'last_received_barcode': last_received_barcode})
+	context.update(_receive_batch_tracking_context(tracking_code))
 
 	return render(request, 'samples/receive_sample_only.html', context)
 
