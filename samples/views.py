@@ -2580,7 +2580,6 @@ def _search_samples_queryset(request):
 			'patient__facility__district',
 			'facility__district',
 			'sample_reception__facility__district',
-			'tracking_code',
 			'clinician',
 			'lab_tech',
 		)
@@ -2818,15 +2817,17 @@ def search(request):
 
 			else:
 				fn_cond = Q(form_number__startswith=search)
+				facility_reference_cond = Q(facility_reference__startswith=search)
+				barcode_cond = Q(barcode__startswith=search)
 				barcode2_cond = Q(barcode2__startswith=search)
 				loc_cond = sample_utils.locator_cond(search)
-				cond = fn_cond | barcode2_cond
+				cond = fn_cond | facility_reference_cond | barcode_cond | barcode2_cond
 				cond = cond | loc_cond if loc_cond else cond
 				samples = _search_samples_queryset(request).filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 	if samples is not None:
 		filtered_samples = programs.filter_queryset_by_program(request, samples, 'program_code')
-		if not search_sample or filtered_samples.exists():
+		if not (search_sample or search_env) or filtered_samples.exists():
 			samples = filtered_samples
 		samples = samples[:300]
 
