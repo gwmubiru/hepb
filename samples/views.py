@@ -2580,6 +2580,7 @@ def _search_samples_queryset(request):
 			'patient__facility__district',
 			'facility__district',
 			'sample_reception__facility__district',
+			'tracking_code',
 			'clinician',
 			'lab_tech',
 		)

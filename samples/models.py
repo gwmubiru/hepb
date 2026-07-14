@@ -304,7 +304,7 @@ class Sample(models.Model):
 	data_facility = models.ForeignKey(backend.Facility,related_name='data_facility',null=True, blank=True, on_delete=models.CASCADE)
 	facility_patient = models.ForeignKey(FacilityPatient,null=True, blank=True, on_delete=models.CASCADE)
 	sample_reception = models.ForeignKey(SampleReception,null=True, blank=True, on_delete=models.CASCADE)
-	tracking_code = models.ForeignKey(TrackingCode, on_delete=models.CASCADE)
+	tracking_code = models.ForeignKey(TrackingCode, null=True, blank=True, on_delete=models.CASCADE)
 	clinician = models.ForeignKey(Clinician, null=True, blank=True, on_delete=models.CASCADE)
 	lab_tech = models.ForeignKey(LabTech, null=True, blank=True, on_delete=models.CASCADE)
 	current_regimen = models.ForeignKey(backend.Appendix, related_name='current_regimen',null=True, blank=True, on_delete=models.CASCADE)
