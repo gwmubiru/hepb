@@ -54,7 +54,11 @@ def _facility_reference_conflict(facility_reference, facility_id, exclude_sample
 	if facility_reference == '' or not facility_id:
 		return None
 
-	conflict_qs = VLSample.objects.using('vl_lims').filter(facility_reference=facility_reference).exclude(facility_id=facility_id)
+	conflict_qs = (
+		VLSample.objects.using('vl_lims')
+		.filter(facility_reference=facility_reference, tracking_code_id__isnull=False)
+		.exclude(facility_id=facility_id)
+	)
 	if exclude_sample_id:
 		conflict_qs = conflict_qs.exclude(pk=exclude_sample_id)
 	return conflict_qs.first()
@@ -384,11 +388,11 @@ def get_or_create_tracking_code(code, user, facility_id=None):
 
 def resolve_tracking_code(post_data, user, facility_id=None):
 	tracking_code_id = _parse_int(post_data.get('tracking_code_id') or post_data.get('tr_code_id'))
+	code = (post_data.get('code') or post_data.get('current_tr_code') or '').strip()
 	if tracking_code_id:
 		tracking_code = VLTrackingCode.objects.using('vl_lims').filter(pk=tracking_code_id).first()
-		if tracking_code:
+		if tracking_code and (not code or (tracking_code.code or '').strip() == code):
 			return tracking_code
-	code = post_data.get('code') or post_data.get('current_tr_code')
 	return get_or_create_tracking_code(code, user, facility_id)
 
 
@@ -442,13 +446,27 @@ def receive_sample(post_data, user):
 		raise ValueError("Envelope was not found, did you accession it?")
 	tracking_code = resolve_tracking_code(post_data, user, facility_id)
 	form_number = facility_reference or post_data.get('barcode') or barcode
-	sample = VLSample.objects.using('vl_lims').filter(barcode=barcode).first()
+	sample = None
+	if facility_reference:
+		sample = (
+			VLSample.objects.using('vl_lims')
+			.filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference), tracking_code_id__isnull=True)
+			.first()
+		)
+		if sample and sample.barcode2 == facility_reference and sample.barcode2 != sample.facility_reference:
+			raise ValueError("This is a DR sample.")
+		if sample and (sample.envelope_id or sample.barcode):
+			raise ValueError("already on {0}".format(sample.barcode or sample.form_number or facility_reference))
+	if sample is None:
+		sample = VLSample.objects.using('vl_lims').filter(barcode=barcode).first()
 	if sample is None:
 		sample = VLSample(
 			barcode=barcode,
 			form_number=form_number,
 			created_by_id=vl_user_id,
 		)
+	sample.barcode = barcode
+	sample.form_number = form_number
 	sample.tracking_code_id = tracking_code.id
 	sample.locator_category = post_data.get('locator_category') or 'V'
 	sample.locator_position = post_data.get('the_position') or post_data.get('locator_position') or ''
@@ -965,10 +983,14 @@ def release_worksheet_sample(ws_id, choice, user, comments=''):
 		return
 	result = VLResult.objects.using('vl_lims').filter(sample_id=ws.sample_id).first()
 	if result is None:
+		panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
 		result = VLResult(
 			repeat_test=2,
-			result1=ws.result_alphanumeric or '',
-			result_alphanumeric='Failed' if choice == 'invalid' else (ws.result_alphanumeric or ''),
+			result1=panel_results.get('result1') or ws.result_alphanumeric or '',
+			result2=panel_results.get('result2') or '',
+			result3=panel_results.get('result3') or '',
+			result_alphanumeric='Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric),
+			result_type=result_utils.get_result_type(ws.result_alphanumeric),
 			result_numeric=ws.result_numeric,
 			failure_reason=ws.failure_reason,
 			method=ws.method,
@@ -985,7 +1007,12 @@ def release_worksheet_sample(ws_id, choice, user, comments=''):
 			has_low_level_viramia=ws.has_low_level_viramia,
 		)
 	else:
-		result.result_alphanumeric = 'Failed' if choice == 'invalid' else (ws.result_alphanumeric or '')
+		result.result_alphanumeric = 'Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
+		result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
+		panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
+		result.result1 = panel_results.get('result1') or ws.result_alphanumeric or ''
+		result.result2 = panel_results.get('result2') or ''
+		result.result3 = panel_results.get('result3') or ''
 		result.authorised = True
 		result.authorised_at = datetime.now()
 		result.authorised_by_id = ws.authoriser_id or vl_user_id
@@ -1089,11 +1116,14 @@ def save_upload_result(result, multiplier, machine_type, instrument_id, user, ac
 	sample = VLSample.objects.using('vl_lims').filter(barcode=instrument_id).first()
 	if sample and sample.is_data_entered == 1:
 		result_dict = result_utils.get_result(result, multiplier, machine_type, 0, sample.sample_type, '', active_program_code)
+		panel_results = result_utils.get_panel_result_fields(result_dict.get('alphanumeric_result'))
 		the_test_date = timezone.now()
 		final_result = VLResult(
 			repeat_test=2,
 			authorised=True,
-			result1=result_dict.get('alphanumeric_result'),
+			result1=panel_results.get('result1') or result_dict.get('alphanumeric_result'),
+			result2=panel_results.get('result2') or '',
+			result3=panel_results.get('result3') or '',
 			result_numeric=result_dict.get('numeric_result'),
 			failure_reason='',
 			method=machine_type,
@@ -1105,7 +1135,8 @@ def save_upload_result(result, multiplier, machine_type, instrument_id, user, ac
 			suppressed=result_dict.get('suppressed') or 0,
 			supression_cut_off_id=result_dict.get('supression_cut_off'),
 			has_low_level_viramia=result_dict.get('has_low_level_viramia'),
-			result_alphanumeric=result_dict.get('alphanumeric_result'),
+			result_alphanumeric=result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result')),
+			result_type=result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE),
 			result_upload_date=the_test_date,
 		)
 		final_result.save(using='vl_lims')

@@ -164,9 +164,12 @@ def _get_tracking_code_facility_mismatch(tracking_code, facility_id):
 
 
 def _resolve_tracking_code(tracking_code_id, code, user_id, facility_id=None, db_alias='default'):
+	code = (code or '').strip()
 	tracking_code = None
 	if tracking_code_id:
-		tracking_code = TrackingCode.objects.using(db_alias).filter(pk=tracking_code_id).first()
+		candidate = TrackingCode.objects.using(db_alias).filter(pk=tracking_code_id).first()
+		if candidate and (code == '' or (candidate.code or '').strip() == code):
+			tracking_code = candidate
 	if tracking_code is None and code:
 		tracking_code = _get_or_create_tracking_code(code, user_id, facility_id, db_alias=db_alias)
 	elif tracking_code and facility_id and not tracking_code.facility_id:
@@ -891,28 +894,34 @@ def receive(request):
 			sample_reception_form.add_error('barcode', 'Hep number is required.')
 		if sample_reception_form.is_valid():
 			date_collected = sample_reception_form.cleaned_data.get('date_collected')
-			if tr_code_id == ''  or (current_tr_code != '' and pst.get('code') != current_tr_code) :
-				tr = TrackingCode.objects.filter(code=pst.get('code')).first()
-				if tr is None:
-					tr = TrackingCode()
-					tr.code = pst.get('code')
-					tr.creation_by_id = request.user.id
-					tr.save()
-
-					#updat sample tracking with details receipt
-					data = {
-					"barcode":pst.get('code'),
-		            "user_id":1,
-		            "numberofsamples":4,
-		            "is_tracked_from_facility":0,
-		            "transfer_to":settings.REF_LAB_ID,
-		            "ref_lab_id":settings.REF_LAB_ID,
-		            "is_to_be_transfered":0,
-		            "receipt_date":"",
-		            "name_of_receiver":"Kakembo John"
-					}
-
-				tr_code_id = tr.id
+			tracking_code = _resolve_tracking_code(
+				tr_code_id,
+				pst.get('code'),
+				request.user.id,
+				pst.get('facility'),
+				db_alias=get_dropdown_db_alias(request),
+			)
+			if tracking_code is None:
+				sample_reception_form.add_error('barcode', 'Tracking code is required.')
+			elif _get_tracking_code_facility_mismatch(tracking_code, pst.get('facility')):
+				sample_reception_form.add_error('facility', TRACKING_CODE_FACILITY_MISMATCH_MESSAGE)
+			if sample_reception_form.errors:
+				context = {
+					'sample_reception_form': sample_reception_form,
+					'tr_code_id': getattr(tracking_code, 'id', None) or tr_code_id,
+					'tracking_code_id': getattr(tracking_code, 'id', None) or tr_code_id,
+					'env_id': env_id,
+					'current_tr_code': pst.get('code') or current_tr_code,
+					'page_type': page_type,
+					'reception_id': '',
+					'locator_category': pst.get('locator_category'),
+					'reception_hep_number': pst.get('reception_hep_number', ''),
+					'facility_reference': pst.get('facility_reference', ''),
+					'form_data': pst,
+				}
+				return render(request, 'samples/receive.html', context)
+			tr_code_id = tracking_code.id
+			current_tr_code = tracking_code.code
 			#get the facility_patient
 			#save the sample and its first identifier
 
@@ -959,6 +968,28 @@ def receive(request):
 					db_alias=get_dropdown_db_alias(request),
 				)
 			if s:
+				if _sample_patient_facility_mismatch(s, tracking_code):
+					sample_reception_form.add_error('facility_reference', TRACKING_CODE_SAMPLE_FACILITY_MISMATCH_MESSAGE)
+					context = {
+						'sample_reception_form': sample_reception_form,
+						'tr_code_id': tr_code_id,
+						'tracking_code_id': tr_code_id,
+						'env_id': env_id,
+						'current_tr_code': current_tr_code,
+						'page_type': page_type,
+						'reception_id': '',
+						'locator_category': pst.get('locator_category'),
+						'reception_hep_number': pst.get('reception_hep_number', ''),
+						'facility_reference': pst.get('facility_reference', ''),
+						'form_data': pst
+					}
+					return render(request, 'samples/receive.html', context)
+				if not s.tracking_code_id:
+					s.facility_id = pst.get('facility')
+					s.facility_reference = facility_reference
+					s.form_number = form_number
+					s.reception_hep_number = pst.get('reception_hep_number')
+					s.facility_patient = fac_pat
 				s.tracking_code_id = tr_code_id
 				s.locator_category = pst.get('locator_category')
 				s.envelope_id = env_id
@@ -1527,6 +1558,38 @@ def receive_batch(request,ret_to_fun = 0):
 			if ret_to_fun:
 				return ret
 			return HttpResponse(json.dumps(ret))
+		tracking_code = _resolve_tracking_code(
+			tr_code_id,
+			request.POST.get('code'),
+			request.user.id,
+			facility_id,
+			db_alias=get_dropdown_db_alias(request),
+		)
+		if tracking_code is None:
+			ret = {
+				'saved_sample': '',
+				'env_id': env_id,
+				'tracking_code_id': tr_code_id,
+				's_barcode': request.POST.get('the_barcode', ''),
+				'err_msg': 'Tracking code is required.',
+				'message_type': 'err',
+			}
+			if ret_to_fun:
+				return ret
+			return HttpResponse(json.dumps(ret))
+		if _get_tracking_code_facility_mismatch(tracking_code, facility_id):
+			ret = {
+				'saved_sample': '',
+				'env_id': env_id,
+				'tracking_code_id': tracking_code.id,
+				's_barcode': request.POST.get('the_barcode', ''),
+				'err_msg': TRACKING_CODE_FACILITY_MISMATCH_MESSAGE,
+				'message_type': 'err',
+			}
+			if ret_to_fun:
+				return ret
+			return HttpResponse(json.dumps(ret))
+		tr_code_id = tracking_code.id
 		form_number = request.POST.get('barcode') if facility_ref == '' else facility_ref
 		if request.POST.get('facility') is None:
 			sample_reception_form.add_error('facility','The facility is required')
@@ -3418,6 +3481,8 @@ def receive_sample_only(request):
 						'err_msg':'miss match with '+patient.hep_number
 					}
 					return HttpResponse(json.dumps(ret))
+		if not sample.tracking_code_id:
+			sample.facility_id = facility_id
 		sample.tracking_code_id = tr_code_id
 		sample.locator_category = 'V'
 		sample.envelope_id = env_id
