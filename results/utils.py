@@ -6,6 +6,54 @@ from django.utils import timezone
 from django.db.models import Q
 from . import utils as result_utils
 from django.core.exceptions import ObjectDoesNotExist
+
+RESULT_TYPE_QUANTITATIVE = 1
+RESULT_TYPE_QUALITATIVE = 2
+PANEL_RESULT_LABELS = ('HIV', 'HBV', 'HCV')
+
+
+def format_panel_result(hiv_result, hbv_result, hcv_result):
+	return 'HIV: {0}; HBV: {1}; HCV: {2}'.format(hiv_result, hbv_result, hcv_result)
+
+
+def is_panel_result(result):
+	result = (result or '').strip() if isinstance(result, str) else ''
+	return all('{0}:'.format(label) in result for label in PANEL_RESULT_LABELS)
+
+
+def get_panel_result_fields(result):
+	if not is_panel_result(result):
+		return {
+			'result1': result or '',
+			'result2': '',
+			'result3': '',
+		}
+	parts = {}
+	for segment in result.split(';'):
+		if ':' not in segment:
+			continue
+		label, value = segment.split(':', 1)
+		parts[label.strip().upper()] = value.strip()
+	return {
+		'result1': parts.get('HCV', ''),
+		'result2': parts.get('HBV', ''),
+		'result3': parts.get('HIV', ''),
+	}
+
+
+def get_final_result_alphanumeric(result):
+	panel_results = get_panel_result_fields(result)
+	if is_panel_result(result):
+		return panel_results.get('result1') or result or ''
+	return result or ''
+
+
+def get_result_type(result):
+	if is_panel_result(result) or get_qualitative_result(result):
+		return RESULT_TYPE_QUALITATIVE
+	return RESULT_TYPE_QUANTITATIVE
+
+
 def repeat_test(machine_type, result, flag):
 	repeat = False
 	if machine_type == 'R':
@@ -60,6 +108,20 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 
 	if utils.isnan(result) or result == '':
 		result = 'Failed' 
+	if isinstance(result, str):
+		if is_panel_result(result):
+			return {
+				'numeric_result': 0,
+				'alphanumeric_result': result,
+				'suppressed': 3,
+				'rep_test': 3 if 'Failed' in result else 2,
+				'has_low_level_viramia': 0,
+				'supression_cut_off': None,
+				'result_type': RESULT_TYPE_QUALITATIVE,
+			}
+		qualitative_result = get_qualitative_result(result)
+		if qualitative_result:
+			return qualitative_result
 	if eq(result,'Target Not Detected') or eq(result,'Not detected'):
 		numeric_result = 0
 		alphanumeric_result = 'Target Not Detected'
@@ -122,8 +184,37 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 			'suppressed': suppressed,
 			'rep_test': repeat_test,
 			'has_low_level_viramia':has_ll_viramia(numeric_result,machine_type,sample_type,suppression_cut_off_int),
-			'supression_cut_off':supression_cut_off
+			'supression_cut_off':supression_cut_off,
+			'result_type': RESULT_TYPE_QUANTITATIVE,
 			}
+
+def get_qualitative_result(result):
+	if not isinstance(result, str):
+		return None
+	normalized_result = (result or '').strip().lower()
+	normalized_words = normalized_result.replace('-', ' ')
+	if normalized_result == 'negative' or normalized_words == 'non reactive':
+		return {
+			'numeric_result': 0,
+			'alphanumeric_result': 'Negative',
+			'suppressed': 1,
+			'rep_test': 2,
+			'has_low_level_viramia': 0,
+			'supression_cut_off': None,
+			'result_type': RESULT_TYPE_QUALITATIVE,
+		}
+	if normalized_result in ('positive', 'detected', 'reactive'):
+		alphanumeric_result = 'Detected' if normalized_result == 'detected' else 'Positive'
+		return {
+			'numeric_result': 1,
+			'alphanumeric_result': alphanumeric_result,
+			'suppressed': 2,
+			'rep_test': 2,
+			'has_low_level_viramia': 0,
+			'supression_cut_off': None,
+			'result_type': RESULT_TYPE_QUALITATIVE,
+		}
+	return None
 
 def has_ll_viramia(numeric_result,machine_type,sample_type,supp_cut_off_val):
 	if not sample_type:
@@ -175,6 +266,7 @@ def get_result2(result, multiplier, machine_type):
 			'alphanumeric_result':alphanumeric_result,
 			'suppressed': suppressed,
 			'repeat_test':repeat_test,
+			'result_type': RESULT_TYPE_QUANTITATIVE,
 			}
 
 def get_numeric_result(result):

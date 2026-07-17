@@ -47,6 +47,45 @@ def _get_row_value(row, *column_names, default=''):
 			return row[column_name]
 	return default
 
+def _clean_result_value(value):
+	if value is None or utils.isnan(value):
+		return ''
+	return str(value).strip()
+
+
+def _is_cobas_panel_results(reader):
+	required_columns = {'Target 1', 'Target 2', 'Target 3'}
+	if not required_columns.issubset(set(reader.columns)):
+		return False
+	if 'Test' in reader.columns and any(_clean_result_value(value).upper() == 'MPX' for value in reader['Test']):
+		return True
+	return any(_clean_result_value(value) for value in reader['Target 2']) or any(_clean_result_value(value) for value in reader['Target 3'])
+
+
+def _interpret_cobas_panel_target(row, target_column, positive_result, negative_result):
+	target_result = _clean_result_value(_get_row_value(row, target_column))
+	validity = _clean_result_value(_get_row_value(row, 'Validity'))
+	overall_result = _clean_result_value(_get_row_value(row, 'Overall result'))
+	normalized = target_result.lower()
+	if validity.lower() == 'invalid' or overall_result.lower() == 'invalid' or normalized == 'invalid':
+		return 'Failed'
+	if not normalized:
+		return 'Failed'
+	normalized_words = normalized.replace('-', ' ')
+	if 'non reactive' in normalized_words:
+		return negative_result
+	if 'reactive' in normalized:
+		return positive_result
+	return target_result
+
+
+def _interpret_cobas_panel_result(row):
+	return result_utils.format_panel_result(
+		_interpret_cobas_panel_target(row, 'Target 1', 'Positive', 'Negative'),
+		_interpret_cobas_panel_target(row, 'Target 2', 'Positive', 'Negative'),
+		_interpret_cobas_panel_target(row, 'Target 3', 'Detected', 'Target Not Detected'),
+	)
+
 def get_anomalies(request, machine_type):
 	#return HttpResponse(SI.StringIO(request.FILES['results_file'].read()))
 	uploaded_file = request.FILES['results_file']
@@ -96,7 +135,8 @@ def store_result(machine_type, sample, result, multiplier, user, test_date,test=
 		result_dict = result_utils.get_result(result, multiplier,machine_type, sample.sample_type)
 		sample_result.repeat_test = result_dict.get('rep_test')
 		sample_result.result_numeric = result_dict.get('numeric_result')
-		sample_result.result_alphanumeric = result_dict.get('alphanumeric_result')
+		sample_result.result_alphanumeric = result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
+		sample_result.result_type = result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE)
 		sample_result.suppressed = result_dict.get('suppressed')
 		sample_result.supression_cut_off = result_dict.get('supression_cut_off')
 		sample_result.method = machine_type
@@ -371,12 +411,17 @@ def save_upload_result(result, multiplier,machine_type,instrument_id,user, activ
 	sample = Sample.objects.using(db_alias).filter(barcode=instrument_id).first()
 	if sample and sample.is_data_entered ==1:
 		result_dict = result_utils.get_result(result, multiplier,machine_type,0,sample.sample_type,active_program_code=active_program_code)
+		panel_results = result_utils.get_panel_result_fields(result_dict.get('alphanumeric_result'))
 		the_test_date = timezone.now()
 		result = Result()
 		result.repeat_test = 2
 		result.authorised = 1
-		result.result1 = result_dict.get('alphanumeric_result')
+		result.result1 = panel_results.get('result1') or result_dict.get('alphanumeric_result')
+		result.result2 = panel_results.get('result2') or ''
+		result.result3 = panel_results.get('result3') or ''
 		result.result_numeric = result_dict.get('numeric_result')
+		result.result_alphanumeric = result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
+		result.result_type = result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE)
 		result.failure_reason = ''
 		result.method = machine_type
 		result.test_date = the_test_date
@@ -614,6 +659,7 @@ def cobas_upload(request):
 			else:
 				reader = _normalize_dataframe_columns(pandas.read_csv(tmp_name, sep=','))
 				no_of_lines = len(reader)
+				is_panel_results = _is_cobas_panel_results(reader)
 				multiplier = 1
 				user = request.user
 				for row in reader.iterrows():
@@ -644,14 +690,14 @@ def cobas_upload(request):
 
 						result = data["Result"]
 					else:
-						result = data["Target 1"]
-						if index == (no_of_lines-3):
+						result = _interpret_cobas_panel_result(data) if is_panel_results else data["Target 1"]
+						if not is_panel_results and index == (no_of_lines-3):
 							result_run.high_positive_ctrl = data["Target 1"]
 							result_run.save(using=db_alias)
-						if index == (no_of_lines-2):
+						if not is_panel_results and index == (no_of_lines-2):
 							result_run.low_positive_ctrl = data["Target 1"]
 							result_run.save(using=db_alias)
-						if index == (no_of_lines-1):
+						if not is_panel_results and index == (no_of_lines-1):
 							result_run.negative_ctrl = data["Target 1"]
 							result_run.save(using=db_alias)
 						result_run.serial_number = data["Instrument"]
@@ -903,16 +949,20 @@ def release_retain_result(ws, choice,comments,completed, user, reason = '', db_a
 	if (choice == 'release' and ws.stage == 2) or (choice == 'invalid' and ws.stage == 4):
 		#if it was repeat that is being invalidated (due to hemolysis or insufficient vol), 
 		#delete this record and use the previous one	
+		panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
 		result = Result()
 		result.repeat_test = 2
 		result.authorised = 1
-		result.result1 = ws.result_alphanumeric
+		result.result1 = panel_results.get('result1') or ws.result_alphanumeric
+		result.result2 = panel_results.get('result2') or ''
+		result.result3 = panel_results.get('result3') or ''
 		result.result_numeric = ws.result_numeric
 		result.failure_reason = reason
+		result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
 		if choice == 'invalid':
 			result.result_alphanumeric = 'Failed'
 		else:
-			result.result_alphanumeric = ws.result_alphanumeric
+			result.result_alphanumeric = result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
 		result.method = ws.method
 		result.test_date = ws.test_date
 		result.authorised_at = timezone.now()
@@ -1351,8 +1401,12 @@ def force_create_result(request):
 		result.method =  row[5]
 		result.test_by_id = row[6]
 		result.result_numeric =row[7]
-		result.result1 = row[8]
-		result.result_alphanumeric = row[8]
+		panel_results = result_utils.get_panel_result_fields(row[8])
+		result.result1 = panel_results.get('result1') or row[8]
+		result.result2 = panel_results.get('result2') or ''
+		result.result3 = panel_results.get('result3') or ''
+		result.result_alphanumeric = result_utils.get_final_result_alphanumeric(row[8])
+		result.result_type = result_utils.get_result_type(row[8])
 		result.test_date = row[9]
 		result.authorised_at = row[10]
 		result.authorised_by_id = row[11]

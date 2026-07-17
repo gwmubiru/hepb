@@ -336,6 +336,7 @@ class VLResult(models.Model):
 	result5 = models.TextField(null=True, blank=True)
 	result_numeric = models.IntegerField(null=True, blank=True)
 	result_alphanumeric = models.TextField()
+	result_type = models.PositiveSmallIntegerField(default=1)
 	failure_reason = models.CharField(max_length=100, null=True, blank=True)
 	method = models.CharField(max_length=1, null=True, blank=True)
 	test_date = models.DateTimeField(null=True, blank=True)

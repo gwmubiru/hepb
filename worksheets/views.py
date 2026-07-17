@@ -28,6 +28,7 @@ from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample, WorksheetPrinting,ResultRunDetail, MACHINE_TYPES,WorksheetEnvelope
 from samples.models import Sample, Envelope,SampleReception,SampleIdentifier,EnvelopeAssignment
 from results.models import Result
+from results import utils as result_utils
 from worksheets.models import ResultRun
 from . import utils as worksheet_utils
 from samples import utils as sample_utils
@@ -515,13 +516,17 @@ def attach_results(request):
 			ws.sample =sample
 			ws.save(using=db_alias)
 
+			panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
 			result.repeat_test = ws.repeat_test
 			result.suppressed = ws.suppressed
 			result.method = ws.method
 			result.result_numeric = ws.result_numeric
-			result.result_alphanumeric = ws.result_alphanumeric
+			result.result_alphanumeric = result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
+			result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
 			result.test_date = ws.test_date
-			result.result1 =ws.result_alphanumeric
+			result.result1 = panel_results.get('result1') or ws.result_alphanumeric
+			result.result2 = panel_results.get('result2') or ''
+			result.result3 = panel_results.get('result3') or ''
 			result.sample =sample
 			result.test_by_id = ws.tester_id
 			result.save(using=db_alias)
