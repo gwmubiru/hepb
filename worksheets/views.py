@@ -23,10 +23,10 @@ from django.core import serializers
 from home import utils
 from home import programs
 from home import db_aliases
-from backend.models import DeleteLog, Facility
+from backend.models import DeleteLog, Facility, Appendix
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample, WorksheetPrinting,ResultRunDetail, MACHINE_TYPES,WorksheetEnvelope
-from samples.models import Sample, Envelope,SampleReception,SampleIdentifier,EnvelopeAssignment
+from samples.models import Sample, Envelope,SampleReception,SampleIdentifier,EnvelopeAssignment,Verification
 from results.models import Result
 from results import utils as result_utils
 from worksheets.models import ResultRun
@@ -125,6 +125,46 @@ def does_worksheet_sample_number_exist(request, ws):
 @transaction.atomic
 def update(request, sample_type):
 	return redirect('worksheets:attach_samples', worksheet_id=115586)
+
+def _plasma_repeat_rejection_reason_id(reason):
+	reason_codes = {
+		'insufficient': '1',
+		'insfficient': '1',
+		'hemolyzed': '2',
+		'haemolyzed': '2',
+		'hemolysed': '2',
+		'haemolysed': '2',
+	}
+	code = reason_codes.get((reason or '').lower())
+	if not code:
+		return None
+	return Appendix.objects.filter(
+		appendix_category_id=4,
+		tag__startswith='P',
+		code=code,
+	).values_list('id', flat=True).first()
+
+def _reject_plasma_repeat_sample(request):
+	sample = get_object_or_404(Sample, pk=request.POST.get('sample_pk'), sample_type='P')
+	rejection_reason_id = _plasma_repeat_rejection_reason_id(request.POST.get('reason'))
+	if not rejection_reason_id:
+		return HttpResponse("Matching plasma rejection reason was not found", status=400)
+
+	verification = Verification.objects.filter(sample=sample).first()
+	verification = verification if verification else Verification(sample=sample, pat_edits=0, sample_edits=0)
+	verification.accepted = False
+	verification.rejection_reason_id = rejection_reason_id
+	verification.verified_by = request.user
+	verification.save()
+
+	sample.locator_category = 'R'
+	sample.verified = 1
+	sample.is_data_entered = 1
+	sample.stage = 7
+	sample.verifier = request.user
+	sample.save()
+	sample_utils.release_rejected_sample(sample, request.user.id)
+	return HttpResponse(json.dumps({'message': 'saved', 'rejection_reason_id': rejection_reason_id}))
 
 def update_status(request, worksheet_id):
 	#update the stage of worksheet and all corresponding worksheet_samples
@@ -255,8 +295,10 @@ def manage_repeats(request):
 		return render(request, 'worksheets/create_repeats.html', context)
 
 def manage_plasma_repeats(request):
-	
+
 	if request.method == 'POST':
+		if request.POST.get('post_type') == 'reject_sample':
+			return _reject_plasma_repeat_sample(request)
 
 		samples = request.POST.getlist('samples')
 		if len(samples):
