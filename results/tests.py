@@ -3,7 +3,12 @@ import pandas
 from django.test import SimpleTestCase
 
 from results import utils as result_utils
-from results.views import _interpret_cobas_panel_result, _is_cobas_panel_results
+from results.views import (
+	_get_cobas_result_for_row,
+	_interpret_cobas_panel_result,
+	_is_cobas_panel_result_row,
+	_is_cobas_panel_results,
+)
 
 
 class CobasPanelResultTests(SimpleTestCase):
@@ -27,8 +32,35 @@ class CobasPanelResultTests(SimpleTestCase):
 
 		self.assertFalse(_is_cobas_panel_results(reader))
 
+	def test_specific_cobas_test_row_uses_quantitative_target_result(self):
+		row = pandas.Series({
+			'Test': 'HBV',
+			'Validity': 'Valid',
+			'Overall result': 'Titer',
+			'Target 1': '3.90E+06',
+			'Target 2': '',
+			'Target 3': '',
+		})
+
+		self.assertFalse(_is_cobas_panel_result_row(row))
+		self.assertEqual(_get_cobas_result_for_row(row), '3.90E+06')
+
+	def test_hiv_specific_cobas_test_row_uses_quantitative_target_result(self):
+		row = pandas.Series({
+			'Test': 'HIV-1',
+			'Validity': 'Valid',
+			'Overall result': 'Target Not Detected',
+			'Target 1': 'Target Not Detected',
+			'Target 2': '',
+			'Target 3': '',
+		})
+
+		self.assertFalse(_is_cobas_panel_result_row(row))
+		self.assertEqual(_get_cobas_result_for_row(row), 'Target Not Detected')
+
 	def test_interprets_all_panel_results_from_one_row(self):
 		row = pandas.Series({
+			'Test': 'MPX',
 			'Validity': 'Valid',
 			'Overall result': 'Reactive',
 			'Target 1': 'HIV Reactive',
@@ -37,6 +69,18 @@ class CobasPanelResultTests(SimpleTestCase):
 		})
 
 		self.assertEqual(_interpret_cobas_panel_result(row), 'HIV: Positive; HBV: Negative; HCV: Detected')
+		self.assertTrue(_is_cobas_panel_result_row(row))
+		self.assertEqual(_get_cobas_result_for_row(row), 'HIV: Positive; HBV: Negative; HCV: Detected')
+
+	def test_specific_test_value_is_not_panel_just_because_targets_are_populated(self):
+		reader = pandas.DataFrame([{
+			'Test': 'HBV',
+			'Target 1': '3.90E+06',
+			'Target 2': 'unexpected extra target',
+			'Target 3': 'unexpected extra target',
+		}])
+
+		self.assertFalse(_is_cobas_panel_results(reader))
 
 	def test_qualitative_result_is_not_converted_to_numeric_viral_load_text(self):
 		result = result_utils.get_result('Positive', 1, 'C', 0, 'P', active_program_code='1')
