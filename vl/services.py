@@ -664,19 +664,38 @@ def _sample_contact_maps(samples):
 	return clinicians, lab_techs
 
 
-def _adapt_sample(sample, clinicians=None, lab_techs=None):
+def _sample_tracking_code_maps(samples):
+	tracking_code_ids = {
+		getattr(sample, 'tracking_code_id', None)
+		for sample in samples
+		if getattr(sample, 'tracking_code_id', None)
+	}
+	return {
+		tracking_code.id: tracking_code
+		for tracking_code in VLTrackingCode.objects.using('vl_lims').filter(pk__in=tracking_code_ids)
+	} if tracking_code_ids else {}
+
+
+def _adapt_sample(sample, clinicians=None, lab_techs=None, tracking_codes=None):
 	facility = _facility_obj(sample.facility_id or sample.data_facility_id)
 	patient_facility = facility
 	clinician_id = getattr(sample, 'clinician_id', None)
 	lab_tech_id = getattr(sample, 'lab_tech_id', None)
+	tracking_code_id = getattr(sample, 'tracking_code_id', None)
 	clinicians = clinicians or {}
 	lab_techs = lab_techs or {}
+	tracking_codes = tracking_codes or {}
 	clinician = clinicians.get(clinician_id)
 	lab_tech = lab_techs.get(lab_tech_id)
+	tracking_code = tracking_codes.get(tracking_code_id)
 	if clinician is None and clinician_id:
 		clinician = VLClinician.objects.using('vl_lims').filter(pk=clinician_id).first()
 	if lab_tech is None and lab_tech_id:
 		lab_tech = VLLabTech.objects.using('vl_lims').filter(pk=lab_tech_id).first()
+	if tracking_code is None and tracking_code_id:
+		tracking_code = VLTrackingCode.objects.using('vl_lims').filter(pk=tracking_code_id).first()
+	if tracking_code is None:
+		tracking_code = SimpleNamespace(code='', facility_id=None)
 	patient = SimpleNamespace(
 		hep_number=sample.data_art_number or sample.reception_art_number or '',
 		gender='',
@@ -688,7 +707,8 @@ def _adapt_sample(sample, clinicians=None, lab_techs=None):
 	return SimpleNamespace(
 		id=sample.id,
 		pk=sample.id,
-		tracking_code_id=sample.tracking_code_id,
+		tracking_code_id=tracking_code_id,
+		tracking_code=tracking_code,
 		clinician_id=clinician_id,
 		clinician=clinician,
 		lab_tech_id=lab_tech_id,
@@ -1045,7 +1065,8 @@ def search_samples(search, search_env=False, search_sample=False):
 			return []
 		samples = list(VLSample.objects.using('vl_lims').filter(envelope_id=envelope.id).order_by('locator_position')[:300])
 		clinicians, lab_techs = _sample_contact_maps(samples)
-		return [_adapt_sample(sample, clinicians, lab_techs) for sample in samples]
+		tracking_codes = _sample_tracking_code_maps(samples)
+		return [_adapt_sample(sample, clinicians, lab_techs, tracking_codes) for sample in samples]
 	direct_filter = Q(barcode=search) | Q(barcode2=search) | Q(form_number=search) | Q(facility_reference=search)
 	samples = list(VLSample.objects.using('vl_lims').filter(direct_filter).order_by('-id')[:300])
 	if not samples and not search_sample:
@@ -1058,7 +1079,8 @@ def search_samples(search, search_env=False, search_sample=False):
 			Q(data_art_number__icontains=search)
 		).order_by('-id')[:300])
 	clinicians, lab_techs = _sample_contact_maps(samples)
-	return [_adapt_sample(sample, clinicians, lab_techs) for sample in samples]
+	tracking_codes = _sample_tracking_code_maps(samples)
+	return [_adapt_sample(sample, clinicians, lab_techs, tracking_codes) for sample in samples]
 
 
 def get_result_run(filename, user):

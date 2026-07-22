@@ -1852,19 +1852,48 @@ def receive_hie(request):
 				'err_msg': mismatch_message
 			}
 			return HttpResponse(json.dumps(ret))
+		db_alias = get_dropdown_db_alias(request)
+		tracking_code = _resolve_tracking_code(
+			tr_code_id,
+			request.POST.get('code'),
+			request.user.id,
+			facility_id,
+			db_alias=db_alias,
+		)
+		if tracking_code is None:
+			return HttpResponse(json.dumps({
+				'saved_sample': '',
+				'env_id': env_id,
+				'tracking_code_id': tr_code_id,
+				's_barcode': request.POST.get('the_barcode'),
+				'receipt_type': 'not_allowed',
+				'message_type': 'err',
+				'err_msg': 'Tracking code is required.'
+			}))
+		if _get_tracking_code_facility_mismatch(tracking_code, facility_id):
+			return HttpResponse(json.dumps({
+				'saved_sample': '',
+				'env_id': env_id,
+				'tracking_code_id': tracking_code.id,
+				's_barcode': request.POST.get('the_barcode'),
+				'receipt_type': 'not_allowed',
+				'message_type': 'err',
+				'err_msg': TRACKING_CODE_FACILITY_MISMATCH_MESSAGE
+			}))
+		tr_code_id = tracking_code.id
 		saved_id = request.POST.get('saved_id')
 		s = _find_existing_sample_for_reception(
 			facility_reference,
 			facility_id,
-			db_alias=get_dropdown_db_alias(request),
+			db_alias=db_alias,
 		)
-		if not saved_id and _sample_matches_tracking_code(s, _get_tracking_code_by_id(tr_code_id, db_alias=get_dropdown_db_alias(request))):
+		if not saved_id and _sample_matches_tracking_code(s, tracking_code):
 			saved_id = s.pk
 		conflict_sample = _get_facility_reference_conflict(
 			facility_reference,
 			facility_id,
 			saved_id,
-			db_alias=get_dropdown_db_alias(request),
+			db_alias=db_alias,
 		)
 		if conflict_sample:
 			ret = {
@@ -3351,7 +3380,17 @@ def receive_sample_only(request):
 			}
 			return HttpResponse(json.dumps(ret))
 		tracking_code = _resolve_tracking_code(tr_code_id, request.POST.get('code'), request.user.id, facility_id, db_alias=db_alias)
-		tr_code_id = tracking_code.id if tracking_code else ''
+		if tracking_code is None:
+			return HttpResponse(json.dumps({
+				'saved_sample':'',
+				'env_id':env_id,
+				'tracking_code_id':tr_code_id,
+				's_barcode':request.POST.get('the_barcode'),
+				'receipt_type':'hie',
+				'message_type':'err',
+				'err_msg':'Tracking code is required.'
+			}))
+		tr_code_id = tracking_code.id
 		if _get_tracking_code_facility_mismatch(tracking_code, facility_id):
 			ret = {
 				'saved_sample':'',

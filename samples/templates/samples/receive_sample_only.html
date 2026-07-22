@@ -519,6 +519,10 @@
 		$('#submit_form').on('click', function(e) {
 		    e.preventDefault();
 		    tr_code_id = $("#tracking_code_id").val();
+		    if(!tr_code_id && (($("#id_code").val() || '').trim() == '')){
+		        stopSampleProcessing('Tracking code is required.', null, '#id_code');
+		        return;
+		    }
 		    var currnt_url = window.location.origin;
 		    var samples = [];
 
