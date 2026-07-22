@@ -57,11 +57,11 @@
 							<td>{{ si.sample_run }}</td>
 							<td>
 								<label>
-									<input type='radio' name='choices{{ si.pk }}' class='choices' si-pk="{{ si.pk }}" reason='insfficient' value='invalid' repeat-status='{{ si.repeat_test }}' barcode="{{si.barcode}}">Sample	insufficient							
+									<input type='radio' name='choices{{ si.pk }}' class='choices' si-pk="{{ si.pk }}" reason='insufficient' value='reject' repeat-status='{{ si.repeat_test }}' barcode="{{si.barcode}}">Sample insufficient
 
 								</label>
 								<label style="margin-left:15px;">
-									<input type='radio' name='choices{{ si.pk }}' class='choices' si-pk="{{ si.pk }}" reason='hemolyzed' value='invalid' repeat-status='{{ si.repeat_test }}' barcode="{{si.barcode}}">Sample	hemolyzed							
+									<input type='radio' name='choices{{ si.pk }}' class='choices' si-pk="{{ si.pk }}" reason='hemolyzed' value='reject' repeat-status='{{ si.repeat_test }}' barcode="{{si.barcode}}">Sample hemolyzed
 
 								</label>
 									<label style="margin-left:15px;">
@@ -140,16 +140,14 @@
 	 	var barcode = $(this).attr('barcode');
 	 	var obj_id = $(this).attr('si-pk')
 	 	
-	 	var params = {csrfmiddlewaretoken:"{{ csrf_token }}", result_pk: obj_id, choice_type: 'invalid', post_type: 'single',comments:'',reason:reason, sample_pk: obj_id};
-	 	
-	 		var ans = confirm("Do you really want to invalidate "+barcode+"?");
-	 		if(ans==false){
-	 			return false;
+		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", post_type: 'reject_sample', reason:reason, sample_pk: obj_id};
+
+		var ans = confirm("Do you really want to reject "+barcode+"?");
+		if(ans==false){
+			$(this).prop('checked', false);
+			return false;
 	 	}
-	 	console.log(params);
 	 	submit_auth(params);
-	 	//row_
-	 	$("#row_"+obj_id).remove();
 	 });
 
 
@@ -159,8 +157,11 @@
 	});
 
 	function submit_auth(params){
-		$.post("/results/release_results/", params).done(function(data) {
-	 		$("#saved"+params.ws_pk).show();
+		$.post("/worksheets/manage_plasma_repeats/", params).done(function(data) {
+			$("#saved"+params.sample_pk).show();
+			$("#row_"+params.sample_pk).remove();
+		 }).fail(function(xhr) {
+			alert(xhr.responseText || 'Sample could not be rejected.');
 		 });
 	}
 
