@@ -133,6 +133,8 @@ class ListJson(BaseDatatableView):
 
 		if global_search:
 			search = global_search
+		search = search.strip() if search else ''
+		has_search = bool(search)
 		is_data_entered = self.request.GET.get('is_data_entered')
 		sample_without_results = self.request.GET.get('sample_without_results')
 		hie_samples_pending_reception = self.request.GET.get('hie_samples_pending_reception')
@@ -151,13 +153,12 @@ class ListJson(BaseDatatableView):
 			qs = qs.filter(locator_category='W')
 		elif hie_samples_pending_reception == '1':
 			qs = qs.filter(facility_reference__isnull=False, date_received__isnull=True)
-		else:
-		  	qs = qs.filter(patient_id__isnull=False)
+		elif not has_search:
+			qs = qs.filter(patient_id__isnull=False)
 		qs = programs.filter_queryset_by_program(self.request, qs, 'program_code')
 		if no_result:
 			qs = qs.filter(id__gte=6000000,result__isnull=True)
 		if search:
-			search = search.strip()
 			if search.isdigit() or search[:-1].isdigit():
 				qs = qs.filter(
 					Q(form_number=search) |

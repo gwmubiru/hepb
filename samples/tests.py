@@ -3,7 +3,90 @@ from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
+from samples.data_table_views import ListJson
 from samples.views import _resolve_tracking_code
+from vl import services as vl_services
+
+
+class FakeQuerySet:
+	def __init__(self):
+		self.filter_calls = []
+		self.order_by_calls = []
+
+	def filter(self, *args, **kwargs):
+		self.filter_calls.append((args, kwargs))
+		return self
+
+	def order_by(self, *fields):
+		self.order_by_calls.append(fields)
+		return self
+
+
+class SampleListSearchFilterTests(SimpleTestCase):
+	def filter_queryset(self, params):
+		view = ListJson()
+		view.request = SimpleNamespace(GET=params, session={})
+		qs = FakeQuerySet()
+		view.filter_queryset(qs)
+		return qs
+
+	def test_default_list_keeps_data_entry_completed_scope(self):
+		qs = self.filter_queryset({})
+
+		self.assertIn(((), {'patient_id__isnull': False}), qs.filter_calls)
+
+	def test_explicit_sample_search_does_not_require_patient_data_entry(self):
+		qs = self.filter_queryset({'global_search': 'SAMPLE-001'})
+
+		self.assertNotIn(((), {'patient_id__isnull': False}), qs.filter_calls)
+
+
+class VLSearchAdapterTests(SimpleTestCase):
+	def sample(self, **overrides):
+		values = {
+			'id': 1,
+			'facility_id': None,
+			'data_facility_id': None,
+			'clinician_id': None,
+			'lab_tech_id': None,
+			'tracking_code_id': None,
+			'data_art_number': '',
+			'reception_art_number': '',
+			'treatment_initiation_date': None,
+			'facility_reference': 'FAC-001',
+			'form_number': 'FAC-001',
+			'barcode': '',
+			'patient_id': None,
+			'is_data_entered': False,
+			'envelope_id': None,
+			'date_collected': None,
+			'date_received': None,
+			'verified': False,
+			'stage': 0,
+			'created_by_id': None,
+			'created_at': None,
+			'data_entered_by_id': None,
+			'data_entered_at': None,
+			'sample_type': 'P',
+		}
+		values.update(overrides)
+		return SimpleNamespace(**values)
+
+	def test_adapted_vl_sample_with_null_tracking_code_can_render_tracking_column(self):
+		adapted = vl_services._adapt_sample(self.sample())
+
+		self.assertIsNone(adapted.tracking_code_id)
+		self.assertEqual(adapted.tracking_code.code, '')
+
+	def test_adapted_vl_sample_uses_tracking_code_map_when_present(self):
+		tracking_code = SimpleNamespace(id=7, code='TRK-7', facility_id=3)
+		adapted = vl_services._adapt_sample(
+			self.sample(tracking_code_id=7),
+			tracking_codes={7: tracking_code},
+		)
+
+		self.assertEqual(adapted.tracking_code_id, 7)
+		self.assertEqual(adapted.tracking_code.code, 'TRK-7')
 
 
 class TrackingCodeResolutionTests(SimpleTestCase):
