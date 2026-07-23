@@ -36,13 +36,6 @@ from reportlab.graphics import renderPDF
 from django.http import JsonResponse
 
 
-def health_check(request):
-    return JsonResponse(
-        {
-            "status": "healthy",
-            "service": "hepb-webapp",
-        }
-    )
 @permission_required('worksheets.add_worksheet', login_url='/login/')
 def generate_pdf(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
