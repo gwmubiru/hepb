@@ -18,7 +18,6 @@ from django.urls import re_path as url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path
-from .views import health_check
 
 from home import views as home_views, session
 
@@ -42,5 +41,4 @@ urlpatterns = [
 	re_path(r'^clean_data_list/', home_views.clean_data_list, name='clean_data_list'),
 	re_path(r'^api/', include('api.urls')),
 	re_path(r'^oauth/', include('sso.urls')),
-	path("health/", health_check, name="health-check"),
 ]
