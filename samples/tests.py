@@ -4,7 +4,11 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 
 from samples.data_table_views import ListJson
-from samples.views import _resolve_tracking_code
+from samples.views import (
+	_resolve_tracking_code,
+	_resolve_tracking_code_for_sample,
+	_should_block_tracking_code_facility_mismatch,
+)
 from vl import services as vl_services
 
 
@@ -126,3 +130,127 @@ class TrackingCodeResolutionTests(SimpleTestCase):
 
 		self.assertEqual(tracking_code, old_tracking_code)
 		get_or_create.assert_not_called()
+
+	@patch('samples.views._get_or_create_tracking_code')
+	@patch('samples.views._get_tracking_code_by_id')
+	def test_existing_sample_tracking_code_wins_when_present(self, get_tracking_code_by_id, get_or_create):
+		existing_tracking_code = SimpleNamespace(id=9, code='PACKAGE-CODE', facility_id=4)
+		sample = SimpleNamespace(tracking_code_id=existing_tracking_code.id)
+		get_tracking_code_by_id.return_value = existing_tracking_code
+
+		tracking_code = _resolve_tracking_code_for_sample(
+			sample,
+			'',
+			'VISIBLE-CODE',
+			5,
+			4,
+		)
+
+		self.assertEqual(tracking_code, existing_tracking_code)
+		get_tracking_code_by_id.assert_called_once_with(existing_tracking_code.id, db_alias='default')
+		get_or_create.assert_not_called()
+
+	@patch('samples.views._get_or_create_tracking_code')
+	@patch('samples.views._get_tracking_code_by_id')
+	def test_placeholder_sample_tracking_code_can_be_replaced(self, get_tracking_code_by_id, get_or_create):
+		placeholder_tracking_code = SimpleNamespace(id=9, code='None', facility_id=None)
+		new_tracking_code = SimpleNamespace(id=12, code='ENTERED-CODE', facility_id=4)
+		sample = SimpleNamespace(tracking_code_id=placeholder_tracking_code.id)
+		get_tracking_code_by_id.return_value = placeholder_tracking_code
+		get_or_create.return_value = new_tracking_code
+
+		tracking_code = _resolve_tracking_code_for_sample(
+			sample,
+			placeholder_tracking_code.id,
+			'ENTERED-CODE',
+			5,
+			4,
+		)
+
+		self.assertEqual(tracking_code, new_tracking_code)
+		get_or_create.assert_called_once_with('ENTERED-CODE', 5, 4, db_alias='default')
+
+	@patch('samples.views._get_or_create_tracking_code')
+	@patch('samples.views._get_tracking_code_by_id')
+	def test_placeholder_sample_tracking_code_without_entered_code_is_rejected(self, get_tracking_code_by_id, get_or_create):
+		placeholder_tracking_code = SimpleNamespace(id=9, code='Non', facility_id=None)
+		sample = SimpleNamespace(tracking_code_id=placeholder_tracking_code.id)
+		get_tracking_code_by_id.return_value = placeholder_tracking_code
+
+		tracking_code = _resolve_tracking_code_for_sample(
+			sample,
+			placeholder_tracking_code.id,
+			'',
+			5,
+			4,
+		)
+
+		self.assertIsNone(tracking_code)
+		get_or_create.assert_not_called()
+
+	def test_existing_sample_with_null_tracking_code_can_take_entered_code_from_other_facility(self):
+		sample = SimpleNamespace(tracking_code_id=None)
+		tracking_code = SimpleNamespace(id=11, code='ENTERED-CODE', facility_id=7)
+
+		self.assertFalse(_should_block_tracking_code_facility_mismatch(sample, tracking_code, 4))
+
+	def test_new_sample_still_blocks_entered_code_from_other_facility(self):
+		tracking_code = SimpleNamespace(id=11, code='ENTERED-CODE', facility_id=7)
+
+		self.assertTrue(_should_block_tracking_code_facility_mismatch(None, tracking_code, 4))
+
+
+class VLTrackingCodeResolutionTests(SimpleTestCase):
+	@patch('vl.services.get_or_create_tracking_code')
+	@patch('vl.services.VLTrackingCode')
+	def test_existing_sample_tracking_code_wins_when_present(self, tracking_code_model, get_or_create):
+		existing_tracking_code = SimpleNamespace(id=9, code='PACKAGE-CODE', facility_id=4)
+		tracking_code_model.objects.using.return_value.filter.return_value.first.return_value = existing_tracking_code
+		sample = SimpleNamespace(tracking_code_id=existing_tracking_code.id)
+
+		tracking_code = vl_services.resolve_tracking_code(
+			{'code': 'VISIBLE-CODE'},
+			SimpleNamespace(),
+			4,
+			sample=sample,
+		)
+
+		self.assertEqual(tracking_code, existing_tracking_code)
+		get_or_create.assert_not_called()
+
+	@patch('vl.services.get_or_create_tracking_code')
+	@patch('vl.services.VLTrackingCode')
+	def test_placeholder_sample_tracking_code_can_be_replaced(self, tracking_code_model, get_or_create):
+		placeholder_tracking_code = SimpleNamespace(id=9, code='None', facility_id=None)
+		new_tracking_code = SimpleNamespace(id=12, code='ENTERED-CODE', facility_id=4)
+		tracking_code_model.objects.using.return_value.filter.return_value.first.return_value = placeholder_tracking_code
+		get_or_create.return_value = new_tracking_code
+		sample = SimpleNamespace(tracking_code_id=placeholder_tracking_code.id)
+		user = SimpleNamespace()
+
+		tracking_code = vl_services.resolve_tracking_code(
+			{'tracking_code_id': placeholder_tracking_code.id, 'code': 'ENTERED-CODE'},
+			user,
+			4,
+			sample=sample,
+		)
+
+		self.assertEqual(tracking_code, new_tracking_code)
+		get_or_create.assert_called_once_with('ENTERED-CODE', user, 4)
+
+	@patch('vl.services.get_or_create_tracking_code')
+	def test_visible_code_used_when_sample_tracking_code_is_null(self, get_or_create):
+		new_tracking_code = SimpleNamespace(id=10, code='VISIBLE-CODE', facility_id=4)
+		get_or_create.return_value = new_tracking_code
+		sample = SimpleNamespace(tracking_code_id=None)
+		user = SimpleNamespace()
+
+		tracking_code = vl_services.resolve_tracking_code(
+			{'code': 'VISIBLE-CODE'},
+			user,
+			4,
+			sample=sample,
+		)
+
+		self.assertEqual(tracking_code, new_tracking_code)
+		get_or_create.assert_called_once_with('VISIBLE-CODE', user, 4)

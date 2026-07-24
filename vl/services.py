@@ -18,6 +18,7 @@ from .models import VLEnvelope, VLEnvelopeAssignment, VLEnvelopeRange, VLClinici
 
 DUPLICATE_FACILITY_REFERENCE_MESSAGE = "Olaba kisoboka? Taracking code cant be shared between facilities"
 DUPLICATE_BARCODE_MESSAGE = "This position has already been received. Enter a different position."
+PLACEHOLDER_TRACKING_CODE_VALUES = {'none', 'non'}
 
 
 def is_hiv_program(request):
@@ -48,6 +49,14 @@ def _parse_int(value):
 		return None
 
 
+def _is_placeholder_tracking_code_value(value):
+	return (value or '').strip().lower() in PLACEHOLDER_TRACKING_CODE_VALUES
+
+
+def _is_valid_tracking_code(tracking_code):
+	return bool(tracking_code and not _is_placeholder_tracking_code_value(getattr(tracking_code, 'code', '')))
+
+
 def _facility_reference_conflict(facility_reference, facility_id, exclude_sample_id=None):
 	facility_reference = (facility_reference or '').strip()
 	facility_id = _parse_int(facility_id)
@@ -59,6 +68,16 @@ def _facility_reference_conflict(facility_reference, facility_id, exclude_sample
 		.filter(facility_reference=facility_reference, tracking_code_id__isnull=False)
 		.exclude(facility_id=facility_id)
 	)
+	placeholder_filter = Q()
+	for placeholder_code in PLACEHOLDER_TRACKING_CODE_VALUES:
+		placeholder_filter |= Q(code__iexact=placeholder_code)
+	placeholder_tracking_code_ids = list(
+		VLTrackingCode.objects.using('vl_lims')
+		.filter(placeholder_filter)
+		.values_list('id', flat=True)
+	)
+	if placeholder_tracking_code_ids:
+		conflict_qs = conflict_qs.exclude(tracking_code_id__in=placeholder_tracking_code_ids)
 	if exclude_sample_id:
 		conflict_qs = conflict_qs.exclude(pk=exclude_sample_id)
 	return conflict_qs.first()
@@ -371,7 +390,7 @@ def get_or_create_tracking_code(code, user, facility_id=None):
 	if not vl_user_id:
 		raise ValueError("Current user has no vl_id mapping in hepb.auth_user")
 	code = (code or '').strip()
-	if not code:
+	if not code or _is_placeholder_tracking_code_value(code):
 		raise ValueError("Tracking code is required")
 	tr = VLTrackingCode.objects.using('vl_lims').filter(code=code).first()
 	if tr is None:
@@ -383,15 +402,43 @@ def get_or_create_tracking_code(code, user, facility_id=None):
 			no_samples=0,
 		)
 		tr.save(using='vl_lims')
+	elif facility_id and not tr.facility_id:
+		tr.facility_id = facility_id
+		tr.save(using='vl_lims', update_fields=['facility_id', 'updated_at'])
 	return tr
 
 
-def resolve_tracking_code(post_data, user, facility_id=None):
+def _sample_tracking_code(sample, facility_id=None):
+	if sample is None or not getattr(sample, 'tracking_code_id', None):
+		return None
+	tracking_code = VLTrackingCode.objects.using('vl_lims').filter(pk=sample.tracking_code_id).first()
+	if not _is_valid_tracking_code(tracking_code):
+		return None
+	if tracking_code and facility_id and not tracking_code.facility_id:
+		tracking_code.facility_id = facility_id
+		tracking_code.save(using='vl_lims', update_fields=['facility_id', 'updated_at'])
+	return tracking_code
+
+
+def _sample_tracking_code_payload(sample):
+	tracking_code = _sample_tracking_code(sample)
+	return {
+		'tracking_code_id': getattr(tracking_code, 'id', '') or '',
+		'tracking_code': getattr(tracking_code, 'code', '') or '',
+	}
+
+
+def resolve_tracking_code(post_data, user, facility_id=None, sample=None):
+	sample_tracking_code = _sample_tracking_code(sample, facility_id)
+	if sample_tracking_code:
+		return sample_tracking_code
 	tracking_code_id = _parse_int(post_data.get('tracking_code_id') or post_data.get('tr_code_id'))
+	if getattr(sample, 'tracking_code_id', None) and tracking_code_id == sample.tracking_code_id:
+		tracking_code_id = None
 	code = (post_data.get('code') or post_data.get('current_tr_code') or '').strip()
 	if tracking_code_id:
 		tracking_code = VLTrackingCode.objects.using('vl_lims').filter(pk=tracking_code_id).first()
-		if tracking_code and (not code or (tracking_code.code or '').strip() == code):
+		if _is_valid_tracking_code(tracking_code) and (not code or (tracking_code.code or '').strip() == code):
 			return tracking_code
 	return get_or_create_tracking_code(code, user, facility_id)
 
@@ -512,7 +559,14 @@ def receive_sample_only(post_data, user):
 	if conflict_sample:
 		raise ValueError(DUPLICATE_FACILITY_REFERENCE_MESSAGE)
 
-	tracking_code = resolve_tracking_code(post_data, user, facility_id)
+	sample = None
+	if facility_reference:
+		sample = VLSample.objects.using('vl_lims').filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference)).first()
+		if sample and sample.barcode2 == facility_reference and sample.barcode2 != sample.facility_reference:
+			raise ValueError("This is a DR sample.")
+	if sample is None and barcode:
+		sample = VLSample.objects.using('vl_lims').filter(barcode=barcode).first()
+	tracking_code = resolve_tracking_code(post_data, user, facility_id, sample=sample)
 	sanitized_art_number = utils.removeSpecialCharactersFromString(art_number) if art_number else None
 	unique_id = f"{facility_id}-A-{sanitized_art_number}" if facility_id and sanitized_art_number else None
 	patient = VLPatient.objects.using('vl_lims').filter(unique_id=unique_id).first() if unique_id else None
@@ -534,13 +588,6 @@ def receive_sample_only(post_data, user):
 		patient.sanitized_art_number = sanitized_art_number or patient.sanitized_art_number
 		patient.save(using='vl_lims')
 
-	sample = None
-	if facility_reference:
-		sample = VLSample.objects.using('vl_lims').filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference)).first()
-		if sample and sample.barcode2 == facility_reference and sample.barcode2 != sample.facility_reference:
-			raise ValueError("This is a DR sample.")
-	if sample is None and barcode:
-		sample = VLSample.objects.using('vl_lims').filter(barcode=barcode).first()
 	if sample is None:
 		sample = VLSample(created_by_id=vl_user_id)
 	elif sample.envelope_id:
@@ -599,6 +646,8 @@ def get_receive_hie_details(facility_reference, facility_id=None):
 			'date_collected': '',
 			'err_msg': 'Not found',
 			'is_dr': 0,
+			'tracking_code_id': '',
+			'tracking_code': '',
 		}
 
 	conflict_sample = _facility_reference_conflict(facility_reference, facility_id)
@@ -609,6 +658,8 @@ def get_receive_hie_details(facility_reference, facility_id=None):
 			'err_msg': DUPLICATE_FACILITY_REFERENCE_MESSAGE,
 			'is_dr': 0,
 			'facility_reference_conflict': 1,
+			'tracking_code_id': '',
+			'tracking_code': '',
 		}
 
 	sample = VLSample.objects.using('vl_lims').filter(Q(facility_reference=facility_reference) | Q(barcode2=facility_reference)).first()
@@ -618,14 +669,18 @@ def get_receive_hie_details(facility_reference, facility_id=None):
 			'date_collected': '',
 			'err_msg': 'Not found',
 			'is_dr': 0,
+			'tracking_code_id': '',
+			'tracking_code': '',
 		}
 	if sample.barcode2 == facility_reference and sample.barcode2 != sample.facility_reference:
-		return {
+		ret = {
 			'hep_number': sample.data_art_number or sample.reception_art_number or '',
 			'date_collected': sample.date_collected.strftime('%Y-%m-%d') if sample.date_collected else '',
 			'err_msg': 'This is a DR sample.',
 			'is_dr': 1,
 		}
+		ret.update(_sample_tracking_code_payload(sample))
+		return ret
 
 	if sample.date_received is not None:
 		return {
@@ -633,14 +688,18 @@ def get_receive_hie_details(facility_reference, facility_id=None):
 			'date_collected': '',
 			'err_msg': 'Already received',
 			'is_dr': 0,
+			'tracking_code_id': '',
+			'tracking_code': '',
 		}
 
-	return {
+	ret = {
 		'hep_number': sample.data_art_number or sample.reception_art_number or '',
 		'date_collected': sample.date_collected.strftime('%Y-%m-%d') if sample.date_collected else '',
 		'err_msg': '',
 		'is_dr': 0,
 	}
+	ret.update(_sample_tracking_code_payload(sample))
+	return ret
 
 
 def _sample_contact_maps(samples):

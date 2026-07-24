@@ -422,6 +422,16 @@
 				onAllowed();
 			});
 		}
+		function applySampleTrackingCode(dataArr){
+			if(dataArr.tracking_code_id){
+				tr_code_id = dataArr.tracking_code_id;
+				$("#tracking_code_id").val(dataArr.tracking_code_id);
+				if(dataArr.tracking_code){
+					$("#id_code").val(dataArr.tracking_code);
+					$("#current_tr_code").val(dataArr.tracking_code);
+				}
+			}
+		}
 		$('#locator_id_container').on('click', '.remove-generated-row', function(e){
 			e.preventDefault();
 			$(this).closest('.sample-row').remove();
@@ -481,6 +491,7 @@
 			$("#fac_ref"+ind).focus();
 			return;
 		        }
+				applySampleTrackingCode(data_arr);
 				if(data_arr.hep_number == ''){
 					validateFacilityIdentifier(fac_ref, function(){
 						$("#span"+ind).html(data_arr.err_msg);
@@ -605,12 +616,16 @@
 		        return;
 		    }
 
-		    // Prepare FormData (your existing POST logic)
-		    var form_data = new FormData($('form')[0]);
+		    // Prepare FormData from this page's receive form. The layout also has forms.
+		    var form_data = new FormData($('#receive_hie_form')[0]);
 		    var locator_posn = locatorPositionFromBarcode(sample.barcode);
+		    var enteredTrackingCode = ($('#id_code').val() || '').trim();
+		    $("#current_tr_code").val(enteredTrackingCode);
 
 		    form_data.append('the_barcode', sample.barcode);
 		    form_data.append('tr_code_id', tr_code_id);
+		    form_data.append('code', enteredTrackingCode);
+		    form_data.append('current_tr_code', enteredTrackingCode);
 		    form_data.append('facility_reference', sample.facilityRef);
 		    form_data.append('the_position', locator_posn);
 		    form_data.append('facility', sample.facility);
