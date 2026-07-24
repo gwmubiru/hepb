@@ -45,6 +45,7 @@ TRACKING_CODE_SAMPLE_FACILITY_MISMATCH_MESSAGE = "Warning: this sample belongs t
 DUPLICATE_BARCODE_MESSAGE = "This position has already been received. Enter a different position."
 DR_BOX_NUMBER_RE = re.compile(r'^DR(\d{4})(\d{4})$')
 DR_BOX_POSITION_RE = re.compile(r'^(DR\d{8})/(\d{3})$')
+PLACEHOLDER_TRACKING_CODE_VALUES = {'none', 'non'}
 
 
 def _envelope_capacity(sample_type):
@@ -106,6 +107,8 @@ def _get_facility_reference_conflict(facility_reference, facility_id, exclude_sa
 		.filter(facility_reference=facility_reference, tracking_code_id__isnull=False)
 		.exclude(facility_id=facility_id)
 	)
+	for placeholder_code in PLACEHOLDER_TRACKING_CODE_VALUES:
+		conflict_qs = conflict_qs.exclude(tracking_code__code__iexact=placeholder_code)
 	if exclude_sample_id:
 		conflict_qs = conflict_qs.exclude(pk=exclude_sample_id)
 	return conflict_qs.first()
@@ -130,7 +133,7 @@ def _find_existing_sample_for_reception(facility_reference, facility_id=None, db
 
 def _get_or_create_tracking_code(code, user_id, facility_id=None, db_alias='default'):
 	code = (code or '').strip()
-	if code == '':
+	if code == '' or _is_placeholder_tracking_code_value(code):
 		return None
 
 	tracking_code = TrackingCode.objects.using(db_alias).filter(code=code).first()
@@ -157,10 +160,24 @@ def _get_or_create_tracking_code(code, user_id, facility_id=None, db_alias='defa
 	return tracking_code
 
 
+def _is_placeholder_tracking_code_value(value):
+	return (value or '').strip().lower() in PLACEHOLDER_TRACKING_CODE_VALUES
+
+
+def _is_valid_tracking_code(tracking_code):
+	return bool(tracking_code and not _is_placeholder_tracking_code_value(getattr(tracking_code, 'code', '')))
+
+
 def _get_tracking_code_facility_mismatch(tracking_code, facility_id):
-	if tracking_code is None or not facility_id or not tracking_code.facility_id:
+	if not _is_valid_tracking_code(tracking_code) or not facility_id or not tracking_code.facility_id:
 		return False
 	return str(tracking_code.facility_id) != str(facility_id)
+
+
+def _should_block_tracking_code_facility_mismatch(sample, tracking_code, facility_id):
+	if sample is not None:
+		return False
+	return _get_tracking_code_facility_mismatch(tracking_code, facility_id)
 
 
 def _resolve_tracking_code(tracking_code_id, code, user_id, facility_id=None, db_alias='default'):
@@ -168,14 +185,28 @@ def _resolve_tracking_code(tracking_code_id, code, user_id, facility_id=None, db
 	tracking_code = None
 	if tracking_code_id:
 		candidate = TrackingCode.objects.using(db_alias).filter(pk=tracking_code_id).first()
-		if candidate and (code == '' or (candidate.code or '').strip() == code):
+		if _is_valid_tracking_code(candidate) and (code == '' or (candidate.code or '').strip() == code):
 			tracking_code = candidate
-	if tracking_code is None and code:
+	if tracking_code is None and code and not _is_placeholder_tracking_code_value(code):
 		tracking_code = _get_or_create_tracking_code(code, user_id, facility_id, db_alias=db_alias)
 	elif tracking_code and facility_id and not tracking_code.facility_id:
 		tracking_code.facility_id = facility_id
 		tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
 	return tracking_code
+
+
+def _resolve_tracking_code_for_sample(sample, tracking_code_id, code, user_id, facility_id=None, db_alias='default'):
+	sample_tracking_code_id = getattr(sample, 'tracking_code_id', None)
+	if sample_tracking_code_id:
+		tracking_code = _get_tracking_code_by_id(sample_tracking_code_id, db_alias=db_alias)
+		if _is_valid_tracking_code(tracking_code):
+			if facility_id and not tracking_code.facility_id:
+				tracking_code.facility_id = facility_id
+				tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
+			return tracking_code
+		if str(tracking_code_id or '') == str(sample_tracking_code_id):
+			tracking_code_id = None
+	return _resolve_tracking_code(tracking_code_id, code, user_id, facility_id, db_alias=db_alias)
 
 
 def _get_tracking_code_by_id(tracking_code_id, db_alias='default'):
@@ -187,12 +218,36 @@ def _get_tracking_code_by_id(tracking_code_id, db_alias='default'):
 		return None
 
 
-def _sample_patient_facility_mismatch(sample, tracking_code):
+def _sample_tracking_code_payload(sample, db_alias='default'):
+	tracking_code_id = getattr(sample, 'tracking_code_id', None)
+	if not tracking_code_id:
+		return {
+			'tracking_code_id': '',
+			'tracking_code': '',
+		}
+	tracking_code = _get_tracking_code_by_id(tracking_code_id, db_alias=db_alias)
+	if not _is_valid_tracking_code(tracking_code):
+		return {
+			'tracking_code_id': '',
+			'tracking_code': '',
+		}
+	return {
+		'tracking_code_id': getattr(tracking_code, 'id', '') or '',
+		'tracking_code': getattr(tracking_code, 'code', '') or '',
+	}
+
+
+def _sample_patient_facility_mismatch(sample, tracking_code, db_alias='default'):
 	if sample is None or tracking_code is None or not tracking_code.facility_id:
 		return False
 	if not sample.tracking_code_id:
 		return False
-	existing_tracking_facility_id = getattr(getattr(sample, 'tracking_code', None), 'facility_id', None)
+	existing_tracking_code = getattr(sample, 'tracking_code', None)
+	if existing_tracking_code is None:
+		existing_tracking_code = _get_tracking_code_by_id(sample.tracking_code_id, db_alias=db_alias)
+	if not _is_valid_tracking_code(existing_tracking_code):
+		return False
+	existing_tracking_facility_id = getattr(existing_tracking_code, 'facility_id', None)
 	if existing_tracking_facility_id:
 		return existing_tracking_facility_id != tracking_code.facility_id
 	patient_facility_id = getattr(getattr(sample, 'patient', None), 'facility_id', None)
@@ -233,6 +288,8 @@ def _lookup_existing_sample_for_reception(facility_reference, facility_id=None, 
 		'date_collected': '',
 		'err_msg': '',
 		'is_dr': 0,
+		'tracking_code_id': '',
+		'tracking_code': '',
 	}
 	if facility_reference == '':
 		ret['err_msg'] = 'Not found'
@@ -247,8 +304,9 @@ def _lookup_existing_sample_for_reception(facility_reference, facility_id=None, 
 		return ret
 	if sample:
 		ret['facility_id'] = sample.facility_id or getattr(getattr(sample, 'patient', None), 'facility_id', None) or ''
+		ret.update(_sample_tracking_code_payload(sample, db_alias=db_alias))
 
-	if _sample_patient_facility_mismatch(sample, tracking_code):
+	if _sample_patient_facility_mismatch(sample, tracking_code, db_alias=db_alias):
 		ret['err_msg'] = TRACKING_CODE_SAMPLE_FACILITY_MISMATCH_MESSAGE
 		ret['tracking_facility_conflict'] = 1
 		return ret
@@ -894,16 +952,27 @@ def receive(request):
 			sample_reception_form.add_error('barcode', 'Hep number is required.')
 		if sample_reception_form.is_valid():
 			date_collected = sample_reception_form.cleaned_data.get('date_collected')
-			tracking_code = _resolve_tracking_code(
+			db_alias = get_dropdown_db_alias(request)
+			facility_ref = pst.get('facility_reference')
+			facility_reference = None if facility_ref == '' else facility_ref
+			s = None
+			if facility_reference is not None:
+				s = _find_existing_sample_for_reception(
+					facility_reference,
+					pst.get('facility'),
+					db_alias=db_alias,
+				)
+			tracking_code = _resolve_tracking_code_for_sample(
+				s,
 				tr_code_id,
 				pst.get('code'),
 				request.user.id,
 				pst.get('facility'),
-				db_alias=get_dropdown_db_alias(request),
+				db_alias=db_alias,
 			)
 			if tracking_code is None:
 				sample_reception_form.add_error('barcode', 'Tracking code is required.')
-			elif _get_tracking_code_facility_mismatch(tracking_code, pst.get('facility')):
+			elif _should_block_tracking_code_facility_mismatch(s, tracking_code, pst.get('facility')):
 				sample_reception_form.add_error('facility', TRACKING_CODE_FACILITY_MISMATCH_MESSAGE)
 			if sample_reception_form.errors:
 				context = {
@@ -930,12 +999,10 @@ def receive(request):
 			#return HttpResponse(unique_id)
 			facility_pat = FacilityPatient.objects.filter(unique_id=unique_id).first()
 			fac_pat = facility_pat if facility_pat else None
-			facility_ref = pst.get('facility_reference')
-			facility_reference = None if facility_ref == '' else facility_ref
 			conflict_sample = _get_facility_reference_conflict(
 				facility_reference,
 				pst.get('facility'),
-				db_alias=get_dropdown_db_alias(request),
+				db_alias=db_alias,
 			)
 			if conflict_sample:
 				sample_reception_form.add_error('facility_reference', DUPLICATE_FACILITY_REFERENCE_MESSAGE)
@@ -960,15 +1027,8 @@ def receive(request):
 				stage = 7
 			else:
 				stage = 0
-			s = ''
-			if facility_reference is  not None:
-				s = _find_existing_sample_for_reception(
-					facility_reference,
-					pst.get('facility'),
-					db_alias=get_dropdown_db_alias(request),
-				)
 			if s:
-				if _sample_patient_facility_mismatch(s, tracking_code):
+				if _sample_patient_facility_mismatch(s, tracking_code, db_alias=db_alias):
 					sample_reception_form.add_error('facility_reference', TRACKING_CODE_SAMPLE_FACILITY_MISMATCH_MESSAGE)
 					context = {
 						'sample_reception_form': sample_reception_form,
@@ -1187,7 +1247,7 @@ def get_tracking_code_details(request):
 			tr = vl_services.VLTrackingCode.objects.using('vl_lims').filter(code=(code or '').strip()).first()
 		else:
 			tr = vl_services.get_or_create_tracking_code(code, request.user, facility_id)
-		if tr is None:
+		if tr is None or _is_placeholder_tracking_code_value(getattr(tr, 'code', '')):
 			return HttpResponse(json.dumps({
 				'exists': 0,
 				'tracking_code_id': '',
@@ -1203,6 +1263,7 @@ def get_tracking_code_details(request):
 		facility = Facility.objects.select_related('district', 'hub').filter(pk=tr.facility_id).first() if tr.facility_id else None
 		district = getattr(facility, 'district', None)
 		hub = getattr(facility, 'hub', None)
+		facility_mismatch = _get_tracking_code_facility_mismatch(tr, facility_id)
 		return HttpResponse(json.dumps({
 			'exists': 1,
 			'tracking_code_id': tr.id,
@@ -1212,15 +1273,15 @@ def get_tracking_code_details(request):
 			'hub': getattr(hub, 'hub', '') or '',
 			'number_of_samples': tr.no_samples or '',
 			'package_samples': [],
-			'facility_mismatch': 1 if facility_id and str(facility_id) != str(tr.facility_id) else 0,
-			'err_msg': TRACKING_CODE_FACILITY_MISMATCH_MESSAGE if facility_id and str(facility_id) != str(tr.facility_id) else '',
+			'facility_mismatch': 1 if facility_mismatch else 0,
+			'err_msg': TRACKING_CODE_FACILITY_MISMATCH_MESSAGE if facility_mismatch else '',
 		}))
 	db_alias = get_dropdown_db_alias(request)
 	if lookup_only:
 		tr = TrackingCode.objects.using(db_alias).select_related('facility__district', 'facility__hub').filter(code=(code or '').strip()).first()
 	else:
 		tr = _get_or_create_tracking_code(code, request.user.id, facility_id, db_alias=db_alias)
-	if tr is None:
+	if tr is None or _is_placeholder_tracking_code_value(getattr(tr, 'code', '')):
 		return HttpResponse(json.dumps({
 			'exists': 0,
 			'tracking_code_id': '',
@@ -1853,7 +1914,13 @@ def receive_hie(request):
 			}
 			return HttpResponse(json.dumps(ret))
 		db_alias = get_dropdown_db_alias(request)
-		tracking_code = _resolve_tracking_code(
+		s = _find_existing_sample_for_reception(
+			facility_reference,
+			facility_id,
+			db_alias=db_alias,
+		)
+		tracking_code = _resolve_tracking_code_for_sample(
+			s,
 			tr_code_id,
 			request.POST.get('code'),
 			request.user.id,
@@ -1870,7 +1937,7 @@ def receive_hie(request):
 				'message_type': 'err',
 				'err_msg': 'Tracking code is required.'
 			}))
-		if _get_tracking_code_facility_mismatch(tracking_code, facility_id):
+		if _should_block_tracking_code_facility_mismatch(s, tracking_code, facility_id):
 			return HttpResponse(json.dumps({
 				'saved_sample': '',
 				'env_id': env_id,
@@ -1882,11 +1949,6 @@ def receive_hie(request):
 			}))
 		tr_code_id = tracking_code.id
 		saved_id = request.POST.get('saved_id')
-		s = _find_existing_sample_for_reception(
-			facility_reference,
-			facility_id,
-			db_alias=db_alias,
-		)
 		if not saved_id and _sample_matches_tracking_code(s, tracking_code):
 			saved_id = s.pk
 		conflict_sample = _get_facility_reference_conflict(
@@ -3379,7 +3441,15 @@ def receive_sample_only(request):
 				'err_msg':mismatch_message
 			}
 			return HttpResponse(json.dumps(ret))
-		tracking_code = _resolve_tracking_code(tr_code_id, request.POST.get('code'), request.user.id, facility_id, db_alias=db_alias)
+		sample = _find_existing_sample_for_reception(facility_reference, facility_id, db_alias=db_alias)
+		tracking_code = _resolve_tracking_code_for_sample(
+			sample,
+			tr_code_id,
+			request.POST.get('code'),
+			request.user.id,
+			facility_id,
+			db_alias=db_alias,
+		)
 		if tracking_code is None:
 			return HttpResponse(json.dumps({
 				'saved_sample':'',
@@ -3391,7 +3461,7 @@ def receive_sample_only(request):
 				'err_msg':'Tracking code is required.'
 			}))
 		tr_code_id = tracking_code.id
-		if _get_tracking_code_facility_mismatch(tracking_code, facility_id):
+		if _should_block_tracking_code_facility_mismatch(sample, tracking_code, facility_id):
 			ret = {
 				'saved_sample':'',
 				'env_id':env_id,
@@ -3403,7 +3473,6 @@ def receive_sample_only(request):
 			}
 			return HttpResponse(json.dumps(ret))
 		saved_id = request.POST.get('saved_id')
-		sample = _find_existing_sample_for_reception(facility_reference, facility_id, db_alias=db_alias)
 		barcode_conflict = _get_received_barcode_conflict(request, barcode)
 		if barcode_conflict and (sample is None or barcode_conflict.pk != sample.pk):
 			return HttpResponse(json.dumps({
@@ -3447,7 +3516,7 @@ def receive_sample_only(request):
 				'err_msg':sample_program_mismatch
 			}
 			return HttpResponse(json.dumps(ret))
-		if _sample_patient_facility_mismatch(sample, tracking_code):
+		if _sample_patient_facility_mismatch(sample, tracking_code, db_alias=db_alias):
 			ret = {
 				'saved_sample':'',
 				'env_id':env_id,
