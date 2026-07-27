@@ -20,6 +20,7 @@ from django.db import connections
 from django.db import transaction
 from worksheets.models import Worksheet,WorksheetSample
 from results.models import Result,ResultsQC
+from results import utils as result_utils
 from . import utils as worksheet_utils
 import requests
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -1360,7 +1361,7 @@ def pat_hist(request, facility_id):
 				'patient_id': s.patient.id,
 				'gender': s.patient.gender,
 				'dob': utils.local_date(s.patient.dob),
-				'result':"%s"%s.result.result_alphanumeric if hasattr(s, 'result') else '',
+					'result': result_utils.format_result_for_display(s.result) if hasattr(s, 'result') else '',
 				'test_date':utils.local_date(s.result.test_date) if hasattr(s, 'result') else '',
 			})
 

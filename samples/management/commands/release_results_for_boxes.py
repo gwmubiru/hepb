@@ -35,7 +35,7 @@ class Command(BaseCommand):
 				result.authorised_by_id = ws.authoriser_id
 				result.sample_id = ws.sample_id
 				result.test_by_id = ws.tester_id
-				result.suppressed = ws.suppressed
+				result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed)
 				result.authorised = ws.authorised
 				result.worksheet_sample_id = ws.id
 				result.supression_cut_off_id = ws.supression_cut_off_id

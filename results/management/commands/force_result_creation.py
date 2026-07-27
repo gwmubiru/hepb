@@ -25,7 +25,7 @@ class Command(BaseCommand):
 				result.sample_id = row[1]
 				result.repeat_test = row[2]
 				result.authorised = row[3]
-				result.suppressed = row[4]
+				result.suppressed = r_utils.get_suppressed_for_result(row[8], row[4])
 				result.method =  row[5]
 				result.test_by_id = row[6]
 				result.result_numeric =row[7]
@@ -64,7 +64,7 @@ class Command(BaseCommand):
 				result.sample_id = row[1]
 				result.repeat_test = row[2]
 				result.authorised = row[3]
-				result.suppressed = row[4]
+				result.suppressed = r_utils.get_suppressed_for_result(row[8], row[4])
 				result.method =  row[5]
 				result.test_by_id = row[6]
 				result.result_numeric =row[7]

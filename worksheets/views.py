@@ -560,7 +560,7 @@ def attach_results(request):
 
 			panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
 			result.repeat_test = ws.repeat_test
-			result.suppressed = ws.suppressed
+			result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed)
 			result.method = ws.method
 			result.result_numeric = ws.result_numeric
 			result.result_alphanumeric = result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)

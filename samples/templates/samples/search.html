@@ -227,7 +227,7 @@
 								<tr>
 									<td>Processed Result</td>
 									<td>
-										{{ s.result.result_alphanumeric }}
+										{{ s.result|result_display }}
 										{% if s.result.repeat_test == 0 %}
 											(Already rescheduled)
 										{% elif s.result.repeat_test == 1 %}

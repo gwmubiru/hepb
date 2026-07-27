@@ -1,4 +1,5 @@
 {% extends "home/layout.html" %}
+{% load form_tags %}
 {% load static %}
 
 {% block css %}
@@ -30,7 +31,7 @@
 						<td>{{ i.result.sample.locator_category }}{{  i.result.sample.envelope.envelope_number }}/{{  i.result.sample.locator_position }}</td>
 						<td><a href="/samples/edit/{{ i.result.sample.pk }}?intervene=results">{{ i.result.sample.form_number }}</a></td>
 						<td>{{ i.comments }}</td>
-						<td>{{ i.result.result_alphanumeric }}</td>
+						<td>{{ i.result|result_display }}</td>
 						<td>{{ i.result.get_suppressed_display }}</td>
 						<td>{{ i.released_by }}</td>
 						<th>{{ i.result.sample.created_by }}</th>
