@@ -27,6 +27,7 @@ from django.db import connections
 from django.db import transaction
 from worksheets.models import Worksheet,WorksheetSample
 from results.models import Result,ResultsQC
+from results import utils as result_utils
 from . import utils as worksheet_utils
 import requests
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -2845,7 +2846,7 @@ def pat_hist(request, facility_id):
 	        'patient_id': s.patient.id,
 	        'gender': s.patient.gender,
 	        'dob': utils.local_date(s.patient.dob),
-	        'result': result.result_alphanumeric if result else '',
+	        'result': result_utils.format_result_for_display(result),
 	        'test_date': utils.local_date(result.test_date) if result else '',
 	    })
 	return HttpResponse(json.dumps(ret))
@@ -3763,7 +3764,7 @@ def download_envelope_results(request):
             dob,
             sex,
             sample.current_regimen,
-            sample.result.result_alphanumeric,
+            result_utils.format_result_for_display(sample.result),
             sample.result.test_date
             # Add other sample fields
         ])
@@ -4047,7 +4048,7 @@ def dr_pending_decision_json(request):
 	for dr_request in qs:
 		sample = dr_request.sample
 		patient = sample.patient if sample else None
-		result_value = sample.result.result_alphanumeric if sample and hasattr(sample, 'result') and sample.result else ''
+		result_value = result_utils.format_result_for_display(sample.result) if sample and hasattr(sample, 'result') and sample.result else ''
 		data.append([
 			dr_request.barcode or (sample.barcode2 if sample else '') or '',
 			sample.barcode if sample else '',
@@ -4118,7 +4119,7 @@ def lab_archival_json(request):
 			sample.get_sample_type_display() if sample.sample_type else '',
 			sample.facility.facility if sample.facility else '',
 			patient.hep_number if patient else '',
-			sample.result.result_alphanumeric if sample.result else '',
+			result_utils.format_result_for_display(sample.result) if sample.result else '',
 			"<input type='text' class='form-control input-sm lab-archival-box-position' data-sample='{0}' placeholder='300001'>".format(sample.pk),
 			"<a href='#' class='save-lab-archival' data-sample='{0}'>Save</a>".format(sample.pk),
 		])
@@ -4247,7 +4248,7 @@ def dr_list_export(request):
 				sample.get_sample_type_display() if sample.sample_type else '',
 				sample.facility.facility if sample.facility else '',
 				sample.patient.hep_number if sample.patient else '',
-				sample.result.result_alphanumeric if sample.result else '',
+				result_utils.format_result_for_display(sample.result) if sample.result else '',
 			])
 	elif tab == 'all':
 		sheet.append(['DR Barcode', 'Lab Barcode', 'Form Number', 'Facility Ref', 'Sample Type', 'Facility', 'Hep Number', 'Decision', 'Level Identified At'])
@@ -4268,7 +4269,7 @@ def dr_list_export(request):
 		for dr_request in qs:
 			sample = dr_request.sample
 			patient = sample.patient if sample else None
-			sheet.append([dr_request.barcode or (sample.barcode2 if sample else '') or '', sample.barcode if sample else '', sample.form_number if sample else '', sample.facility_reference if sample else '', sample.get_sample_type_display() if sample and sample.sample_type else '', sample.facility.facility if sample and sample.facility else '', patient.hep_number if patient else '', sample.result.result_alphanumeric if sample and hasattr(sample, 'result') and sample.result else '', dr_request.get_decision_display() if dr_request.decision else 'Pending', dr_request.get_level_identified_at_display() if dr_request.level_identified_at else ''])
+			sheet.append([dr_request.barcode or (sample.barcode2 if sample else '') or '', sample.barcode if sample else '', sample.form_number if sample else '', sample.facility_reference if sample else '', sample.get_sample_type_display() if sample and sample.sample_type else '', sample.facility.facility if sample and sample.facility else '', patient.hep_number if patient else '', result_utils.format_result_for_display(sample.result) if sample and hasattr(sample, 'result') and sample.result else '', dr_request.get_decision_display() if dr_request.decision else 'Pending', dr_request.get_level_identified_at_display() if dr_request.level_identified_at else ''])
 	output = io.BytesIO()
 	workbook.save(output)
 	output.seek(0)

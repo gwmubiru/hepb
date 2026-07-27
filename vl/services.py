@@ -1078,7 +1078,7 @@ def release_worksheet_sample(ws_id, choice, user, comments=''):
 			authorised_by_id=ws.authoriser_id,
 			sample_id=ws.sample_id,
 			test_by_id=ws.tester_id,
-			suppressed=ws.suppressed or 0,
+			suppressed=result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed or 0),
 			authorised=True,
 			result_upload_date=datetime.now(),
 			worksheet_sample_id=ws.id,
@@ -1092,6 +1092,7 @@ def release_worksheet_sample(ws_id, choice, user, comments=''):
 		result.result1 = panel_results.get('result1') or ws.result_alphanumeric or ''
 		result.result2 = panel_results.get('result2') or ''
 		result.result3 = panel_results.get('result3') or ''
+		result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed or 0)
 		result.authorised = True
 		result.authorised_at = datetime.now()
 		result.authorised_by_id = ws.authoriser_id or vl_user_id
@@ -1213,7 +1214,10 @@ def save_upload_result(result, multiplier, machine_type, instrument_id, user, ac
 			authorised_by_id=get_vl_user_id(user),
 			test_by_id=get_vl_user_id(user),
 			sample_id=sample.id,
-			suppressed=result_dict.get('suppressed') or 0,
+			suppressed=result_utils.get_suppressed_for_result(
+				result_dict.get('alphanumeric_result'),
+				result_dict.get('suppressed') or 0
+			),
 			supression_cut_off_id=result_dict.get('supression_cut_off'),
 			has_low_level_viramia=result_dict.get('has_low_level_viramia'),
 			result_alphanumeric=result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result')),

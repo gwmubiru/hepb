@@ -1,4 +1,5 @@
 {% extends "home/layout.html" %}
+{% load form_tags %}
 {% load static %}
 
 {% block css %}
@@ -57,7 +58,7 @@
 								{% elif sample.result.repeat_test == 3 %}	
 								Could be rescheduled in Auth window
 								{% else %}
-								{{ sample.result.result_alphanumeric }}
+								{{ sample.result|result_display }}
 								{% endif %}
 							</td>
 							

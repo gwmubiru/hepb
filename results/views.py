@@ -145,7 +145,10 @@ def store_result(machine_type, sample, result, multiplier, user, test_date,test=
 		sample_result.result_numeric = result_dict.get('numeric_result')
 		sample_result.result_alphanumeric = result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
 		sample_result.result_type = result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE)
-		sample_result.suppressed = result_dict.get('suppressed')
+		sample_result.suppressed = result_utils.get_suppressed_for_result(
+			result_dict.get('alphanumeric_result'),
+			result_dict.get('suppressed')
+		)
 		sample_result.supression_cut_off = result_dict.get('supression_cut_off')
 		sample_result.method = machine_type
 
@@ -437,7 +440,10 @@ def save_upload_result(result, multiplier,machine_type,instrument_id,user, activ
 		result.authorised_by_id = user.id
 		result.test_by_id = user.id
 		result.sample_id = sample.id
-		result.suppressed = result_dict.get('suppressed')
+		result.suppressed = result_utils.get_suppressed_for_result(
+			result_dict.get('alphanumeric_result'),
+			result_dict.get('suppressed')
+		)
 		result.supression_cut_off_id = result_dict.get('supression_cut_off')
 		result.has_low_level_viramia = result_dict.get('has_low_level_viramia')
 		result.save(using=db_alias)
@@ -977,7 +983,7 @@ def release_retain_result(ws, choice,comments,completed, user, reason = '', db_a
 		result.authorised_by_id = _clean_autopk_value(ws.authoriser_id)
 		result.test_by_id = _clean_autopk_value(ws.tester_id)
 		result.sample_id = _clean_autopk_value(ws.sample_id)
-		result.suppressed = ws.suppressed
+		result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed)
 		result.worksheet_sample_id = _clean_autopk_value(ws.id)
 		result.supression_cut_off_id = _clean_autopk_value(ws.supression_cut_off_id)
 		result.has_low_level_viramia = ws.has_low_level_viramia
@@ -1405,7 +1411,7 @@ def force_create_result(request):
 		result.sample_id = row[1]
 		result.repeat_test = row[2]
 		result.authorised = row[3]
-		result.suppressed = row[4]
+		result.suppressed = result_utils.get_suppressed_for_result(row[8], row[4])
 		result.method =  row[5]
 		result.test_by_id = row[6]
 		result.result_numeric =row[7]

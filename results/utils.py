@@ -9,7 +9,13 @@ from django.core.exceptions import ObjectDoesNotExist
 
 RESULT_TYPE_QUANTITATIVE = 1
 RESULT_TYPE_QUALITATIVE = 2
+RESULT_TYPE_MULTIPLEX = 3
 PANEL_RESULT_LABELS = ('HIV', 'HBV', 'HCV')
+PANEL_RESULT_FIELDS_BY_PROGRAM = {
+	'1': 'result2',  # HepB/HBV
+	'2': 'result1',  # HepC/HCV
+	'3': 'result3',  # HIV VL
+}
 
 
 def format_panel_result(hiv_result, hbv_result, hcv_result):
@@ -41,6 +47,58 @@ def get_panel_result_fields(result):
 	}
 
 
+def _normalized_result_value(value):
+	return str(value).strip() if value is not None else ''
+
+
+def is_panel_result_record(result):
+	return (
+		result is not None
+		and int(getattr(result, 'result_type', 0) or 0) == RESULT_TYPE_MULTIPLEX
+		and bool(_normalized_result_value(getattr(result, 'result1', '')))
+		and bool(getattr(result, 'result2', '') or '')
+		and bool(getattr(result, 'result3', '') or '')
+		and _normalized_result_value(getattr(result, 'result_alphanumeric', '')) == _normalized_result_value(getattr(result, 'result1', ''))
+	)
+
+
+def get_sample_program_code(sample):
+	if sample is None:
+		return ''
+	program_code = getattr(sample, 'program_code', None)
+	if program_code:
+		return str(program_code)
+	envelope = getattr(sample, 'envelope', None)
+	if envelope is not None and getattr(envelope, 'program_code', None):
+		return str(envelope.program_code)
+	return ''
+
+
+def get_result_for_program(result, sample=None, program_code=None):
+	if result is None:
+		return ''
+	if is_panel_result_record(result):
+		program_code = str(program_code or get_sample_program_code(sample) or get_sample_program_code(getattr(result, 'sample', None)))
+		field_name = PANEL_RESULT_FIELDS_BY_PROGRAM.get(program_code)
+		if field_name:
+			value = getattr(result, field_name, '') or ''
+			if value:
+				return value
+	return getattr(result, 'result_alphanumeric', '') or ''
+
+
+def format_result_for_display(result):
+	if result is None:
+		return ''
+	if is_panel_result_record(result):
+		return format_panel_result(
+			getattr(result, 'result3', '') or '',
+			getattr(result, 'result2', '') or '',
+			getattr(result, 'result1', '') or '',
+		)
+	return getattr(result, 'result_alphanumeric', '') or ''
+
+
 def get_final_result_alphanumeric(result):
 	panel_results = get_panel_result_fields(result)
 	if is_panel_result(result):
@@ -49,9 +107,17 @@ def get_final_result_alphanumeric(result):
 
 
 def get_result_type(result):
-	if is_panel_result(result) or get_qualitative_result(result):
+	if is_panel_result(result):
+		return RESULT_TYPE_MULTIPLEX
+	if get_qualitative_result(result):
 		return RESULT_TYPE_QUALITATIVE
 	return RESULT_TYPE_QUANTITATIVE
+
+
+def get_suppressed_for_result(result, suppressed):
+	if is_panel_result(result):
+		return 0
+	return suppressed
 
 
 def repeat_test(machine_type, result, flag):
@@ -113,11 +179,11 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 			return {
 				'numeric_result': 0,
 				'alphanumeric_result': result,
-				'suppressed': 3,
+				'suppressed': get_suppressed_for_result(result, 3),
 				'rep_test': 3 if 'Failed' in result else 2,
 				'has_low_level_viramia': 0,
 				'supression_cut_off': None,
-				'result_type': RESULT_TYPE_QUALITATIVE,
+				'result_type': RESULT_TYPE_MULTIPLEX,
 			}
 		qualitative_result = get_qualitative_result(result)
 		if qualitative_result:

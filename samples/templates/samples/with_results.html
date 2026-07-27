@@ -64,7 +64,7 @@
 						{{ s.reception_hep_number }}
 					{% endif %}
 				</td>	
-				<td>{{ s.result.result_alphanumeric }}</td>
+				<td>{{ s.result|result_display }}</td>
 					
 				</tr>
 				{% endfor %}

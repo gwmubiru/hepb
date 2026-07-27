@@ -4,6 +4,7 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 
 from samples.data_table_views import ListJson
+from samples.reporting import HEP_HEADERS, HEPC_HEADERS, VL_QUERY, _hep_query
 from samples.views import (
 	_resolve_tracking_code,
 	_resolve_tracking_code_for_sample,
@@ -254,3 +255,56 @@ class VLTrackingCodeResolutionTests(SimpleTestCase):
 
 		self.assertEqual(tracking_code, new_tracking_code)
 		get_or_create.assert_called_once_with('VISIBLE-CODE', user, 4)
+
+
+class HepCReportColumnTests(SimpleTestCase):
+	def test_hepc_report_renames_result_and_adds_panel_columns(self):
+		result_index = HEPC_HEADERS.index('hepc_result')
+
+		self.assertEqual(HEPC_HEADERS[result_index:result_index + 3], [
+			'hepc_result',
+			'hiv_result',
+			'hepb_result',
+		])
+		self.assertNotIn('Result', HEPC_HEADERS)
+		self.assertNotIn('HCV Result', HEPC_HEADERS)
+
+	def test_hepb_report_keeps_existing_result_headers(self):
+		result_index = HEP_HEADERS.index('Result')
+
+		self.assertEqual(HEP_HEADERS[result_index:result_index + 4], [
+			'Result',
+			'HCV Result',
+			'HBV Result',
+			'HIV Result',
+		])
+
+	def test_hepb_query_uses_hbv_for_generic_result_only_when_panel(self):
+		query = _hep_query(1)
+
+		self.assertIn('r.result_type = 3', query)
+		self.assertIn("COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '')", query)
+		self.assertIn('THEN r.result2 ELSE r.result_alphanumeric END as `Result`', query)
+		self.assertIn('THEN r.result1 ELSE NULL END as `HCV Result`', query)
+		self.assertIn('THEN r.result2 ELSE NULL END as `HBV Result`', query)
+		self.assertIn('THEN r.result3 ELSE NULL END as `HIV Result`', query)
+		self.assertNotIn('r.result_type = 2 AND COALESCE', query)
+
+	def test_hepc_query_uses_panel_columns_and_falls_back_to_main_result(self):
+		query = _hep_query(2)
+
+		self.assertIn('as `hepc_result`', query)
+		self.assertIn('as `hiv_result`', query)
+		self.assertIn('as `hepb_result`', query)
+		self.assertIn('r.result_type = 3', query)
+		self.assertIn("COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '')", query)
+		self.assertIn('ELSE r.result_alphanumeric END as `hepc_result`', query)
+		self.assertNotIn('r.result_type = 2 AND COALESCE', query)
+
+	def test_vl_export_panel_columns_only_use_multiplex_result_type(self):
+		self.assertIn('r.result_type = 3', VL_QUERY)
+		self.assertIn("COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '')", VL_QUERY)
+		self.assertIn('as hcv_result', VL_QUERY)
+		self.assertIn('as hbv_result', VL_QUERY)
+		self.assertIn('as hiv_result', VL_QUERY)
+		self.assertNotIn('r.result_type = 2 AND COALESCE', VL_QUERY)

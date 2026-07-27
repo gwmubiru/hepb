@@ -1,4 +1,5 @@
 import pandas
+from types import SimpleNamespace
 
 from django.test import SimpleTestCase
 
@@ -94,13 +95,73 @@ class CobasPanelResultTests(SimpleTestCase):
 		result = result_utils.get_result(panel_result, 1, 'C', 0, 'P', active_program_code='1')
 
 		self.assertEqual(result['alphanumeric_result'], panel_result)
-		self.assertEqual(result['result_type'], result_utils.RESULT_TYPE_QUALITATIVE)
+		self.assertEqual(result['result_type'], result_utils.RESULT_TYPE_MULTIPLEX)
+		self.assertEqual(result['suppressed'], 0)
 		self.assertEqual(result_utils.get_final_result_alphanumeric(panel_result), 'Target Not Detected')
 		self.assertEqual(result_utils.get_panel_result_fields(panel_result), {
 			'result1': 'Target Not Detected',
 			'result2': 'Negative',
 			'result3': 'Positive',
 		})
+
+	def test_panel_result_suppression_overrides_existing_suppressed_value(self):
+		panel_result = 'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+
+		self.assertEqual(result_utils.get_suppressed_for_result(panel_result, 3), 0)
+		self.assertEqual(result_utils.get_suppressed_for_result('Positive', 2), 2)
+
+	def test_non_panel_display_ignores_historical_quantitative_result_columns(self):
+		result = SimpleNamespace(
+			result_type=result_utils.RESULT_TYPE_QUANTITATIVE,
+			result1='first old quantitative result',
+			result2='second old quantitative result',
+			result3='third old quantitative result',
+			result_alphanumeric='824 IU/ml',
+		)
+
+		self.assertEqual(result_utils.format_result_for_display(result), '824 IU/ml')
+		self.assertEqual(result_utils.get_result_for_program(result, program_code=2), '824 IU/ml')
+
+	def test_non_panel_display_ignores_historical_qualitative_result_columns(self):
+		result = SimpleNamespace(
+			result_type=result_utils.RESULT_TYPE_QUALITATIVE,
+			result1='first old qualitative result',
+			result2='second old qualitative result',
+			result3='third old qualitative result',
+			result_alphanumeric='Positive',
+		)
+
+		self.assertEqual(result_utils.format_result_for_display(result), 'Positive')
+		self.assertEqual(result_utils.get_result_for_program(result, program_code=1), 'Positive')
+
+	def test_panel_display_and_program_results_use_panel_columns_only_for_panel(self):
+		result = SimpleNamespace(
+			result_type=result_utils.RESULT_TYPE_MULTIPLEX,
+			result1='Target Not Detected',
+			result2='Negative',
+			result3='Positive',
+			result_alphanumeric='Target Not Detected',
+		)
+
+		self.assertEqual(result_utils.get_result_for_program(result, program_code=2), 'Target Not Detected')
+		self.assertEqual(result_utils.get_result_for_program(result, program_code=1), 'Negative')
+		self.assertEqual(result_utils.get_result_for_program(result, program_code=3), 'Positive')
+		self.assertEqual(
+			result_utils.format_result_for_display(result),
+			'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+		)
+
+	def test_invalidated_panel_display_uses_final_result(self):
+		result = SimpleNamespace(
+			result_type=result_utils.RESULT_TYPE_MULTIPLEX,
+			result1='Target Not Detected',
+			result2='Negative',
+			result3='Positive',
+			result_alphanumeric='Failed',
+		)
+
+		self.assertEqual(result_utils.format_result_for_display(result), 'Failed')
+		self.assertEqual(result_utils.get_result_for_program(result, program_code=2), 'Failed')
 
 	def test_old_quantitative_result_type_stays_quantitative(self):
 		result = result_utils.get_result('8.24e+002 IU/ml', 1, 'C', 0, None, active_program_code='1')
