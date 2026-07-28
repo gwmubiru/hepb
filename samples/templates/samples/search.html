@@ -227,7 +227,7 @@
 								<tr>
 									<td>Processed Result</td>
 									<td>
-										{{ s.result|result_display }}
+										{{ s.result|processed_result_display }}
 										{% if s.result.repeat_test == 0 %}
 											(Already rescheduled)
 										{% elif s.result.repeat_test == 1 %}
@@ -283,8 +283,10 @@
 				</td>
 				<td>
 					{% if remove_sample or switch_sample%}
-					 	{% if remove_sample and s.is_data_entered == 0 and s.stage < 2 and s.worksheetsample_set.count < 2 %}
-							<label><input type='radio'  name='removals{{ s.pk }}' class='removals' sample-pk="{{ s.pk }}" value='removed'> remove</label>
+						{% if remove_sample and s.stage == 0 %}
+							<button type="button" class="btn btn-xs btn-default removals" sample-pk="{{ s.pk }}" title="Remove sample" aria-label="Remove sample">
+								<span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
+							</button>
 						{% endif %}
 						{% if switch_sample %}
 							<label><input type='text'  name='switch_samples{{ s.pk }}' class='switch_samples' sample-pk="{{ s.pk }}" value=''> Save</label>
@@ -431,7 +433,7 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-	var oTable = $('#tab_id').dataTable({
+	var table = $('#tab_id').DataTable({
 		"processing": true,
 		"paging":false,
 		"order": [[ 3, "asc" ]],
@@ -451,16 +453,23 @@ $(document).ready(function() {
 	 });
 
 	$(".removals").on("click",function(){
-	 	alert('disabled for now');
-	 	var sample_pk = $(this).attr('sample-pk');
+		var $button = $(this);
+		var $row = $button.closest("tr");
+		var sample_pk = $button.attr('sample-pk');
 	 	
  		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk};
+		$button.prop("disabled", true);
  		$.post("/samples/remove/"+sample_pk+"/", params).done(function( data ) {
- 				var row = document.getElementById(sample_pk);
-    		row.parentNode.removeChild(row);
-		    //$("#saved"+params.sample_pk).show();
-		    $('#tab_id').DataTable().row("#12195042").remove().draw();
-
+			if (data && data.success === false) {
+				alert(data.message || 'Failed to remove sample.');
+				$button.prop("disabled", false);
+				return;
+			}
+			table.row($row).remove().draw(false);
+		  }).fail(function(xhr) {
+			var response = xhr.responseJSON || {};
+			alert(response.message || 'Failed to remove sample.');
+			$button.prop("disabled", false);
 		  });
 	 	
 	 });

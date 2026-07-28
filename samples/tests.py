@@ -6,9 +6,11 @@ from django.test import SimpleTestCase
 from samples.data_table_views import ListJson
 from samples.reporting import HEP_HEADERS, HEPC_HEADERS, VL_QUERY, _hep_query
 from samples.views import (
+	SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES,
 	_resolve_tracking_code,
 	_resolve_tracking_code_for_sample,
 	_should_block_tracking_code_facility_mismatch,
+	_return_source_system_sample_to_pending_packaging,
 )
 from vl import services as vl_services
 
@@ -44,6 +46,25 @@ class SampleListSearchFilterTests(SimpleTestCase):
 		qs = self.filter_queryset({'global_search': 'SAMPLE-001'})
 
 		self.assertNotIn(((), {'patient_id__isnull': False}), qs.filter_calls)
+
+
+class SourceSystemSampleRemovalTests(SimpleTestCase):
+	def test_source_system_sample_return_to_pending_packaging_matches_envelope_delete_rule(self):
+		sample = SimpleNamespace(
+			locator_position='01',
+			envelope_id=7,
+			barcode='B2607-2301',
+			date_received='2026-07-28',
+			stage=0,
+		)
+		save_calls = []
+		sample.save = lambda **kwargs: save_calls.append(kwargs)
+
+		_return_source_system_sample_to_pending_packaging(sample)
+
+		for field_name, expected_value in SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES.items():
+			self.assertEqual(getattr(sample, field_name), expected_value)
+		self.assertEqual(save_calls, [{'update_fields': list(SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES.keys())}])
 
 
 class VLSearchAdapterTests(SimpleTestCase):
@@ -258,6 +279,12 @@ class VLTrackingCodeResolutionTests(SimpleTestCase):
 
 
 class HepCReportColumnTests(SimpleTestCase):
+	def test_hep_reports_include_facility_reference_near_form_number(self):
+		self.assertEqual(HEPC_HEADERS[:2], ['Form Number', 'facility_reference'])
+		self.assertEqual(HEP_HEADERS[:2], ['Form Number', 'facility_reference'])
+		self.assertIn('s.facility_reference as `facility_reference`', _hep_query(1))
+		self.assertIn('s.facility_reference as `facility_reference`', _hep_query(2))
+
 	def test_hepc_report_renames_result_and_adds_panel_columns(self):
 		result_index = HEPC_HEADERS.index('hepc_result')
 

@@ -31,6 +31,7 @@ def _zip_file(file_path, archive_name):
 
 HEP_HEADERS_BEFORE_RESULTS = [
 	'Form Number',
+	'facility_reference',
 	'Location ID',
 	'Facility',
 	'District',
@@ -112,6 +113,7 @@ def _hep_query(program_code):
 	return """
 			SELECT
 				s.form_number as `Form Number`,
+				s.facility_reference as `facility_reference`,
 				CONCAT(s.locator_category, e.envelope_number, s.locator_position) as `Location ID`,
 			f.facility as `Facility`,
 			d.district as `District`,
