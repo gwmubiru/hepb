@@ -1064,11 +1064,14 @@ def release_worksheet_sample(ws_id, choice, user, comments=''):
 	if result is None:
 		final_alphanumeric = 'Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
 		result_columns = result_utils.get_result_column_fields(final_alphanumeric if choice == 'invalid' else ws.result_alphanumeric, final_alphanumeric)
+		panel_extra_fields = result_utils.get_panel_result_extra_fields(final_alphanumeric if choice == 'invalid' else ws.result_alphanumeric)
 		result = VLResult(
 			repeat_test=2,
 			result1=result_columns.get('result1') or '',
 			result2=result_columns.get('result2') or '',
 			result3=result_columns.get('result3') or '',
+			hepb_result=panel_extra_fields.get('hepb_result'),
+			hiv_result=panel_extra_fields.get('hiv_result'),
 			result_alphanumeric=final_alphanumeric,
 			result_type=result_utils.get_result_type(ws.result_alphanumeric),
 			result_numeric=ws.result_numeric,
@@ -1090,9 +1093,12 @@ def release_worksheet_sample(ws_id, choice, user, comments=''):
 		result.result_alphanumeric = 'Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
 		result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
 		result_columns = result_utils.get_result_column_fields(result.result_alphanumeric if choice == 'invalid' else ws.result_alphanumeric, result.result_alphanumeric)
+		panel_extra_fields = result_utils.get_panel_result_extra_fields(result.result_alphanumeric if choice == 'invalid' else ws.result_alphanumeric)
 		result.result1 = result_columns.get('result1') or ''
 		result.result2 = result_columns.get('result2') or ''
 		result.result3 = result_columns.get('result3') or ''
+		result.hepb_result = panel_extra_fields.get('hepb_result')
+		result.hiv_result = panel_extra_fields.get('hiv_result')
 		result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed or 0)
 		result.authorised = True
 		result.authorised_at = datetime.now()
@@ -1203,6 +1209,7 @@ def save_upload_result(result, multiplier, machine_type, instrument_id, user, ac
 			result_dict.get('alphanumeric_result'),
 			result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
 		)
+		panel_extra_fields = result_utils.get_panel_result_extra_fields(result_dict.get('alphanumeric_result'))
 		the_test_date = timezone.now()
 		final_result = VLResult(
 			repeat_test=2,
@@ -1210,6 +1217,8 @@ def save_upload_result(result, multiplier, machine_type, instrument_id, user, ac
 			result1=result_columns.get('result1') or '',
 			result2=result_columns.get('result2') or '',
 			result3=result_columns.get('result3') or '',
+			hepb_result=panel_extra_fields.get('hepb_result'),
+			hiv_result=panel_extra_fields.get('hiv_result'),
 			result_numeric=result_dict.get('numeric_result'),
 			failure_reason='',
 			method=machine_type,

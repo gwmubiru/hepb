@@ -48,12 +48,23 @@ def get_panel_result_fields(result):
 
 def get_result_column_fields(result, final_result=None):
 	final_result = final_result if final_result is not None else get_final_result_alphanumeric(result)
-	if is_panel_result(result):
-		return get_panel_result_fields(result)
 	return {
 		'result1': final_result or result or '',
 		'result2': '',
 		'result3': '',
+	}
+
+
+def get_panel_result_extra_fields(result):
+	if not is_panel_result(result):
+		return {
+			'hepb_result': None,
+			'hiv_result': None,
+		}
+	panel_results = get_panel_result_fields(result)
+	return {
+		'hepb_result': panel_results.get('result2') or None,
+		'hiv_result': panel_results.get('result3') or None,
 	}
 
 
@@ -72,19 +83,16 @@ def is_panel_result_record(result):
 		result is not None
 		and _normalized_int(getattr(result, 'result_type', 0), 0) == RESULT_TYPE_QUALITATIVE
 		and _normalized_int(getattr(result, 'suppressed', None), -1) == 0
-		and bool(_normalized_result_value(getattr(result, 'result1', '')))
-		and bool(_normalized_result_value(getattr(result, 'result2', '')))
-		and bool(_normalized_result_value(getattr(result, 'result3', '')))
-		and _normalized_result_value(getattr(result, 'result_alphanumeric', '')) == _normalized_result_value(getattr(result, 'result1', ''))
+		and bool(_normalized_result_value(getattr(result, 'hepb_result', '')))
+		and bool(_normalized_result_value(getattr(result, 'hiv_result', '')))
 	)
 
 
 def get_panel_result_values(result):
-	hcv_result = getattr(result, 'result_alphanumeric', '') or getattr(result, 'result1', '') or ''
 	return {
-		'result1': hcv_result,
-		'result2': getattr(result, 'result2', '') or '',
-		'result3': getattr(result, 'result3', '') or '',
+		'result1': getattr(result, 'result_alphanumeric', '') or getattr(result, 'result1', '') or '',
+		'result2': getattr(result, 'hepb_result', '') or '',
+		'result3': getattr(result, 'hiv_result', '') or '',
 	}
 
 
@@ -124,6 +132,18 @@ def format_result_for_display(result):
 			panel_results.get('result2', '') or '',
 			panel_results.get('result1', '') or '',
 		)
+	return getattr(result, 'result_alphanumeric', '') or ''
+
+
+def get_latest_result_value(result):
+	if result is None:
+		return ''
+	if is_panel_result_record(result):
+		return format_result_for_display(result)
+	for field_name in ('result5', 'result4', 'result3', 'result2', 'result1'):
+		value = getattr(result, field_name, '') or ''
+		if value:
+			return value
 	return getattr(result, 'result_alphanumeric', '') or ''
 
 
@@ -205,7 +225,7 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 			return {
 				'numeric_result': 0,
 				'alphanumeric_result': result,
-				'suppressed': get_suppressed_for_result(result, 3),
+				'suppressed': 0,
 				'rep_test': 3 if 'Failed' in result else 2,
 				'has_low_level_viramia': 0,
 				'supression_cut_off': None,

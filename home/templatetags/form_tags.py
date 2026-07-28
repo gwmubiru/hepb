@@ -4,8 +4,19 @@ from django import template
 from django.utils.safestring import mark_safe
 from samples.models import Sample, Verification
 from home import utils
+from results import utils as result_utils
 
 register = template.Library()
+
+
+@register.filter
+def result_display(result):
+	return result_utils.format_result_for_display(result)
+
+
+@register.filter
+def latest_result_display(result):
+	return result_utils.get_latest_result_value(result)
 
 
 @register.simple_tag

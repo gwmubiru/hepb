@@ -34,6 +34,8 @@ class Result(models.Model):
 	result_numeric = models.IntegerField(null=True)
 	worksheet_sample = models.OneToOneField(worksheets.WorksheetSample, on_delete=models.CASCADE)
 	result_alphanumeric = models.TextField()
+	hepb_result = models.CharField(max_length=50, null=True, blank=True)
+	hiv_result = models.CharField(max_length=50, null=True, blank=True)
 	result_type = models.PositiveSmallIntegerField(default=1, choices=((1, 'Quantitative'), (2, 'Qualitative')))
 	failure_reason = models.TextField(null=True)
 	method = models.CharField(max_length=1, null=True, choices=METHOD_CHOICES)

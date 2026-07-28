@@ -284,13 +284,13 @@ class HepCReportColumnTests(SimpleTestCase):
 
 		self.assertIn('r.result_type = 2', query)
 		self.assertIn('r.suppressed = 0', query)
-		self.assertIn('THEN r.result2 ELSE r.result_alphanumeric END as `Result`', query)
+		self.assertIn("COALESCE(r.hepb_result, '') <> ''", query)
+		self.assertIn("COALESCE(r.hiv_result, '') <> ''", query)
+		self.assertIn('THEN r.hepb_result ELSE r.result_alphanumeric END as `Result`', query)
 		self.assertIn('THEN r.result_alphanumeric ELSE NULL END as `HCV Result`', query)
-		self.assertIn('THEN r.result2 ELSE NULL END as `HBV Result`', query)
-		self.assertIn('THEN r.result3 ELSE NULL END as `HIV Result`', query)
+		self.assertIn('THEN r.hepb_result ELSE NULL END as `HBV Result`', query)
+		self.assertIn('THEN r.hiv_result ELSE NULL END as `HIV Result`', query)
 		self.assertNotIn('r.result_type = 3', query)
-		self.assertNotIn('r.hepb_result', query)
-		self.assertNotIn('r.hiv_result', query)
 
 	def test_hepc_query_uses_panel_columns_and_falls_back_to_main_result(self):
 		query = _hep_query(2)
@@ -301,18 +301,14 @@ class HepCReportColumnTests(SimpleTestCase):
 		self.assertIn("r.result_alphanumeric as `hepc_result`", query)
 		self.assertIn('r.result_type = 2', query)
 		self.assertIn('r.suppressed = 0', query)
-		self.assertIn('THEN r.result3 ELSE NULL END as `hiv_result`', query)
-		self.assertIn('THEN r.result2 ELSE NULL END as `hepb_result`', query)
+		self.assertIn('THEN r.hiv_result ELSE NULL END as `hiv_result`', query)
+		self.assertIn('THEN r.hepb_result ELSE NULL END as `hepb_result`', query)
 		self.assertNotIn('r.result_type = 3', query)
-		self.assertNotIn('r.hepb_result', query)
-		self.assertNotIn('r.hiv_result', query)
 
-	def test_vl_export_panel_columns_use_result_type_and_existing_result_columns(self):
+	def test_vl_export_panel_columns_use_result_type_and_dedicated_result_columns(self):
 		self.assertIn('r.result_type = 2', VL_QUERY)
 		self.assertIn('r.suppressed = 0', VL_QUERY)
-		self.assertIn('THEN r.result2 ELSE NULL END as hbv_result', VL_QUERY)
-		self.assertIn('THEN r.result3 ELSE NULL END as hiv_result', VL_QUERY)
+		self.assertIn('THEN r.hepb_result ELSE NULL END as hbv_result', VL_QUERY)
+		self.assertIn('THEN r.hiv_result ELSE NULL END as hiv_result', VL_QUERY)
 		self.assertIn('as hcv_result', VL_QUERY)
 		self.assertNotIn('r.result_type = 3', VL_QUERY)
-		self.assertNotIn('r.hepb_result', VL_QUERY)
-		self.assertNotIn('r.hiv_result', VL_QUERY)

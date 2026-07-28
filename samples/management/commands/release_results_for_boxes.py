@@ -25,9 +25,12 @@ class Command(BaseCommand):
 				result.result_numeric = ws.result_numeric
 				result.result_alphanumeric = result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
 				result_columns = result_utils.get_result_column_fields(ws.result_alphanumeric, result.result_alphanumeric)
+				panel_extra_fields = result_utils.get_panel_result_extra_fields(ws.result_alphanumeric)
 				result.result1 = result_columns.get('result1') or ''
 				result.result2 = result_columns.get('result2') or ''
 				result.result3 = result_columns.get('result3') or ''
+				result.hepb_result = panel_extra_fields.get('hepb_result')
+				result.hiv_result = panel_extra_fields.get('hiv_result')
 				result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
 				result.method = ws.method
 				result.test_date = ws.test_date
