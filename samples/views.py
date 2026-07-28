@@ -47,6 +47,13 @@ DUPLICATE_BARCODE_MESSAGE = "This position has already been received. Enter a di
 DR_BOX_NUMBER_RE = re.compile(r'^DR(\d{4})(\d{4})$')
 DR_BOX_POSITION_RE = re.compile(r'^(DR\d{8})/(\d{3})$')
 PLACEHOLDER_TRACKING_CODE_VALUES = {'none', 'non'}
+SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES = {
+	'locator_position': None,
+	'envelope_id': None,
+	'barcode': None,
+	'date_received': None,
+	'stage': 25,
+}
 
 
 def _envelope_capacity(sample_type):
@@ -63,6 +70,12 @@ def _format_sample_barcode(envelope_number, locator_position):
 
 def _can_manage_envelope(envelope):
 	return not envelope.sample_set.exclude(stage=0).exists()
+
+
+def _return_source_system_sample_to_pending_packaging(sample):
+	for field_name, value in SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES.items():
+		setattr(sample, field_name, value)
+	sample.save(update_fields=builtins.list(SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES.keys()))
 
 
 def _normalize_dr_box_number(value):
@@ -2537,27 +2550,30 @@ def verify(request, sample_id):
 	else:
 		return HttpResponse('not allowed')
 
-@permission_required('samples.add_verification', login_url='/login/')
+@transaction.atomic
 def remove(request, sample_id):
-	sample = Sample.objects.get(pk=sample_id)
+	if request.method != 'POST':
+		return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+	sample = get_object_or_404(Sample.objects.select_for_update(), pk=sample_id)
+	if sample.stage != 0:
+		return JsonResponse({'success': False, 'message': 'Only stage 0 samples can be removed.'}, status=400)
 	#remove sample id from identifiers and worksheet samples
 	#connections['default'].cursor().execute("UPDATE vl_sample_identifiers SET sample_id=null WHERE sample_id=%s",[sample.id])
 	connections['default'].cursor().execute("DELETE from vl_worksheet_samples WHERE sample_id=%s",[sample.id])
 	#now remove sample
 	#return envelope to lab
-	sample.envelope.is_lab_completed = 0
-	sample.envelope.processed_by_id = None
-	sample.envelope.save()
-	ws = WorksheetSample.objects.filter(sample_id = sample.id).first()
-	#is sample is hie, only remove from envelope otherwise delete
-	if sample.facility_reference:
-		sample.locator_position = None
-		sample.locator_category = None
-		sample.date_received = None
-		sample.envelope_id = None
-		sample.save()
+	envelope = sample.envelope
+	if envelope:
+		envelope.is_lab_completed = 0
+		envelope.processed_by_id = None
+		envelope.save()
+	#source-system samples are returned to pending packaging, others are deleted
+	if sample.source_system_id:
+		_return_source_system_sample_to_pending_packaging(sample)
+		return JsonResponse({'success': True, 'message': 'Source-system sample moved to pending packaging.'})
 	else:
 		sample.delete()
+		return JsonResponse({'success': True, 'message': 'Sample removed.'})
 
 @permission_required('samples.delete_sampleapprovalstats', login_url='/login/')
 @transaction.atomic
@@ -3112,12 +3128,7 @@ def manage_envelope_delete(request, envelope_id):
 	if samples.exclude(stage=0).exists():
 		return JsonResponse({'success': False, 'message': 'Only envelopes with stage 0 samples can be deleted.'}, status=400)
 
-	detached_count = samples.filter(source_system_id__isnull=False).update(
-		locator_position=None,
-		envelope_id=None,
-		barcode=None,
-		stage=25,
-	)
+	detached_count = samples.filter(source_system_id__isnull=False).update(**SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES)
 	deleted_count = samples.count()
 	envelope.delete()
 	return JsonResponse({

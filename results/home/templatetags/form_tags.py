@@ -19,6 +19,11 @@ def latest_result_display(result):
 	return result_utils.get_latest_result_value(result)
 
 
+@register.filter
+def processed_result_display(result):
+	return result_utils.format_processed_result_for_display(result)
+
+
 @register.simple_tag
 def input(name="", value="", more="{}"):
 	more = ast.literal_eval(more)

@@ -89,9 +89,9 @@ def _interpret_cobas_panel_target(row, target_column, positive_result, negative_
 
 def _interpret_cobas_panel_result(row):
 	return result_utils.format_panel_result(
-		_interpret_cobas_panel_target(row, 'Target 1', 'Positive', 'Negative'),
-		_interpret_cobas_panel_target(row, 'Target 2', 'Positive', 'Negative'),
 		_interpret_cobas_panel_target(row, 'Target 3', 'Detected', 'Target Not Detected'),
+		_interpret_cobas_panel_target(row, 'Target 2', 'Positive', 'Negative'),
+		_interpret_cobas_panel_target(row, 'Target 1', 'Positive', 'Negative'),
 	)
 
 def get_anomalies(request, machine_type):

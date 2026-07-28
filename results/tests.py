@@ -70,9 +70,9 @@ class CobasPanelResultTests(SimpleTestCase):
 			'Target 3': 'HCV Reactive',
 		})
 
-		self.assertEqual(_interpret_cobas_panel_result(row), 'HIV: Positive; HBV: Negative; HCV: Detected')
+		self.assertEqual(_interpret_cobas_panel_result(row), 'HCV: Detected; HBV: Negative; HIV: Positive')
 		self.assertTrue(_is_cobas_panel_result_row(row))
-		self.assertEqual(_get_cobas_result_for_row(row), 'HIV: Positive; HBV: Negative; HCV: Detected')
+		self.assertEqual(_get_cobas_result_for_row(row), 'HCV: Detected; HBV: Negative; HIV: Positive')
 
 	def test_specific_test_value_is_not_panel_just_because_targets_are_populated(self):
 		reader = pandas.DataFrame([{
@@ -92,7 +92,7 @@ class CobasPanelResultTests(SimpleTestCase):
 		self.assertEqual(result['result_type'], result_utils.RESULT_TYPE_QUALITATIVE)
 
 	def test_panel_result_is_kept_for_review_and_split_for_final_result_columns(self):
-		panel_result = 'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+		panel_result = 'HCV: Target Not Detected; HBV: Negative; HIV: Positive'
 		result = result_utils.get_result(panel_result, 1, 'C', 0, 'P', active_program_code='1')
 
 		self.assertEqual(result['alphanumeric_result'], panel_result)
@@ -106,13 +106,13 @@ class CobasPanelResultTests(SimpleTestCase):
 		})
 
 	def test_panel_result_suppression_overrides_existing_suppressed_value(self):
-		panel_result = 'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+		panel_result = 'HCV: Target Not Detected; HBV: Negative; HIV: Positive'
 
 		self.assertEqual(result_utils.get_suppressed_for_result(panel_result, 3), 0)
 		self.assertEqual(result_utils.get_suppressed_for_result('Positive', 2), 2)
 
 	def test_panel_result_does_not_evaluate_suppression_cutoff(self):
-		panel_result = 'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+		panel_result = 'HCV: Target Not Detected; HBV: Negative; HIV: Positive'
 
 		with patch('results.utils.utils.getSupressionCutOff', side_effect=AssertionError('cutoff should not be evaluated')):
 			result = result_utils.get_result(panel_result, 1, 'C', 0, 'P', active_program_code='1')
@@ -161,12 +161,44 @@ class CobasPanelResultTests(SimpleTestCase):
 		self.assertEqual(result_utils.get_result_for_program(result, program_code=3), 'Positive')
 		self.assertEqual(
 			result_utils.format_result_for_display(result),
-			'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+			'HCV: Target Not Detected; HBV: Negative; HIV: Positive'
 		)
 		self.assertEqual(
 			result_utils.get_latest_result_value(result),
-			'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+			'HCV: Target Not Detected; HBV: Negative; HIV: Positive'
 		)
+
+	def test_processed_result_display_shows_mpx_values_for_type_two_without_suppression_gate(self):
+		result = SimpleNamespace(
+			result_type=result_utils.RESULT_TYPE_QUALITATIVE,
+			suppressed=3,
+			result1='historical first result',
+			result2='historical second result',
+			result3='historical third result',
+			result_alphanumeric='Target Not Detected',
+			hepb_result='Negative',
+			hiv_result='Positive',
+		)
+
+		self.assertEqual(result_utils.format_result_for_display(result), 'Target Not Detected')
+		self.assertEqual(
+			result_utils.format_processed_result_for_display(result),
+			'HCV: Target Not Detected; HBV: Negative; HIV: Positive'
+		)
+
+	def test_processed_result_display_leaves_non_mpx_qualitative_result_alone(self):
+		result = SimpleNamespace(
+			result_type=result_utils.RESULT_TYPE_QUALITATIVE,
+			suppressed=0,
+			result1='first old qualitative result',
+			result2='second old qualitative result',
+			result3='third old qualitative result',
+			result_alphanumeric='Positive',
+			hepb_result='',
+			hiv_result='',
+		)
+
+		self.assertEqual(result_utils.format_processed_result_for_display(result), 'Positive')
 
 	def test_invalidated_panel_display_uses_final_result(self):
 		result = SimpleNamespace(
@@ -184,7 +216,7 @@ class CobasPanelResultTests(SimpleTestCase):
 		self.assertEqual(result_utils.get_result_for_program(result, program_code=2), 'Failed')
 
 	def test_panel_result_column_fields_keep_hiv_and_hepb_separate(self):
-		panel_result = 'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+		panel_result = 'HCV: Target Not Detected; HBV: Negative; HIV: Positive'
 
 		self.assertEqual(result_utils.get_result_column_fields(panel_result, 'Target Not Detected'), {
 			'result1': 'Target Not Detected',

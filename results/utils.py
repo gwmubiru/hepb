@@ -9,7 +9,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 RESULT_TYPE_QUANTITATIVE = 1
 RESULT_TYPE_QUALITATIVE = 2
-PANEL_RESULT_LABELS = ('HIV', 'HBV', 'HCV')
+PANEL_RESULT_LABELS = ('HCV', 'HBV', 'HIV')
 PANEL_RESULT_FIELDS_BY_PROGRAM = {
 	'1': 'result2',  # HepB/HBV
 	'2': 'result1',  # HepC/HCV
@@ -17,8 +17,8 @@ PANEL_RESULT_FIELDS_BY_PROGRAM = {
 }
 
 
-def format_panel_result(hiv_result, hbv_result, hcv_result):
-	return 'HIV: {0}; HBV: {1}; HCV: {2}'.format(hiv_result, hbv_result, hcv_result)
+def format_panel_result(hcv_result, hbv_result, hiv_result):
+	return 'HCV: {0}; HBV: {1}; HIV: {2}'.format(hcv_result, hbv_result, hiv_result)
 
 
 def is_panel_result(result):
@@ -88,6 +88,18 @@ def is_panel_result_record(result):
 	)
 
 
+def is_panel_result_record_for_processed_display(result):
+	return (
+		result is not None
+		and _normalized_int(getattr(result, 'result_type', 0), 0) == RESULT_TYPE_QUALITATIVE
+		and (
+			bool(_normalized_result_value(getattr(result, 'hepb_result', '')))
+			or bool(_normalized_result_value(getattr(result, 'hiv_result', '')))
+			or is_panel_result(getattr(result, 'result_alphanumeric', ''))
+		)
+	)
+
+
 def get_panel_result_values(result):
 	return {
 		'result1': getattr(result, 'result_alphanumeric', '') or getattr(result, 'result1', '') or '',
@@ -128,11 +140,25 @@ def format_result_for_display(result):
 	if is_panel_result_record(result):
 		panel_results = get_panel_result_values(result)
 		return format_panel_result(
-			panel_results.get('result3', '') or '',
-			panel_results.get('result2', '') or '',
 			panel_results.get('result1', '') or '',
+			panel_results.get('result2', '') or '',
+			panel_results.get('result3', '') or '',
 		)
 	return getattr(result, 'result_alphanumeric', '') or ''
+
+
+def format_processed_result_for_display(result):
+	if result is None:
+		return ''
+	if is_panel_result_record_for_processed_display(result):
+		result_alphanumeric = getattr(result, 'result_alphanumeric', '') or ''
+		panel_results = get_panel_result_fields(result_alphanumeric) if is_panel_result(result_alphanumeric) else get_panel_result_values(result)
+		return format_panel_result(
+			panel_results.get('result1', '') or '',
+			panel_results.get('result2', '') or '',
+			panel_results.get('result3', '') or '',
+		)
+	return format_result_for_display(result)
 
 
 def get_latest_result_value(result):
