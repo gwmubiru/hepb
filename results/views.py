@@ -131,17 +131,33 @@ def store_result(machine_type, sample, result, multiplier, user, test_date,test=
 	if sample:
 		sample_result, sr_created = Result.objects.get_or_create(sample=sample)
 		result_dict = result_utils.get_result(result, multiplier,machine_type, sample.sample_type)
-		result_columns = result_utils.get_result_column_fields(
-			result_dict.get('alphanumeric_result'),
-			result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
-		)
-		sample_result.result1 = result_columns.get('result1') or ''
-		sample_result.result2 = result_columns.get('result2') or ''
-		sample_result.result3 = result_columns.get('result3') or ''
+		if result_utils.is_panel_result(result_dict.get('alphanumeric_result')):
+			result_columns = result_utils.get_result_column_fields(
+				result_dict.get('alphanumeric_result'),
+				result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
+			)
+			sample_result.result1 = result_columns.get('result1') or ''
+			sample_result.result2 = ''
+			sample_result.result3 = ''
+			sample_result.result4 = ''
+			sample_result.result5 = ''
+		elif sample_result.result1 == '':
+			sample_result.result1 = result
+		elif sample_result.result2 == '':
+			sample_result.result2 = result
+		elif sample_result.result3 == '':
+			sample_result.result3 = result
+		elif sample_result.result4 == '':
+			sample_result.result4 = result
+		else:
+			sample_result.result5 = result
+		panel_extra_fields = result_utils.get_panel_result_extra_fields(result_dict.get('alphanumeric_result'))
 		sample_result.repeat_test = result_dict.get('rep_test')
 		sample_result.result_numeric = result_dict.get('numeric_result')
 		sample_result.result_alphanumeric = result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
 		sample_result.result_type = result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE)
+		sample_result.hepb_result = panel_extra_fields.get('hepb_result')
+		sample_result.hiv_result = panel_extra_fields.get('hiv_result')
 		sample_result.suppressed = result_utils.get_suppressed_for_result(
 			result_dict.get('alphanumeric_result'),
 			result_dict.get('suppressed')
@@ -430,6 +446,9 @@ def save_upload_result(result, multiplier,machine_type,instrument_id,user, activ
 		result.result1 = result_columns.get('result1') or ''
 		result.result2 = result_columns.get('result2') or ''
 		result.result3 = result_columns.get('result3') or ''
+		panel_extra_fields = result_utils.get_panel_result_extra_fields(result_dict.get('alphanumeric_result'))
+		result.hepb_result = panel_extra_fields.get('hepb_result')
+		result.hiv_result = panel_extra_fields.get('hiv_result')
 		result.result_numeric = result_dict.get('numeric_result')
 		result.result_alphanumeric = result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
 		result.result_type = result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE)
@@ -968,9 +987,12 @@ def release_retain_result(ws, choice,comments,completed, user, reason = '', db_a
 		result.authorised = 1
 		final_result = 'Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
 		result_columns = result_utils.get_result_column_fields(final_result if choice == 'invalid' else ws.result_alphanumeric, final_result)
+		panel_extra_fields = result_utils.get_panel_result_extra_fields(final_result if choice == 'invalid' else ws.result_alphanumeric)
 		result.result1 = result_columns.get('result1') or ''
 		result.result2 = result_columns.get('result2') or ''
 		result.result3 = result_columns.get('result3') or ''
+		result.hepb_result = panel_extra_fields.get('hepb_result')
+		result.hiv_result = panel_extra_fields.get('hiv_result')
 		result.result_numeric = ws.result_numeric
 		result.failure_reason = reason
 		result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
@@ -1418,9 +1440,12 @@ def force_create_result(request):
 		result.result_numeric =row[7]
 		result.result_alphanumeric = result_utils.get_final_result_alphanumeric(row[8])
 		result_columns = result_utils.get_result_column_fields(row[8], result.result_alphanumeric)
+		panel_extra_fields = result_utils.get_panel_result_extra_fields(row[8])
 		result.result1 = result_columns.get('result1') or ''
 		result.result2 = result_columns.get('result2') or ''
 		result.result3 = result_columns.get('result3') or ''
+		result.hepb_result = panel_extra_fields.get('hepb_result')
+		result.hiv_result = panel_extra_fields.get('hiv_result')
 		result.result_type = result_utils.get_result_type(row[8])
 		result.test_date = row[9]
 		result.authorised_at = row[10]

@@ -1,5 +1,6 @@
 import pandas
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
@@ -110,6 +111,15 @@ class CobasPanelResultTests(SimpleTestCase):
 		self.assertEqual(result_utils.get_suppressed_for_result(panel_result, 3), 0)
 		self.assertEqual(result_utils.get_suppressed_for_result('Positive', 2), 2)
 
+	def test_panel_result_does_not_evaluate_suppression_cutoff(self):
+		panel_result = 'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+
+		with patch('results.utils.utils.getSupressionCutOff', side_effect=AssertionError('cutoff should not be evaluated')):
+			result = result_utils.get_result(panel_result, 1, 'C', 0, 'P', active_program_code='1')
+
+		self.assertEqual(result['suppressed'], 0)
+		self.assertIsNone(result['supression_cut_off'])
+
 	def test_non_panel_display_ignores_historical_quantitative_result_columns(self):
 		result = SimpleNamespace(
 			result_type=result_utils.RESULT_TYPE_QUANTITATIVE,
@@ -139,9 +149,11 @@ class CobasPanelResultTests(SimpleTestCase):
 			result_type=result_utils.RESULT_TYPE_QUALITATIVE,
 			suppressed=0,
 			result1='Target Not Detected',
-			result2='Negative',
-			result3='Positive',
+			result2='historical second result',
+			result3='historical third result',
 			result_alphanumeric='Target Not Detected',
+			hepb_result='Negative',
+			hiv_result='Positive',
 		)
 
 		self.assertEqual(result_utils.get_result_for_program(result, program_code=2), 'Target Not Detected')
@@ -149,6 +161,10 @@ class CobasPanelResultTests(SimpleTestCase):
 		self.assertEqual(result_utils.get_result_for_program(result, program_code=3), 'Positive')
 		self.assertEqual(
 			result_utils.format_result_for_display(result),
+			'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+		)
+		self.assertEqual(
+			result_utils.get_latest_result_value(result),
 			'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
 		)
 
@@ -160,12 +176,40 @@ class CobasPanelResultTests(SimpleTestCase):
 			result3='Positive',
 			result_alphanumeric='Failed',
 			suppressed=0,
+			hepb_result=None,
+			hiv_result=None,
 		)
 
 		self.assertEqual(result_utils.format_result_for_display(result), 'Failed')
 		self.assertEqual(result_utils.get_result_for_program(result, program_code=2), 'Failed')
 
+	def test_panel_result_column_fields_keep_hiv_and_hepb_separate(self):
+		panel_result = 'HIV: Positive; HBV: Negative; HCV: Target Not Detected'
+
+		self.assertEqual(result_utils.get_result_column_fields(panel_result, 'Target Not Detected'), {
+			'result1': 'Target Not Detected',
+			'result2': '',
+			'result3': '',
+		})
+		self.assertEqual(result_utils.get_panel_result_extra_fields(panel_result), {
+			'hepb_result': 'Negative',
+			'hiv_result': 'Positive',
+		})
+
 	def test_old_quantitative_result_type_stays_quantitative(self):
 		result = result_utils.get_result('8.24e+002 IU/ml', 1, 'C', 0, None, active_program_code='1')
 
 		self.assertEqual(result['result_type'], result_utils.RESULT_TYPE_QUANTITATIVE)
+
+	def test_latest_result_value_preserves_non_panel_repeat_slot_behavior(self):
+		result = SimpleNamespace(
+			result1='first result',
+			result2='second result',
+			result3='',
+			result4='',
+			result5='',
+			result_alphanumeric='second normalized result',
+			result_type=result_utils.RESULT_TYPE_QUANTITATIVE,
+		)
+
+		self.assertEqual(result_utils.get_latest_result_value(result), 'second result')
