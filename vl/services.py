@@ -1062,13 +1062,14 @@ def release_worksheet_sample(ws_id, choice, user, comments=''):
 		return
 	result = VLResult.objects.using('vl_lims').filter(sample_id=ws.sample_id).first()
 	if result is None:
-		panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
+		final_alphanumeric = 'Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
+		result_columns = result_utils.get_result_column_fields(final_alphanumeric if choice == 'invalid' else ws.result_alphanumeric, final_alphanumeric)
 		result = VLResult(
 			repeat_test=2,
-			result1=panel_results.get('result1') or ws.result_alphanumeric or '',
-			result2=panel_results.get('result2') or '',
-			result3=panel_results.get('result3') or '',
-			result_alphanumeric='Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric),
+			result1=result_columns.get('result1') or '',
+			result2=result_columns.get('result2') or '',
+			result3=result_columns.get('result3') or '',
+			result_alphanumeric=final_alphanumeric,
 			result_type=result_utils.get_result_type(ws.result_alphanumeric),
 			result_numeric=ws.result_numeric,
 			failure_reason=ws.failure_reason,
@@ -1088,10 +1089,10 @@ def release_worksheet_sample(ws_id, choice, user, comments=''):
 	else:
 		result.result_alphanumeric = 'Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
 		result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
-		panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
-		result.result1 = panel_results.get('result1') or ws.result_alphanumeric or ''
-		result.result2 = panel_results.get('result2') or ''
-		result.result3 = panel_results.get('result3') or ''
+		result_columns = result_utils.get_result_column_fields(result.result_alphanumeric if choice == 'invalid' else ws.result_alphanumeric, result.result_alphanumeric)
+		result.result1 = result_columns.get('result1') or ''
+		result.result2 = result_columns.get('result2') or ''
+		result.result3 = result_columns.get('result3') or ''
 		result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed or 0)
 		result.authorised = True
 		result.authorised_at = datetime.now()
@@ -1198,14 +1199,17 @@ def save_upload_result(result, multiplier, machine_type, instrument_id, user, ac
 	sample = VLSample.objects.using('vl_lims').filter(barcode=instrument_id).first()
 	if sample and sample.is_data_entered == 1:
 		result_dict = result_utils.get_result(result, multiplier, machine_type, 0, sample.sample_type, '', active_program_code)
-		panel_results = result_utils.get_panel_result_fields(result_dict.get('alphanumeric_result'))
+		result_columns = result_utils.get_result_column_fields(
+			result_dict.get('alphanumeric_result'),
+			result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
+		)
 		the_test_date = timezone.now()
 		final_result = VLResult(
 			repeat_test=2,
 			authorised=True,
-			result1=panel_results.get('result1') or result_dict.get('alphanumeric_result'),
-			result2=panel_results.get('result2') or '',
-			result3=panel_results.get('result3') or '',
+			result1=result_columns.get('result1') or '',
+			result2=result_columns.get('result2') or '',
+			result3=result_columns.get('result3') or '',
 			result_numeric=result_dict.get('numeric_result'),
 			failure_reason='',
 			method=machine_type,

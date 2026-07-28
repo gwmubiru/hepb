@@ -130,17 +130,14 @@ def store_result(machine_type, sample, result, multiplier, user, test_date,test=
 		result = 'failed'
 	if sample:
 		sample_result, sr_created = Result.objects.get_or_create(sample=sample)
-		if sample_result.result1 == '':
-			sample_result.result1 = result
-		elif sample_result.result2 == '':
-			sample_result.result2 = result
-		elif sample_result.result3 == '':
-			sample_result.result3 = result
-		elif sample_result.result4 == '':
-			sample_result.result4 = result
-		else:
-			sample_result.result5 = result
 		result_dict = result_utils.get_result(result, multiplier,machine_type, sample.sample_type)
+		result_columns = result_utils.get_result_column_fields(
+			result_dict.get('alphanumeric_result'),
+			result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
+		)
+		sample_result.result1 = result_columns.get('result1') or ''
+		sample_result.result2 = result_columns.get('result2') or ''
+		sample_result.result3 = result_columns.get('result3') or ''
 		sample_result.repeat_test = result_dict.get('rep_test')
 		sample_result.result_numeric = result_dict.get('numeric_result')
 		sample_result.result_alphanumeric = result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
@@ -422,14 +419,17 @@ def save_upload_result(result, multiplier,machine_type,instrument_id,user, activ
 	sample = Sample.objects.using(db_alias).filter(barcode=instrument_id).first()
 	if sample and sample.is_data_entered ==1:
 		result_dict = result_utils.get_result(result, multiplier,machine_type,0,sample.sample_type,active_program_code=active_program_code)
-		panel_results = result_utils.get_panel_result_fields(result_dict.get('alphanumeric_result'))
 		the_test_date = timezone.now()
 		result = Result()
 		result.repeat_test = 2
 		result.authorised = 1
-		result.result1 = panel_results.get('result1') or result_dict.get('alphanumeric_result')
-		result.result2 = panel_results.get('result2') or ''
-		result.result3 = panel_results.get('result3') or ''
+		result_columns = result_utils.get_result_column_fields(
+			result_dict.get('alphanumeric_result'),
+			result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
+		)
+		result.result1 = result_columns.get('result1') or ''
+		result.result2 = result_columns.get('result2') or ''
+		result.result3 = result_columns.get('result3') or ''
 		result.result_numeric = result_dict.get('numeric_result')
 		result.result_alphanumeric = result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result'))
 		result.result_type = result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE)
@@ -963,13 +963,14 @@ def release_retain_result(ws, choice,comments,completed, user, reason = '', db_a
 	if (choice == 'release' and ws.stage == 2) or (choice == 'invalid' and ws.stage == 4):
 		#if it was repeat that is being invalidated (due to hemolysis or insufficient vol), 
 		#delete this record and use the previous one	
-		panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
 		result = Result()
 		result.repeat_test = 2
 		result.authorised = 1
-		result.result1 = panel_results.get('result1') or ws.result_alphanumeric
-		result.result2 = panel_results.get('result2') or ''
-		result.result3 = panel_results.get('result3') or ''
+		final_result = 'Failed' if choice == 'invalid' else result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
+		result_columns = result_utils.get_result_column_fields(final_result if choice == 'invalid' else ws.result_alphanumeric, final_result)
+		result.result1 = result_columns.get('result1') or ''
+		result.result2 = result_columns.get('result2') or ''
+		result.result3 = result_columns.get('result3') or ''
 		result.result_numeric = ws.result_numeric
 		result.failure_reason = reason
 		result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
@@ -1415,11 +1416,11 @@ def force_create_result(request):
 		result.method =  row[5]
 		result.test_by_id = row[6]
 		result.result_numeric =row[7]
-		panel_results = result_utils.get_panel_result_fields(row[8])
-		result.result1 = panel_results.get('result1') or row[8]
-		result.result2 = panel_results.get('result2') or ''
-		result.result3 = panel_results.get('result3') or ''
 		result.result_alphanumeric = result_utils.get_final_result_alphanumeric(row[8])
+		result_columns = result_utils.get_result_column_fields(row[8], result.result_alphanumeric)
+		result.result1 = result_columns.get('result1') or ''
+		result.result2 = result_columns.get('result2') or ''
+		result.result3 = result_columns.get('result3') or ''
 		result.result_type = result_utils.get_result_type(row[8])
 		result.test_date = row[9]
 		result.authorised_at = row[10]
