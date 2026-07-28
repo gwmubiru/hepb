@@ -558,7 +558,6 @@ def attach_results(request):
 			ws.sample =sample
 			ws.save(using=db_alias)
 
-			panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
 			result.repeat_test = ws.repeat_test
 			result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed)
 			result.method = ws.method
@@ -566,9 +565,10 @@ def attach_results(request):
 			result.result_alphanumeric = result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
 			result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
 			result.test_date = ws.test_date
-			result.result1 = panel_results.get('result1') or ws.result_alphanumeric
-			result.result2 = panel_results.get('result2') or ''
-			result.result3 = panel_results.get('result3') or ''
+			result_columns = result_utils.get_result_column_fields(ws.result_alphanumeric, result.result_alphanumeric)
+			result.result1 = result_columns.get('result1') or ''
+			result.result2 = result_columns.get('result2') or ''
+			result.result3 = result_columns.get('result3') or ''
 			result.sample =sample
 			result.test_by_id = ws.tester_id
 			result.save(using=db_alias)

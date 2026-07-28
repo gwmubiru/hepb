@@ -86,7 +86,8 @@ def _hep_headers(program_code):
 
 
 PANEL_RESULT_SQL_CONDITION = (
-	"r.result_type = 3 "
+	"r.result_type = 2 "
+	"AND r.suppressed = 0 "
 	"AND COALESCE(r.result1, '') <> '' "
 	"AND COALESCE(r.result2, '') <> '' "
 	"AND COALESCE(r.result3, '') <> '' "
@@ -97,13 +98,13 @@ PANEL_RESULT_SQL_CONDITION = (
 def _hep_result_columns(program_code):
 	if int(program_code) == 2:
 		return """
-				CASE WHEN {panel_condition} THEN r.result1 ELSE r.result_alphanumeric END as `hepc_result`,
+				r.result_alphanumeric as `hepc_result`,
 				CASE WHEN {panel_condition} THEN r.result3 ELSE NULL END as `hiv_result`,
 				CASE WHEN {panel_condition} THEN r.result2 ELSE NULL END as `hepb_result`,
 		""".format(panel_condition=PANEL_RESULT_SQL_CONDITION)
 	return """
 				CASE WHEN {panel_condition} THEN r.result2 ELSE r.result_alphanumeric END as `Result`,
-				CASE WHEN {panel_condition} THEN r.result1 ELSE NULL END as `HCV Result`,
+				CASE WHEN {panel_condition} THEN r.result_alphanumeric ELSE NULL END as `HCV Result`,
 				CASE WHEN {panel_condition} THEN r.result2 ELSE NULL END as `HBV Result`,
 				CASE WHEN {panel_condition} THEN r.result3 ELSE NULL END as `HIV Result`,
 	""".format(panel_condition=PANEL_RESULT_SQL_CONDITION)
@@ -240,7 +241,7 @@ VL_HEADERS = [
 
 
 VL_QUERY = """ SELECT s.form_number,s.facility_reference, tc.code as tracking_code,f.facility,d.district,region.region,h.hub,date(s.date_collected) as date_collected,date(date_received) as date_received,date(s.created_at) as date_created, data_entered_at,s.sample_type,s.barcode,s.barcode2,s.barcode3,COALESCE(p.art_number, s.data_art_number, s.reception_art_number) as hep_number,p.other_id,p.unique_id,p.gender as sex,p.dob as date_of_birth,TIMESTAMPDIFF(YEAR, p.dob, qc.released_at) as age, p.treatment_initiation_date, CASE WHEN p.treatment_duration=1 THEN "< 6 months" WHEN p.treatment_duration=2 THEN "6 months -< 1yr" WHEN p.treatment_duration=3 THEN "1 -< 2yrs" WHEN p.treatment_duration=4 THEN "2 -< 5yrs" WHEN p.treatment_duration=5 THEN "5yrs and above" ELSE "Left Blank"
-	 END as treatment_duration,ba.appendix as current_regimen,s.other_regimen,   txt_r.appendix as indication_for_VL_Testing, fr.appendix as failure_reason, s.pregnant,s.anc_number,s.breast_feeding,s.active_tb_status,    tb_txt_phase.appendix as tb_treatment_phase, arv_adh.appendix as arv_adherence, s.treatment_line_id,  v.accepted as status,date(v.created_at) as approval_date, v.rejection_reason_id,br.appendix as rejection_reason, tl.appendix as treatment_line,  r.result_alphanumeric,CASE WHEN r.result_type = 3 AND COALESCE(r.result1, '') <> '' AND COALESCE(r.result2, '') <> '' AND COALESCE(r.result3, '') <> '' AND COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '') THEN r.result1 ELSE NULL END as hcv_result,CASE WHEN r.result_type = 3 AND COALESCE(r.result1, '') <> '' AND COALESCE(r.result2, '') <> '' AND COALESCE(r.result3, '') <> '' AND COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '') THEN r.result2 ELSE NULL END as hbv_result,CASE WHEN r.result_type = 3 AND COALESCE(r.result1, '') <> '' AND COALESCE(r.result2, '') <> '' AND COALESCE(r.result3, '') <> '' AND COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '') THEN r.result3 ELSE NULL END as hiv_result,r.suppressed,date(r.result_upload_date) as result_upload_date,    date(qc.released_at) as released_at,qc.qc_date,qc.is_reviewed_for_dr,s.current_who_stage, f.dhis2_name,f.dhis2_uid,DATE(r.test_date) as test_date,DATE(sr.released_at) as data_qc_date_for_rejects, DATE(rd.dispatch_date) as date_downloaded, s.consented_sample_keeping as brod_consent, ws.method as test_machine,p.current_regimen_initiation_date as current_regimen_initiation_date,s.current_regimen_initiation_date as s_current_regimen_initiation_date,tc.delivered_at, tc.picked_at as picked_from_facility_on,s.viral_load_testing_id,r.suppressed, r.result_numeric,s.viral_load_testing_id, s.data_entered_by_id,s.hie_data_created_at,bs.appendix as source_system
+	 END as treatment_duration,ba.appendix as current_regimen,s.other_regimen,   txt_r.appendix as indication_for_VL_Testing, fr.appendix as failure_reason, s.pregnant,s.anc_number,s.breast_feeding,s.active_tb_status,    tb_txt_phase.appendix as tb_treatment_phase, arv_adh.appendix as arv_adherence, s.treatment_line_id,  v.accepted as status,date(v.created_at) as approval_date, v.rejection_reason_id,br.appendix as rejection_reason, tl.appendix as treatment_line,  r.result_alphanumeric,CASE WHEN r.result_type = 2 AND r.suppressed = 0 AND COALESCE(r.result1, '') <> '' AND COALESCE(r.result2, '') <> '' AND COALESCE(r.result3, '') <> '' AND COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '') THEN r.result_alphanumeric ELSE NULL END as hcv_result,CASE WHEN r.result_type = 2 AND r.suppressed = 0 AND COALESCE(r.result1, '') <> '' AND COALESCE(r.result2, '') <> '' AND COALESCE(r.result3, '') <> '' AND COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '') THEN r.result2 ELSE NULL END as hbv_result,CASE WHEN r.result_type = 2 AND r.suppressed = 0 AND COALESCE(r.result1, '') <> '' AND COALESCE(r.result2, '') <> '' AND COALESCE(r.result3, '') <> '' AND COALESCE(r.result_alphanumeric, '') = COALESCE(r.result1, '') THEN r.result3 ELSE NULL END as hiv_result,r.suppressed,date(r.result_upload_date) as result_upload_date,    date(qc.released_at) as released_at,qc.qc_date,qc.is_reviewed_for_dr,s.current_who_stage, f.dhis2_name,f.dhis2_uid,DATE(r.test_date) as test_date,DATE(sr.released_at) as data_qc_date_for_rejects, DATE(rd.dispatch_date) as date_downloaded, s.consented_sample_keeping as brod_consent, ws.method as test_machine,p.current_regimen_initiation_date as current_regimen_initiation_date,s.current_regimen_initiation_date as s_current_regimen_initiation_date,tc.delivered_at, tc.picked_at as picked_from_facility_on,s.viral_load_testing_id,r.suppressed, r.result_numeric,s.viral_load_testing_id, s.data_entered_by_id,s.hie_data_created_at,bs.appendix as source_system
 	      FROM vl_samples s
 	      LEFT JOIN vl_patients p on s.patient_id = p.id
 	      LEFT JOIN vl_tracking_codes tc on s.tracking_code_id = tc.id

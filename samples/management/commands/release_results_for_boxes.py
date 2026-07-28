@@ -20,14 +20,14 @@ class Command(BaseCommand):
 		for ws in worksheet_samples:
 			restult = Result.objects.filter(sample_id=ws.sample_id).first()
 			if restult is None:
-				panel_results = result_utils.get_panel_result_fields(ws.result_alphanumeric)
 				result= Result()
 				result.repeat_test = 2
-				result.result1 = panel_results.get('result1') or ws.result_alphanumeric
-				result.result2 = panel_results.get('result2') or ''
-				result.result3 = panel_results.get('result3') or ''
 				result.result_numeric = ws.result_numeric
 				result.result_alphanumeric = result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
+				result_columns = result_utils.get_result_column_fields(ws.result_alphanumeric, result.result_alphanumeric)
+				result.result1 = result_columns.get('result1') or ''
+				result.result2 = result_columns.get('result2') or ''
+				result.result3 = result_columns.get('result3') or ''
 				result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
 				result.method = ws.method
 				result.test_date = ws.test_date

@@ -95,7 +95,7 @@ class CobasPanelResultTests(SimpleTestCase):
 		result = result_utils.get_result(panel_result, 1, 'C', 0, 'P', active_program_code='1')
 
 		self.assertEqual(result['alphanumeric_result'], panel_result)
-		self.assertEqual(result['result_type'], result_utils.RESULT_TYPE_MULTIPLEX)
+		self.assertEqual(result['result_type'], result_utils.RESULT_TYPE_QUALITATIVE)
 		self.assertEqual(result['suppressed'], 0)
 		self.assertEqual(result_utils.get_final_result_alphanumeric(panel_result), 'Target Not Detected')
 		self.assertEqual(result_utils.get_panel_result_fields(panel_result), {
@@ -136,7 +136,8 @@ class CobasPanelResultTests(SimpleTestCase):
 
 	def test_panel_display_and_program_results_use_panel_columns_only_for_panel(self):
 		result = SimpleNamespace(
-			result_type=result_utils.RESULT_TYPE_MULTIPLEX,
+			result_type=result_utils.RESULT_TYPE_QUALITATIVE,
+			suppressed=0,
 			result1='Target Not Detected',
 			result2='Negative',
 			result3='Positive',
@@ -153,11 +154,12 @@ class CobasPanelResultTests(SimpleTestCase):
 
 	def test_invalidated_panel_display_uses_final_result(self):
 		result = SimpleNamespace(
-			result_type=result_utils.RESULT_TYPE_MULTIPLEX,
+			result_type=result_utils.RESULT_TYPE_QUALITATIVE,
 			result1='Target Not Detected',
 			result2='Negative',
 			result3='Positive',
 			result_alphanumeric='Failed',
+			suppressed=0,
 		)
 
 		self.assertEqual(result_utils.format_result_for_display(result), 'Failed')
