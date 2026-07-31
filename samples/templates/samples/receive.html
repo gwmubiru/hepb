@@ -236,6 +236,23 @@
 		}
 		return false;
 	}
+
+	function dateForComboDate(isoDate){
+		var parsedDate = moment(isoDate, 'YYYY-MM-DD', true);
+		return parsedDate.isValid() ? parsedDate.format('DD/MM/YYYY') : isoDate;
+	}
+
+	function setCollectedDateFromLookup(dateCollected){
+		if(!dateCollected){
+			return;
+		}
+		var $dateCollected = $("#id_date_collected");
+		var comboDateValue = dateForComboDate(dateCollected);
+		if($dateCollected.data('combodate')){
+			$dateCollected.combodate('setValue', comboDateValue);
+		}
+		$dateCollected.val(comboDateValue);
+	}
 	var initialRejectionReasonId = "{{ rejection_reason_id|default:''|escapejs }}";
 
 	$(document).ready(function() {
@@ -316,6 +333,32 @@
 		$("#id_facility").change(function(){
 			set_district_hub();
 		}).change();
+
+		$('#id_facility_reference').on('change', function(){
+			var facilityReference = ($(this).val() || '').trim();
+			if(!facilityReference){
+				return;
+			}
+			var facilityId = $('#id_facility').val() || '';
+			var trackingCodeId = $('#tracking_code_id').val() || '';
+			var url = "/samples/receive_hie/?facility_reference=" + encodeURIComponent(facilityReference) +
+				"&facility_id=" + encodeURIComponent(facilityId) +
+				"&tracking_code_id=" + encodeURIComponent(trackingCodeId);
+			$.get(url, function(data){
+				var details = JSON.parse(data);
+				if(details.is_dr == '1' || details.facility_reference_conflict == 1 || details.tracking_facility_conflict == 1){
+					alert(details.err_msg);
+					$('#id_facility_reference').focus();
+					return;
+				}
+				if(details.hep_number){
+					$('#id_reception_hep_number').val(details.hep_number);
+					setCollectedDateFromLookup(details.date_collected);
+				}else if(details.err_msg && details.err_msg !== 'Not found'){
+					alert(details.err_msg);
+				}
+			});
+		});
 
 		$('#id_code').on('change', function(){
 			var trCode = ($('#id_code').val() || '').trim();

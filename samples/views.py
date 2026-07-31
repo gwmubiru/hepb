@@ -433,9 +433,9 @@ def check_facility_identifier(request):
 	return JsonResponse(ret)
 
 
-def update_envelope_program_code(envelope_id, program_code):
+def update_envelope_program_code(envelope_id, program_code, db_alias='default'):
 	if envelope_id and program_code:
-		Envelope.objects.filter(pk=envelope_id).update(program_code=program_code)
+		Envelope.objects.using(db_alias).filter(pk=envelope_id).update(program_code=program_code)
 
 
 def posted_date(post_data, field_name):
@@ -470,16 +470,20 @@ def _set_missing_sample_type(sample, request):
 		sample.sample_type = sample_type
 
 
-def _set_sample_type_from_request_or_envelope(sample, request, envelope_id=None):
+def _set_sample_type_from_request_or_envelope(sample, request, envelope_id=None, db_alias=None):
+	db_alias = db_alias or getattr(getattr(sample, '_state', None), 'db', None) or get_dropdown_db_alias(request)
 	_set_missing_sample_type(sample, request)
 	if sample.sample_type not in (None, ''):
 		return
 	resolved_envelope_id = envelope_id or sample.envelope_id
 	if not resolved_envelope_id:
 		return
-	envelope = sample.envelope if sample.envelope_id == resolved_envelope_id and getattr(sample, 'envelope', None) else None
+	envelope = None
+	cached_envelope = getattr(getattr(sample, '_state', None), 'fields_cache', {}).get('envelope')
+	if cached_envelope and sample.envelope_id == resolved_envelope_id:
+		envelope = cached_envelope
 	if envelope is None:
-		envelope = Envelope.objects.filter(pk=resolved_envelope_id).only('sample_type').first()
+		envelope = Envelope.objects.using(db_alias).filter(pk=resolved_envelope_id).only('sample_type').first()
 	if envelope and envelope.sample_type:
 		sample.sample_type = envelope.sample_type
 
@@ -636,16 +640,17 @@ def get_sample_program_code(sample):
 	return None
 
 
-def lock_envelope_to_session_program(request, envelope_id):
+def lock_envelope_to_session_program(request, envelope_id, db_alias=None):
 	active_program_code = get_session_program_code(request)
 	if not envelope_id or not active_program_code:
 		return ''
-	envelope = Envelope.objects.filter(pk=envelope_id).first()
+	db_alias = db_alias or get_dropdown_db_alias(request)
+	envelope = Envelope.objects.using(db_alias).filter(pk=envelope_id).first()
 	if envelope is None:
 		return ''
 	if envelope.program_code:
 		return get_program_mismatch_message(request, envelope.program_code, 'envelope')
-	update_envelope_program_code(envelope_id, active_program_code)
+	update_envelope_program_code(envelope_id, active_program_code, db_alias=db_alias)
 	return ''
 
 @permission_required('samples.add_sample', login_url='/login/')
@@ -921,6 +926,7 @@ def receive(request):
 	if request.method == 'POST':
 		form_data = request.POST.copy()
 		pst = form_data
+		db_alias = get_dropdown_db_alias(request)
 		current_tr_code = pst.get('current_tr_code') or current_tr_code or ''
 		accepted = pst.get('locator_category')
 		rejection_reason_id = pst.get('rejection_reason_id')
@@ -941,14 +947,14 @@ def receive(request):
 		if sample_utils.is_hep_program_code(programs.get_active_program_code(request)):
 			pst['sample_type'] = 'P'
 
-		sample_reception_form = SampleReceptionForm(pst)
+		sample_reception_form = SampleReceptionForm(pst, db_alias=db_alias)
 		if locator_error:
 			sample_reception_form.add_error('barcode', locator_error)
 		#valid_sample = sample_reception_form.is_valid()
 		#return HttpResponse(valid_sample)
 		#if valid_sample:
 		tr_code_id = pst.get('tracking_code_id')
-		envelope = Envelope.objects.filter(envelope_number=pst.get('envelope_number')).first()
+		envelope = Envelope.objects.using(db_alias).filter(envelope_number=pst.get('envelope_number')).first()
 		env_id = envelope.id if envelope else pst.get('envelope_id')
 		if env_id:
 			pst['envelope_id'] = env_id
@@ -956,7 +962,7 @@ def receive(request):
 		if env_id is None:
 			sample_reception_form.add_error('barcode', 'Envelope was not found, did you accession it?')
 		else:
-			mismatch_message = lock_envelope_to_session_program(request, env_id)
+			mismatch_message = lock_envelope_to_session_program(request, env_id, db_alias=db_alias)
 			if mismatch_message:
 				sample_reception_form.add_error('barcode', mismatch_message)
 		conflict_sample = _get_received_barcode_conflict(request, pst.get('barcode'))
@@ -966,7 +972,6 @@ def receive(request):
 			sample_reception_form.add_error('barcode', 'Hep number is required.')
 		if sample_reception_form.is_valid():
 			date_collected = sample_reception_form.cleaned_data.get('date_collected')
-			db_alias = get_dropdown_db_alias(request)
 			facility_ref = pst.get('facility_reference')
 			facility_reference = None if facility_ref == '' else facility_ref
 			s = None
@@ -1010,9 +1015,8 @@ def receive(request):
 
 			sanitized_art_no = utils.removeSpecialCharactersFromString(pst.get('reception_hep_number'))
 			unique_id = "%s-A-%s" %(pst.get('facility'), sanitized_art_no)
-			#return HttpResponse(unique_id)
-			facility_pat = FacilityPatient.objects.filter(unique_id=unique_id).first()
-			fac_pat = facility_pat if facility_pat else None
+			facility_patient = FacilityPatient.objects.using(db_alias).filter(unique_id=unique_id).first()
+			facility_patient_id = facility_patient.id if facility_patient else None
 			conflict_sample = _get_facility_reference_conflict(
 				facility_reference,
 				pst.get('facility'),
@@ -1063,7 +1067,7 @@ def receive(request):
 					s.facility_reference = facility_reference
 					s.form_number = form_number
 					s.reception_hep_number = pst.get('reception_hep_number')
-					s.facility_patient = fac_pat
+					s.facility_patient_id = facility_patient_id
 				s.tracking_code_id = tr_code_id
 				s.locator_category = pst.get('locator_category')
 				s.envelope_id = env_id
@@ -1072,29 +1076,29 @@ def receive(request):
 				s.locator_position=pst.get('locator_position')
 				s.barcode=pst.get('barcode')
 				s.date_collected = date_collected
-				_set_sample_type_from_request_or_envelope(s, request, env_id)
+				_set_sample_type_from_request_or_envelope(s, request, env_id, db_alias=db_alias)
 				#s.date_received = request.POST.get('date_received')
 				s.date_received = datetime.now()
-				s.received_by = request.user
+				s.received_by_id = request.user.id
 				if session_program_code:
 					s.program_code = session_program_code
-				s.save()
+				s.save(using=db_alias)
 			else:
 				s = Sample(tracking_code_id = tr_code_id,locator_category = pst.get('locator_category'),locator_position=pst.get('locator_position'),
-					barcode=pst.get('barcode'),created_by =request.user,stage=stage,
+					barcode=pst.get('barcode'),created_by_id = request.user.id,stage=stage,
 					form_number=form_number,facility_id = pst.get('facility'),
-					sample_type=pst.get('sample_type') or _posted_sample_type(request),date_collected=date_collected,date_received=datetime.now(), envelope_id = env_id,received_by = request.user,reception_hep_number=pst.get('reception_hep_number'),facility_reference=facility_reference,facility_patient = fac_pat,verified=0)
+					sample_type=pst.get('sample_type') or _posted_sample_type(request),date_collected=date_collected,date_received=datetime.now(), envelope_id = env_id,received_by_id = request.user.id,reception_hep_number=pst.get('reception_hep_number'),facility_reference=facility_reference,facility_patient_id = facility_patient_id,verified=0)
 				if session_program_code:
 					s.program_code = session_program_code
-				s.save()
+				s.save(using=db_alias)
 
-			update_envelope_program_code(env_id, get_session_program_code(request))
+			update_envelope_program_code(env_id, get_session_program_code(request), db_alias=db_alias)
 			sample_utils.update_envelope_status(s,'received')
 			#save the corresponding verification object
 			v = Verification()
 			v.pat_edits = 0
 			v.sample_edits = 0
-			v.sample = s
+			v.sample_id = s.pk
 			accepted = pst.get('locator_category')
 			v.accepted = True if accepted == 'V' else False
 			if(accepted=='R'):
@@ -1103,7 +1107,7 @@ def receive(request):
 				patient.facility_id = pst.get('facility')
 				patient.hep_number=pst.get('reception_hep_number')
 				patient.created_by_id= request.user.id
-				patient.save()
+				patient.save(using=db_alias)
 				v.rejection_reason_id = pst.get('rejection_reason_id')
 				if not v.rejection_reason_id:
 					return HttpResponse("rejection reason required for rejected samples")
@@ -1111,20 +1115,21 @@ def receive(request):
 				sample_utils.release_rejected_sample(s, request.user.id)
 				s.verified = 1
 				s.is_data_entered = 1
-				s.patient = patient
-				s.save()
+				s.patient_id = patient.pk
+				s.save(using=db_alias)
 			else:
 				v.rejection_reason_id = None
 
-			v.verified_by = request.user
-			v.save()
+			v.verified_by_id = request.user.id
+			v.save(using=db_alias)
 
 			# if the sample has been tested, update it
-			ws = WorksheetSample.objects.filter(instrument_id=s.barcode).first()
+			ws = WorksheetSample.objects.using(db_alias).filter(instrument_id=s.barcode).first()
 			if ws and ws.sample_id is None:
-				ws.sample = s
-				ws.save()
-			d_reception = s.envelope.created_at.strftime('%Y-%m-%d')
+				ws.sample_id = s.pk
+				ws.save(using=db_alias)
+			envelope_created_at = Envelope.objects.using(db_alias).filter(pk=s.envelope_id).values_list('created_at', flat=True).first()
+			d_reception = envelope_created_at.strftime('%Y-%m-%d') if envelope_created_at else ''
 			return redirect('/samples/receive?saved_sample=%s&tr_code_id=%s&env_id=%s&current_tr_code=%s&date_received=%s&page_type=%s' %(s.pk, tr_code_id,env_id,pst.get('code'),d_reception,page_type))
 	else:
 		form_data = ''
@@ -1146,7 +1151,7 @@ def receive(request):
 	}
 
 	if saved_sample:
-		sample = Sample.objects.filter(pk=saved_sample).first()
+		sample = Sample.objects.using(get_dropdown_db_alias(request)).filter(pk=saved_sample).first()
 		context.update({'sample':sample,'tr_code_id':tr_code_id,'tracking_code_id':tr_code_id,'env_id':env_id,})
 
 	return render(request, 'samples/receive.html', context)

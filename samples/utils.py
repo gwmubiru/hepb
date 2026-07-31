@@ -444,10 +444,11 @@ def update_worksheet_sample(s):
 	return True
 
 def release_rejected_sample(sample, user_id):
+	db_alias = sample._state.db or 'default'
 	other_params = {
 		'released': 1,
 		'reject_released_by_id':  user_id,
 		'released_at': datetime.now().date(),
 	}
-	rsr, rsr_created = RejectedSamplesRelease.objects.update_or_create(sample=sample, defaults=other_params)
+	rsr, rsr_created = RejectedSamplesRelease.objects.using(db_alias).update_or_create(sample_id=sample.pk, defaults=other_params)
 	return True
