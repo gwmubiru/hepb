@@ -481,7 +481,7 @@ def get_tracking_code_details(request):
 		}
 		#request_type = "POST"
 		api_url = settings.SAMPLE_TRACKING_URL
-		response = requests.request("POST", settings.SAMPLE_TRACKING_URL, data=data)
+		##response = requests.request("POST", settings.SAMPLE_TRACKING_URL, data=data)
 	
 	ret = {
 		'tracking_code_id': tr.id

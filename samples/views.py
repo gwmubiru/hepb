@@ -167,7 +167,7 @@ def _get_or_create_tracking_code(code, user_id, facility_id=None, db_alias='defa
 			"receipt_date": "",
 			"name_of_receiver": "Kakembo John"
 		}
-		requests.request("POST", settings.SAMPLE_TRACKING_URL, data=data)
+		#requests.request("POST", settings.SAMPLE_TRACKING_URL, data=data)
 	elif facility_id and not tracking_code.facility_id:
 		tracking_code.facility_id = facility_id
 		tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
