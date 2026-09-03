@@ -43,6 +43,22 @@
 	/* your colors */
 	.legend .red { background-color: #ff0000; }
 	.legend .black { background-color: #000; }
+	.ref-lab-marker {
+		color: #1f77b4;
+		margin-left: 4px;
+		vertical-align: baseline;
+	}
+	.ref-lab-value {
+		display: inline-block;
+		white-space: nowrap;
+	}
+	.legend .ref-lab-marker {
+		border: none;
+		float: left;
+		width: auto;
+		height: auto;
+		margin: 0 4px 0 0;
+	}
 
 </style> 
 {% endblock %}
@@ -69,6 +85,7 @@
 	<ul class="legend">
     <li><span class="red"></span> Pending data entry</li>
     <li><span class="black"></span> Data entry complete</li>
+    <li><span class="glyphicon glyphicon-link ref-lab-marker" aria-hidden="true"></span> Data entered from ref lab</li>
 	</ul>
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
 		<thead>
@@ -95,9 +112,14 @@
 				<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}{% if active_program_code and s.program_code and active_program_code != s.program_code|stringformat:'s' %} program-mismatch-row{% endif %}">
 					<td>{{ forloop.counter }}</td>
 					<td>
+						<span class="ref-lab-value">
 						{% if s.facility_reference %}
 							<a href="#" class="facility-ref-link" data-toggle="modal" data-target="#facilityContactModal" sample_id="{{ s.pk }}">{{ s.facility_reference }}</a>
 						{% endif %}
+						{% if not s.source_system_id %}
+							<span class="glyphicon glyphicon-link ref-lab-marker" title="Data entered from ref lab" aria-label="Data entered from ref lab"></span>
+						{% endif %}
+						</span>
 						<span style="display:none" id="facility_contact_details{{ s.pk }}">
 							<table class="table table-bordered table-condensed table-striped">
 								<tr>
@@ -124,7 +146,12 @@
 				<td>
 
 					
-				{{s.barcode}}
+				<span class="ref-lab-value">
+					{{s.barcode}}
+					{% if not s.source_system_id %}
+						<span class="glyphicon glyphicon-link ref-lab-marker" title="Data entered from ref lab" aria-label="Data entered from ref lab"></span>
+					{% endif %}
+				</span>
 					
 				</td>
 				<td>
