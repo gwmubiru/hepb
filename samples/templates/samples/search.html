@@ -9,14 +9,56 @@
 		.is_data_enterd0{
 			color: red;
 		}
+		.program-mismatch-row > td{
+			background-color: #f8d7da !important;
+			color: #8a1f2d;
+		}
+		.program-mismatch-badge{
+			background-color: #c9302c;
+			border-radius: 10px;
+			color: #fff;
+			display: inline-block;
+			font-size: 10px;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+			margin-left: 6px;
+			padding: 2px 8px;
+			text-transform: uppercase;
+			vertical-align: middle;
+		}
+		.program-trigger{
+			margin-left: 6px;
+		}
+		.program-save-status{
+			color: #2e8b57;
+			display: none;
+			font-weight: 600;
+			margin-left: 6px;
+		}
 
 		/* basic positioning */
-	.legend { list-style: none; }
+		.legend { list-style: none; }
 	.legend li { float: left; margin-right: 10px; }
 	.legend span { border: 1px solid #ccc; float: left; width: 12px; height: 12px; margin: 2px; }
 	/* your colors */
 	.legend .red { background-color: #ff0000; }
 	.legend .black { background-color: #000; }
+	.ref-lab-marker {
+		color: #1f77b4;
+		margin-left: 4px;
+		vertical-align: baseline;
+	}
+	.ref-lab-value {
+		display: inline-block;
+		white-space: nowrap;
+	}
+	.legend .ref-lab-marker {
+		border: none;
+		float: left;
+		width: auto;
+		height: auto;
+		margin: 0 4px 0 0;
+	}
 
 </style> 
 {% endblock %}
@@ -43,13 +85,14 @@
 	<ul class="legend">
     <li><span class="red"></span> Pending data entry</li>
     <li><span class="black"></span> Data entry complete</li>
+    <li><span class="glyphicon glyphicon-link ref-lab-marker" aria-hidden="true"></span> Data entered from ref lab</li>
 	</ul>
 	<table class='table table-bordered table-striped table table-condensed' id='tab_id'>
 		<thead>
 			<tr>
 				<th>#</th>
 				<th>Facility Ref</th>
-				<th>Form Number</th>
+				<th>Tracking</th>
 				<th>Lab Ref</th>
 				<th>Facility</th>
 				<th>District</th>	
@@ -66,18 +109,49 @@
 		</thead>
 		<tbody>
 			{% for s in samples %}
-			<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}">
-				<td>{{ forloop.counter }}</td>													
-				<td>																						
-						{{s.facility_reference}}
-				</td>
-				<td>																						
-						{{s.form_number}}
+				<tr id="{{s.id}}" class="is_data_enterd{{s.is_data_entered}}{% if active_program_code and s.program_code and active_program_code != s.program_code|stringformat:'s' %} program-mismatch-row{% endif %}">
+					<td>{{ forloop.counter }}</td>
+					<td>
+						<span class="ref-lab-value">
+						{% if s.facility_reference %}
+							<a href="#" class="facility-ref-link" data-toggle="modal" data-target="#facilityContactModal" sample_id="{{ s.pk }}">{{ s.facility_reference }}</a>
+						{% endif %}
+						{% if not s.source_system_id %}
+							<span class="glyphicon glyphicon-link ref-lab-marker" title="Data entered from ref lab" aria-label="Data entered from ref lab"></span>
+						{% endif %}
+						</span>
+						<span style="display:none" id="facility_contact_details{{ s.pk }}">
+							<table class="table table-bordered table-condensed table-striped">
+								<tr>
+									<th>Role</th>
+									<th>Name</th>
+									<th>Phone</th>
+								</tr>
+								<tr>
+									<td>Requesting clinician</td>
+									<td>{% if s.clinician_id %}{{ s.clinician.cname }}{% else %}Not recorded{% endif %}</td>
+									<td>{% if s.clinician_id and s.clinician.cphone %}{{ s.clinician.cphone }}{% else %}Not recorded{% endif %}</td>
+								</tr>
+								<tr>
+									<td>Lab tech who collected</td>
+									<td>{% if s.lab_tech_id %}{{ s.lab_tech.lname }}{% else %}Not recorded{% endif %}</td>
+									<td>{% if s.lab_tech_id and s.lab_tech.lphone %}{{ s.lab_tech.lphone }}{% else %}Not recorded{% endif %}</td>
+								</tr>
+							</table>
+						</span>
+					</td>
+					<td>
+							{{ s.tracking_code.code }}
 				</td>
 				<td>
 
 					
-				{{s.barcode}}
+				<span class="ref-lab-value">
+					{{s.barcode}}
+					{% if not s.source_system_id %}
+						<span class="glyphicon glyphicon-link ref-lab-marker" title="Data entered from ref lab" aria-label="Data entered from ref lab"></span>
+					{% endif %}
+				</span>
 					
 				</td>
 				<td>
@@ -96,15 +170,46 @@
 
 				</td>	
 				<td>
-					{% if s.is_data_entered %}
 					{{ s.patient.hep_number }}
-					{% else %}
-						{{ s.reception_hep_number }}
-					{% endif %}
 				</td>	
 				<td>{{ s.patient.gender }}</td>
 				<td>{{ s.get_sample_type_display }}</td>				
-				<td>{% if s.envelope_id %}{{ s.envelope.get_program_code_display }}{% endif %}</td>
+				<td>
+					<span class="program-label" id="program-label-{{ s.pk }}">
+						{% if s.program_code|stringformat:"s" == "1" %}
+							HepB
+						{% elif s.program_code|stringformat:"s" == "2" %}
+							HepC
+						{% elif s.program_code|stringformat:"s" == "3" %}
+							HIV Viral Load
+						{% elif s.envelope_id %}
+							{% if s.envelope.program_code|stringformat:"s" == "1" %}
+								HepB
+							{% elif s.envelope.program_code|stringformat:"s" == "2" %}
+								HepC
+							{% elif s.envelope.program_code|stringformat:"s" == "3" %}
+								HIV Viral Load
+							{% else %}
+								{{ s.envelope.get_program_code_display }}
+							{% endif %}
+						{% endif %}
+					</span>
+					{% if can_edit_program %}
+						<a
+							href="#"
+							class="program-trigger"
+							data-sample-id="{{ s.pk }}"
+							data-program-code="{% if s.program_code %}{{ s.program_code }}{% elif s.envelope.program_code %}{{ s.envelope.program_code }}{% endif %}"
+							title="Change program"
+						>
+							<i class="fa fa-pencil"></i>
+						</a>
+					{% endif %}
+					<span class="program-save-status" id="program-saved-{{ s.pk }}">saved</span>
+					{% if active_program_code and s.program_code and active_program_code != s.program_code|stringformat:'s' %}
+						<span class="program-mismatch-badge">Program mismatch</span>
+					{% endif %}
+				</td>
 				<td>{{ s.date_collected | date:"Y-m-d" }}</td>
 				<td>
 					{% if s.is_data_entered %}
@@ -149,7 +254,7 @@
 								<tr>
 									<td>Processed Result</td>
 									<td>
-										{{ s.result.result_alphanumeric }}
+										{{ s.result|processed_result_display }}
 										{% if s.result.repeat_test == 0 %}
 											(Already rescheduled)
 										{% elif s.result.repeat_test == 1 %}
@@ -205,8 +310,10 @@
 				</td>
 				<td>
 					{% if remove_sample or switch_sample%}
-					 	{% if remove_sample and s.is_data_entered == 0 and s.stage < 2 and s.worksheetsample_set.count < 2 %}
-							<label><input type='radio'  name='removals{{ s.pk }}' class='removals' sample-pk="{{ s.pk }}" value='removed'> remove</label>
+						{% if remove_sample and s.stage == 0 %}
+							<button type="button" class="btn btn-xs btn-default removals" sample-pk="{{ s.pk }}" title="Remove sample" aria-label="Remove sample">
+								<span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
+							</button>
 						{% endif %}
 						{% if switch_sample %}
 							<label><input type='text'  name='switch_samples{{ s.pk }}' class='switch_samples' sample-pk="{{ s.pk }}" value=''> Save</label>
@@ -263,12 +370,97 @@
       </div>
     </div>
 
+	  </div>
+	</div>
+
+<div id="facilityContactModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+	<div class="modal-content">
+	  <div class="modal-header">
+	    <button type="button" class="close" data-dismiss="modal">&times;</button>
+	    <h4 class="modal-title">Facility Reference Contacts</h4>
+	  </div>
+	  <div class="modal-body">
+	    <div id="facility_contact_details"></div>
+	  </div>
+	  <div class="modal-footer">
+	    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	  </div>
+	</div>
+
+	</div>
+</div>
+
+	{% if dr_sample_matches %}
+	<div id="drSampleModal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title" style="color:red">DR Sample Notice</h4>
+      </div>
+      <div class="modal-body">
+        <p>This search matched `barcode2`. This is a DR sample.</p>
+        <table class="table table-bordered table-condensed table-striped">
+          <thead>
+            <tr>
+              <th>Form Number</th>
+              <th>Barcode</th>
+              <th>DR Barcode</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in dr_sample_matches %}
+            <tr>
+              <td>{{ s.form_number }}</td>
+              <td>{{ s.barcode }}</td>
+              <td>{{ s.barcode2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
   </div>
 </div>
+{% endif %}
+
+{% if can_edit_program %}
+<div id="programModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Change Program</h4>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="program_sample_id" value="">
+        <div class="form-group">
+        	<label for="program_code_select">Program</label>
+        	<select id="program_code_select" class="form-control input-sm">
+        		<option value="">---------</option>
+        		{% for value, label in program_choices %}
+        			<option value="{{ value }}">{{ label }}</option>
+        		{% endfor %}
+        	</select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-danger" id="save-program-btn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 
 <script type="text/javascript">
 $(document).ready(function() {
-	var oTable = $('#tab_id').dataTable({
+	var table = $('#tab_id').DataTable({
 		"processing": true,
 		"paging":false,
 		"order": [[ 3, "asc" ]],
@@ -288,16 +480,23 @@ $(document).ready(function() {
 	 });
 
 	$(".removals").on("click",function(){
-	 	alert('disabled for now');
-	 	var sample_pk = $(this).attr('sample-pk');
+		var $button = $(this);
+		var $row = $button.closest("tr");
+		var sample_pk = $button.attr('sample-pk');
 	 	
  		var params = {csrfmiddlewaretoken:"{{ csrf_token }}", sample_pk: sample_pk};
+		$button.prop("disabled", true);
  		$.post("/samples/remove/"+sample_pk+"/", params).done(function( data ) {
- 				var row = document.getElementById(sample_pk);
-    		row.parentNode.removeChild(row);
-		    //$("#saved"+params.sample_pk).show();
-		    $('#tab_id').DataTable().row("#12195042").remove().draw();
-
+			if (data && data.success === false) {
+				alert(data.message || 'Failed to remove sample.');
+				$button.prop("disabled", false);
+				return;
+			}
+			table.row($row).remove().draw(false);
+		  }).fail(function(xhr) {
+			var response = xhr.responseJSON || {};
+			alert(response.message || 'Failed to remove sample.');
+			$button.prop("disabled", false);
 		  });
 	 	
 	 });
@@ -316,10 +515,51 @@ $(document).ready(function() {
 	 });
 	
 
-	$(".approved").click(function(){
-		var sample_id = $(this).attr('sample_id');
-		$("#approval_details").html($("#verify_details"+sample_id).html());		
+		$(".approved").click(function(){
+			var sample_id = $(this).attr('sample_id');
+			$("#approval_details").html($("#verify_details"+sample_id).html());
+		});
+
+		$(".facility-ref-link").click(function(e){
+			e.preventDefault();
+			var sample_id = $(this).attr('sample_id');
+			$("#facility_contact_details").html($("#facility_contact_details"+sample_id).html());
+		});
+
+		{% if dr_sample_matches %}
+		$("#drSampleModal").modal("show");
+		{% endif %}
+
+	{% if can_edit_program %}
+	$(".program-trigger").on("click", function(e){
+		e.preventDefault();
+		$("#program_sample_id").val($(this).data("sample-id"));
+		$("#program_code_select").val($(this).data("program-code"));
+		$("#programModal").modal("show");
 	});
+
+	$("#save-program-btn").on("click", function(){
+		var sampleId = $("#program_sample_id").val();
+		var programCode = $("#program_code_select").val();
+		if(programCode === ''){
+			alert('Select a program');
+			return;
+		}
+		$.post("/samples/search/?search_val={{ request.GET.search_val|default:''|escapejs }}{% if request.GET.search_env %}&search_env={{ request.GET.search_env|escapejs }}{% endif %}{% if request.GET.search_sample %}&search_sample={{ request.GET.search_sample|escapejs }}{% endif %}", {
+			csrfmiddlewaretoken: "{{ csrf_token }}",
+			action: "update_program",
+			sample_id: sampleId,
+			program_code: programCode
+		}).done(function(data){
+			$("#program-label-" + sampleId).text(data.label);
+			$('.program-trigger[data-sample-id="' + sampleId + '"]').data("program-code", programCode);
+			$("#program-saved-" + sampleId).stop(true, true).fadeIn(120).delay(900).fadeOut(250);
+			$("#programModal").modal("hide");
+		}).fail(function(xhr){
+			alert(xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : "Failed to save program");
+		});
+	});
+	{% endif %}
 });
 </script>
 {% endblock %}

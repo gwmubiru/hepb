@@ -1,0 +1,203 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block content %}
+<div class="page-title">Archival Samples</div>
+
+<div class="panel panel-default">
+	<div class="row panel-body">
+		{% if error_message %}
+		<div class="alert alert-danger">{{ error_message }}</div>
+		{% endif %}
+		{% if saved_box %}
+		<div class="alert alert-success">
+			Archived samples saved in box {{ saved_box.box_number }}.
+		</div>
+		{% endif %}
+		<div class="col-lg-3" style="border-right-style: dotted;">
+			<form action="{% url 'samples:archival_samples' %}" method="post" id="archival_form" role="form">
+				{% csrf_token %}
+				<div class="form-group required">
+					<label for="box_number">Box Number</label><br>
+					<div class="input-group">
+						<span class="input-group-addon" id="dr_box_prefix">{{ dr_box_prefix }}</span>
+						<input class="form-control input-sm" id="box_number_suffix" required="true" type="text" placeholder="5001">
+					</div>
+					<input id="box_number" name="box_number" type="hidden">
+				</div>
+				<div class="form-group required">
+					<label for="sample_type">Sample Type</label><br>
+					<select class="form-control input-sm" id="sample_type" name="sample_type" required="true">
+						<option value="">---------</option>
+						<option value="P">Plasma</option>
+						<option value="D">DBS</option>
+					</select>
+				</div>
+				<div class="form-group required">
+					<label for="starting_position">Starting Position</label><br>
+					<input class="form-control input-sm" id="starting_position" name="starting_position" required="true" type="number" min="1" max="100">
+				</div>
+				<div class="form-group required">
+					<label for="number_of_samples">No. Samples</label><br>
+					<input class="form-control input-sm" id="number_of_samples" name="number_of_samples" required="true" type="number" min="1" max="100">
+				</div>
+			</form>
+		</div>
+
+		<div class="col-lg-7">
+			<div style="margin-bottom: 10px;">
+				<input type="submit" value="Save" class="btn btn-danger hidden submit_form_btn" form="archival_form">
+			</div>
+			<span class="sub-title hidden" id="sub-t">Generated Rows</span>
+			<div class="row hidden" id="sub-t-b" style="margin-top:5px;">
+				<div class="row" id="generate_samples_container">
+					<div class="col-md-3" style="text-align:center">Box Position</div>
+					<div class="col-md-4" style="text-align:center">Barcode</div>
+					<div class="col-md-4" style="text-align:center">Hep no</div>
+				</div>
+			</div>
+			<div class="form-inline required" id="locator_id_container" style="margin-top:5px;"></div>
+			<div style="margin-top: 15px;">
+				<input type="submit" value="Save" class="btn btn-danger hidden submit_form_btn" form="archival_form">
+			</div>
+		</div>
+		<div class="col-lg-2">
+			<span class='sub-title'>In box</span><br>
+			<div id="box_contents_container">
+				{% if saved_box_requests %}
+					{% for dr_request in saved_box_requests %}
+					<span>
+						{{ forloop.counter }}.
+						{{ dr_request.box_position }}
+						{% if dr_request.barcode %} - {{ dr_request.barcode }}{% endif %}
+						{% if dr_request.hep_number %} - {{ dr_request.hep_number }}{% endif %}
+					</span><br>
+					{% endfor %}
+				{% else %}
+					<span class="text-muted">No samples in this box.</span>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var occupiedPositions = [];
+
+	function renderBoxContents(entries) {
+		if (!entries || entries.length === 0) {
+			$('#box_contents_container').html('<span class="text-muted">No samples in this box.</span>');
+			return;
+		}
+		var html = '';
+		for (var i = 0; i < entries.length; i++) {
+			var entry = entries[i];
+			html += '<span>' + (i + 1) + '. ' + (entry.box_position || '');
+			if (entry.barcode) html += ' - ' + entry.barcode;
+			if (entry.hep_number) html += ' - ' + entry.hep_number;
+			html += '</span><br>';
+		}
+		$('#box_contents_container').html(html);
+	}
+
+	function pad(value, width) {
+		value = value.toString();
+		while (value.length < width) value = '0' + value;
+		return value;
+	}
+
+	function generateRow(boxPosition) {
+		return '<div class="row">' +
+			'<div class="col-md-3"><input type="text" name="box_position[]" value="' + boxPosition + '" class="form-control input-sm" form="archival_form" readonly></div>' +
+			'<div class="col-md-4"><input type="text" name="barcode[]" class="form-control input-sm" form="archival_form" required="required"></div>' +
+			'<div class="col-md-4"><input type="text" name="hep_number[]" class="form-control input-sm" form="archival_form"></div>' +
+		'</div>';
+	}
+
+	function syncBoxNumberFromSuffix() {
+		var prefix = $('#dr_box_prefix').text();
+		var suffix = ($('#box_number_suffix').val() || '').replace(/\s+/g, '');
+		$('#box_number').val(suffix ? prefix + suffix : '');
+	}
+
+	function syncSuffixFromBoxNumber() {
+		var prefix = $('#dr_box_prefix').text();
+		var boxNumber = $('#box_number').val() || '';
+		if (boxNumber.indexOf(prefix) === 0) {
+			$('#box_number_suffix').val(boxNumber.substring(prefix.length));
+		}
+	}
+
+	function rebuildRows() {
+		syncBoxNumberFromSuffix();
+		var boxNumber = $('#box_number').val();
+		var startingPosition = parseInt($('#starting_position').val(), 10);
+		var numberOfSamples = parseInt($('#number_of_samples').val(), 10);
+		if (!boxNumber || !startingPosition || startingPosition < 1 || !numberOfSamples || numberOfSamples < 1) {
+			$('#locator_id_container').html('');
+			$('.submit_form_btn').addClass('hidden');
+			$('#sub-t,#sub-t-b').addClass('hidden');
+			return;
+		}
+		if (numberOfSamples > 100 || startingPosition > 100 || (startingPosition + numberOfSamples - 1) > 100) {
+			alert('A box can contain a maximum of 100 samples.');
+			$('#starting_position').val('');
+			$('#number_of_samples').val('');
+			return;
+		}
+		var requestedPositions = [];
+		for (var p = startingPosition; p < startingPosition + numberOfSamples; p++) {
+			requestedPositions.push(boxNumber + '/' + pad(p, 3));
+		}
+		var hasConflict = requestedPositions.some(function(position) {
+			return occupiedPositions.indexOf(position) !== -1;
+		});
+		if (hasConflict) {
+			alert('This position is already saved on the box.');
+			$('#starting_position').val('');
+			$('#locator_id_container').html('');
+			$('.submit_form_btn').addClass('hidden');
+			$('#sub-t,#sub-t-b').addClass('hidden');
+			return;
+		}
+		var html = '';
+		for (var i = 0; i < numberOfSamples; i++) {
+			html += generateRow(boxNumber + '/' + pad(startingPosition + i, 3));
+		}
+		$('#locator_id_container').html(html);
+		$('.submit_form_btn').removeClass('hidden');
+		$('#sub-t,#sub-t-b').removeClass('hidden');
+	}
+
+	function loadBoxPositions() {
+		syncBoxNumberFromSuffix();
+		var boxNumber = $('#box_number').val();
+		if (!boxNumber) {
+			occupiedPositions = [];
+			renderBoxContents([]);
+			rebuildRows();
+			return;
+		}
+		$.get('/samples/archival_box_positions/', {box_number: boxNumber}, function(data) {
+			occupiedPositions = data.positions || [];
+			renderBoxContents(data.entries || []);
+			rebuildRows();
+		});
+	}
+
+	$('#box_number_suffix').on('change keyup', loadBoxPositions);
+	$('#starting_position, #number_of_samples').on('change keyup', rebuildRows);
+	{% if saved_box and saved_box.box_number %}
+	$('#box_number').val('{{ saved_box.box_number }}');
+	syncSuffixFromBoxNumber();
+	loadBoxPositions();
+	{% endif %}
+});
+</script>
+
+<style type="text/css">
+.form-group.required label:before, .form-inline.required label:before { content:"*"; color:red; }
+.form-group, .form-inline { margin-bottom: 4px; }
+</style>
+{% endblock %}

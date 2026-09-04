@@ -1,9 +1,195 @@
+import re
+
 from home import utils
 from worksheets.models import Worksheet,WorksheetSample, ResultRunDetail, MACHINE_TYPES,ResultRun
 from django.utils import timezone
 from django.db.models import Q
 from . import utils as result_utils
 from django.core.exceptions import ObjectDoesNotExist
+
+RESULT_TYPE_QUANTITATIVE = 1
+RESULT_TYPE_QUALITATIVE = 2
+PANEL_RESULT_LABELS = ('HCV', 'HBV', 'HIV')
+PANEL_RESULT_FIELDS_BY_PROGRAM = {
+	'1': 'result2',  # HepB/HBV
+	'2': 'result1',  # HepC/HCV
+	'3': 'result3',  # HIV VL
+}
+
+
+def format_panel_result(hcv_result, hbv_result, hiv_result):
+	return 'HCV: {0}; HBV: {1}; HIV: {2}'.format(hcv_result, hbv_result, hiv_result)
+
+
+def is_panel_result(result):
+	result = (result or '').strip() if isinstance(result, str) else ''
+	return all('{0}:'.format(label) in result for label in PANEL_RESULT_LABELS)
+
+
+def get_panel_result_fields(result):
+	if not is_panel_result(result):
+		return {
+			'result1': result or '',
+			'result2': '',
+			'result3': '',
+		}
+	parts = {}
+	for segment in result.split(';'):
+		if ':' not in segment:
+			continue
+		label, value = segment.split(':', 1)
+		parts[label.strip().upper()] = value.strip()
+	return {
+		'result1': parts.get('HCV', ''),
+		'result2': parts.get('HBV', ''),
+		'result3': parts.get('HIV', ''),
+	}
+
+
+def get_result_column_fields(result, final_result=None):
+	final_result = final_result if final_result is not None else get_final_result_alphanumeric(result)
+	return {
+		'result1': final_result or result or '',
+		'result2': '',
+		'result3': '',
+	}
+
+
+def get_panel_result_extra_fields(result):
+	if not is_panel_result(result):
+		return {
+			'hepb_result': None,
+			'hiv_result': None,
+		}
+	panel_results = get_panel_result_fields(result)
+	return {
+		'hepb_result': panel_results.get('result2') or None,
+		'hiv_result': panel_results.get('result3') or None,
+	}
+
+
+def _normalized_result_value(value):
+	return str(value).strip() if value is not None else ''
+
+
+def _normalized_int(value, default=0):
+	if value in (None, ''):
+		return default
+	return int(value)
+
+
+def is_panel_result_record(result):
+	return (
+		result is not None
+		and _normalized_int(getattr(result, 'result_type', 0), 0) == RESULT_TYPE_QUALITATIVE
+		and _normalized_int(getattr(result, 'suppressed', None), -1) == 0
+		and bool(_normalized_result_value(getattr(result, 'hepb_result', '')))
+		and bool(_normalized_result_value(getattr(result, 'hiv_result', '')))
+	)
+
+
+def is_panel_result_record_for_processed_display(result):
+	return (
+		result is not None
+		and _normalized_int(getattr(result, 'result_type', 0), 0) == RESULT_TYPE_QUALITATIVE
+		and (
+			bool(_normalized_result_value(getattr(result, 'hepb_result', '')))
+			or bool(_normalized_result_value(getattr(result, 'hiv_result', '')))
+			or is_panel_result(getattr(result, 'result_alphanumeric', ''))
+		)
+	)
+
+
+def get_panel_result_values(result):
+	return {
+		'result1': getattr(result, 'result_alphanumeric', '') or getattr(result, 'result1', '') or '',
+		'result2': getattr(result, 'hepb_result', '') or '',
+		'result3': getattr(result, 'hiv_result', '') or '',
+	}
+
+
+def get_sample_program_code(sample):
+	if sample is None:
+		return ''
+	program_code = getattr(sample, 'program_code', None)
+	if program_code:
+		return str(program_code)
+	envelope = getattr(sample, 'envelope', None)
+	if envelope is not None and getattr(envelope, 'program_code', None):
+		return str(envelope.program_code)
+	return ''
+
+
+def get_result_for_program(result, sample=None, program_code=None):
+	if result is None:
+		return ''
+	if is_panel_result_record(result):
+		panel_results = get_panel_result_values(result)
+		program_code = str(program_code or get_sample_program_code(sample) or get_sample_program_code(getattr(result, 'sample', None)))
+		field_name = PANEL_RESULT_FIELDS_BY_PROGRAM.get(program_code)
+		if field_name:
+			value = panel_results.get(field_name, '') or ''
+			if value:
+				return value
+	return getattr(result, 'result_alphanumeric', '') or ''
+
+
+def format_result_for_display(result):
+	if result is None:
+		return ''
+	if is_panel_result_record(result):
+		panel_results = get_panel_result_values(result)
+		return format_panel_result(
+			panel_results.get('result1', '') or '',
+			panel_results.get('result2', '') or '',
+			panel_results.get('result3', '') or '',
+		)
+	return getattr(result, 'result_alphanumeric', '') or ''
+
+
+def format_processed_result_for_display(result):
+	if result is None:
+		return ''
+	if is_panel_result_record_for_processed_display(result):
+		result_alphanumeric = getattr(result, 'result_alphanumeric', '') or ''
+		panel_results = get_panel_result_fields(result_alphanumeric) if is_panel_result(result_alphanumeric) else get_panel_result_values(result)
+		return format_panel_result(
+			panel_results.get('result1', '') or '',
+			panel_results.get('result2', '') or '',
+			panel_results.get('result3', '') or '',
+		)
+	return format_result_for_display(result)
+
+
+def get_latest_result_value(result):
+	if result is None:
+		return ''
+	if is_panel_result_record(result):
+		return format_result_for_display(result)
+	for field_name in ('result5', 'result4', 'result3', 'result2', 'result1'):
+		value = getattr(result, field_name, '') or ''
+		if value:
+			return value
+	return getattr(result, 'result_alphanumeric', '') or ''
+
+
+def get_final_result_alphanumeric(result):
+	panel_results = get_panel_result_fields(result)
+	if is_panel_result(result):
+		return panel_results.get('result1') or result or ''
+	return result or ''
+
+
+def get_result_type(result):
+	if is_panel_result(result) or get_qualitative_result(result):
+		return RESULT_TYPE_QUALITATIVE
+	return RESULT_TYPE_QUANTITATIVE
+
+
+def get_suppressed_for_result(result, suppressed):
+	if is_panel_result(result):
+		return 0
+	return suppressed
 
 
 def repeat_test(machine_type, result, flag):
@@ -45,7 +231,7 @@ def repeat_test(machine_type, result, flag):
 	return repeat
 
 
-def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_volume=200):
+def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_volume=200,active_program_code=None):
 	
 	numeric_result = 0
 	alphanumeric_result = ''
@@ -56,8 +242,24 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
     	'name': ''
     }
 
+	unit_label = 'IU/ml' if str(active_program_code) in ('1', '2') else 'Copies / mL'
+
 	if utils.isnan(result) or result == '':
 		result = 'Failed' 
+	if isinstance(result, str):
+		if is_panel_result(result):
+			return {
+				'numeric_result': 0,
+				'alphanumeric_result': result,
+				'suppressed': 0,
+				'rep_test': 3 if 'Failed' in result else 2,
+				'has_low_level_viramia': 0,
+				'supression_cut_off': None,
+				'result_type': RESULT_TYPE_QUALITATIVE,
+			}
+		qualitative_result = get_qualitative_result(result)
+		if qualitative_result:
+			return qualitative_result
 	if eq(result,'Target Not Detected') or eq(result,'Not detected'):
 		numeric_result = 0
 		alphanumeric_result = 'Target Not Detected'
@@ -70,42 +272,39 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 	elif eq(result, '< Titer min'):
 		if sample_volume is not None and sample_volume == 500:
 			numeric_result = 20
-			alphanumeric_result = '< 20.00 Copies / mL'
+			alphanumeric_result = '< 20.00 %s' % unit_label
 		else:
 			numeric_result = 50
-			alphanumeric_result = '< 50.00 Copies / mL'
+			alphanumeric_result = '< 50.00 %s' % unit_label
 	elif eq(result, '> Titer max'):
 		numeric_result = 10000000
-		alphanumeric_result = '> 10,000,000 Copies / mL'
+		alphanumeric_result = '> 10,000,000 %s' % unit_label
 		suppressed = 2
 	elif result.startswith('<') or result.startswith('>'):
-		if(machine_type =='N'):
+		if machine_type == 'N':
 			numeric_result = get_alinity_numeric_result(result)
 		else:
 			numeric_result = get_numeric_result(result)
-		alphanumeric_result = "%s {:,d} Copies / mL".format(numeric_result) %result[0]
-	elif result[-5:] == 'cp/ml':
+		alphanumeric_result = "%s {:,d} %s".format(numeric_result) % (result[0], unit_label)
+	elif result.lower().endswith('cp/ml'):
 		numeric_result = int(float(result[:-6]))
-		#numeric_result *= multiplier
-		alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
+		alphanumeric_result = "{:,d} %s".format(numeric_result) % unit_label
 	else:
-		if(machine_type == 'N'):
+		if machine_type == 'N':
 			numeric_result = get_alinity_numeric_result(result)
 		else:
 			numeric_result = get_numeric_result(result)
-		#numeric_result = numeric_result*multiplier
 		if numeric_result > 10000000:
 			suppressed = 2
-			alphanumeric_result = "> 10,000,000 Copies / mL"
+			alphanumeric_result = "> 10,000,000 %s" % unit_label
 		else:
-			alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
+			alphanumeric_result = "{:,d} %s".format(numeric_result) % unit_label
 			
 			
 	if is_diluted == 1 and not result.startswith('<') and not result.startswith('>'):
 		numeric_result = numeric_result*2
 		if numeric_result != 0:
-			alphanumeric_result = "{:,d} Copies / mL".format(numeric_result)
-	
+			alphanumeric_result = "{:,d} %s".format(numeric_result) % unit_label
 	
 	if sample_type is None:
 		suppressed = 4
@@ -123,8 +322,37 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 			'suppressed': suppressed,
 			'rep_test': repeat_test,
 			'has_low_level_viramia':has_ll_viramia(numeric_result,machine_type,sample_type,suppression_cut_off_int),
-			'supression_cut_off':supression_cut_off
+			'supression_cut_off':supression_cut_off,
+			'result_type': RESULT_TYPE_QUANTITATIVE,
 			}
+
+def get_qualitative_result(result):
+	if not isinstance(result, str):
+		return None
+	normalized_result = (result or '').strip().lower()
+	normalized_words = normalized_result.replace('-', ' ')
+	if normalized_result == 'negative' or normalized_words == 'non reactive':
+		return {
+			'numeric_result': 0,
+			'alphanumeric_result': 'Negative',
+			'suppressed': 1,
+			'rep_test': 2,
+			'has_low_level_viramia': 0,
+			'supression_cut_off': None,
+			'result_type': RESULT_TYPE_QUALITATIVE,
+		}
+	if normalized_result in ('positive', 'detected', 'reactive'):
+		alphanumeric_result = 'Detected' if normalized_result == 'detected' else 'Positive'
+		return {
+			'numeric_result': 1,
+			'alphanumeric_result': alphanumeric_result,
+			'suppressed': 2,
+			'rep_test': 2,
+			'has_low_level_viramia': 0,
+			'supression_cut_off': None,
+			'result_type': RESULT_TYPE_QUALITATIVE,
+		}
+	return None
 
 def has_ll_viramia(numeric_result,machine_type,sample_type,supp_cut_off_val):
 	if not sample_type:
@@ -176,13 +404,17 @@ def get_result2(result, multiplier, machine_type):
 			'alphanumeric_result':alphanumeric_result,
 			'suppressed': suppressed,
 			'repeat_test':repeat_test,
+			'result_type': RESULT_TYPE_QUANTITATIVE,
 			}
 
 def get_numeric_result(result):
 	numeric_result = 0
 	rresult_new = result.strip()
 	result_new = result.replace('Copies / mL', '')
-	# result_new = result.replace('Copies/mL', '')
+	result_new = result_new.replace('Copies/mL', '')
+	result_new = result_new.replace('IU / mL', '')
+	result_new = result_new.replace('IU/mL', '')
+	result_new = result_new.replace('IU/ml', '')
 	result_new = result_new.replace('detected', '')
 	result_new = result_new.replace(' ', '')
 	result_new = result_new.replace(',', '')
@@ -191,6 +423,7 @@ def get_numeric_result(result):
 	result_new = result_new.replace(')', '')
 	result_new = result_new.replace('(', '')
 	result_new = result_new.replace('Log', '')
+	result_new = re.sub(r'(?i)[a-z/]+$', '', result_new)
 	# result_new = result_new.strip()
 	try:
 		numeric_result = int(float(result_new))
@@ -205,7 +438,10 @@ def get_alinity_numeric_result(result):
 	numeric_result = 0
 	rresult_new = result.strip()
 	result_new = result.replace('Copies / mL', '')
-	result_new = result.replace('Copies/mL', '')
+	result_new = result_new.replace('Copies/mL', '')
+	result_new = result_new.replace('IU / mL', '')
+	result_new = result_new.replace('IU/mL', '')
+	result_new = result_new.replace('IU/ml', '')
 	result_new = result_new.replace('detected', '')
 	result_new = result_new.replace(' ', '')
 	result_new = result_new.replace(',', '')
@@ -214,6 +450,7 @@ def get_alinity_numeric_result(result):
 	result_new = result_new.replace(')', '')
 	result_new = result_new.replace('(', '')
 	result_new = result_new.replace('Log', '')
+	result_new = re.sub(r'(?i)[a-z/]+$', '', result_new)
 	result_new = result_new.strip()
 	try:
 		numeric_result = int(float(result_new))
@@ -258,8 +495,8 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 			# First verify sample exists before doing anything
 			sample = ws.sample
 			# Now we can safely access sample attributes
-			if not sample or not hasattr(sample, 'sample_type') or sample.sample_type is None:
-				raise ObjectDoesNotExist("Sample exists but sample_type is invalid")
+			if not sample:
+				raise ObjectDoesNotExist("Worksheet sample has no linked sample")
 			result_dict = result_utils.get_result(
 	            result, 
 	            multiplier,
@@ -330,9 +567,7 @@ def update_sample_and_save_result(machine_type,instrument_id,result, multiplier,
 			logger = logging.getLogger(__name__)
 			logger.error(f"Invalid sample reference in worksheet {ws.id}")
 	        
-	        # Clear the invalid reference and save minimal worksheet info
-			ws.sample_id = None
-			ws.save()
+			# Keep the worksheet linkage intact; data repair should be explicit.
 		
 
 #update sample run with information of contamination.

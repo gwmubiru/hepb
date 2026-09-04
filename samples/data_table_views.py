@@ -1,6 +1,7 @@
 import json
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Count, Q
 from django.conf import settings
 from django.db import models
 from django.http import HttpResponse
@@ -9,6 +10,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Sample, Envelope
 from home import utils
 from home import programs
+from home import db_aliases
 #import utils as sample_utils
 from . import utils as sample_utils
 from datetime import datetime, date, timedelta
@@ -24,7 +26,7 @@ class ListJson(BaseDatatableView):
 		'facility_reference',
 		'barcode',
 		'sample_type',
-		'envelope__program_code',
+		'program_code',
 		'date_collected',
 		'treatment_initiation_date',
 		'date_received',
@@ -37,6 +39,42 @@ class ListJson(BaseDatatableView):
 
 	max_display_length = 500		
 
+	def get_initial_queryset(self):
+		db_alias = db_aliases.get_program_db_alias(programs.get_active_program_code(self.request))
+		return (
+			Sample.objects.using(db_alias)
+			.select_related(
+				'patient__facility__district',
+				'facility__district',
+				'sample_reception__facility__district',
+				'tracking_code',
+			)
+			.all()
+		)
+
+	def _safe_related(self, obj, attr_path, default=''):
+		try:
+			current = obj
+			for attr in attr_path.split('.'):
+				current = getattr(current, attr)
+				if current is None:
+					return default
+			return current if current is not None else default
+		except (ObjectDoesNotExist, AttributeError):
+			return default
+
+	def _display_facility_name(self, row):
+		patient_facility = self._safe_related(row, 'patient.facility.facility')
+		reception_facility = self._safe_related(row, 'sample_reception.facility.facility')
+		legacy_facility = self._safe_related(row, 'facility.facility')
+		return patient_facility or reception_facility or legacy_facility
+
+	def _display_district_name(self, row):
+		patient_district = self._safe_related(row, 'patient.facility.district.district')
+		reception_district = self._safe_related(row, 'sample_reception.facility.district.district')
+		legacy_district = self._safe_related(row, 'facility.district.district')
+		return patient_district or reception_district or legacy_district
+
 	def render_column(self, row, column):
 		verified = self.request.GET.get('verified')
 		verify_url =  "/samples/verify/{0}".format(row.pk)
@@ -44,14 +82,15 @@ class ListJson(BaseDatatableView):
 		edit_url = "/samples/edit/{0}".format(row.pk)
 		#edit_received_url = "/samples/edit_received/{0}".format(row.pk)
 		l = verify_url if verified else show_url
-		if column == 'facility' and hasattr(row, 'patient') and hasattr(row.patient, 'facility'):
-			if(row.is_study_sample):
-				return 'Study - '+'{0}'.format(row.patient.facility.facility)
-			else:
-				
-				return '{0}'.format(row.patient.facility.facility)
-		elif column == 'facility.district' and hasattr(row, 'patient') and hasattr(row.patient, 'facility') and hasattr(row.patient.facility, 'district'):
-			return '%s' %(row.facility.district.district)
+		if column == 'facility':
+			facility_name = self._display_facility_name(row)
+			if row.is_study_sample and facility_name:
+				return 'Study - ' + facility_name
+			return facility_name
+		elif column == 'facility.district':
+			return self._display_district_name(row)
+		elif column == 'patient.hep_number':
+			return self._safe_related(row, 'patient.hep_number')
 		elif column == 'barcode':
 			return "<a href='%s' target='_blank'>%s</a>" %(show_url,row.barcode)
 		elif column == 'facility_reference':
@@ -66,7 +105,7 @@ class ListJson(BaseDatatableView):
 			else:
 				return ''
 		elif column == 'program':
-			return row.envelope.get_program_code_display() if row.envelope_id else ''
+			return row.get_program_code_display() if row.program_code else ''
 		elif column == 'date_collected' and row.date_collected:
 			return row.date_collected.strftime("%d/%m/%Y").__str__()
 		elif column == 'pk':
@@ -94,12 +133,19 @@ class ListJson(BaseDatatableView):
 
 		if global_search:
 			search = global_search
+		search = search.strip() if search else ''
+		has_search = bool(search)
 		is_data_entered = self.request.GET.get('is_data_entered')
 		sample_without_results = self.request.GET.get('sample_without_results')
 		hie_samples_pending_reception = self.request.GET.get('hie_samples_pending_reception')
 		no_result = self.request.GET.get('no_result')
+		tracking_code_id = self.request.GET.get('tracking_code_id')
+		cut_off_date = date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE)
 
-		if is_data_entered == '0':
+		qs = qs.filter(created_at__gte=cut_off_date)
+		if tracking_code_id:
+			qs = qs.filter(tracking_code_id=tracking_code_id)
+		elif is_data_entered == '0':
 			qs = qs.filter(patient_id__isnull=True)
 		elif sample_without_results == '0':
 			qs = qs.filter(sampleidentifier__sample_id__isnull=True)
@@ -107,23 +153,27 @@ class ListJson(BaseDatatableView):
 			qs = qs.filter(locator_category='W')
 		elif hie_samples_pending_reception == '1':
 			qs = qs.filter(facility_reference__isnull=False, date_received__isnull=True)
-		else:
-		  	qs = qs.filter(patient_id__isnull=False)
-		qs = programs.filter_queryset_by_program(self.request, qs, 'envelope__program_code')
+		elif not has_search:
+			qs = qs.filter(patient_id__isnull=False)
+		qs = programs.filter_queryset_by_program(self.request, qs, 'program_code')
 		if no_result:
 			qs = qs.filter(id__gte=6000000,result__isnull=True)
-		qs_params = Q()
 		if search:
-			if  search.isdigit() or search[:-1].isdigit():
-				return qs.filter(form_number=search)
+			if search.isdigit() or search[:-1].isdigit():
+				qs = qs.filter(
+					Q(form_number=search) |
+					Q(barcode=search) |
+					Q(barcode2=search) |
+					Q(facility_reference=search)
+				)
 			else:
-				qs_params = Q(form_number__icontains=search)
-		
-		qs_params = Q(created_at__gte=date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE)) 
-		if qs_params:
-			return qs.filter(qs_params).order_by('-created_at')
-		else:
-			return qs.filter(created_at__gte=date(settings.LIST_CUT_OFF_YEAR, settings.LIST_CUT_OFF_MONTH,settings.LIST_CUT_OFF_DATE)).order_by('-created_at')
+				qs = qs.filter(
+					Q(form_number__startswith=search) |
+					Q(barcode__startswith=search) |
+					Q(barcode2__startswith=search) |
+					Q(facility_reference__startswith=search)
+				)
+		return qs.order_by('-created_at')
 
 class VerifyListJson(BaseDatatableView):
 	model = Sample
@@ -131,6 +181,9 @@ class VerifyListJson(BaseDatatableView):
 		 'pk']
 	order_columns = ['form_number', 'barcode']
 	max_display_length = 500
+
+	def get_initial_queryset(self):
+		return Sample.objects.using(db_aliases.get_program_db_alias(programs.get_active_program_code(self.request))).all()
 	def render_column(self, row, column):
 		if(column == 'pk'):
 			url = "/samples/verify/{0}".format(row.pk)
@@ -146,7 +199,7 @@ class VerifyListJson(BaseDatatableView):
 		qs_params = Q(verified=0)
 		if search:
 			qs_params = Q(barcode=search) | Q(form_number=search) 
-		qs = programs.filter_queryset_by_program(self.request, qs, 'envelope__program_code')
+		qs = programs.filter_queryset_by_program(self.request, qs, 'program_code')
 		return qs.filter(qs_params).order_by('barcode')
 
 
@@ -176,6 +229,7 @@ def envelope_list_json(request):
 def __get_envelopes(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
+	db_alias = db_aliases.get_program_db_alias(programs.get_active_program_code(request))
 	f_query = Q(sample_medical_lab=utils.user_lab(request))
 	active_program_code = programs.get_active_program_code(request)
 	if active_program_code:
@@ -185,11 +239,69 @@ def __get_envelopes(r,request):
 	p_count = models.Count(models.Case(models.When(sample__verified=False, then=1)))
 	entered_count = models.Count(models.Case(models.When(sample__is_data_entered=True, then=1)))
 
-	data = Envelope.objects.annotate(s_count=s_count, entered_count=entered_count, p_count=p_count,).filter(f_query).order_by('-created_at')[start:start+length]
+	data = Envelope.objects.using(db_alias).annotate(s_count=s_count, entered_count=entered_count, p_count=p_count,).filter(f_query).order_by('-created_at')[start:start+length]
 
-	recordsTotal =  Envelope.objects.count()
-	recordsFiltered = recordsTotal if not f_query else Envelope.objects.filter(f_query).count()
+	recordsTotal =  Envelope.objects.using(db_alias).count()
+	recordsFiltered = recordsTotal if not f_query else Envelope.objects.using(db_alias).filter(f_query).count()
 	return {'envelopes_data':data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
+
+
+def tracking_codes_json(request):
+	r = request.GET
+	start = int(r.get('start', 0))
+	length = int(r.get('length', 10))
+	search = (r.get(u'search[value]', '') or '').strip()
+	db_alias = db_aliases.get_program_db_alias(programs.get_active_program_code(request))
+
+	qs = (
+		Sample.objects.using(db_alias)
+		.filter(tracking_code_id__isnull=False)
+		.values(
+			'tracking_code_id',
+			'tracking_code__code',
+			'tracking_code__created_at',
+			'tracking_code__facility__facility',
+			'tracking_code__facility__district__district',
+		)
+		.annotate(sample_count=Count('id'))
+	)
+	if search:
+		qs = qs.filter(
+			Q(tracking_code__code__startswith=search) |
+			Q(tracking_code__facility__facility__startswith=search) |
+			Q(tracking_code__facility__district__district__startswith=search)
+		)
+
+	records_total = (
+		Sample.objects.using(db_alias)
+		.filter(tracking_code_id__isnull=False)
+		.values('tracking_code_id')
+		.distinct()
+		.count()
+	)
+	records_filtered = qs.count()
+	rows = qs.order_by('-tracking_code__created_at')[start:start + length]
+
+	data = []
+	for row in rows:
+		tracking_code = row.get('tracking_code__code') or ''
+		tracking_code_id = row.get('tracking_code_id') or ''
+		samples_url = '/samples/list/?tracking_code_id={0}&tracking_code={1}'.format(tracking_code_id, tracking_code)
+		data.append([
+			"<a href='{0}'>{1}</a>".format(samples_url, tracking_code),
+			row.get('tracking_code__facility__facility') or '',
+			row.get('tracking_code__facility__district__district') or '',
+			row.get('sample_count') or 0,
+			utils.local_datetime(row.get('tracking_code__created_at')),
+			"<a href='{0}'>view samples</a>".format(samples_url),
+		])
+
+	return HttpResponse(json.dumps({
+		"draw": r.get('draw'),
+		"recordsTotal": records_total,
+		"recordsFiltered": records_filtered,
+		"data": data,
+	}))
 
 
 def vl_list(request):
@@ -207,7 +319,7 @@ def vl_list_data(request):
 			s.barcode,
 			'{0}{1}/{2}'.format(s.locator_category, s.envelope.envelope_number, s.locator_position),
 			s.get_sample_type_display(),
-			s.envelope.get_program_code_display() if s.envelope_id else '',
+			s.get_program_code_display() if s.program_code else '',
 			utils.local_date(s.date_collected),
 			utils.local_date(s.treatment_initiation_date),
 			s.date_received,
@@ -231,11 +343,12 @@ def __get_samples(r, request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
 	filter_query = __get_filter_query(r, request)
+	db_alias = db_aliases.get_program_db_alias(programs.get_active_program_code(request))
 
-	samples_data = Sample.objects.filter(filter_query).order_by('-envelope__envelope_number')[start:start+length]
+	samples_data = Sample.objects.using(db_alias).filter(filter_query).order_by('-envelope__envelope_number')[start:start+length]
 
-	recordsTotal =  Sample.objects.count()
-	recordsFiltered = recordsTotal if not filter_query else Sample.objects.filter(filter_query).count()
+	recordsTotal =  Sample.objects.using(db_alias).count()
+	recordsFiltered = recordsTotal if not filter_query else Sample.objects.using(db_alias).filter(filter_query).count()
 	return {'samples_data':samples_data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}
 
 def __get_filter_query(r, request):
@@ -258,7 +371,7 @@ def __get_filter_query(r, request):
 	if verified=='0' or verified=='1':
 		qs_params = Q(verified=int(verified))
 	if active_program_code:
-		qs_params = qs_params & Q(envelope__program_code=int(active_program_code))
+		qs_params = qs_params & Q(program_code=int(active_program_code))
 	return qs_params
 
 

@@ -14,7 +14,9 @@
 {% block content %}	
 
 <div class="page-title">
-	{% if request.GET.sample_without_results == '0' %}
+	{% if tracking_code %}
+		Samples in Tracking Code {{ tracking_code }}
+	{% elif request.GET.sample_without_results == '0' %}
 		Received samples pending worksheet creation
 	{% else %} Samples {% endif %}</div>
 
@@ -68,7 +70,7 @@ $(document).ready(function() {
 		"processing": true,
 		"serverSide": true,
 		"searching": false,
-		"ajax": "/samples/list_json?hie_samples_pending_reception={{ hie_samples_pending_reception }}&sample_without_results={{ sample_without_results }}&is_data_entered={{ is_data_entered }}{% if global_search %}&global_search={{ global_search }}{% endif %}",
+		"ajax": "/samples/list_json?hie_samples_pending_reception={{ hie_samples_pending_reception }}&sample_without_results={{ sample_without_results }}&is_data_entered={{ is_data_entered }}{% if global_search %}&global_search={{ global_search }}{% endif %}{% if tracking_code_id %}&tracking_code_id={{ tracking_code_id }}{% endif %}",
 	});
 });
 </script>

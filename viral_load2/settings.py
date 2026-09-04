@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 	'results.apps.ResultsConfig',
 	'home.apps.HomeConfig',
 	'api.apps.ApiConfig',
+	'vl.apps.VlConfig',
 	'simple_history',
 ]
 
@@ -116,6 +117,55 @@ DATABASES = {
 	}
 }
 
+DATABASES['hepb'] = {
+	'ENGINE': 'django.db.backends.mysql',
+	'OPTIONS': {
+		'sql_mode': 'traditional',
+	},
+	'NAME': os.getenv('DB_NAME'),
+	'USER': os.getenv('DB_USER'),
+	'PASSWORD': os.getenv('DB_PASSWORD'),
+	'HOST': os.getenv('DB_HOST'),
+	'PORT': os.getenv('DB_PORT'),
+}
+
+DATABASES['hepc'] = {
+	'ENGINE': 'django.db.backends.mysql',
+	'OPTIONS': {
+		'sql_mode': 'traditional',
+	},
+	'NAME': os.getenv('DB_NAME'),
+	'USER': os.getenv('DB_USER'),
+	'PASSWORD': os.getenv('DB_PASSWORD'),
+	'HOST': os.getenv('DB_HOST'),
+	'PORT': os.getenv('DB_PORT'),
+}
+
+DATABASES['vl_lims'] = {
+	'ENGINE': 'django.db.backends.mysql',
+	'OPTIONS': {
+		'sql_mode': 'traditional',
+	},
+	'NAME': os.getenv('VL_DB_NAME'),
+	'USER': os.getenv('VL_DB_USER'),
+	'PASSWORD': os.getenv('VL_DB_PASSWORD'),
+	'HOST': os.getenv('VL_DB_HOST'),
+	'PORT': os.getenv('VL_DB_PORT'),
+}
+
+DATABASES['old_db'] = {
+	'ENGINE': 'django.db.backends.mysql',
+	'OPTIONS': {
+		'sql_mode': 'traditional',
+	},
+	'NAME': os.getenv('OLD_DB_NAME'),
+	'USER': os.getenv('OLD_DB_USER'),
+	'PASSWORD': os.getenv('OLD_DB_PASSWORD'),
+	'HOST': os.getenv('OLD_DB_HOST'),
+}
+
+DATABASE_ROUTERS = ['vl.router.VLRouter']
+
 
 # Password validation
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
@@ -167,7 +217,12 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/dev/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
@@ -197,6 +252,8 @@ SESSION_COOKIE_AGE = 28800  # close session if idle for 8 hours
 SESSION_SAVE_EVERY_REQUEST = True 
 
 SAMPLE_TRACKING_URL = 'http://10.200.254.44/api/restrack/receive_small_package'
+IRRDS_ALIS_BARCODE_SEARCH_URL = os.environ.get('IRRDS_ALIS_BARCODE_SEARCH_URL')
+IRRDS_ALIS_BARCODE_SEARCH_TOKEN = os.environ.get('IRRDS_ALIS_BARCODE_SEARCH_TOKEN')
 
 #Celery settings
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'

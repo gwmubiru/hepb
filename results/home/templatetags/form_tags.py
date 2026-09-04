@@ -4,8 +4,24 @@ from django import template
 from django.utils.safestring import mark_safe
 from samples.models import Sample, Verification
 from home import utils
+from results import utils as result_utils
 
 register = template.Library()
+
+
+@register.filter
+def result_display(result):
+	return result_utils.format_result_for_display(result)
+
+
+@register.filter
+def latest_result_display(result):
+	return result_utils.get_latest_result_value(result)
+
+
+@register.filter
+def processed_result_display(result):
+	return result_utils.format_processed_result_for_display(result)
 
 
 @register.simple_tag
@@ -74,9 +90,9 @@ def check_list(val="", choices="{}"):
 @register.simple_tag
 def dropdown_links(links={}):
 	links = ast.literal_eval(links)
-	ret = """<div class="btn-group">
-				<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-					Options 
+	ret = """<div class="btn-group action-dropdown">
+				<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+					Options
 					<span class="caret"></span>
 				</button>
 				<ul class="dropdown-menu" role="menu">

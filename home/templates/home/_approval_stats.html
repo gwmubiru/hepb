@@ -8,7 +8,7 @@
 				<div class="stat_ico color_b"><i class="ion-ios7-people"></i></div>
 				<div class="stat_content">
 					<span class="stat_name" style="color:#e67e22">
-						Sample reception stats for everyone
+						{{ active_program_label|default:"Selected Program" }} sample reception stats for everyone
 				</div>
 			</div>
 		</div>
@@ -81,7 +81,7 @@
 				<div class="stat_ico color_b"><i class="ion-ios7-person"></i></div>
 				<div class="stat_content">
 					<span class="stat_name" style="color:#e67e22">
-						My sample reception stats
+						My {{ active_program_label|default:"selected program" }} sample reception stats
 				</div>
 			</div>
 		</div>

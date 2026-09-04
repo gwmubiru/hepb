@@ -66,14 +66,18 @@
 
 							<td>
 								<span id="results_list{{ forloop.counter }}" style="display:none">
-								<table  class="table table-bordered table-condensed table-striped" >
-									<tr><td>Result 1:</td><td>{{ ws.sample.result.result1 }}</td></tr>
-									<tr><td>Result 2:</td><td>{{ ws.sample.result.result2 }}</td></tr>
-									<tr><td>Result 3:</td><td>{{ ws.sample.result.result3 }}</td></tr>
-									<tr><td>Result 4:</td><td>{{ ws.sample.result.result4 }}</td></tr>
-									<tr><td>Result 5:</td><td>{{ ws.sample.result.result5 }}</td></tr>
-								</table>
-								</span>
+									<table  class="table table-bordered table-condensed table-striped" >
+										<tr><td>Result 1:</td><td>{{ ws.sample.result.result1 }}</td></tr>
+										<tr><td>Result 2:</td><td>{{ ws.sample.result.result2 }}</td></tr>
+										<tr><td>Result 3:</td><td>{{ ws.sample.result.result3 }}</td></tr>
+										<tr><td>Result 4:</td><td>{{ ws.sample.result.result4 }}</td></tr>
+										<tr><td>Result 5:</td><td>{{ ws.sample.result.result5 }}</td></tr>
+										{% if ws.sample.result.hepb_result or ws.sample.result.hiv_result %}
+										<tr><td>HepB Result:</td><td>{{ ws.sample.result.hepb_result }}</td></tr>
+										<tr><td>HIV Result:</td><td>{{ ws.sample.result.hiv_result }}</td></tr>
+										{% endif %}
+									</table>
+									</span>
 
 								<a href="#" class="results_list glyphicon glyphicon-list-alt" data-toggle="modal" data-target="#myModal" style="text-decoration:none;" r_id="{{ forloop.counter }}"></a>
 							</td>

@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.serializers import serialize
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotAllowed
 #from easy_pdf.views import PDFTemplateView
 #from easy_pdf.rendering import render_to_pdf_response
 from django.contrib.auth.decorators import permission_required
@@ -22,14 +22,17 @@ from django.core import serializers
 
 from home import utils
 from home import programs
-from backend.models import DeleteLog, Facility
+from home import db_aliases
+from backend.models import DeleteLog, Facility, Appendix
 from .forms import WorksheetForm,AttachSamplesForm
 from .models import Worksheet,WorksheetSample, WorksheetPrinting,ResultRunDetail, MACHINE_TYPES,WorksheetEnvelope
-from samples.models import Sample, Envelope,SampleReception,SampleIdentifier,EnvelopeAssignment
+from samples.models import Sample, Envelope,SampleReception,SampleIdentifier,EnvelopeAssignment,Verification
 from results.models import Result
+from results import utils as result_utils
 from worksheets.models import ResultRun
 from . import utils as worksheet_utils
 from samples import utils as sample_utils
+from vl import services as vl_services
 
 from reportlab.graphics.barcode import code39, code128, code93
 from reportlab.graphics.barcode import eanbc, qr, usps
@@ -43,6 +46,10 @@ from django.db import transaction
 from django.db import connections
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import *
+
+
+def get_program_db_alias(request):
+	return db_aliases.get_program_db_alias(programs.get_active_program_code(request))
 
 # Create your views here.
 
@@ -118,6 +125,46 @@ def does_worksheet_sample_number_exist(request, ws):
 @transaction.atomic
 def update(request, sample_type):
 	return redirect('worksheets:attach_samples', worksheet_id=115586)
+
+def _plasma_repeat_rejection_reason_id(reason):
+	reason_codes = {
+		'insufficient': '1',
+		'insfficient': '1',
+		'hemolyzed': '2',
+		'haemolyzed': '2',
+		'hemolysed': '2',
+		'haemolysed': '2',
+	}
+	code = reason_codes.get((reason or '').lower())
+	if not code:
+		return None
+	return Appendix.objects.filter(
+		appendix_category_id=4,
+		tag__startswith='P',
+		code=code,
+	).values_list('id', flat=True).first()
+
+def _reject_plasma_repeat_sample(request):
+	sample = get_object_or_404(Sample, pk=request.POST.get('sample_pk'), sample_type='P')
+	rejection_reason_id = _plasma_repeat_rejection_reason_id(request.POST.get('reason'))
+	if not rejection_reason_id:
+		return HttpResponse("Matching plasma rejection reason was not found", status=400)
+
+	verification = Verification.objects.filter(sample=sample).first()
+	verification = verification if verification else Verification(sample=sample, pat_edits=0, sample_edits=0)
+	verification.accepted = False
+	verification.rejection_reason_id = rejection_reason_id
+	verification.verified_by = request.user
+	verification.save()
+
+	sample.locator_category = 'R'
+	sample.verified = 1
+	sample.is_data_entered = 1
+	sample.stage = 7
+	sample.verifier = request.user
+	sample.save()
+	sample_utils.release_rejected_sample(sample, request.user.id)
+	return HttpResponse(json.dumps({'message': 'saved', 'rejection_reason_id': rejection_reason_id}))
 
 def update_status(request, worksheet_id):
 	#update the stage of worksheet and all corresponding worksheet_samples
@@ -248,8 +295,10 @@ def manage_repeats(request):
 		return render(request, 'worksheets/create_repeats.html', context)
 
 def manage_plasma_repeats(request):
-	
+
 	if request.method == 'POST':
+		if request.POST.get('post_type') == 'reject_sample':
+			return _reject_plasma_repeat_sample(request)
 
 		samples = request.POST.getlist('samples')
 		if len(samples):
@@ -305,6 +354,12 @@ def list_page(request):
 	})
 
 def show(request, worksheet_id):
+	if vl_services.is_hiv_program(request):
+		worksheet, worksheet_samples = vl_services.worksheet_detail(worksheet_id)
+		if worksheet is None:
+			return HttpResponse("Worksheet not found", status=404)
+		context = {'worksheet': worksheet, 'sample_pads': 0, "worksheet_samples":worksheet_samples}
+		return render(request, 'worksheets/show.html', context)
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
 	worksheet_samples = WorksheetSample.objects.filter(worksheet_id = worksheet_id).order_by("sample__barcode")
 	
@@ -312,11 +367,66 @@ def show(request, worksheet_id):
 	context = {'worksheet': worksheet, 'sample_pads': sample_pads, "worksheet_samples":worksheet_samples}
 	return render(request, 'worksheets/show.html', context)
 
+def delete_worksheet_sample(request, pk):
+	if request.method != 'POST':
+		return HttpResponseNotAllowed(['POST'])
+
+	if vl_services.is_hiv_program(request):
+		worksheet_id = vl_services.delete_worksheet_sample(pk)
+		if worksheet_id is None:
+			return HttpResponse("Worksheet sample not found.", status=404)
+		if worksheet_id is False:
+			return HttpResponse(
+				"Worksheet sample cannot be deleted unless it is at stage 1.",
+				status=400,
+			)
+		return redirect('worksheets:show', worksheet_id=worksheet_id)
+
+	with transaction.atomic():
+		worksheet_sample = get_object_or_404(
+			WorksheetSample.objects.select_for_update().select_related('worksheet'),
+			pk=pk,
+		)
+		if worksheet_sample.stage != 1:
+			return HttpResponse(
+				"Worksheet sample cannot be deleted unless it is at stage 1.",
+				status=400,
+			)
+		if worksheet_sample.sample_id is None:
+			return HttpResponse("Worksheet sample has no sample record.", status=400)
+
+		sample = Sample.objects.select_for_update().get(pk=worksheet_sample.sample_id)
+		if worksheet_sample.worksheet.is_repeat == 1:
+			sample.stage = 4
+			sample.save(update_fields=['stage'])
+		else:
+			envelope = Envelope.objects.select_for_update().get(pk=sample.envelope_id)
+			sample.stage = 0
+			sample.save(update_fields=['stage'])
+			envelope.stage = 1
+			envelope.save(update_fields=['stage'])
+
+		worksheet_id = worksheet_sample.worksheet_id
+		worksheet_sample.delete()
+
+	return redirect('worksheets:show', worksheet_id=worksheet_id)
+
 def edit(request, worksheet_id):
 	if request.method == 'POST':
 		pst = request.POST
+		pk = pst.get('pk')
+		instrument_id = pst.get('instrument_id')
+		if pk:
+			ws = WorksheetSample.objects.get(pk=pk)
+			if instrument_id is not None:
+				ws.instrument_id = instrument_id
+			rack_id = pst.get('rack_id')
+			if rack_id is not None:
+				ws.rack_id = rack_id
+			ws.save()
+			return HttpResponse("saved")
 		rack_id = pst.get('rack_id')
-		for x in xrange(1,6):
+		for x in range(1,6):
 			pk = pst.get('pk%s'%x)
 			instrument_id = pst.get('instrument%s'%x)
 			if pk and instrument_id:
@@ -343,6 +453,7 @@ def vlprint(request, worksheet_id):
 
 @permission_required('results.add_result', login_url='/login/')
 def authorize_list(request, machine_type):
+	db_alias = get_program_db_alias(request)
 
 	tab = request.GET.get('tab')
 	if tab=='authorised':
@@ -350,109 +461,143 @@ def authorize_list(request, machine_type):
 	else:
 		filters = Q(stage=2, worksheet_medical_lab=utils.user_lab(request))
 
-	worksheets = Worksheet.objects.filter(filters)
+	worksheets = Worksheet.objects.using(db_alias).filter(filters)
 	return render(request,'worksheets/authorize_list.html',{'worksheets':worksheets, 'machine_type':dict(MACHINE_TYPES).get(machine_type)})
 
 @permission_required('results.add_result', login_url='/login/')
 @transaction.atomic
 def authorize_results(request):
+	if vl_services.is_hiv_program(request):
+		rs_id = request.GET.get('run_id')
+		facilities = Facility.objects.all()
+		if request.method == 'POST':
+			if 'run_id' in request.POST and request.POST.get('is_multi_approval') == 'No':
+				run_id = request.POST.get('run_id')
+				for ws in vl_services.release_result_rows(run_id=run_id):
+					vl_services.authorize_worksheet_sample(ws.pk, request.POST.get('choice_type') or 'release', request.user)
+				return redirect("/worksheets/authorize_runs/")
+			if 'ws_pk' in request.POST:
+				vl_services.authorize_worksheet_sample(request.POST.get('ws_pk'), request.POST.get('choice'), request.user)
+				return HttpResponse("saved")
+			worksheet_samples = request.POST.getlist('worksheet_samples')
+			for ws_id in worksheet_samples:
+				vl_services.authorize_worksheet_sample(ws_id, request.POST.get('choice_type'), request.user)
+			return redirect('/worksheets/authorize_results/?run_id=%d&stage=1&tab=received' % int(request.POST.get('run_id')))
+		context = {'result_run_details': vl_services.authorize_result_rows(rs_id), 'run_id':rs_id,'facilities':facilities}
+		return render(request, 'worksheets/authorize_and_release_results.html', context)
 	
 	envelope_id = request.GET.get('envelope_id')
 	rs_id = request.GET.get('run_id')
+	db_alias = get_program_db_alias(request)
 	facilities = Facility.objects.all()
 	if request.method == 'POST':
 		if 'run_id' in request.POST and request.POST.get('is_multi_approval') == 'No':
 			run_id = request.POST.get('run_id')
-			WorksheetSample.objects.filter(result_run_id=run_id).update(stage=2)
-			run = ResultRun.objects.filter(pk=run_id).first()
+			WorksheetSample.objects.using(db_alias).filter(result_run_id=run_id).update(stage=2)
+			run = ResultRun.objects.using(db_alias).filter(pk=run_id).first()
 			run.stage = 2;
-			run.save()
+			run.save(using=db_alias)
 			return redirect("/worksheets/authorize_runs/")
 
 		if 'ws_pk' in request.POST:
-			manage_results(request.POST.get('ws_pk'),request.POST.get('choice'),request.user)
+			manage_results(request.POST.get('ws_pk'),request.POST.get('choice'),request.user, db_alias=db_alias)
 			return HttpResponse("saved")
 		else:
 			#save the multiple authorize, reschedule or invalid
 			worksheet_samples = request.POST.getlist('worksheet_samples')
 			for ws_id in worksheet_samples:
-				manage_results(ws_id, request.POST.get('choice_type'),request.user)
+				manage_results(ws_id, request.POST.get('choice_type'),request.user, db_alias=db_alias)
 			return redirect('/worksheets/authorize_results/?run_id=%d&stage=1&tab=received' %int(request.POST.get('run_id')))
 	else:
-		
-		result_run_details = ResultRunDetail.objects.filter(the_result_run_id = rs_id).order_by('result_run_position')
+
+		result_run_details = ResultRunDetail.objects.using(db_alias).filter(the_result_run_id = rs_id).order_by('result_run_position')
 		
 		context = {'result_run_details': result_run_details,'run_id':rs_id,'facilities':facilities}
 		return render(request, 'worksheets/authorize_and_release_results.html', context)
 
 # authorize, reschedule or invalidate
-def manage_results(ws_pk,choice,user):
-	ws = WorksheetSample.objects.filter(pk=ws_pk).first()
+def manage_results(ws_pk,choice,user, db_alias='default'):
+	ws = WorksheetSample.objects.using(db_alias).filter(pk=ws_pk).first()
 	#sample_id = request.POST.get('sample_pk')
 	if ws.result_alphanumeric == '':
 		#ignore this 
 		ws_ignored = ws
-		ws = WorksheetSample.objects.filter(instrument_id=ws_ignored.instrument_id, stage=4).last()
+		ws = WorksheetSample.objects.using(db_alias).filter(instrument_id=ws_ignored.instrument_id, stage=4).last()
 		ws_ignored.delete()
 	ws.stage = ws.sample.stage = 4 if choice == 'reschedule' else 3
 	ws.authorised_at = timezone.now()
-	ws.authoriser = user
+	ws.authoriser_id = user.id
 	if choice == 'reschedule' and ws.sample.sample_type == 'D':
 		ws.repeat_test = 1
-	ws.sample.save();
-	ws.save()
-	update_sample(ws)
+	ws.sample.save(using=db_alias);
+	ws.save(using=db_alias)
+	update_sample(ws, db_alias=db_alias)
 
-def update_sample(ws):
+def update_sample(ws, db_alias='default'):
 	if ws.sample.sample is None:
-		sample = Sample.objects.filter(barcode = ws.sample.barcode).first()
+		sample = Sample.objects.using(db_alias).filter(barcode = ws.sample.barcode).first()
 		if sample:
 			ws.sample.sample = sample
-			ws.sample.save()
+			ws.sample.save(using=db_alias)
 			ws.sample = sample
-			ws.save()
+			ws.save(using=db_alias)
 
 def attach_results(request):
-	worksheet_samples = WorksheetSample.objects.filter(result_run_id=request.GET.get('run_id'))
+	db_alias = get_program_db_alias(request)
+	worksheet_samples = WorksheetSample.objects.using(db_alias).filter(result_run_id=request.GET.get('run_id'))
 	for ws in worksheet_samples:
-		sample =  Sample.objects.filter(barcode=ws.instrument_id).first()
+		sample =  Sample.objects.using(db_alias).filter(barcode=ws.instrument_id).first()
 		if sample:
 
 			#check if sample has result
-			result = Result.objects.filter(sample=sample).first()
+			result = Result.objects.using(db_alias).filter(sample=sample).first()
 			if not result:
 				#create the result
 				result = Result()
 
 			ws.sample =sample
-			ws.save()
+			ws.save(using=db_alias)
 
 			result.repeat_test = ws.repeat_test
-			result.suppressed = ws.suppressed
+			result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed)
 			result.method = ws.method
 			result.result_numeric = ws.result_numeric
-			result.result_alphanumeric = ws.result_alphanumeric
+			result.result_alphanumeric = result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
+			result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
 			result.test_date = ws.test_date
-			result.result1 =ws.result_alphanumeric
+			result_columns = result_utils.get_result_column_fields(ws.result_alphanumeric, result.result_alphanumeric)
+			panel_extra_fields = result_utils.get_panel_result_extra_fields(ws.result_alphanumeric)
+			result.result1 = result_columns.get('result1') or ''
+			result.result2 = result_columns.get('result2') or ''
+			result.result3 = result_columns.get('result3') or ''
+			result.hepb_result = panel_extra_fields.get('hepb_result')
+			result.hiv_result = panel_extra_fields.get('hiv_result')
 			result.sample =sample
-			result.test_by =ws.tester
-			result.save()
+			result.test_by_id = ws.tester_id
+			result.save(using=db_alias)
 
 	context = {'worksheet_samples': worksheet_samples,'run_id':request.GET.get('run_id')}
 	return render(request, 'worksheets/all_authorize_results.html', context)
 
 @permission_required('results.add_result', login_url='/login/')
 def authorize_runs(request):
-	
-	if request.GET.get('auth_by') == 'runs':		
+	if vl_services.is_hiv_program(request) and request.GET.get('auth_by') == 'runs':
+		if request.method == 'POST':
+			pass
+		else:
+			stage = int(request.GET.get('stage'))
+			context = {'runs': vl_services.authorize_runs(stage=stage),'stage':stage}
+			return render(request, 'worksheets/authorize_runs.html', context)
+	if request.GET.get('auth_by') == 'runs':
 		if request.method == 'POST':
 			push_worksheet = request.POST.get('push_worksheet')
-		else:			
+		else:
+			db_alias = get_program_db_alias(request)
 			stage = int(request.GET.get('stage'))
 			if stage == 1:
-				runs = ResultRun.objects.annotate(no_results=models.Count('the_run'),invalid_results=models.Count('the_run',filter=Q(the_run__result_alphanumeric='Invalid'))).filter(stage=1)
+				runs = ResultRun.objects.using(db_alias).annotate(no_results=models.Count('the_run'),invalid_results=models.Count('the_run',filter=Q(the_run__result_alphanumeric='Invalid'))).filter(stage=1)
 			else:
-				runs = ResultRun.objects.annotate(no_results=models.Count('the_run'),invalid_results=models.Count('the_run',filter=Q(the_run__result_alphanumeric='Invalid'))).filter(stage__lte=4)
+				runs = ResultRun.objects.using(db_alias).annotate(no_results=models.Count('the_run'),invalid_results=models.Count('the_run',filter=Q(the_run__result_alphanumeric='Invalid'))).filter(stage__lte=4)
 			
 			context = {'runs': runs,'stage':stage}
 			return render(request, 'worksheets/authorize_runs.html', context)
@@ -605,6 +750,23 @@ class ListJson(BaseDatatableView):
 	max_display_length = 500
 
 	def render_column(self, row, column):
+		if vl_services.is_hiv_program(self.request):
+			if column == 'pk':
+				return utils.dropdown_links([
+					{"label":"view", "url":"/worksheets/show/{0}".format(row.pk)},
+				])
+			elif column == 'envelopes':
+				return vl_services.worksheet_envelope_links(row.pk)
+			elif column == 'program':
+				return 'HIV Viral Load'
+			elif column == 'created_at':
+				return utils.set_page_dates_format(row.created_at)
+			elif column == 'Timestamp':
+				return utils.set_date_time_stamp(row.created_at)
+			elif column == 'eluted?':
+				return 'Repeat' if row.stage == 11 else 'Normal'
+			elif column == 'loaded?':
+				return 'No' if row.stage == 12 else 'Yes'
 		machine_type = self.request.GET.get('machine_type')
 		if column == 'pk':
 			url0 = "/worksheets/show/{0}".format(row.pk)
@@ -654,6 +816,22 @@ class ListJson(BaseDatatableView):
 			return super(ListJson, self).render_column(row, column)
 
 	def filter_queryset(self, qs):
+		if vl_services.is_hiv_program(self.request):
+			tab = self.request.GET.get('tab')
+			sample_type = self.request.GET.get('sample_type')
+			search = self.request.GET.get(u'search[value]', None)
+			qs = qs.using('vl_lims').filter(worksheet_medical_lab_id=utils.user_lab(self.request).id)
+			if sample_type:
+				qs = qs.filter(sample_type=sample_type)
+			if tab=='pending_e':
+				qs = qs.filter(stage=11)
+			elif tab=='pending_l':
+				qs = qs.filter(stage=12)
+			elif tab=='pending_r':
+				qs = qs.filter(stage=1)
+			if search:
+				qs = qs.filter(worksheet_reference_number__icontains=search)
+			return qs
 		tab = self.request.GET.get('tab')
 		sample_type = self.request.GET.get('sample_type')
 		search = self.request.GET.get(u'search[value]', None)
@@ -678,6 +856,12 @@ class ListJson(BaseDatatableView):
 		if machine_type:
 			qs = qs.filter(machine_type=machine_type, stage=1)
 		return qs
+
+	def get_initial_queryset(self):
+		if vl_services.is_hiv_program(self.request):
+			from vl.models import VLWorksheet
+			return VLWorksheet.objects.using('vl_lims').all()
+		return super(ListJson, self).get_initial_queryset()
 
 def lab_samples(request):
 	search_val = request.GET.get('search_val')
@@ -808,8 +992,22 @@ def __get_envelopes(r,request):
 
 @transaction.atomic
 def create(request,sample_type):
+	if vl_services.is_hiv_program(request):
+		if request.method == 'POST':
+			worksheet = vl_services.create_worksheet(request.POST, request.user, sample_type)
+			return redirect('worksheets:show', worksheet_id=worksheet.id)
+		if 'users' not in request.session:
+			users = User.objects.filter(is_active=1)
+			request.session['users'] = users
+		else:
+			users = request.session['users']
+		search_val = request.GET.get('search')
+		is_lab_completed = request.GET.get('is_lab_completed')
+		sample_type = request.GET.get('sample_type')
+		return render(request, 'worksheets/create.html', {'global_search':search_val,'is_lab_completed':is_lab_completed ,'sample_type':sample_type,'users':users})
 	
 	if request.method == 'POST':
+		db_alias = get_program_db_alias(request)
 		generator_id = int(request.POST.get('generated_by_id'))
 		worksheet = Worksheet()
 		worksheet.sample_type = sample_type
@@ -824,8 +1022,8 @@ def create(request,sample_type):
 		envelope_ids = request.POST.getlist('envelope_ids')
 		worksheet_samples = []
 		for envelope_id in envelope_ids:
-			envelope_samples = Sample.objects.filter(envelope_id =envelope_id,stage=0)
-			env = Envelope.objects.get(pk=envelope_id)
+			envelope_samples = Sample.objects.using(db_alias).filter(envelope_id =envelope_id,stage=0)
+			env = Envelope.objects.using(db_alias).get(pk=envelope_id)
 			env.processed_at = dtime.now()
 			env.save()
 
@@ -882,6 +1080,22 @@ def create(request,sample_type):
 		return render(request, 'worksheets/create.html', {'global_search':search_val,'is_lab_completed':is_lab_completed ,'sample_type':sample_type,'is_lab_completed':is_lab_completed,'users':users})
 
 def create_worksheet_list_json(request):
+	if vl_services.is_hiv_program(request):
+		r = request.GET
+		rows = vl_services.worksheet_create_envelope_rows(request.GET.get('sample_type'), request.user, r.get('search[value]') or r.get('global_search[value]') or '')
+		data = []
+		for e in rows:
+			data.append([
+				'<input type="checkbox" onclick="addEnvelope(\'%s\',\'%s\')" class="envs" name="env_ids" value="%s">'%(e['id'],e['envelope_number'],e['id']),
+				"<a  href='/samples/search/?search_val=%s&approvals=1&search_env=1'>%s</a> (%s)"%(e['envelope_number'],e['envelope_number'],e['s_count']),
+				e['program'],
+			])
+		return HttpResponse(json.dumps({
+			"draw":r.get('draw'),
+			"recordsTotal": len(rows),
+			"recordsFiltered": len(rows),
+			"data":data,
+		}))
 	r = request.GET
 	envelopes = __get_worksheet_envelope_samples(r,request)
 	envelopes_data = envelopes.get('envelopes_data')
@@ -906,6 +1120,7 @@ def __get_worksheet_envelope_samples(r,request):
 	start = int(r.get('start'))
 	length = int(r.get('length'))
 	sample_type = request.GET.get('sample_type')
+	db_alias = get_program_db_alias(request)
 	search = r.get(u'search[value]')
 	global_search = r.get(u'global_search[value]')
 	if global_search:
@@ -921,8 +1136,8 @@ def __get_worksheet_envelope_samples(r,request):
 
 	s_count = models.Count(Case(When(Q(sample__locator_category='V') & Q(sample__stage=0), then=1),output_field=IntegerField()))
 
-	data = Envelope.objects.annotate(s_count=s_count).filter(f_query).exclude(s_count=0).order_by('created_at')[start:start+length]
+	data = Envelope.objects.using(db_alias).annotate(s_count=s_count).filter(f_query).exclude(s_count=0).order_by('created_at')[start:start+length]
 
 	recordsTotal =  data.count()
-	recordsFiltered = recordsTotal if not f_query else Envelope.objects.filter(f_query).count()
+	recordsFiltered = recordsTotal if not f_query else Envelope.objects.using(db_alias).filter(f_query).count()
 	return {'envelopes_data':data, 'recordsTotal':recordsTotal, 'recordsFiltered': recordsFiltered}

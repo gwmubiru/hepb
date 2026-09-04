@@ -19,6 +19,14 @@ PROGRAM_THEMES = {
 		'soft_border': 'rgba(100, 185, 42, 0.28)',
 		'label': 'HepC',
 	},
+	'3': {
+		'nav_bg': '#d9534f',
+		'nav_border': '#c64540',
+		'hover_bg': '#b93b37',
+		'soft_bg': 'rgba(217, 83, 79, 0.12)',
+		'soft_border': 'rgba(217, 83, 79, 0.28)',
+		'label': 'HIV Viral Load',
+	},
 }
 
 

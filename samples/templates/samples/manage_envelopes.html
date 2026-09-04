@@ -1,0 +1,129 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block css %}
+	<link rel="stylesheet" href='{% static "home/vendor/datatables/media/css/dataTables.jqueryui.min.css" %}'>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript" src='{% static "home/vendor/datatables/media/js/jquery.dataTables.js" %}'></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-title">Manage Envelopes</div>
+{% csrf_token %}
+
+<div class="panel panel-default">
+	<div class="panel-body">
+		<table class="table table-bordered table-striped table-condensed" id="tab_id">
+			<thead>
+				<tr>
+					<th>Envelope #</th>
+					<th>Type</th>
+					<th>Sample Type</th>
+					<th>Samples</th>
+					<th>Stage 0 Only</th>
+					<th>...</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</div>
+
+<div id="manageEnvelopeModal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title">Manage Envelope</h4>
+			</div>
+			<div class="modal-body">
+				<div class="alert alert-danger hidden" id="manage-envelope-error"></div>
+				<input type="hidden" id="manage-envelope-id">
+				<div class="form-group">
+					<label for="manage-envelope-number">Envelope Number</label>
+					<input type="text" id="manage-envelope-number" class="form-control">
+				</div>
+				<div class="form-group">
+					<label for="manage-envelope-type">Envelope Type</label>
+					<select id="manage-envelope-type" class="form-control">
+						<option value="1">Routine</option>
+						<option value="2">Drug Resistance</option>
+					</select>
+				</div>
+				<p>Only envelopes with no samples or only stage 0 samples can be changed.</p>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" id="save-envelope-changes">Save</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var table = $('#tab_id').DataTable({
+		processing: true,
+		serverSide: true,
+		ajax: '{% url "samples:manage_envelopes_json" %}',
+		searching: true
+	});
+
+	function csrfToken() {
+		return $('input[name="csrfmiddlewaretoken"]').first().val();
+	}
+
+	function showEnvelopeError(message) {
+		$('#manage-envelope-error').text(message).removeClass('hidden');
+	}
+
+	$(document).on('click', '.edit-envelope', function() {
+		var envelopeId = $(this).data('envelope');
+		$('#manage-envelope-error').addClass('hidden').text('');
+		$.get('/samples/manage_envelope/' + envelopeId + '/', function(data) {
+			if (!data.can_manage) {
+				alert('Only envelopes with stage 0 samples can be changed.');
+				return;
+			}
+			$('#manage-envelope-id').val(data.id);
+			$('#manage-envelope-number').val(data.envelope_number);
+			$('#manage-envelope-type').val(data.type);
+			$('#manageEnvelopeModal').modal('show');
+		});
+	});
+
+	$('#save-envelope-changes').on('click', function() {
+		var envelopeId = $('#manage-envelope-id').val();
+		$.post('/samples/manage_envelope/' + envelopeId + '/update/', {
+			csrfmiddlewaretoken: csrfToken(),
+			envelope_number: $('#manage-envelope-number').val(),
+			type: $('#manage-envelope-type').val()
+		}).done(function(data) {
+			$('#manageEnvelopeModal').modal('hide');
+			table.ajax.reload(null, false);
+			alert(data.message);
+		}).fail(function(xhr) {
+			var response = xhr.responseJSON || {};
+			showEnvelopeError(response.message || 'Failed to update envelope.');
+		});
+	});
+
+	$(document).on('click', '.delete-envelope', function() {
+		var envelopeId = $(this).data('envelope');
+		if (!confirm('Delete this envelope? Stage 0 samples will be deleted, except source-system samples which will be returned to pending packaging.')) {
+			return;
+		}
+		$.post('/samples/manage_envelope/' + envelopeId + '/delete/', {
+			csrfmiddlewaretoken: csrfToken()
+		}).done(function(data) {
+			table.ajax.reload(null, false);
+			alert(data.message);
+		}).fail(function(xhr) {
+			var response = xhr.responseJSON || {};
+			alert(response.message || 'Failed to delete envelope.');
+		});
+	});
+});
+</script>
+{% endblock %}

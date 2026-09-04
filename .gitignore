@@ -1,6 +1,5 @@
 .env
-*.pyc
-/media
+*.pyco
 *~
 .~lock.*
 /docs
@@ -9,11 +8,9 @@
 *.zip
 *.gz
 viral_load2/settings.py
-vendor/
-vendor
 Anaconda3-2021.11-Linux-x86_64.sh
 Anaconda3-2021.11-Linux-x86_64.sh
-
+media/
 # python envs
 venv/
 .venv/
@@ -24,9 +21,6 @@ __pycache__/
 *.pyc
 
 # data / generated reports
-results/media/reports/
-results/media/reports/detectables/
-results/media/*.csv
 
 # installers / big binaries
 *.sh
@@ -39,3 +33,18 @@ results/media/*.csv
 venv/
 __pycache__/
 *.pyc
+# ignore only root vendor folder
+/vendor/
+
+# allow frontend vendor assets
+!static/home/vendor/
+
+
+/vendor/
+!static/home/vendor/
+viral_load2/settings.py
+lib
+bin
+share
+/media/
+media

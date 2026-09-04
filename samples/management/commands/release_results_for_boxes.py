@@ -5,6 +5,7 @@ from home import utils
 from samples.models import Sample
 from worksheets.models import Worksheet,WorksheetSample
 from results.models import Result,ResultsQC
+from results import utils as result_utils
 
 class Command(BaseCommand):
 	help = "insert results manually"
@@ -21,16 +22,23 @@ class Command(BaseCommand):
 			if restult is None:
 				result= Result()
 				result.repeat_test = 2
-				result.result1 = ws.result_alphanumeric
 				result.result_numeric = ws.result_numeric
-				result.result_alphanumeric = ws.result_alphanumeric
+				result.result_alphanumeric = result_utils.get_final_result_alphanumeric(ws.result_alphanumeric)
+				result_columns = result_utils.get_result_column_fields(ws.result_alphanumeric, result.result_alphanumeric)
+				panel_extra_fields = result_utils.get_panel_result_extra_fields(ws.result_alphanumeric)
+				result.result1 = result_columns.get('result1') or ''
+				result.result2 = result_columns.get('result2') or ''
+				result.result3 = result_columns.get('result3') or ''
+				result.hepb_result = panel_extra_fields.get('hepb_result')
+				result.hiv_result = panel_extra_fields.get('hiv_result')
+				result.result_type = result_utils.get_result_type(ws.result_alphanumeric)
 				result.method = ws.method
 				result.test_date = ws.test_date
 				result.authorised_at = ws.authorised_at
 				result.authorised_by_id = ws.authoriser_id
 				result.sample_id = ws.sample_id
 				result.test_by_id = ws.tester_id
-				result.suppressed = ws.suppressed
+				result.suppressed = result_utils.get_suppressed_for_result(ws.result_alphanumeric, ws.suppressed)
 				result.authorised = ws.authorised
 				result.worksheet_sample_id = ws.id
 				result.supression_cut_off_id = ws.supression_cut_off_id
@@ -48,5 +56,3 @@ class Command(BaseCommand):
 				result_qc.save()
 				
 		print('kiwedde')
-
-

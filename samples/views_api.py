@@ -14,11 +14,13 @@ from django.forms import formset_factory
 from django.forms import *
 from .forms import *
 from home import utils
+from home import programs
 from . import utils as sample_utils
 from django.db import connections
 from django.db import transaction
 from worksheets.models import Worksheet,WorksheetSample
 from results.models import Result,ResultsQC
+from results import utils as result_utils
 from . import utils as worksheet_utils
 import requests
 from django_datatables_view.base_datatable_view import BaseDatatableView
@@ -406,6 +408,8 @@ def get_envelope_details(request):
 	envelope_number = request.GET.get('envelope_number')
 	ret = []
 	envelope = Envelope.objects.filter(id__gte=settings.ENVELOPE_SAMPLES_CUT_OFF,envelope_number=envelope_number).first()
+	if envelope is None:
+		envelope = Envelope.objects.filter(envelope_number=envelope_number).first()
 	env_status_update = request.GET.get('env_status_update')
 	env_id = ''
 	date_received = ''
@@ -477,7 +481,7 @@ def get_tracking_code_details(request):
 		}
 		#request_type = "POST"
 		api_url = settings.SAMPLE_TRACKING_URL
-		response = requests.request("POST", settings.SAMPLE_TRACKING_URL, data=data)
+		##response = requests.request("POST", settings.SAMPLE_TRACKING_URL, data=data)
 	
 	ret = {
 		'tracking_code_id': tr.id
@@ -497,7 +501,8 @@ def receive_batch(request,ret_to_fun = 0):
 		pst = request.POST
 		sample_reception_form = SampleReceptionForm(pst)
 		tr_code_id = request.POST.get('tracking_code_id')
-		env_id = request.POST.get('envelope_id')
+		env_id = sample_utils.resolve_posted_envelope_id(request)
+		session_program_code = get_session_program_code(request)
 		saved_id = request.POST.get('saved_id')		
 		if request.POST.get('facility') is None:
 			sample_reception_form.add_error('facility_id','The facility is required')
@@ -518,9 +523,24 @@ def receive_batch(request,ret_to_fun = 0):
 		if saved_id:
 			mg = saved_id
 			s = Sample.objects.get(pk=saved_id)
+			if not env_id and s.envelope_id:
+				env_id = s.envelope_id
+			s.tracking_code_id = tr_code_id
+			s.locator_category = 'V'
+			s.locator_position = request.POST.get('the_position')
+			s.barcode = request.POST.get('the_barcode')
 			s.reception_hep_number = request.POST.get('reception_hep_number')
+			s.facility_id = request.POST.get('facility')
+			s.sample_type = request.POST.get('sample_type')
 			s.facility_patient = fac_pat
+			if session_program_code:
+				s.program_code = session_program_code
+			if env_id:
+				s.envelope_id = env_id
 			s.stage = None
+			s.date_received = datetime.now()
+			s.form_number = request.POST.get('the_barcode')
+			s.facility_reference = request.POST.get('facility_reference')
 			s.save()
 		else:
 			#if lab ran samples before reception, update the sample instead
@@ -529,6 +549,8 @@ def receive_batch(request,ret_to_fun = 0):
 			barcode=request.POST.get('the_barcode'),created_by =request.user,date_received = datetime.now(),
 			form_number=request.POST.get('the_barcode'),reception_hep_number = request.POST.get('reception_hep_number'),facility_id = request.POST.get('facility'),
 			sample_type=request.POST.get('sample_type'),stage=None, envelope_id = env_id,facility_patient = fac_pat,verified=0,facility_reference=request.POST.get('facility_reference'))
+			if session_program_code:
+				s.program_code = session_program_code
 			#if lab_sample:
 				#s.id = lab_sample.id
 			s.save()
@@ -571,6 +593,10 @@ def receive_batch(request,ret_to_fun = 0):
 	
 	if saved_sample:
 		sample = Sample.objects.filter(pk=saved_sample).first()
+		if sample and not env_id and sample.envelope_id:
+			env_id = sample.envelope_id
+		if sample and not tr_code_id and sample.tracking_code_id:
+			tr_code_id = sample.tracking_code_id
 		context.update({'sample':sample,'tr_code_id':tr_code_id,'env_id':env_id})
 
 	return render(request, 'samples/receive_bactch.html', context)
@@ -671,50 +697,46 @@ def create_range(request):
 	users = User.objects.all()
 	if request.method == 'POST':
 		year_month = request.POST.get('year')+request.POST.get('month')
-		number_of_envs = int(request.POST.get('number_of_envelopes'))	
+		l_limit = int(request.POST.get('lower_limit'))
+		u_limit = int(request.POST.get('upper_limit'))
+		number_of_envs = (u_limit - l_limit) + 1
+		if number_of_envs <= 0:
+			return HttpResponse('Upper limit must be greater than or equal to lower limit', status=400)
+		sample_type = request.POST.get('sample_type')
+		program_code = request.POST.get('program_code')
+		now = datetime.now()
 		env_range = EnvelopeRange()
 		env_range.year_month = year_month	
 		env_range.lower_limit = request.POST.get('lower_limit')	
 		env_range.upper_limit = request.POST.get('upper_limit')	
-		env_range.sample_type = request.POST.get('sample_type')	
+		env_range.sample_type = sample_type	
 		env_range.accessioned_by_id = request.POST.get('accessioned_by')	
 		#env_range.accessioned_at = request.POST.get('accessioned_at')	
-		env_range.accessioned_at = datetime.now().date()	
+		env_range.accessioned_at = now.date()	
 		env_range.entered_by = request.user	
-		env_range.created_at = datetime.now()
+		env_range.created_at = now
 		env_range.save()
-		l_limit = int(request.POST.get('lower_limit'))
-		#now create the envelopes
-		for y in range(0, (number_of_envs)):
-			lim = l_limit+y
-			env_num = str(lim).zfill(4)
-			env_number = year_month+'-'+env_num
-			envelope = Envelope.objects.filter(envelope_number=env_number).first()
-			if envelope is None:
-				envelope = Envelope()
-				envelope.envelope_number = env_number
-				envelope.sample_type = request.POST.get('sample_type')
-				envelope.accessioned_at = datetime.now()
-				envelope.envelope_range = env_range
-				envelope.accessioner = request.user
-				envelope.assignment_by = request.user
-				envelope.save()
-			else:
-				envelope.envelope_number = env_number
-				envelope.sample_type = request.POST.get('sample_type')
-				envelope.accessioned_at = datetime.now()
-				envelope.envelope_range = env_range
-				envelope.accessioner = request.user
-				envelope.assignment_by = request.user
-				envelope.save()		
 
-			
-			env_assignment = EnvelopeAssignment()
-			env_assignment.the_envelope = envelope
-			env_assignment.assigned_to_id= request.user.id
-			env_assignment.type = 1
-			env_assignment.assigned_by = request.user
-			env_assignment.save()			
+		for lim in range(l_limit, u_limit + 1):
+			env_number = year_month+'-'+str(lim).zfill(4)
+			envelope = Envelope.objects.select_for_update().filter(envelope_number=env_number).first()
+			if envelope is None:
+				envelope = Envelope(envelope_number=env_number)
+
+			envelope.sample_type = sample_type
+			envelope.program_code = program_code
+			envelope.accessioned_at = now
+			envelope.envelope_range = env_range
+			envelope.accessioner = request.user
+			envelope.assignment_by = request.user
+			envelope.save()
+
+			EnvelopeAssignment.objects.get_or_create(
+				the_envelope=envelope,
+				assigned_to_id=request.user.id,
+				assigned_by=request.user,
+				type=1,
+			)
 			
 	context = {
 		'users':users,
@@ -758,7 +780,7 @@ def edit_received(request, reception_id):
 		sample_reception = Sample.objects.get(pk=reception_id)
 		context = {
 			'sample_reception_form':SampleReceptionForm(instance=sample_reception),
-			'current_tr_code':sample_reception.tracking_code.code,
+			'current_tr_code': sample_reception.tracking_code.code if sample_reception.tracking_code_id else '',
 			'reception_id':reception_id,
 			'locator_category':sample_reception.locator_category,
 			'reception_hep_number':sample_reception.reception_hep_number,
@@ -912,7 +934,10 @@ def does_form_number_exist(request, form_number):
 		return HttpResponse('')
 
 def get_district_hub(request, facility_id):
-	district_hub = sample_utils.get_district_hub_by_facility(facility_id)
+	district_hub = sample_utils.get_district_hub_by_facility(
+		facility_id,
+		db_aliases.get_program_db_alias(programs.get_active_program_code(request)),
+	)
 	return HttpResponse(district_hub)
 
 def get_patient(request):
@@ -1336,7 +1361,7 @@ def pat_hist(request, facility_id):
 				'patient_id': s.patient.id,
 				'gender': s.patient.gender,
 				'dob': utils.local_date(s.patient.dob),
-				'result':"%s"%s.result.result_alphanumeric if hasattr(s, 'result') else '',
+					'result': result_utils.format_result_for_display(s.result) if hasattr(s, 'result') else '',
 				'test_date':utils.local_date(s.result.test_date) if hasattr(s, 'result') else '',
 			})
 
@@ -1405,17 +1430,28 @@ def search(request):
 			if env:
 				env_id = env.id
 				search = search.replace("-","")
-				samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+				samples = Sample.objects.filter(envelope=env).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 		else:
 			if search_sample:
-				samples = Sample.objects.filter(Q(facility_reference=search) | Q(barcode=search) | Q(form_number=search))
+				direct_lookup = (
+					sample_utils.exact_or_legacy_duplicate_cond('facility_reference', search) |
+					sample_utils.exact_or_legacy_duplicate_cond('barcode', search) |
+					sample_utils.exact_or_legacy_duplicate_cond('form_number', search)
+				)
+				samples = Sample.objects.filter(direct_lookup).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
 
 			else:
 				fn_cond = Q(form_number__icontains=search)
 				loc_cond = sample_utils.locator_cond(search)
 				cond = fn_cond | loc_cond if loc_cond else fn_cond
-				samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})[:300]
+				samples = Sample.objects.filter(cond).extra({'lposition_int': "CAST(locator_position as UNSIGNED)"})
+
+	if samples is not None:
+		filtered_samples = programs.filter_queryset_by_program(request, samples, 'program_code')
+		if not search_sample or filtered_samples.exists():
+			samples = filtered_samples
+		samples = samples[:300]
 	
 	if switch_sample:
 		return render(request, 'samples/switch_samples.html', {'samples':samples, 'approvals':approvals,'switch_sample':switch_sample,'envelope_id':env_id})

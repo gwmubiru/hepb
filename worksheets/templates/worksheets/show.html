@@ -73,8 +73,14 @@
 									Rejected
 								{% else %}
 									{% if s.stage == 1 and s.worksheet.is_repeat == 0 %}
-								 	<button ws_pk="{{ s.pk }}" instrument_id="{{s.instrument_id}}" sample_id="{{s.sample_id}}"  sample_identifier_id="{{s.sample_id}}" id="reject_id{{s.pk}}"class="btn btn-xs btn-danger reject_buttons">Reject</button>
-								 	{% endif %}
+							 	<button ws_pk="{{ s.pk }}" instrument_id="{{s.instrument_id}}" sample_id="{{s.sample_id}}"  sample_identifier_id="{{s.sample_id}}" id="reject_id{{s.pk}}"class="btn btn-xs btn-danger reject_buttons">Reject</button>
+							 	{% endif %}
+								{% endif %}
+								{% if s.stage == 1 %}
+									<form action="{% url 'worksheets:delete_worksheet_sample' s.pk %}" method="post" style="display: inline;" onsubmit="return confirm('Delete this sample from the worksheet?');">
+										{% csrf_token %}
+										<button type="submit" class="btn btn-xs btn-danger">Delete</button>
+									</form>
 								{% endif %}
 							</td>
 								

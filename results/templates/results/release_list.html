@@ -38,7 +38,7 @@
 				{% for worksheet in worksheets %}
 				<tr>
 					<td>{{ forloop.counter }}</td>
-					<td><a href="{% url 'results:release_results' worksheet.id %}">{{ worksheet.worksheet_reference_number }}</a></td>
+					<td><a href="/results/release_results/?worksheet_id={{ worksheet.id }}">{{ worksheet.worksheet_reference_number }}</a></td>
 					<td>{{ worksheet.get_machine_type_display }}</td>
 					<td>{{ worksheet.get_sample_type_display }}</td>
 					<td>{{ worksheet.created_at | date:"Y-m-d" }}</td>

@@ -15,10 +15,10 @@
 	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
 	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
 {% endblock %}
-{% block content %}	
+{% block content %}
 	<span class="page-title">Received Samples</span>
-	
-	{% csrf_token %}	
+
+	{% csrf_token %}
 	<style >
 	.form-group > label{
 		font-weight:700
@@ -27,16 +27,19 @@
 	<div class="panel panel-default" style="overflow-y:auto">
 		<div class="panel-body">
 			<div class="worksheet" id="content" >
+				{% if error_message %}
+				<div class="alert alert-danger">{{ error_message }}</div>
+				{% endif %}
 				<div class="row">
 					<div class="col-lg-6">
 						<form action=" {% url 'samples:create_range'  %}" method="post" id="create_range" role="form">
 							{% csrf_token %}
 							<div class="form-group hidden">
 								<label for="accessioned_at">Accessioned On</label>
-								<input type="text" name="accessioned_at" class="form-control date56"  id="accessioned_at" style="width:203px" >								
+								<input type="text" name="accessioned_at" class="form-control date56"  id="accessioned_at" style="width:203px" >
 							</div>
 							<div class="form-group  required">
- 
+
 								<select class="form-control" name="year" id="year" required="true" style="width:100px; float: left; margin-right: 5px;">
 								 <option value="">Year</option>
 									{% for y in years %}
@@ -45,22 +48,13 @@
 									</select>
 									<select class="form-control" name="month" id="month" required="true" style="width:100px;">
 								 <option value="">Month</option>
-									{% for m in months %}
-									    <option value="{{m}}">{{ m }}</option>
-									{% endfor %}
 									</select>
-								
+
 							</div>
 							<div class="form-group required">
 								<label for="id_sample_type">Program:</label>
-								<select name="program_code" class="form-control" required="true" id="program_code">
-								  <option value="" selected="">---------</option>
-
-								  <option value="1">HepB</option>
-
-								  <option value="2">HepC</option>
-
-								</select>
+								<input type="text" class="form-control" value="{{ active_program_label }}" disabled="disabled">
+								<input type="hidden" name="program_code" id="program_code" value="{{ active_program_code }}">
 							</div>
 							<div class="form-group  required">
 								<label for="accessioned_by">Accessioned By</label>
@@ -70,23 +64,30 @@
 							            <option value="{{u.id}}">{{ u.first_name}} {{u.last_name}}</option>
 
 							            {% endfor %}
-					       		</select>
-					       	</div>
+							</select>
+						</div>
 							<div class="form-group  required">
 								<label for="lower_limit">Starting Envelope</label>
-								 <input type="text" name="lower_limit" required="true" class="form-control" id="lower_limit">									
+								 <input type="text" name="lower_limit" required="true" class="form-control" id="lower_limit">
+							</div>
+							<div class="form-group required">
+								<label for="envelope_type">Envelope Type</label>
+								<select name="envelope_type" class="form-control" required="true" id="envelope_type">
+									<option value="1" selected>Routine</option>
+									<option value="2">Drug Resistance</option>
+								</select>
 							</div>
 							<div class="form-group  required">
 								<label for="number_of_envelopes">No. Envelopes</label>
-								 <input type="text" name="number_of_envelopes" required="true" class="form-control" id="number_of_envelopes">									
+								 <input type="text" name="number_of_envelopes" required="true" class="form-control" id="number_of_envelopes">
 							</div>
 							<div class="form-group  required">
 								<label for="upper_limit">Last Envelope</label>
-								 <input type="text" name="upper_limit" required="true" class="form-control" id="upper_limit">									
+								 <input type="text" name="upper_limit" required="true" class="form-control" id="upper_limit">
 							</div>
-							
-							
-					       	<div class="form-group required">
+
+
+						<div class="form-group required">
 								<label for="id_sample_type">Sample type:</label>
 								<select name="id_sample_type" class="form-control" required="true" id="id_sample_type" disabled="disabled">
 								  <option value="" selected="">---------</option>
@@ -96,9 +97,9 @@
 								  <option value="D">DBS</option>
 
 								</select>
-								<input type="hidden" name="sample_type" id="sample_type" value="None">
+								<input type="hidden" name="sample_type" id="sample_type" value="{% if active_program_code == '1' or active_program_code == '2' %}P{% else %}None{% endif %}">
 							</div>
-					       	<input type="submit" value="Save" class="btn btn-danger">
+						<input type="submit" value="Save" class="btn btn-danger">
 						</form>
 					</div>
 				</div>
@@ -109,97 +110,260 @@
 
 
 	<script type="text/javascript">
-		$(document).ready(function() {	
-		 	//$('.select2').select2();
-		 	$('.select2').val({{logged_in_user_id}}).change();
-		 	$(".date").datepicker({
+		{% include "samples/_locator_id_helpers.html" %}
+
+		$(document).ready(function() {
+			var allowedPeriods = [
+				{year: "{{ current_year }}", month: "{{ current_month|stringformat:'02d' }}"},
+				{year: "{{ previous_year }}", month: "{{ previous_month|stringformat:'02d' }}"}
+			];
+			var monthNames = {
+				"01": "01",
+				"02": "02",
+				"03": "03",
+				"04": "04",
+				"05": "05",
+				"06": "06",
+				"07": "07",
+				"08": "08",
+				"09": "09",
+				"10": "10",
+				"11": "11",
+				"12": "12"
+			};
+
+			function allowedMonthsForYear(year) {
+				return allowedPeriods.filter(function(period) {
+					return period.year === year;
+				});
+			}
+
+			function syncMonthOptions(selectedMonth) {
+				var selectedYear = $("#year").val();
+				var months = allowedMonthsForYear(selectedYear);
+				var monthSelect = $("#month");
+				monthSelect.empty().append('<option value="">Month</option>');
+				months.forEach(function(period) {
+					monthSelect.append('<option value="' + period.month + '">' + monthNames[period.month] + '</option>');
+				});
+				if (selectedMonth && months.some(function(period) { return period.month === selectedMonth; })) {
+					monthSelect.val(selectedMonth);
+				}
+			}
+
+			function isAllowedPeriod(year, month) {
+				return allowedPeriods.some(function(period) {
+					return period.year === year && period.month === month;
+				});
+			}
+
+			function selectedYearMonth() {
+				return $("#year").val() + $("#month").val();
+			}
+
+			function syncSelectedPeriod(yearMonth) {
+				var year = yearMonth.substring(0, 2);
+				var month = yearMonth.substring(2, 4);
+				if(isAllowedPeriod(year, month)){
+					$('#year').val(year).trigger('change');
+					syncMonthOptions(month);
+					return true;
+				}
+				alert('Accessioning is restricted to the current month and previous month only.');
+				$('#year').val('');
+				syncMonthOptions('');
+				return false;
+			}
+
+			function parseHepBoundary(value) {
+				var raw = (value || '').replace(/\s/g, '').toUpperCase();
+				if(raw === ''){
+					return null;
+				}
+				var prefix = activeHepPrefix();
+				var compact = raw.replace(/[\-\/]/g, '');
+				var yearMonth = selectedYearMonth();
+				var serialText = '';
+				var hasEnvelopeDash = raw.indexOf('-') !== -1;
+				var hasLocatorSeparator = raw.indexOf('/') !== -1;
+				if(compact.charAt(0) === prefix){
+					var digits = compact.substring(1);
+					if((!hasEnvelopeDash || hasLocatorSeparator) && digits.length > 7){
+						digits = digits.substring(0, digits.length - 2);
+					}
+					yearMonth = digits.substring(0, 4);
+					serialText = digits.substring(4);
+				}else if(/^\d+$/.test(compact) && compact.length > 4){
+					if(!hasEnvelopeDash && compact.length > 7){
+						compact = compact.substring(0, compact.length - 2);
+					}
+					yearMonth = compact.substring(0, 4);
+					serialText = compact.substring(4);
+				}else{
+					serialText = compact;
+				}
+				if(!/^\d{4}$/.test(yearMonth) || !/^\d+$/.test(serialText)){
+					alert('Invalid HepB/HepC envelope. Use ' + prefix + '2606-04, ' + prefix + '26060401, or 04.');
+					return null;
+				}
+				var serial = Number(serialText);
+				if(serial < 1 || serial > 99){
+					alert('HepB/HepC envelope numbers must be between 01 and 99.');
+					return null;
+				}
+				if(!syncSelectedPeriod(yearMonth)){
+					return null;
+				}
+				return {
+					value: canonicalHepEnvelope(prefix, yearMonth, serial),
+					serial: serial,
+					sampleType: 'P'
+				};
+			}
+
+			function normalizeRangeBoundary(fieldId) {
+				var field = $("#" + fieldId);
+				var value = field.val();
+				if(value === ''){
+					return null;
+				}
+				if(isHepProgram()){
+					var hepBoundary = parseHepBoundary(value);
+					if(!hepBoundary){
+						field.val('');
+						return null;
+					}
+					field.val(hepBoundary.value);
+					setSampleTypeValue('P');
+					return hepBoundary;
+				}
+
+				var normalized = value.replace(/[\s\-\/]/g, '');
+				if (isNaN(normalized)) {
+				    alert('Nokorakyi? This is expected to be a number, text is give');
+				    field.val('');
+				    return null;
+				}
+				if(normalized.length == 10){
+					var env_number = normalized.substring(4,8);
+					field.val(env_number);
+					var year = normalized.substring(0,2);
+					var month = normalized.substring(2,4);
+					if(!syncSelectedPeriod(year + month)){
+						field.val('');
+						setSampleTypeValue('');
+						return null;
+					}
+				}else if(normalized.length < 4){
+					field.val(pad(normalized,4));
+				}else{
+					field.val(normalized);
+				}
+				var env_val = Number(field.val());
+				var sample_type = env_val < 3000 ? 'P' : 'D';
+				setSampleTypeValue(sample_type);
+				return {
+					value: field.val(),
+					serial: env_val,
+					sampleType: sample_type
+				};
+			}
+
+			function validateRangeBoundary() {
+				var lower = normalizeRangeBoundary('lower_limit');
+				var upper = normalizeRangeBoundary('upper_limit');
+				if (lower === null || upper === null) {
+					return true;
+				}
+				if (!isHepProgram() && lower.sampleType !== upper.sampleType) {
+					alert('Mixed ranges are not allowed. Split Plasma and DBS envelopes into separate accession batches.');
+					return false;
+				}
+				return true;
+			}
+
+			//$('.select2').select2();
+			$('.select2').val({{logged_in_user_id}}).change();
+			$(".date").datepicker({
 				dateFormat: "yy-mm-dd",
 				maxDate: 0
 			});
 			$(this).val({{logged_in_user_id}});
-		 	$("#year, #month").change(function(){
-		 		const d = new Date();
-				let year = d.getFullYear().toString().substr(-2);
-				let month = d.getMonth()+1;
-				var selected_year = $('#year').val();
-				var selected_month = $('#month').val();
-				if(selected_year.length  && selected_month.length){
-					if(parseInt(selected_year) == parseInt(year) && parseInt(selected_month) > month){
-						alert('Month cannot not be in future');
-						$("#month").val('');
+			$("#year").change(function(){
+				syncMonthOptions('');
+			});
+			$("#lower_limit").change(function(){
+			normalizeRangeBoundary('lower_limit');
+
+		});
+			$("#upper_limit").change(function(){
+			var upper = normalizeRangeBoundary('upper_limit');
+			var lower = normalizeRangeBoundary('lower_limit');
+			if(upper !== null && lower !== null){
+				var no_envs = upper.serial - lower.serial + 1;
+				if(no_envs <= 0){
+					alert('This number cannot be less than the first enverlope number');
+					$(this).val('');
+				}else{
+					$("#number_of_envelopes").val(no_envs);
+					if(!validateRangeBoundary()){
+						$(this).val('');
+						$("#number_of_envelopes").val('');
 					}
 				}
-				
-		 	});
-		 	$("#lower_limit").change(function(){
-	    		var lower_limit_val = $(this).val();
-	    		if (isNaN(lower_limit_val)) {
-				    alert('Nokorakyi? This is expected to be a number, text is give');
-				    $(this).val('');
-				 }
-	    		if(lower_limit_val.length == 10){
-	    			var env_number = lower_limit_val.substring(4,8);
-	    			$(this).val(env_number);
-	    			var year = lower_limit_val.substring(0,2);
-	    			$('#year').val(year).trigger('change');
-	    			var month = lower_limit_val.substring(2,4);
-	    			$('#month').val(month).trigger('change');
-	    		}else if(lower_limit_val.length < 4){
-	    			$(this).val(pad(lower_limit_val,4));
-	    		}
-	    		var env_val = Number($(this).val());
-	    		if(env_val < 3000){
-	    			var sample_type = 'P';
-	    		}else{
-	    			var sample_type = 'D';
-	    		}
-	    		$('#sample_type').val(sample_type);
-	    		$('#id_sample_type').val(sample_type);
+			}
 
-	    	});
-		 	$("#upper_limit").change(function(){
-	    		var upper_limit_val = $(this).val();
-	    		if (isNaN(upper_limit_val)) {
-				    alert('Nokorakyi? This is expected to be a number, text is give');
-				    $(this).val('');
-				 }
+		});
 
-	    		if(upper_limit_val.length == 10){
-	    			var env_number = upper_limit_val_val.substring(4,8);
-	    			$(this).val(env_number);
-	    		}else if(upper_limit_val.length < 4){
-	    			$(this).val(pad(upper_limit_val,4));
-	    		}
-	    		var lower_limit_val = $("#lower_limit").val();
-	    		if(upper_limit_val !='' && lower_limit_val != ''){
-	    			var no_envs = Number(upper_limit_val) - Number(lower_limit_val);
-	    			if(no_envs < 0){
-	    				alert('This number cannot be less than the first enverlope number');
-	    				$(this).val('');
-	    			}else{
-	    				$("#number_of_envelopes").val(no_envs);
-	    			}
-	    		}
+			$("#number_of_envelopes").change(function(){
+			var no_envs = $(this).val();
+			var lower = normalizeRangeBoundary('lower_limit');
+			if(lower !== null){
+				var last_env = lower.serial + Number(no_envs)-1;
+				if(isHepProgram()){
+					if(last_env < 1 || last_env > 99){
+						alert('HepB/HepC envelope numbers must be between 01 and 99.');
+						$("#upper_limit").val('');
+						$(this).val('');
+						return;
+					}
+					$("#upper_limit").val(canonicalHepEnvelope(activeHepPrefix(), selectedYearMonth(), last_env));
+				}else{
+					$("#upper_limit").val(pad(last_env,4));
+				}
+				if(!validateRangeBoundary()){
+					$("#upper_limit").val('');
+					$(this).val('');
+				}
+			}
 
-	    	});
+		});
 
-		 	$("#number_of_envelopes").change(function(){
-	    		var no_envs = $(this).val();
-	    		var lower_limit_val = $("#lower_limit").val();
-	    		if(lower_limit_val != ''){
-	    			var last_env = Number(lower_limit_val) + Number(no_envs)-1;
-	    			$("#upper_limit").val(pad(last_env,4));
-	    		}
+		$("#create_range").submit(function(e){
+			var year = $("#year").val();
+			var month = $("#month").val();
+			if(!isAllowedPeriod(year, month)){
+				alert('Accessioning is restricted to the current month and previous month only.');
+				e.preventDefault();
+				return;
+			}
+			if(!validateRangeBoundary()){
+				e.preventDefault();
+			}
+		});
 
-	    	});
+		syncMonthOptions('');
+		if(isHepProgram()){
+			setSampleTypeValue('P');
+		}
 
-	     }); 
-	 	function pad (str, max) {
+	     });
+		function pad (str, max) {
 		  str = str.toString();
 		  return str.length < max ? pad("0" + str, max) : str;
 		}
 
-	
+
 	</script>
 
 

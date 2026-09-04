@@ -6,32 +6,34 @@ from django.db.models import Q
 from backend.models import Appendix, Facility
 from .models import *
 from home import utils
+from home import db_aliases
 from . import utils as sample_utils
 from django.core.cache import cache
 
 
-def appendix_field(category, required=True, attrs=False):
-		queryset = Appendix.objects.filter(
-						appendix_category_id=category
-						)
-		if not attrs:
-			attrs = utils.ATTRS if required else utils.ATTRS_OPTIONAL
-		widget = forms.Select(attrs=attrs)
-		return forms.ModelChoiceField(queryset=queryset, widget=widget)
-
-
-def appendix_field(category, required=True, attrs=False):
-	cache_key = f"appendix_category_{category}"
-	queryset = cache.get(cache_key)
-	if queryset is None:
-		queryset = list(Appendix.objects.filter(appendix_category_id=category))
-		cache.set(cache_key, queryset, timeout=3600)  # cache for 1 hour
+def appendix_field(category, required=True, attrs=False, db_alias=None):
 	if not attrs:
 		attrs = utils.ATTRS if required else utils.ATTRS_OPTIONAL
 	widget = forms.Select(attrs=attrs)
-	return forms.ModelChoiceField(queryset=Appendix.objects.filter(pk__in=[obj.pk for obj in queryset]),
-   
-                                widget=widget, required=required)
+	if db_alias is None:
+		queryset = Appendix.objects.none()
+	else:
+		cache_key = f"appendix_category_{db_alias}_{category}"
+		queryset = cache.get(cache_key)
+		if queryset is None:
+			queryset = list(Appendix.objects.using(db_alias).filter(appendix_category_id=category))
+			cache.set(cache_key, queryset, timeout=3600)
+		queryset = Appendix.objects.using(db_alias).filter(pk__in=[obj.pk for obj in queryset])
+	return forms.ModelChoiceField(queryset=queryset, widget=widget, required=required)
+
+
+def normalize_model_choice_instance(instance, target_alias='default'):
+	if instance is None:
+		return None
+	instance_db = getattr(getattr(instance, '_state', None), 'db', None)
+	if instance_db == target_alias:
+		return instance
+	return instance.__class__._default_manager.using(target_alias).get(pk=instance.pk)
 
 
 class PreliminaryFindingsForm(forms.ModelForm):
@@ -151,6 +153,14 @@ class PatientExistsFacilityForm(forms.ModelForm):
 	def clean(self):
 		cleaned_data = self.cleaned_data
 
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(PatientExistsFacilityForm, self).__init__(*args, **kwargs)
+		self.fields['facility'].queryset = Facility.objects.using(db_alias).all()
+
+	def clean_facility(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('facility'))
+
 class EnvelopeForm(forms.ModelForm):
 	class Meta:
 		model = Envelope
@@ -262,6 +272,34 @@ class SampleForm(forms.ModelForm):
 			'reason_for_vl':'Reason for VL',
 			}
 
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(SampleForm, self).__init__(*args, **kwargs)
+		self.fields['facility'].queryset = Facility.objects.using(db_alias).all()
+		self.fields['current_regimen'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=3)
+		self.fields['treatment_indication'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=6)
+		self.fields['failure_reason'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=2)
+		self.fields['tb_treatment_phase'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=5)
+		self.fields['arv_adherence'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=1)
+
+	def clean_facility(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('facility'))
+
+	def clean_current_regimen(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('current_regimen'))
+
+	def clean_treatment_indication(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('treatment_indication'))
+
+	def clean_failure_reason(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('failure_reason'))
+
+	def clean_tb_treatment_phase(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('tb_treatment_phase'))
+
+	def clean_arv_adherence(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('arv_adherence'))
+
 	def clean(self):
 		cleaned_data = self.cleaned_data
 
@@ -301,6 +339,19 @@ class SampleForm(forms.ModelForm):
 			self.add_error('form_number', "Form number exists")
 
 class SampleReceptionForm(forms.ModelForm):
+	date_collected = forms.DateField(
+		input_formats=['%d/%m/%Y', '%Y-%m-%d'],
+		widget=forms.DateInput(
+			format='%d/%m/%Y',
+			attrs={'class': 'form-control input-sm w-xs date_d'},
+		)
+	)
+	date_received = forms.DateField(
+		required=False,
+		input_formats=['%d/%m/%Y', '%Y-%m-%d'],
+		widget=forms.DateInput(attrs=utils.ATTRS_DATE)
+	)
+
 	class Meta:
 		model = Sample
 
@@ -316,8 +367,6 @@ class SampleReceptionForm(forms.ModelForm):
 		widgets = {
 			'barcode': forms.TextInput(attrs={'class':'form-control input-sm special_width','required':'required',}),
 			'facility': forms.Select(attrs={'class':'form-control input-sm special_width',}),
-			'date_collected': forms.DateInput(attrs={'class': 'form-control input-sm w-xs date_d'}),
-			'date_received': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'sample_type': forms.Select(attrs=utils.ATTRS3),
 			'locator_category': forms.Select(attrs=utils.ATTRS3),
 			}
@@ -330,6 +379,14 @@ class SampleReceptionForm(forms.ModelForm):
 			'barcode':'Locator ID',
 			}
 
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(SampleReceptionForm, self).__init__(*args, **kwargs)
+		self.fields['facility'].queryset = Facility.objects.using(db_alias).all()
+
+	def clean_facility(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('facility'))
+
 	def clean(self):
 		cleaned_data = self.cleaned_data
 		#self.cleaned_data['date_collected'] = sample_utils.get_mysql_from_uk_date(cleaned_data.get('date_collected'))
@@ -341,8 +398,6 @@ class SampleReceptionForm(forms.ModelForm):
 		pk = self.instance.pk
 
 		utils.non_future_dates(self, ['date_collected'])
-		if not date_collected:
-			self.add_error('date_collected', 'Date collected is required')
 		form_fltr = Q(barcode=cleaned_data.get('barcode'))
 		if pk:
 			form_fltr = ~Q(pk=pk) & form_fltr
@@ -350,6 +405,92 @@ class SampleReceptionForm(forms.ModelForm):
 		if SampleReception.objects.filter(form_fltr).exists():
 			self.add_error('barcode', "Locator ID already received")
 
+
+class SampleWithIssueForm(forms.ModelForm):
+	reception_date = forms.DateField(
+		required=False,
+		input_formats=['%Y-%m-%d', '%d/%m/%Y'],
+		widget=forms.DateInput(attrs={'class': 'form-control input-sm', 'type': 'date'})
+	)
+	collection_date = forms.DateField(
+		required=False,
+		input_formats=['%Y-%m-%d', '%d/%m/%Y'],
+		widget=forms.DateInput(attrs={'class': 'form-control input-sm', 'type': 'date'})
+	)
+	retrieval_date = forms.DateTimeField(
+		required=False,
+		input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d'],
+		widget=forms.DateTimeInput(attrs={'class': 'form-control input-sm', 'type': 'datetime-local'})
+	)
+
+	class Meta:
+		model = SampleWithIssue
+		fields = (
+			'reception_date',
+			'pack_number',
+			'barcode',
+			'facility',
+			'facility_name',
+			'art_number',
+			'form_number',
+			'test_type',
+			'sample_type',
+			'collection_date',
+			'infant_name',
+			'batch_number',
+			'exp_number',
+			'contact',
+			'retrieval_status',
+			'retrieval_date',
+			'initials',
+		)
+		widgets = {
+			'pack_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'barcode': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'facility': forms.Select(attrs={'class': 'form-control input-sm'}),
+			'facility_name': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'art_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'form_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'test_type': forms.Select(attrs={'class': 'form-control input-sm'}),
+			'sample_type': forms.Select(attrs={'class': 'form-control input-sm'}),
+			'infant_name': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'batch_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'exp_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'contact': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'retrieval_status': forms.CheckboxInput(attrs={'class': 'sample-with-issue-checkbox'}),
+			'initials': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+		}
+		labels = {
+			'pack_number': 'Pack/Box/Ziplock',
+			'art_number': 'ART Number',
+			'exp_number': 'EXP Number',
+			'retrieval_status': 'Retrieved',
+		}
+
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(SampleWithIssueForm, self).__init__(*args, **kwargs)
+		self.fields['facility'].queryset = Facility.objects.using(db_alias).order_by('facility')
+		self.fields['facility'].required = False
+		self.fields['test_type'].required = True
+		self.fields['sample_type'].required = False
+
+	def clean(self):
+		cleaned_data = super(SampleWithIssueForm, self).clean()
+		test_type = cleaned_data.get('test_type')
+		retrieval_status = cleaned_data.get('retrieval_status')
+
+		if test_type == 'EID':
+			cleaned_data['sample_type'] = None
+		else:
+			cleaned_data['infant_name'] = ''
+			cleaned_data['batch_number'] = ''
+			cleaned_data['exp_number'] = ''
+
+		if retrieval_status and not cleaned_data.get('retrieval_date'):
+			cleaned_data['retrieval_date'] = datetime.now()
+		return cleaned_data
+	
 class DrugResistanceRequestForm(forms.ModelForm):
 	
 	class Meta:
@@ -370,3 +511,11 @@ class PastRegimensForm(forms.ModelForm):
 			'start_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			'stop_date': forms.DateInput(attrs=utils.ATTRS_DATE),
 			}
+
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(PastRegimensForm, self).__init__(*args, **kwargs)
+		self.fields['regimen'].queryset = Appendix.objects.using(db_alias).filter(appendix_category_id=3)
+
+	def clean_regimen(self):
+		return normalize_model_choice_instance(self.cleaned_data.get('regimen'))

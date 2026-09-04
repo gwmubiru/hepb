@@ -1,0 +1,135 @@
+var activeProgramCode = "{{ active_program_code|default:''|escapejs }}";
+var activeProgramLabel = "{{ active_program_label|default:''|escapejs }}";
+
+function isHepProgram(){
+	return activeProgramCode === '1' || activeProgramCode === '2';
+}
+
+function activeHepPrefix(){
+	if(activeProgramCode === '1'){
+		return 'B';
+	}
+	if(activeProgramCode === '2'){
+		return 'C';
+	}
+	return '';
+}
+
+function padLeft(value, size){
+	value = String(value);
+	while(value.length < size){
+		value = '0' + value;
+	}
+	return value;
+}
+
+function pad2(value){
+	return padLeft(parseInt(value, 10), 2);
+}
+
+function compactLocatorValue(value){
+	return (value || '').replace(/[\s\-\/]/g, '').toUpperCase();
+}
+
+function canonicalHepEnvelope(prefix, yearMonth, serial){
+	return prefix + yearMonth + '-' + pad2(serial);
+}
+
+function sampleTypeForEnvelope(envelopeNumber){
+	if(isHepProgram()){
+		return 'P';
+	}
+	var envNum = Number((envelopeNumber || '').substr(-4));
+	return envNum < 3000 ? 'P' : 'D';
+}
+
+function setSampleTypeValue(sampleType){
+	$("#id_sample_type").val(sampleType);
+	$("#sample_type").val(sampleType);
+}
+
+function parseReceptionLocator(value){
+	var compact = compactLocatorValue(value);
+	if(compact === ''){
+		return null;
+	}
+	if(isHepProgram()){
+		var prefix = compact.charAt(0);
+		var expectedPrefix = activeHepPrefix();
+		if(prefix !== expectedPrefix){
+			alert('Locator ID must start with ' + expectedPrefix + ' for ' + activeProgramLabel + '.');
+			return null;
+		}
+		var digits = compact.substring(1);
+		if(digits.length < 6 || !/^\d+$/.test(digits)){
+			alert('Invalid locator ID. Use a value like ' + expectedPrefix + '26060401.');
+			return null;
+		}
+		var yearMonth = digits.substring(0, 4);
+		var envelopeSerial = digits.substring(4, digits.length - 2);
+		var locatorPosition = digits.substring(digits.length - 2);
+		if(envelopeSerial === '' || !/^\d{2}$/.test(locatorPosition)){
+			alert('Invalid locator ID. Use a value like ' + expectedPrefix + '26060401.');
+			return null;
+		}
+		var envelopeSerialNumber = Number(envelopeSerial);
+		if(envelopeSerialNumber < 1 || envelopeSerialNumber > 99){
+			alert('Invalid locator ID. Use a value like ' + expectedPrefix + '26060401.');
+			return null;
+		}
+		var envelopeNumber = canonicalHepEnvelope(prefix, yearMonth, envelopeSerialNumber);
+		var barcodeStem = compactLocatorValue(envelopeNumber);
+		return {
+			barcode: barcodeStem + locatorPosition,
+			envelopeNumber: envelopeNumber,
+			locatorPosition: locatorPosition,
+			sampleType: 'P',
+			stem: barcodeStem
+		};
+	}
+	if(compact.length < 10 || !/^\d+$/.test(compact)){
+		alert('Barcode must be 10 digits long.');
+		return null;
+	}
+	var envelopeDigits = compact.substring(4, 8);
+	var envelopeNumber = compact.substring(0, 4) + '-' + envelopeDigits;
+	return {
+		barcode: compact,
+		envelopeNumber: envelopeNumber,
+		locatorPosition: compact.substring(compact.length - 2),
+		sampleType: sampleTypeForEnvelope(envelopeNumber),
+		stem: compact.substring(0, compact.length - 2)
+	};
+}
+
+function applyParsedLocator(parsed){
+	if(!parsed){
+		return false;
+	}
+	setSampleTypeValue(parsed.sampleType);
+	$("#envelope_number").val(parsed.envelopeNumber).change();
+	$("#locator_position").val(parsed.locatorPosition).change();
+	return true;
+}
+
+function locatorBarcodeAtPosition(parsed, position){
+	return parsed.stem + pad2(position);
+}
+
+function locatorPositionFromBarcode(barcode){
+	var parsed = parseReceptionLocator(barcode);
+	return parsed ? parsed.locatorPosition : '';
+}
+
+function locatorRangeCount(startBarcode, endBarcode){
+	var startParsed = parseReceptionLocator(startBarcode);
+	var endParsed = parseReceptionLocator(endBarcode);
+	if(!startParsed || !endParsed){
+		return null;
+	}
+	if(startParsed.stem !== endParsed.stem){
+		alert('First and last locator IDs must be in the same envelope.');
+		return null;
+	}
+	return parseInt(endParsed.locatorPosition, 10) - parseInt(startParsed.locatorPosition, 10) + 1;
+}
