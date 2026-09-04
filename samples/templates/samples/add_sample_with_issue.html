@@ -1,0 +1,189 @@
+{% extends "home/layout.html" %}
+
+{% block content %}
+<div class="page-title">{{ page_title|default:"Add sample with issue" }}</div>
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<a href="{% url 'samples:samples_with_issues' %}" class="btn btn-default btn-sm">Back to list</a>
+	</div>
+	<div class="panel-body">
+		<form method="post" action="{{ form_action|default:request.path }}" role="form">
+			{% csrf_token %}
+
+			{% if form.non_field_errors %}
+				<div class="alert alert-danger">{{ form.non_field_errors }}</div>
+			{% endif %}
+
+			<div class="row">
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.test_type.label_tag }}
+						{{ form.test_type }}
+						{{ form.test_type.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4 non-eid-field">
+					<div class="form-group">
+						{{ form.sample_type.label_tag }}
+						{{ form.sample_type }}
+						{{ form.sample_type.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.reception_date.label_tag }}
+						{{ form.reception_date }}
+						{{ form.reception_date.errors }}
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.pack_number.label_tag }}
+						{{ form.pack_number }}
+						{{ form.pack_number.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.barcode.label_tag }}
+						{{ form.barcode }}
+						{{ form.barcode.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.collection_date.label_tag }}
+						{{ form.collection_date }}
+						{{ form.collection_date.errors }}
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.facility.label_tag }}
+						{{ form.facility }}
+						{{ form.facility.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.facility_name.label_tag }}
+						{{ form.facility_name }}
+						{{ form.facility_name.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.contact.label_tag }}
+						{{ form.contact }}
+						{{ form.contact.errors }}
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-sm-6">
+					<div class="form-group">
+						{{ form.art_number.label_tag }}
+						{{ form.art_number }}
+						{{ form.art_number.errors }}
+					</div>
+				</div>
+				<div class="col-sm-6">
+					<div class="form-group">
+						{{ form.form_number.label_tag }}
+						{{ form.form_number }}
+						{{ form.form_number.errors }}
+					</div>
+				</div>
+			</div>
+
+			<div class="row eid-field">
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.infant_name.label_tag }}
+						{{ form.infant_name }}
+						{{ form.infant_name.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.batch_number.label_tag }}
+						{{ form.batch_number }}
+						{{ form.batch_number.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.exp_number.label_tag }}
+						{{ form.exp_number }}
+						{{ form.exp_number.errors }}
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-sm-4">
+					<div class="checkbox">
+						<label>{{ form.retrieval_status }} {{ form.retrieval_status.label }}</label>
+						{{ form.retrieval_status.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.retrieval_date.label_tag }}
+						{{ form.retrieval_date }}
+						{{ form.retrieval_date.errors }}
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<div class="form-group">
+						{{ form.initials.label_tag }}
+						{{ form.initials }}
+						{{ form.initials.errors }}
+					</div>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<button type="submit" class="btn btn-primary btn-sm">{{ submit_label|default:"Save" }}</button>
+				<a href="{% url 'samples:samples_with_issues' %}" class="btn btn-default btn-sm">Cancel</a>
+			</div>
+		</form>
+	</div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+	(function () {
+		function updateIssueFields() {
+			var testType = document.getElementById('id_test_type').value;
+			var isEid = testType === 'EID';
+			var eidFields = document.querySelectorAll('.eid-field');
+			var nonEidFields = document.querySelectorAll('.non-eid-field');
+
+			for (var i = 0; i < eidFields.length; i++) {
+				eidFields[i].style.display = isEid ? '' : 'none';
+			}
+			for (var j = 0; j < nonEidFields.length; j++) {
+				nonEidFields[j].style.display = isEid ? 'none' : '';
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', function () {
+			var testType = document.getElementById('id_test_type');
+			if (testType) {
+				testType.addEventListener('change', updateIssueFields);
+				updateIssueFields();
+			}
+		});
+	})();
+</script>
+{% endblock %}

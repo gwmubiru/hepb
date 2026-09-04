@@ -405,6 +405,92 @@ class SampleReceptionForm(forms.ModelForm):
 		if SampleReception.objects.filter(form_fltr).exists():
 			self.add_error('barcode', "Locator ID already received")
 
+
+class SampleWithIssueForm(forms.ModelForm):
+	reception_date = forms.DateField(
+		required=False,
+		input_formats=['%Y-%m-%d', '%d/%m/%Y'],
+		widget=forms.DateInput(attrs={'class': 'form-control input-sm', 'type': 'date'})
+	)
+	collection_date = forms.DateField(
+		required=False,
+		input_formats=['%Y-%m-%d', '%d/%m/%Y'],
+		widget=forms.DateInput(attrs={'class': 'form-control input-sm', 'type': 'date'})
+	)
+	retrieval_date = forms.DateTimeField(
+		required=False,
+		input_formats=['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d'],
+		widget=forms.DateTimeInput(attrs={'class': 'form-control input-sm', 'type': 'datetime-local'})
+	)
+
+	class Meta:
+		model = SampleWithIssue
+		fields = (
+			'reception_date',
+			'pack_number',
+			'barcode',
+			'facility',
+			'facility_name',
+			'art_number',
+			'form_number',
+			'test_type',
+			'sample_type',
+			'collection_date',
+			'infant_name',
+			'batch_number',
+			'exp_number',
+			'contact',
+			'retrieval_status',
+			'retrieval_date',
+			'initials',
+		)
+		widgets = {
+			'pack_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'barcode': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'facility': forms.Select(attrs={'class': 'form-control input-sm'}),
+			'facility_name': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'art_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'form_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'test_type': forms.Select(attrs={'class': 'form-control input-sm'}),
+			'sample_type': forms.Select(attrs={'class': 'form-control input-sm'}),
+			'infant_name': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'batch_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'exp_number': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'contact': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+			'retrieval_status': forms.CheckboxInput(attrs={'class': 'sample-with-issue-checkbox'}),
+			'initials': forms.TextInput(attrs={'class': 'form-control input-sm'}),
+		}
+		labels = {
+			'pack_number': 'Pack/Box/Ziplock',
+			'art_number': 'ART Number',
+			'exp_number': 'EXP Number',
+			'retrieval_status': 'Retrieved',
+		}
+
+	def __init__(self, *args, **kwargs):
+		db_alias = kwargs.pop('db_alias', db_aliases.get_hepb_db_alias())
+		super(SampleWithIssueForm, self).__init__(*args, **kwargs)
+		self.fields['facility'].queryset = Facility.objects.using(db_alias).order_by('facility')
+		self.fields['facility'].required = False
+		self.fields['test_type'].required = True
+		self.fields['sample_type'].required = False
+
+	def clean(self):
+		cleaned_data = super(SampleWithIssueForm, self).clean()
+		test_type = cleaned_data.get('test_type')
+		retrieval_status = cleaned_data.get('retrieval_status')
+
+		if test_type == 'EID':
+			cleaned_data['sample_type'] = None
+		else:
+			cleaned_data['infant_name'] = ''
+			cleaned_data['batch_number'] = ''
+			cleaned_data['exp_number'] = ''
+
+		if retrieval_status and not cleaned_data.get('retrieval_date'):
+			cleaned_data['retrieval_date'] = datetime.now()
+		return cleaned_data
+	
 class DrugResistanceRequestForm(forms.ModelForm):
 	
 	class Meta:

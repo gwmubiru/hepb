@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 from datetime import *
 from django.conf import settings
 from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
 from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
@@ -55,6 +56,13 @@ SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES = {
 	'stage': 25,
 }
 
+SAMPLES_WITH_ISSUES_EXPORT_COLUMNS = [
+	'Reception Date', 'Sample Type', 'Test Type', 'Pack/Box/Ziplock', 'Barcode',
+	'Facility', 'ART Number', 'Form Number', 'Infant Name', 'Batch Number',
+	'EXP Number', 'Contact', 'Collection Date', 'Retrieval Status',
+	'Retrieval Date', 'Initials', 'Created By', 'Created At', 'Updated At',
+]
+
 
 def _envelope_capacity(sample_type):
 	return 99 if sample_type == 'P' else 20
@@ -76,6 +84,159 @@ def _return_source_system_sample_to_pending_packaging(sample):
 	for field_name, value in SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES.items():
 		setattr(sample, field_name, value)
 	sample.save(update_fields=builtins.list(SOURCE_SYSTEM_PENDING_PACKAGING_UPDATES.keys()))
+
+
+def _samples_with_issues_queryset(request):
+	db_alias = get_dropdown_db_alias(request)
+	qs = SampleWithIssue.objects.using(db_alias).select_related('facility', 'created_by')
+	search = (request.GET.get('search') or '').strip()
+	test_type = (request.GET.get('test_type') or '').strip()
+	sample_type = (request.GET.get('sample_type') or '').strip()
+	retrieval_status = (request.GET.get('retrieval_status') or '').strip()
+	date_from = (request.GET.get('date_from') or '').strip()
+	date_to = (request.GET.get('date_to') or '').strip()
+
+	if search:
+		qs = qs.filter(
+			Q(facility_name__icontains=search) |
+			Q(facility__facility__icontains=search) |
+			Q(barcode__icontains=search) |
+			Q(form_number__icontains=search) |
+			Q(infant_name__icontains=search) |
+			Q(art_number__icontains=search) |
+			Q(pack_number__icontains=search) |
+			Q(batch_number__icontains=search) |
+			Q(exp_number__icontains=search)
+		)
+	if test_type:
+		qs = qs.filter(test_type=test_type)
+	if sample_type:
+		qs = qs.filter(sample_type=sample_type)
+	if retrieval_status in ['0', '1']:
+		qs = qs.filter(retrieval_status=(retrieval_status == '1'))
+	if date_from:
+		qs = qs.filter(reception_date__gte=date_from)
+	if date_to:
+		qs = qs.filter(reception_date__lte=date_to)
+	return qs.order_by('-reception_date', '-created_at', '-id')
+
+
+def samples_with_issues(request):
+	qs = _samples_with_issues_queryset(request)
+	paginator = Paginator(qs, 50)
+	page_number = request.GET.get('page')
+	page_obj = paginator.get_page(page_number)
+	query_params = request.GET.copy()
+	query_params.pop('page', None)
+	query_string = query_params.urlencode()
+	return render(request, 'samples/samples_with_issues.html', {
+		'samples_with_issues': page_obj,
+		'query_string': query_string,
+		'total_count': qs.count(),
+		'test_types': SampleWithIssue.TEST_TYPES,
+		'sample_types': SampleWithIssue.SAMPLE_TYPES,
+	})
+
+
+def add_sample_with_issue(request):
+	db_alias = get_dropdown_db_alias(request)
+	if request.method == 'POST':
+		form = SampleWithIssueForm(request.POST, db_alias=db_alias)
+		if form.is_valid():
+			issue = form.save(commit=False)
+			issue.created_by_id = request.user.id
+			issue.source_sheet = 'Manual entry'
+			issue.save(using=db_alias)
+			if not issue.source_row:
+				issue.source_row = issue.pk
+				issue.save(using=db_alias, update_fields=['source_row', 'updated_at'])
+			return redirect('samples:samples_with_issues')
+	else:
+		form = SampleWithIssueForm(db_alias=db_alias)
+	return render(request, 'samples/add_sample_with_issue.html', {
+		'form': form,
+		'page_title': 'Add sample with issue',
+		'form_action': reverse('samples:add_sample_with_issue'),
+		'submit_label': 'Save',
+	})
+
+
+def edit_sample_with_issue(request, issue_id):
+	db_alias = get_dropdown_db_alias(request)
+	issue = get_object_or_404(SampleWithIssue.objects.using(db_alias), pk=issue_id)
+	if request.method == 'POST':
+		form = SampleWithIssueForm(request.POST, instance=issue, db_alias=db_alias)
+		if form.is_valid():
+			issue = form.save(commit=False)
+			issue.save(using=db_alias)
+			return redirect('samples:samples_with_issues')
+	else:
+		form = SampleWithIssueForm(instance=issue, db_alias=db_alias)
+	return render(request, 'samples/add_sample_with_issue.html', {
+		'form': form,
+		'page_title': 'Edit sample with issue',
+		'form_action': reverse('samples:edit_sample_with_issue', args=[issue.pk]),
+		'submit_label': 'Update',
+	})
+
+
+def delete_sample_with_issue(request, issue_id):
+	if request.method != 'POST':
+		return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+	db_alias = get_dropdown_db_alias(request)
+	issue = get_object_or_404(SampleWithIssue.objects.using(db_alias), pk=issue_id)
+	issue.delete(using=db_alias)
+	return redirect(request.META.get('HTTP_REFERER') or 'samples:samples_with_issues')
+
+
+def retrieve_sample_with_issue(request, issue_id):
+	if request.method != 'POST':
+		return JsonResponse({'success': False, 'message': 'Invalid request method.'}, status=405)
+	db_alias = get_dropdown_db_alias(request)
+	issue = get_object_or_404(SampleWithIssue.objects.using(db_alias), pk=issue_id)
+	if not issue.retrieval_status:
+		issue.retrieval_status = True
+		issue.retrieval_date = datetime.now()
+		issue.save(using=db_alias, update_fields=['retrieval_status', 'retrieval_date', 'updated_at'])
+	return redirect(request.META.get('HTTP_REFERER') or 'samples:samples_with_issues')
+
+
+def samples_with_issues_export(request):
+	workbook = openpyxl.Workbook()
+	sheet = workbook.active
+	sheet.title = 'Samples with issues'
+	sheet.append(SAMPLES_WITH_ISSUES_EXPORT_COLUMNS)
+	for issue in _samples_with_issues_queryset(request):
+		created_by = ''
+		if issue.created_by:
+			created_by = issue.created_by.get_full_name() or issue.created_by.username
+		sheet.append([
+			utils.local_date(issue.reception_date),
+			issue.get_sample_type_display() if issue.sample_type else '',
+			issue.test_type or '',
+			issue.pack_number or '',
+			issue.barcode or '',
+			issue.facility.facility if issue.facility else issue.facility_name or '',
+			issue.art_number or '',
+			issue.form_number or '',
+			issue.infant_name or '',
+			issue.batch_number or '',
+			issue.exp_number or '',
+			issue.contact or '',
+			utils.local_date(issue.collection_date),
+			'Yes' if issue.retrieval_status else 'No',
+			utils.local_datetime(issue.retrieval_date),
+			issue.initials or '',
+			created_by,
+			utils.local_datetime(issue.created_at),
+			utils.local_datetime(issue.updated_at),
+		])
+	output = io.BytesIO()
+	workbook.save(output)
+	output.seek(0)
+	response = HttpResponse(output.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+	response['Content-Disposition'] = 'attachment; filename="samples_with_issues.xlsx"'
+	return response
 
 
 def _normalize_dr_box_number(value):

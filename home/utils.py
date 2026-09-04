@@ -169,8 +169,8 @@ def timestamp():
     return datetime.strftime(timezone.now(), '%Y%m%d%H%M%S')
 
 def dropdown_links(links):
-    ret = """<div class="btn-group">
-				<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+    ret = """<div class="btn-group action-dropdown">
+				<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
 					Options
 					<span class="caret"></span>
 				</button>

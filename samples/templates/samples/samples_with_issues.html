@@ -1,0 +1,136 @@
+{% extends "home/layout.html" %}
+{% load form_tags %}
+
+{% block content %}
+<div class="page-title">Samples with issues</div>
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<form method="get" class="form-inline" action="{% url 'samples:samples_with_issues' %}">
+			<div class="form-group">
+				<input type="text" name="search" value="{{ request.GET.search }}" class="form-control input-sm" placeholder="Facility, barcode, form number, infant name">
+			</div>
+			<div class="form-group">
+				<select name="test_type" class="form-control input-sm">
+					<option value="">All test types</option>
+					{% for value,label in test_types %}
+						<option value="{{ value }}" {% if request.GET.test_type == value %}selected{% endif %}>{{ label }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="form-group">
+				<select name="sample_type" class="form-control input-sm">
+					<option value="">All sample types</option>
+					{% for value,label in sample_types %}
+						<option value="{{ value }}" {% if request.GET.sample_type == value %}selected{% endif %}>{{ label }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="form-group">
+				<select name="retrieval_status" class="form-control input-sm">
+					<option value="">All retrieval statuses</option>
+					<option value="0" {% if request.GET.retrieval_status == '0' %}selected{% endif %}>Not retrieved</option>
+					<option value="1" {% if request.GET.retrieval_status == '1' %}selected{% endif %}>Retrieved</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<input type="date" name="date_from" value="{{ request.GET.date_from }}" class="form-control input-sm">
+			</div>
+			<div class="form-group">
+				<input type="date" name="date_to" value="{{ request.GET.date_to }}" class="form-control input-sm">
+			</div>
+				<button type="submit" class="btn btn-primary btn-sm">Filter</button>
+				<a href="{% url 'samples:samples_with_issues' %}" class="btn btn-default btn-sm">Reset</a>
+				<a href="{% url 'samples:add_sample_with_issue' %}" class="btn btn-info btn-sm">Add record</a>
+				<a href="{% url 'samples:samples_with_issues_export' %}{% if query_string %}?{{ query_string }}{% endif %}" class="btn btn-success btn-sm">Export</a>
+			</form>
+		</div>
+	<div class="panel-body">
+		<div class="small text-muted">{{ total_count }} records</div>
+	</div>
+	<div class="table-responsive">
+		<table class="table table-bordered table-striped table-condensed">
+			<thead>
+				<tr>
+					<th>Reception Date</th>
+					<th>Sample Type</th>
+					<th>Test Type</th>
+					<th>Pack/Box</th>
+					<th>Barcode</th>
+					<th>Facility</th>
+					<th>ART Number</th>
+					<th>Form Number</th>
+					<th>Infant Name</th>
+					<th>Batch No.</th>
+					<th>EXP No.</th>
+					<th>Collection Date</th>
+					<th>Retrieved</th>
+					<th>Retrieval Date</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for issue in samples_with_issues %}
+					<tr>
+						<td>{{ issue.reception_date|date:"d/m/Y" }}</td>
+						<td>{{ issue.get_sample_type_display }}</td>
+						<td>{{ issue.test_type }}</td>
+						<td>{{ issue.pack_number }}</td>
+						<td>{{ issue.barcode }}</td>
+						<td>{% if issue.facility %}{{ issue.facility.facility }}{% else %}{{ issue.facility_name }}{% endif %}</td>
+						<td>{{ issue.art_number }}</td>
+						<td>{{ issue.form_number }}</td>
+						<td>{{ issue.infant_name }}</td>
+						<td>{{ issue.batch_number }}</td>
+						<td>{{ issue.exp_number }}</td>
+						<td>{{ issue.collection_date|date:"d/m/Y" }}</td>
+						<td>{% if issue.retrieval_status %}Yes{% else %}No{% endif %}</td>
+						<td>{{ issue.retrieval_date|date:"d/m/Y H:i" }}</td>
+						<td>
+							<div class="btn-group action-dropdown">
+								<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+									Options <span class="caret"></span>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+									{% if not issue.retrieval_status %}
+										<li>
+											<form method="post" action="{% url 'samples:retrieve_sample_with_issue' issue.id %}">
+												{% csrf_token %}
+												<button type="submit">Mark retrieved</button>
+											</form>
+										</li>
+									{% endif %}
+									<li><a href="{% url 'samples:edit_sample_with_issue' issue.id %}">Edit</a></li>
+									<li>
+										<form method="post" action="{% url 'samples:delete_sample_with_issue' issue.id %}" onsubmit="return confirm('Delete this sample with issue?');">
+											{% csrf_token %}
+											<button type="submit">Delete</button>
+										</form>
+									</li>
+								</ul>
+							</div>
+						</td>
+					</tr>
+				{% empty %}
+					<tr>
+						<td colspan="15">No samples found.</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+	{% if samples_with_issues.paginator.num_pages > 1 %}
+	<div class="panel-footer">
+		<ul class="pagination pagination-sm" style="margin:0">
+			{% if samples_with_issues.has_previous %}
+				<li><a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ samples_with_issues.previous_page_number }}">Previous</a></li>
+			{% endif %}
+			<li class="active"><a href="#">Page {{ samples_with_issues.number }} of {{ samples_with_issues.paginator.num_pages }}</a></li>
+			{% if samples_with_issues.has_next %}
+				<li><a href="?{% if query_string %}{{ query_string }}&{% endif %}page={{ samples_with_issues.next_page_number }}">Next</a></li>
+			{% endif %}
+		</ul>
+	</div>
+	{% endif %}
+</div>
+{% endblock %}

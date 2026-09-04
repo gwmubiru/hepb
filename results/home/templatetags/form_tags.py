@@ -90,9 +90,9 @@ def check_list(val="", choices="{}"):
 @register.simple_tag
 def dropdown_links(links={}):
 	links = ast.literal_eval(links)
-	ret = """<div class="btn-group">
-				<button type="button" class="btn btn-xs btn-danger dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-					Options 
+	ret = """<div class="btn-group action-dropdown">
+				<button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+					Options
 					<span class="caret"></span>
 				</button>
 				<ul class="dropdown-menu" role="menu">
