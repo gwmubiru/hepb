@@ -228,6 +228,62 @@ page[size="A4"][layout="portrait"] {
 .legend .red { background-color: #ff0000; }
 .legend .black { background-color: #000; }
 
+.action-dropdown > .btn-primary {
+	background-color: #2f80c8 !important;
+	border-color: #246aa8 !important;
+	color: #fff !important;
+	box-shadow: none;
+}
+
+.action-dropdown.open > .btn-primary,
+.action-dropdown > .btn-primary:hover,
+.action-dropdown > .btn-primary:focus {
+	background-color: #246aa8 !important;
+	border-color: #1c5a91 !important;
+	color: #fff !important;
+}
+
+.action-dropdown.open > .dropdown-menu,
+.action-dropdown > .dropdown-menu {
+	background-color: #f2f8ff !important;
+	border: 1px solid #9cc8ee !important;
+	box-shadow: 0 6px 12px rgba(36, 106, 168, 0.18) !important;
+	min-width: 155px;
+	padding: 4px 0;
+}
+
+.action-dropdown .dropdown-menu > li > a,
+.action-dropdown .dropdown-menu > li > form > button {
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	color: #174a73 !important;
+	display: block;
+	font-family: inherit;
+	font-size: 12px;
+	line-height: 1.42857143;
+	margin: 0 !important;
+	padding: 5px 18px;
+	text-align: left;
+	text-decoration: none;
+	white-space: nowrap;
+	width: 100%;
+}
+
+.action-dropdown .dropdown-menu > li > form {
+	margin: 0;
+}
+
+.action-dropdown .dropdown-menu > li > a:hover,
+.action-dropdown .dropdown-menu > li > a:focus,
+.action-dropdown .dropdown-menu > li > form > button:hover,
+.action-dropdown .dropdown-menu > li > form > button:focus {
+	background-color: #d9edff !important;
+	color: #0f3f66 !important;
+	outline: 0;
+}
+
 .is_data_enterd0{
 			color: red;
 		}

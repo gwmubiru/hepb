@@ -203,6 +203,40 @@ class SampleReception(models.Model):
 	class Meta:
 		db_table = 'vl_sample_reception'
 
+class SampleWithIssue(models.Model):
+	SAMPLE_TYPES = ( ('P', 'Plasma'), ('D', 'DBS') )
+	TEST_TYPES = ( ('VL', 'VL'), ('EID', 'EID'), ('HEP', 'HEP') )
+	id = models.AutoField(primary_key=True)
+	source_sheet = models.CharField(max_length=64, null=True, blank=True)
+	source_row = models.PositiveIntegerField(null=True, blank=True)
+	reception_date = models.DateField(null=True, blank=True)
+	pack_number = models.CharField(max_length=64, null=True, blank=True)
+	barcode = models.CharField(max_length=128, null=True, blank=True)
+	facility_name = models.CharField(max_length=255, null=True, blank=True)
+	facility = models.ForeignKey(backend.Facility, null=True, blank=True, on_delete=models.SET_NULL)
+	art_number = models.CharField(max_length=128, null=True, blank=True)
+	form_number = models.CharField(max_length=128, null=True, blank=True)
+	sample_type = models.CharField(max_length=1, choices=SAMPLE_TYPES, null=True, blank=True)
+	test_type = models.CharField(max_length=8, choices=TEST_TYPES, null=True, blank=True)
+	collection_date = models.DateField(null=True, blank=True)
+	infant_name = models.CharField(max_length=255, null=True, blank=True)
+	batch_number = models.CharField(max_length=128, null=True, blank=True)
+	exp_number = models.CharField(max_length=128, null=True, blank=True)
+	contact = models.CharField(max_length=128, null=True, blank=True)
+	retrieval_status = models.BooleanField(default=False)
+	retrieval_date = models.DateTimeField(null=True, blank=True)
+	initials = models.CharField(max_length=32, null=True, blank=True)
+	created_by = models.ForeignKey(User, related_name='samples_with_issues_created', null=True, blank=True, on_delete=models.SET_NULL)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+
+	def __str__(self):
+		return self.barcode or self.form_number or self.infant_name or 'Sample with issue'
+
+	class Meta:
+		db_table = 'vl_samples_with_issues'
+		unique_together = (('source_sheet', 'source_row'),)
+
 class TrackingCode(models.Model):
 	code = models.TextField(unique=True)
 	id = models.AutoField(primary_key=True)
