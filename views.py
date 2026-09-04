@@ -33,19 +33,9 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import mm
 from reportlab.pdfgen import canvas
 from reportlab.graphics import renderPDF
+from django.http import JsonResponse
 
 
-# Create your views here.
-
-# class PDFView(PDFTemplateView):
-# 	model = Worksheet
-# 	template_name = "worksheets/pdf.html"
-# 	def get_context_data(self, **kwargs):
-# 		return super(PDFView, self).get_context_data(
-# 			pagesize="A4", 
-# 			title="Worksheet",
-# 			worksheet=Worksheet.objects.get(pk=self.kwargs['pk']),
-# 			 **kwargs)
 @permission_required('worksheets.add_worksheet', login_url='/login/')
 def generate_pdf(request, worksheet_id):
 	worksheet = Worksheet.objects.get(pk=worksheet_id)
