@@ -1,5 +1,5 @@
 from django.db import transaction
-from .models import Patient, Sample, PastRegimens, DrugResistanceRequest
+from .models import Patient, Sample, PastRegimens, DrugResistanceRequest, TrackingCode
 from .forms import PatientForm, SampleForm, DrugResistanceRequestForm, PreliminaryFindingsForm
 from results.models import Result,ResultsQC
 from home import utils
@@ -7,6 +7,60 @@ from datetime import *
 from . import utils as sample_utils
 
 class SampleService:
+    PLACEHOLDER_TRACKING_CODE_VALUES = {'none', 'non'}
+
+    @staticmethod
+    def is_valid_tracking_code(tracking_code):
+        return bool(
+            tracking_code and
+            (tracking_code.code or '').strip().lower() not in SampleService.PLACEHOLDER_TRACKING_CODE_VALUES
+        )
+
+    @staticmethod
+    def get_or_create_tracking_code(code, user_id, facility_id=None, db_alias='default'):
+        code = (code or '').strip()
+        if not code or code.lower() in SampleService.PLACEHOLDER_TRACKING_CODE_VALUES:
+            return None
+        tracking_code = TrackingCode.objects.using(db_alias).filter(code=code).first()
+        if tracking_code is None:
+            tracking_code = TrackingCode(code=code, creation_by_id=user_id)
+            if facility_id:
+                tracking_code.facility_id = facility_id
+            tracking_code.save(using=db_alias)
+        elif facility_id and not tracking_code.facility_id:
+            tracking_code.facility_id = facility_id
+            tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
+        return tracking_code
+
+    @staticmethod
+    def resolve_tracking_code(tracking_code_id, code, user_id, facility_id=None, db_alias='default'):
+        code = (code or '').strip()
+        tracking_code = None
+        if tracking_code_id:
+            candidate = TrackingCode.objects.using(db_alias).filter(pk=tracking_code_id).first()
+            if SampleService.is_valid_tracking_code(candidate) and (not code or (candidate.code or '').strip() == code):
+                tracking_code = candidate
+        if tracking_code is None and code:
+            tracking_code = SampleService.get_or_create_tracking_code(code, user_id, facility_id, db_alias)
+        elif tracking_code and facility_id and not tracking_code.facility_id:
+            tracking_code.facility_id = facility_id
+            tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
+        return tracking_code
+
+    @staticmethod
+    def resolve_tracking_code_for_sample(sample, tracking_code_id, code, user_id, facility_id=None, db_alias='default'):
+        sample_tracking_code_id = getattr(sample, 'tracking_code_id', None)
+        if sample_tracking_code_id:
+            tracking_code = TrackingCode.objects.using(db_alias).filter(pk=sample_tracking_code_id).first()
+            if SampleService.is_valid_tracking_code(tracking_code):
+                if facility_id and not tracking_code.facility_id:
+                    tracking_code.facility_id = facility_id
+                    tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
+                return tracking_code
+            if str(tracking_code_id or '') == str(sample_tracking_code_id):
+                tracking_code_id = None
+        return SampleService.resolve_tracking_code(tracking_code_id, code, user_id, facility_id, db_alias)
+
     @staticmethod
     def create_patient(patient_form, pst, user):
         patient = patient_form.save(commit=False)

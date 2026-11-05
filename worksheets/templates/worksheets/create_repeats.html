@@ -1,337 +1,397 @@
 {% extends "home/layout.html" %}
-{% load form_tags %}
 {% load static %}
 
 {% block css %}
-	<link rel="stylesheet" href='{% static "home/vendor/select2/dist/css/select2.min.css" %}'>
-	<style>
-		.special_width,.input-sm {
-			width: 299px;
-		}
-	</style>
-{% endblock %}
-
-{% block js %}
-	<script type="text/javascript" src='{% static "home/vendor/select2/dist/js/select2.min.js" %}'></script>
-	<script type="text/javascript" src='{% static "home/vendor/moment/min/moment.min.js" %}'></script>
-	<script type="text/javascript" src='{% static "home/vendor/combodate/src/combodate.js" %}'></script>
-{% endblock %}
-
-
-{% block content %}	
-
-<div class="page-title">New DBS Worksheet</div>
-<div class="panel panel-default">
-<div class="row panel-body">
-	
-	
-	<form action="/worksheets/manage_repeats/" method="post" role="form">	
-	{% csrf_token %}	
-		<div class="worksheet" id="content">
-			
-			<br>
-			<div class="row" style="padding-bottom:5px;">
-				<div class="col-md-3 form-inline">I want to attach
-					<input id="number_of_samples" type="text" class="form-control input-sm" value="{% if request.GET.sample_type == 'P' %} 99
-							{% else %} 100 {% endif %}" style="width:50px"> samples
-				</div>
-				<div class="col-md-4 form-inline">
-					{% if request.GET.sample_type == 'D' %} 
-					Starting Barcode
-					<input id="starting_barcode" type="text" class="form-control input-sm" value="" style="width:40%">
-					<input id="new_starting_barcode" type="text" class="form-control input-sm hidden" value="">
-					{% endif %}
-				</div>
-				<div class="col-md-2">
-					<span class="btn btn-sm btn-danger btn-submit hidden" id="submit">save selected samples</span>
-				</div>
-			</div>
-			<table class="table table-striped table-condensed table-bordered" id="samples-table" >
-				<thead>
-					<th>#</th>
-					<th>Barcode</th>
-					<th>Assign New Identifier</th>
-					
-					<th>
-						{% if request.GET.sample_type == 'D' %} 
-						<label class="hidden">
-							<input type="checkbox" id="check_all"> 
-							<span id='check_all_label'>Select all</span>
-						</label>
-						{% endif %}
-					</th>
-					
-				</thead>
-				<tbody>
-					<input type="text" name="worksheet_id" id="worksheet_id" value="{{worksheet_id}}" class="hidden">
-					<input type="text" name="worksheet_type" id="worksheet_type" value="{{request.GET.worksheet_type}}" class="hidden">
-					{% for s in samples %}
-					
-					<tr >
-						<td>{{ forloop.counter }} </td>
-						<td>{{ s.barcode }}</td>	
-						<td><input type="text" required='true' name='sample{{ s.id }}' s-pk="{{ s.id }}"  id="{{ s.id }}"  class="sample_repeats form-control submit_class"></td>
-						
-						<td>
-							 
-							<input type="checkbox" class="checked_samples sample_repeats" value="{{s.id}}" name="sample_ids" id="sample_{{s.id}}" data-barcode="{{s.lab_number}}">
-							
-						</td>
-						
-					</tr>
-					
-					{% endfor %}
-					
-				</tbody>
-			</table>
-		</div>
-
-	</form>
-	
-</div>
-</div>
-	
-<script type="text/javascript">
-	 $(function() {
-	 	$('#starting_barcode').change(function(){
-
-	 		$('#new_starting_barcode').val(this.value);
-	 		//if there are any selected samples reset the barcode value
-	 			$('.submit_class').each(function(i) { 
-	      if($(this).val() != '') {
-	      	var current_barcode = $('#new_starting_barcode').val();
-				  var barcode_stem = current_barcode.substring(0, 5);
-				  //console.log(barcode_stem);
-				  var locator_posn = parseInt(current_barcode.substr(current_barcode.length - 4));
-				  var new_pos = locator_posn+1;
-				  if (new_pos < 10){
-						new_pos = '000'+new_pos;
-					}else if(new_pos < 100){
-						new_pos = '00'+new_pos;
-					}else if(new_pos < 1000){
-						new_pos = '0'+new_pos;
-					}
-					//console.log(new_pos);
-					var new_barc = barcode_stem+new_pos;
-					
-					$(this).val(current_barcode);
-					$('#new_starting_barcode').val(new_barc);
-	      }
-	    });
-
-	 	});
-	 	
-
-        $(".status").hide();
-        //$(".missing_results").hide();
-
-        $('#check_all').click(function(){
-        	var starting_barcode = $('#starting_barcode').val();
-        	if($(this).is(':checked')){
-        		var max_no_samples = $('#number_of_samples').val();
-		        $('input[name="sample_ids"]').each(function() { 
-							//this.checked = true; 
-							//this.checked.click();
-							//$(this).click();
-							var sample_type = '{{request.GET.sample_type}}';
-							//add sampales only if the max is not reached
-							if($('input[type=checkbox]:checked').length <= max_no_samples) {
-								  var sample_id = $(this).val();
-								  $(this).attr('checked','checked');
-								  var current_barcode = $('#new_starting_barcode').val();
-								  var barcode_stem = current_barcode.substring(0, 5);
-								  //console.log(barcode_stem);
-								  var locator_posn = parseInt(current_barcode.substr(current_barcode.length - 4));
-								  var new_pos = locator_posn+1;
-								  if (new_pos < 10){
-										new_pos = '000'+new_pos;
-									}else if(new_pos < 100){
-										new_pos = '00'+new_pos;
-									}else if(new_pos < 1000){
-										new_pos = '0'+new_pos;
-									}
-									//console.log(new_pos);
-									var new_barc = barcode_stem+new_pos;
-									
-									$('#'+sample_id).val(current_barcode);
-									$('#new_starting_barcode').val(new_barc);
-									//disable all if the max number is reached				
-							}else{
-								//disable inputs and show the submit button when max is reached
-									//$(this).attr("disabled",true);
-									//$('#'+$(this).val()).attr("disabled",true);
-									$('#submit').removeClass('hidden');
-							}
-							
-
-						});
-					}else{
-						$('input[name="sample_ids"]').each(function() { 
-								$('#new_starting_barcode').val(starting_barcode);
-								var sample_id = $(this).val();
-								$(this).removeAttr('checked');
-								$('#submit').addClass('hidden');
-								$('#'+sample_id).val('');
-						});
-					}	//end check for whether check box is checked or not
-        });
-    });
-
-	 $('.checked_samples').click(function(){
-		  
-			//add sampales only if the max is not reached
-		  var sample_id = $(this).val();
-		  var sample_type = '{{request.GET.sample_type}}';
-		  if($(this).is(":checked")){
-			  $(this).attr('checked','checked');
-			  if(sample_type == 'D'){
-				  var current_barcode = $('#new_starting_barcode').val();
-				  var barcode_stem = current_barcode.substring(0, 5);
-				  //console.log(barcode_stem);
-				  var locator_posn = parseInt(current_barcode.substr(current_barcode.length - 4));
-				  var new_pos = locator_posn+1;
-				  if (new_pos < 10){
-						new_pos = '000'+new_pos;
-					}else if(new_pos < 100){
-						new_pos = '00'+new_pos;
-					}else if(new_pos < 1000){
-						new_pos = '0'+new_pos;
-					}
-					//console.log(new_pos);
-					var new_barc = barcode_stem+new_pos;
-					
-					$('#'+sample_id).val(current_barcode);
-					$('#'+sample_id).change();
-					$('#new_starting_barcode').val(new_barc);
-				}else{
-					//data-barcode
-					$('#'+sample_id).val($(this).attr("data-barcode"));
-					$(".submit_class").change();
-				}
-			}else{
-				$('#'+sample_id).val('');
-				$('#'+sample_id).change();
-				$(this).removeAttr('checked');
-			}			
-			
-		});
-	 //
-	$(".submit_class").on("change",function(){
-		var sample_type = '{{request.GET.sample_type}}';
-		var max_no_samples = $('#number_of_samples').val();
-	 	//now generate the next focus element
-	 	/*if(sample_type == 'P'){
-			var thisIndex = $(this).index('input:text');
-			var next = thisIndex + 1;
-			$('input:text').eq(next).focus();
-		}*/
-		var filled_sample_inputs = selectedSamples();
-		var no_cheched_boxes = $('input[type=checkbox]:checked').length;
-		if(no_cheched_boxes == max_no_samples || filled_sample_inputs == max_no_samples) {
-		//if($('input[type=checkbox]:checked').length == max_no_samples) {
-			//disable inputs and show the submit button when max is reached
-			$('.sample_repeats').each(function(i) { 
-				//console.log(i);
-	      if($(this).val() == '') {
-	            $(this).attr("disabled",true);
-	      }
-	    });
-	    $(".checked_samples").not(":checked").attr("disabled",true);
-			//$('#'+$(this).val()).attr("disabled",true);
-			$('#submit').removeClass('hidden');
-	 	}else{
-	 		//max number not reached, so enable all checkboxes and inputs and hide submit button
-	 		$('.sample_repeats').each(function(i) { 
-	        $(this).removeAttr("disabled");
-	    });
-	    $(".checked_samples").removeAttr("disabled");
-			//$('#'+$(this).val()).attr("disabled",true);
-			$('#submit').addClass('hidden');
-	 	}
-	 });
-
-	$('#submit').click(function(){
-
-		//$('#spiner').modal('show');
-		$('#spiner').modal({
-		  backdrop: true,
-		  show: true,
-		  keyboard: false
-		})
-		var worksheet_id = $("#worksheet_id").val();
-
-		$('.submit_class').each(function(i) {
-			var max_samples = parseInt($('#number_of_samples').val());
-			var barcode = $(this).val();
-
-			if(barcode != ''){
-				var params = {csrfmiddlewaretoken:"{{ csrf_token }}", s_pk:$(this).attr('s-pk'),post_type:'attach_sample',worksheet_id:worksheet_id,max_samples:max_samples,index_val:i,barcode:$(this).val(),worksheet_type:'{{request.GET.worksheet_type}}'};
-				//console.log(params);
-	        	submit_auth(params);
-			}else{
-				$('#number_of_samples').val(max_samples+1);
-			}
-			
-			
-			//window.open('URL')
-	        
-	    });
-	});
-	function submit_auth(params){
-		$.post("/worksheets/manage_repeats/", params).done(function(data) {
-			//var json_data = JSON.parse(data);
-	 		//$("#saved"+params.s_pk).show();
-	 		//alert(parseInt(params.index_val) +1);
-	 		if((parseInt(params.index_val) +1) == parseInt(params.max_samples)){
-					window.location.replace("/worksheets/show/"+params.worksheet_id);
-			}
-	 		//move cursor to next line
-	 		 
-		 });
-	}
-
-	function selectedSamples(){
-		var cnt = $('input.submit_class').filter(function() {
-		  return this.value.trim() != '';
-		}).length;
-		return cnt;	
-	}
-	
-	</script>
-
-	
-
-
-<style type="text/css">
-    .x{
-    	color: rgb(210, 190, 220);
-    	cursor: pointer;
-    	font-size: 18px;
-    }
-    .missing_results{
-		background-color: #F5A9A9;
-	}
-    .form-group.required label:before, .form-inline.required label:before {
-	  content:"*";
-	  color:red;
-	}
-
-	.day{
-		width:10px;
-	}
-
-	.form-group, .form-inline{
-		margin-bottom: 4px;
-	}
-
-	.form-group > label,.form-inline > label{
-		font-size: 14px;
-	}
-	.wider.input-sm{
-		width: 210px;
-	}
-	.message_span{
-		color: #008000;
-	}
+<style>
+.repeat-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:15px; background:#f7f9fc; border-bottom:1px solid #e4e9f0; }
+.repeat-toolbar .form-control { width:115px; }
+.repeat-toolbar #starting_barcode { width:190px; }
+.repeat-workspace { display:grid; grid-template-columns:minmax(230px,1fr) minmax(430px,2fr) minmax(270px,1fr); gap:14px; padding:14px; }
+.repeat-column { min-width:0; width:auto; float:none; padding:0; }
+.repeat-column .panel { height:100%; margin-bottom:0; }
+.repeat-column .panel-heading { font-weight:600; }
+.repeat-column .panel-body { padding:12px; }
+.repeat-envelope-list { max-height:66vh; overflow-y:auto; margin-top:10px; }
+.repeat-envelope { display:flex; justify-content:space-between; align-items:center; width:100%; text-align:left; white-space:normal; margin-bottom:5px; }
+.repeat-envelope.active { background:#e6f0fb; border-color:#5b91c8; color:#234f7d; }
+.repeat-envelope-count { color:#728096; font-size:12px; white-space:nowrap; margin-left:8px; }
+.repeat-table-wrap { max-height:66vh; overflow:auto; }
+.repeat-table { margin-bottom:0; }
+.repeat-table th { white-space:nowrap; }
+.repeat-table .identifier-input { min-width:150px; }
+.repeat-selected-wrap { max-height:54vh; overflow:auto; }
+.repeat-selected-table { margin-bottom:8px; }
+.repeat-save-button { width:100%; margin:4px 0 10px; }
+.repeat-envelope-actions { display:flex; justify-content:space-between; margin-bottom:8px; }
+.repeat-sample-check { display:block; margin:0 auto !important; }
+.repeat-remove { border:0; background:transparent; color:#a94442; font-size:20px; font-weight:bold; line-height:1; padding:0 6px; }
+.repeat-status { min-height:20px; margin-left:6px; }
+.repeat-status.error { color:#a94442; }
+.repeat-status.success { color:#31708f; }
+@media (max-width:1100px) {
+    .repeat-workspace { grid-template-columns:1fr; }
+    .repeat-column { margin-bottom:14px; }
+    .repeat-envelope-list,.repeat-table-wrap { max-height:40vh; }
+}
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title">New {% if sample_type == 'P' %}Plasma{% else %}DBS{% endif %} Repeat Worksheet</div>
+<div class="panel panel-default">
+    <div class="repeat-toolbar">
+        <span>I want to attach</span>
+        <input id="number_of_samples" type="number" min="1" class="form-control input-sm" value="{% if sample_type == 'P' %}99{% else %}100{% endif %}">
+        <span>samples</span>
+        {% if sample_type == 'D' %}
+        <label for="starting_barcode" style="margin:0 0 0 18px;">Starting Barcode</label>
+        <input id="starting_barcode" type="text" class="form-control input-sm" autocomplete="off">
+        {% endif %}
+        <span id="repeat-status" class="repeat-status" role="status"></span>
+    </div>
+    <div class="repeat-workspace">
+        <input type="hidden" id="worksheet_id" value="{{ worksheet_id }}">
+        <input type="hidden" id="sample_type" value="{{ sample_type }}">
+        <input type="hidden" id="worksheet_type" value="{{ worksheet_type }}">
+        <div class="repeat-column col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">Pending sample envelopes</div>
+                <div class="panel-body">
+                    <input type="search" class="form-control" id="envelope-search" placeholder="Search envelope number">
+                    <div id="envelope-list" class="repeat-envelope-list" aria-live="polite">
+                        <p class="text-muted">Loading envelopes…</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="repeat-column col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading" id="sample-heading">Choose an envelope to view its samples</div>
+                <div class="panel-body repeat-table-wrap">
+                    <div class="repeat-envelope-actions">
+                        <button type="button" class="btn btn-default btn-xs" id="select-all-envelope" disabled>Select all</button>
+                        <button type="button" class="btn btn-default btn-xs" id="unselect-all-envelope" disabled>Unselect all</button>
+                    </div>
+                    <table class="table table-striped table-condensed table-bordered repeat-table">
+                        <thead><tr><th>Sample Barcode</th><th>Assign New Identifier</th><th>Select</th></tr></thead>
+                        <tbody id="repeat-sample-rows"><tr><td colspan="3" class="text-muted">Select an envelope on the left.</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="repeat-column col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">Selected samples <span class="badge" id="selected-count">0</span></div>
+                <div class="panel-body">
+                    <button type="button" class="btn btn-danger repeat-save-button" id="save-selected-top">Save selected samples</button>
+                    <div class="repeat-selected-wrap">
+                        <table class="table table-condensed table-bordered repeat-selected-table">
+                            <thead><tr><th>Sample</th><th>New identifier</th><th></th></tr></thead>
+                            <tbody id="selected-sample-rows"><tr><td colspan="3" class="text-muted">No samples selected.</td></tr></tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-danger repeat-save-button" id="save-selected-bottom">Save selected samples</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function() {
+    var sampleType = $('#sample_type').val();
+    var worksheetType = $('#worksheet_type').val();
+    var worksheetId = $('#worksheet_id').val();
+    var selectedItems = [];
+    var currentSamples = [];
+    var currentEnvelopeId = null;
+    var saving = false;
+    var savedSampleIds = {};
+    var nextIdentifierNumber = null;
+
+    function setStatus(message, isError) {
+        $('#repeat-status').text(message || '').toggleClass('error', !!isError).toggleClass('success', !!message && !isError);
+    }
+
+    function isValidStartingBarcode(barcode) {
+        return /^R\d{8}$/.test(barcode) || /^\d{5,}$/.test(barcode);
+    }
+
+    function queryParams(action, extra) {
+        var params = {action: action, sample_type: sampleType, worksheet_type: worksheetType};
+        $.extend(params, extra || {});
+        return params;
+    }
+
+    function findSelected(sampleId) {
+        for (var i = 0; i < selectedItems.length; i++) {
+            if (String(selectedItems[i].id) === String(sampleId)) return i;
+        }
+        return -1;
+    }
+
+    function nextIdentifier() {
+        var start = $.trim($('#starting_barcode').val() || '');
+        if (!isValidStartingBarcode(start)) return null;
+        var stem = start.substring(0, start.length - 4);
+        if (nextIdentifierNumber === null) nextIdentifierNumber = parseInt(start.substring(start.length - 4), 10);
+        var suffix = String(nextIdentifierNumber++);
+        while (suffix.length < 4) suffix = '0' + suffix;
+        return stem + suffix;
+    }
+
+    function updateSelectedView() {
+        var body = $('#selected-sample-rows').empty();
+        $('#selected-count').text(selectedItems.length);
+        $('#save-selected-top, #save-selected-bottom').prop('disabled', saving || !selectedItems.length);
+        if (!selectedItems.length) {
+            body.append($('<tr>').append($('<td colspan="3" class="text-muted">').text('No samples selected.')));
+            return;
+        }
+        $.each(selectedItems, function(_, item) {
+            var row = $('<tr>');
+            row.append($('<td>').text(item.barcode || item.form_number || item.id));
+            row.append($('<td>').text(item.identifier || ''));
+            var remove = $('<button type="button" class="repeat-remove" aria-label="Deselect sample" title="Deselect sample">').text('×');
+            remove.on('click', function() { removeSelected(item.id); });
+            row.append($('<td>').append(remove));
+            body.append(row);
+        });
+    }
+
+    function renderSamples() {
+        var body = $('#repeat-sample-rows').empty();
+        if (!currentSamples.length) {
+            body.append($('<tr>').append($('<td colspan="3" class="text-muted">').text('No pending samples in this envelope.')));
+            $('#select-all-envelope, #unselect-all-envelope').prop('disabled', true);
+            return;
+        }
+        $.each(currentSamples, function(_, sample) {
+            var row = $('<tr>');
+            var checkbox = $('<input type="checkbox" class="repeat-sample-check">').prop('checked', findSelected(sample.id) >= 0);
+            checkbox.prop('disabled', saving || !!savedSampleIds[sample.id]);
+            checkbox.on('change', function() { toggleSample(sample, this.checked); });
+            row.append($('<td>').text(sample.barcode || sample.form_number || ''));
+            var selectedIndex = findSelected(sample.id);
+            var identifier = $('<input type="text" class="form-control input-sm identifier-input" autocomplete="off">')
+                .val(selectedIndex >= 0 ? selectedItems[selectedIndex].identifier : '')
+                .prop('disabled', selectedIndex < 0 || saving || !!savedSampleIds[sample.id]);
+            identifier.on('input change', function() {
+                var existing = findSelected(sample.id);
+                if (existing >= 0) {
+                    selectedItems[existing].identifier = $.trim($(this).val());
+                    updateSelectedView();
+                }
+            });
+            row.append($('<td>').append(identifier));
+            row.append($('<td>').append(checkbox));
+            if (savedSampleIds[sample.id]) row.addClass('success');
+            body.append(row);
+        });
+        $('#select-all-envelope, #unselect-all-envelope').prop('disabled', saving || !currentSamples.length);
+    }
+
+    function selectAllInEnvelope() {
+        if (saving) return;
+        var limit = parseInt($('#number_of_samples').val(), 10);
+        var start = $.trim($('#starting_barcode').val() || '');
+        if (sampleType === 'D' && !isValidStartingBarcode(start)) {
+            setStatus('Enter a valid starting barcode before selecting samples.', true);
+            $('#starting_barcode').focus();
+            return;
+        }
+        var added = 0;
+        $.each(currentSamples, function(_, sample) {
+            if (findSelected(sample.id) >= 0 || savedSampleIds[sample.id] || selectedItems.length >= limit) return;
+            var identifier = nextIdentifier();
+            if (sampleType === 'D' && !identifier) return false;
+            selectedItems.push({id: sample.id, barcode: sample.barcode, form_number: sample.form_number, identifier: identifier || sample.barcode});
+            added++;
+        });
+        if (selectedItems.length >= limit && added < currentSamples.length) {
+            setStatus('The requested sample limit has been reached.', true);
+        } else setStatus('', false);
+        updateSelectedView();
+        renderSamples();
+    }
+
+    function unselectAllInEnvelope() {
+        if (saving) return;
+        var envelopeSampleIds = {};
+        $.each(currentSamples, function(_, sample) { envelopeSampleIds[String(sample.id)] = true; });
+        selectedItems = $.grep(selectedItems, function(item) { return !envelopeSampleIds[String(item.id)]; });
+        updateSelectedView();
+        renderSamples();
+    }
+
+    function toggleSample(sample, checked) {
+        if (checked) {
+            var limit = parseInt($('#number_of_samples').val(), 10);
+            if (!limit || selectedItems.length >= limit) {
+                setStatus('You can select up to the requested number of samples.', true);
+                renderSamples();
+                return;
+            }
+            var identifier = nextIdentifier();
+            if (sampleType === 'D' && !identifier) {
+                setStatus('Enter a valid starting barcode before selecting samples.', true);
+                renderSamples();
+                $('#starting_barcode').focus();
+                return;
+            }
+            selectedItems.push({id: sample.id, barcode: sample.barcode, form_number: sample.form_number, identifier: identifier || sample.barcode});
+            setStatus('', false);
+        } else {
+            removeSelected(sample.id);
+            return;
+        }
+        updateSelectedView();
+        renderSamples();
+    }
+
+    function removeSelected(sampleId) {
+        var index = findSelected(sampleId);
+        if (index >= 0) selectedItems.splice(index, 1);
+        updateSelectedView();
+        renderSamples();
+    }
+
+    function renderEnvelopes(envelopes) {
+        var list = $('#envelope-list').empty();
+        if (!envelopes.length) {
+            list.append($('<p class="text-muted">').text('No envelopes have pending samples.'));
+            return;
+        }
+        $.each(envelopes, function(_, envelope) {
+            var button = $('<button type="button" class="btn btn-default repeat-envelope">');
+            button.attr('data-envelope-id', envelope.id);
+            button.append($('<span>').text(envelope.number));
+            var ageLabel = envelope.oldest_sample ? ' · oldest ' + envelope.oldest_sample : '';
+            button.append($('<span class="repeat-envelope-count">').text(envelope.sample_count + ' samples' + ageLabel));
+            button.on('click', function() { loadEnvelope(envelope, button); });
+            list.append(button);
+        });
+        filterEnvelopes();
+    }
+
+    function filterEnvelopes() {
+        var term = $.trim($('#envelope-search').val()).toLowerCase();
+        $('#envelope-list .repeat-envelope').each(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(term) >= 0);
+        });
+    }
+
+    function loadEnvelope(envelope, button) {
+        currentEnvelopeId = envelope.id;
+        currentSamples = [];
+        $('#select-all-envelope, #unselect-all-envelope').prop('disabled', true);
+        $('#envelope-list .repeat-envelope').removeClass('active');
+        button.addClass('active');
+        $('#sample-heading').text('Samples in envelope ' + envelope.number);
+        $('#repeat-sample-rows').html('<tr><td colspan="3" class="text-muted">Loading samples…</td></tr>');
+        $.getJSON('/worksheets/manage_repeats/', queryParams('envelope_samples', {envelope_id: envelope.id}))
+            .done(function(response) {
+                if (String(currentEnvelopeId) !== String(envelope.id)) return;
+                currentSamples = response.samples || [];
+                renderSamples();
+            })
+            .fail(function() {
+                $('#repeat-sample-rows').html('<tr><td colspan="3" class="text-danger">Could not load samples for this envelope.</td></tr>');
+            });
+    }
+
+    function loadEnvelopes() {
+        $.getJSON('/worksheets/manage_repeats/', queryParams('envelopes'))
+            .done(function(response) { renderEnvelopes(response.envelopes || []); })
+            .fail(function() { $('#envelope-list').html('<p class="text-danger">Could not load pending envelopes.</p>'); });
+    }
+
+    function saveSelected() {
+        if (saving || !selectedItems.length) return;
+        var limit = parseInt($('#number_of_samples').val(), 10);
+        if (!limit || selectedItems.length > limit) {
+            setStatus('The selected sample count exceeds the requested limit.', true);
+            return;
+        }
+        if (selectedItems.length < limit && !window.confirm('You selected ' + selectedItems.length + ' of ' + limit + ' requested samples. Save these samples now?')) return;
+        var seenIdentifiers = {};
+        for (var i = 0; i < selectedItems.length; i++) {
+            var identifier = $.trim(selectedItems[i].identifier || '');
+            if (!identifier) {
+                setStatus('Assign an identifier to every selected sample before saving.', true);
+                return;
+            }
+            if (seenIdentifiers[identifier]) {
+                setStatus('Each selected sample must have a unique new identifier.', true);
+                return;
+            }
+            seenIdentifiers[identifier] = true;
+        }
+        saving = true;
+        setStatus('Saving ' + selectedItems.length + ' samples…', false);
+        updateSelectedView();
+        renderSamples();
+        var pending = selectedItems.slice();
+        function saveNext(index) {
+            if (index >= pending.length) {
+                window.location.replace('/worksheets/show/' + worksheetId);
+                return;
+            }
+            var item = pending[index];
+            $.post('/worksheets/manage_repeats/', {
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                s_pk: item.id,
+                worksheet_id: worksheetId,
+                barcode: item.identifier,
+                worksheet_type: worksheetType
+            }).done(function() {
+                savedSampleIds[item.id] = true;
+                currentSamples = $.grep(currentSamples, function(sample) {
+                    return String(sample.id) !== String(item.id);
+                });
+                removeSelected(item.id);
+                saving = false;
+                updateSelectedView();
+                renderSamples();
+                saving = true;
+                saveNext(index + 1);
+            }).fail(function(xhr) {
+                saving = false;
+                updateSelectedView();
+                renderSamples();
+                var response = xhr.responseJSON || {};
+                setStatus(response.message || 'A sample could not be saved. Previously saved samples remain on the worksheet; review the selection and retry.', true);
+                loadEnvelopes();
+            });
+        }
+        saveNext(0);
+    }
+
+    $('#envelope-search').on('input', filterEnvelopes);
+    $('#select-all-envelope').on('click', selectAllInEnvelope);
+    $('#unselect-all-envelope').on('click', unselectAllInEnvelope);
+    $('#starting_barcode').on('input change', function() {
+        if (!selectedItems.length) return;
+        var start = $.trim($(this).val());
+        if (!isValidStartingBarcode(start)) {
+            setStatus('Enter a barcode in the format R26010673 (R followed by 8 digits).', true);
+            return;
+        }
+        var stem = start.substring(0, start.length - 4);
+        var number = parseInt(start.substring(start.length - 4), 10);
+        $.each(selectedItems, function(_, item) {
+            var suffix = String(number++);
+            while (suffix.length < 4) suffix = '0' + suffix;
+            item.identifier = stem + suffix;
+        });
+        nextIdentifierNumber = number;
+        setStatus('', false);
+        updateSelectedView();
+        renderSamples();
+    });
+    $('#number_of_samples').on('input change', function() { setStatus('', false); });
+    $('#save-selected-top, #save-selected-bottom').on('click', saveSelected);
+    loadEnvelopes();
+});
+</script>
 {% endblock %}

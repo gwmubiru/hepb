@@ -79,8 +79,8 @@ $(document).ready(function() {
 		}
 	});
 
-	function reloadTable() {
-		table.ajax.reload();
+	function reloadTable(resetPaging) {
+		table.ajax.reload(null, resetPaging !== false);
 	}
 
 	$("#envelope_number, #barcode").on("keyup", function(e) {
