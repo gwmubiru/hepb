@@ -434,9 +434,14 @@ def update_run_with_contamination_info(result_run, db_alias='default'):
 def save_upload_result(result, multiplier,machine_type,instrument_id,user, active_program_code=None, db_alias='default'):
 	sample = Sample.objects.using(db_alias).filter(barcode=instrument_id).first()
 	if sample and sample.is_data_entered ==1:
+		existing_result = Result.objects.using(db_alias).filter(sample_id=sample.id).first()
+		if existing_result and not WorksheetSample.objects.using(db_alias).filter(
+			sample_id=sample.id, stage__in=(1, 4),
+		).exists():
+			return None
 		result_dict = result_utils.get_result(result, multiplier,machine_type,0,sample.sample_type,active_program_code=active_program_code)
 		the_test_date = timezone.now()
-		result = Result()
+		result = existing_result or Result()
 		result.repeat_test = 2
 		result.authorised = 1
 		result_columns = result_utils.get_result_column_fields(

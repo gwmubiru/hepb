@@ -1,6 +1,40 @@
 from django.db import models
 
 
+class VLWorksheetSampleQuerySet(models.QuerySet):
+	"""Synchronize sample stages for LIMS worksheet sample writes."""
+	def update(self, **kwargs):
+		if 'stage' not in kwargs:
+			return super(VLWorksheetSampleQuerySet, self).update(**kwargs)
+		updated = super(VLWorksheetSampleQuerySet, self).update(**kwargs)
+		self._sync_sample_stages(self.exclude(sample_id=None))
+		return updated
+
+	def bulk_create(self, objs, **kwargs):
+		created = super(VLWorksheetSampleQuerySet, self).bulk_create(objs, **kwargs)
+		self._sync_sample_stages(objs)
+		return created
+
+	def bulk_update(self, objs, fields, **kwargs):
+		updated = super(VLWorksheetSampleQuerySet, self).bulk_update(objs, fields, **kwargs)
+		if 'stage' in fields:
+			self._sync_sample_stages(objs)
+		return updated
+
+	def _sync_sample_stages(self, objs):
+		by_stage = {}
+		for obj in objs:
+			if isinstance(obj, tuple):
+				sample_id, stage = obj
+			else:
+				sample_id, stage = obj.sample_id, obj.stage
+			if sample_id is not None:
+				by_stage.setdefault(stage, set()).add(sample_id)
+		for stage, sample_ids in by_stage.items():
+			if isinstance(stage, int):
+				VLSample.objects.using(self.db).filter(pk__in=sample_ids).update(stage=stage)
+
+
 class VLEnvelope(models.Model):
 	id = models.AutoField(primary_key=True)
 	envelope_number = models.CharField(max_length=10)
@@ -242,6 +276,8 @@ class VLWorksheet(models.Model):
 
 
 class VLWorksheetSample(models.Model):
+	objects = VLWorksheetSampleQuerySet.as_manager()
+
 	id = models.AutoField(primary_key=True)
 	instrument_id = models.CharField(max_length=64, null=True, blank=True)
 	other_instrument_id = models.CharField(max_length=64, null=True, blank=True)
@@ -271,6 +307,13 @@ class VLWorksheetSample(models.Model):
 	has_low_level_viramia = models.IntegerField(null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+
+	def save(self, *args, **kwargs):
+		using = kwargs.get('using') or self._state.db or 'default'
+		result = super(VLWorksheetSample, self).save(*args, **kwargs)
+		if self.sample_id is not None:
+			VLSample.objects.using(using).filter(pk=self.sample_id).update(stage=self.stage)
+		return result
 
 	class Meta:
 		app_label = 'vl'

@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
 from home import utils
 from worksheets.models import Worksheet,WorksheetSample, ResultRunDetail, MACHINE_TYPES,ResultRun
@@ -242,7 +243,7 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
     	'name': ''
     }
 
-	unit_label = 'IU/ml' if str(active_program_code) in ('1', '2') else 'Copies / mL'
+	unit_label = 'IU/ml' if str(active_program_code) in ('1', '2') else 'Copies/ml'
 
 	if utils.isnan(result) or result == '':
 		result = 'Failed' 
@@ -272,10 +273,10 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 	elif eq(result, '< Titer min'):
 		if sample_volume is not None and sample_volume == 500:
 			numeric_result = 20
-			alphanumeric_result = '< 20.00 %s' % unit_label
+			alphanumeric_result = '< 20 %s' % unit_label
 		else:
 			numeric_result = 50
-			alphanumeric_result = '< 50.00 %s' % unit_label
+			alphanumeric_result = '< 50 %s' % unit_label
 	elif eq(result, '> Titer max'):
 		numeric_result = 10000000
 		alphanumeric_result = '> 10,000,000 %s' % unit_label
@@ -287,7 +288,7 @@ def get_result(result, multiplier,machine_type,is_diluted,sample_type,sample_vol
 			numeric_result = get_numeric_result(result)
 		alphanumeric_result = "%s {:,d} %s".format(numeric_result) % (result[0], unit_label)
 	elif result.lower().endswith('cp/ml'):
-		numeric_result = int(float(result[:-6]))
+		numeric_result = get_numeric_result(result)
 		alphanumeric_result = "{:,d} %s".format(numeric_result) % unit_label
 	else:
 		if machine_type == 'N':
@@ -426,10 +427,13 @@ def get_numeric_result(result):
 	result_new = re.sub(r'(?i)[a-z/]+$', '', result_new)
 	# result_new = result_new.strip()
 	try:
-		numeric_result = int(float(result_new))
-	except :
+		numeric_result = _round_whole_number(result_new)
+	except (InvalidOperation, TypeError, ValueError):
 		pass
 	return numeric_result
+
+def _round_whole_number(value):
+	return int(Decimal(str(value)).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
 
 def eq(a,b):
 	return a.upper() == b.upper()
@@ -453,8 +457,8 @@ def get_alinity_numeric_result(result):
 	result_new = re.sub(r'(?i)[a-z/]+$', '', result_new)
 	result_new = result_new.strip()
 	try:
-		numeric_result = int(float(result_new))
-	except :
+		numeric_result = _round_whole_number(result_new)
+	except (InvalidOperation, TypeError, ValueError):
 		pass
 	return numeric_result
 

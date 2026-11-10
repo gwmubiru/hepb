@@ -13,6 +13,40 @@ MACHINE_TYPES = (('A', 'Abbott'), ('R', 'Roche CAP/CTM'), ('C', 'Cobas 8800'), (
 STAGE_CHOICES = ((11, 'awaiting_elution'),(12, 'awaiting_loading'),(1, 'awaiting_results'),(2, 'has_results'), (3, 'passed_lab_qc'), (4, 'passed_data_qc'),(5, 'completed'),(6, 'recalled'),(7, 'rejected'),(8, 'ignored'))
 RUN_STAGES = ((1, 'awaiting_authorization'),(2, 'Authorization_complete'), (3, 'Release_complete'))
 
+
+class WorksheetSampleQuerySet(models.QuerySet):
+	"""Keep linked sample stages aligned with worksheet sample stages."""
+	def update(self, **kwargs):
+		if 'stage' not in kwargs:
+			return super(WorksheetSampleQuerySet, self).update(**kwargs)
+		updated = super(WorksheetSampleQuerySet, self).update(**kwargs)
+		self._sync_sample_stages(self.exclude(sample_id=None))
+		return updated
+
+	def bulk_create(self, objs, **kwargs):
+		created = super(WorksheetSampleQuerySet, self).bulk_create(objs, **kwargs)
+		self._sync_sample_stages(objs)
+		return created
+
+	def bulk_update(self, objs, fields, **kwargs):
+		updated = super(WorksheetSampleQuerySet, self).bulk_update(objs, fields, **kwargs)
+		if 'stage' in fields:
+			self._sync_sample_stages(objs)
+		return updated
+
+	def _sync_sample_stages(self, objs):
+		by_stage = {}
+		for obj in objs:
+			if isinstance(obj, tuple):
+				sample_id, stage = obj
+			else:
+				sample_id, stage = obj.sample_id, obj.stage
+			if sample_id is not None:
+				by_stage.setdefault(stage, set()).add(sample_id)
+		for stage, sample_ids in by_stage.items():
+			if isinstance(stage, int):
+				Sample.objects.using(self.db).filter(pk__in=sample_ids).update(stage=stage)
+
 class Worksheet(models.Model):
 	
 	samples = models.ManyToManyField(Sample, through='WorksheetSample')
@@ -91,6 +125,8 @@ class ResultRunDetail(models.Model):
 
 #Attaching samples to work sheet
 class WorksheetSample(models.Model):
+	objects = WorksheetSampleQuerySet.as_manager()
+
 	worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE,null=True, blank=True)
 	id = models.AutoField(primary_key=True)
 	sample = models.ForeignKey(Sample, on_delete=models.CASCADE,null=True, blank=True)
@@ -121,6 +157,13 @@ class WorksheetSample(models.Model):
 	
 	def has_sample(self):
 		hasattr(self, 'sample') and self.sample is not None
+
+	def save(self, *args, **kwargs):
+		using = kwargs.get('using') or self._state.db or 'default'
+		result = super(WorksheetSample, self).save(*args, **kwargs)
+		if self.sample_id is not None:
+			Sample.objects.using(using).filter(pk=self.sample_id).update(stage=self.stage)
+		return result
 
 	class Meta:
 		db_table = 'vl_worksheet_samples'
