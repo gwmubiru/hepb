@@ -5,7 +5,7 @@ from django.conf import settings
 from django.core.serializers import serialize
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseNotAllowed, JsonResponse
 #from easy_pdf.views import PDFTemplateView
 #from easy_pdf.rendering import render_to_pdf_response
 from django.contrib.auth.decorators import permission_required
@@ -16,7 +16,7 @@ from xhtml2pdf import pisa
 from io import BytesIO
 
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from django.db.models import Q,Count, Case, When, IntegerField
+from django.db.models import Q,Count, Case, When, IntegerField, Exists, OuterRef
 from django.db import models
 from django.core import serializers
 
@@ -172,7 +172,7 @@ def update_status(request, worksheet_id):
 	
 	with connections['default'].cursor() as cursor:
 		cursor.execute("UPDATE vl_worksheets SET stage=%s WHERE id=%s",[new_stage,worksheet_id])
-		cursor.execute("UPDATE vl_worksheet_samples SET stage=%s WHERE worksheet_id=%s",[new_stage,worksheet_id])
+	WorksheetSample.objects.filter(worksheet_id=worksheet_id).update(stage=int(new_stage))
 	envelopes = worksheet_utils.get_worksheet_envelopes(worksheet_id,'obj')
 	
 	for envelope in envelopes:
@@ -236,62 +236,102 @@ def attach_samples(request, stage,sample_type):
 			}
 		return render(request, 'worksheets/attach_samples.html', context)
 
+def _repeat_samples_for_worksheet(sample_type, worksheet_type):
+	queryset = Sample.objects.filter(sample_type=sample_type, envelope_id__isnull=False)
+	if worksheet_type == 'fell_off':
+		return queryset.filter(stage__in=(1, 6), updated_at__lte=timezone.now() - timedelta(days=7))
+	active_worksheet_samples = WorksheetSample.objects.filter(sample_id=OuterRef('pk'), stage=1)
+	return queryset.filter(stage=4).annotate(
+		has_active_worksheet=Exists(active_worksheet_samples),
+	).filter(has_active_worksheet=False)
+
+
+def _repeat_worksheet_envelopes(request):
+	sample_type = request.GET.get('sample_type', 'D')
+	worksheet_type = request.GET.get('worksheet_type', 'normal')
+	if sample_type not in ('D', 'P'):
+		return JsonResponse({'message': 'Invalid sample type.'}, status=400)
+	envelopes = _repeat_samples_for_worksheet(sample_type, worksheet_type).values(
+		'envelope_id', 'envelope__envelope_number',
+	).annotate(
+		sample_count=models.Count('id'), oldest_sample=models.Min('created_at'),
+	).order_by('oldest_sample', 'envelope__envelope_number', 'envelope_id')
+	return JsonResponse({'envelopes': [
+		{'id': row['envelope_id'], 'number': row['envelope__envelope_number'] or str(row['envelope_id']),
+		 'sample_count': row['sample_count'],
+		 'oldest_sample': row['oldest_sample'].strftime('%Y-%m-%d') if row['oldest_sample'] else ''}
+		for row in envelopes
+	]})
+
+
+def _repeat_worksheet_envelope_samples(request):
+	sample_type = request.GET.get('sample_type', 'D')
+	worksheet_type = request.GET.get('worksheet_type', 'normal')
+	envelope_id = request.GET.get('envelope_id', '')
+	if sample_type not in ('D', 'P') or not envelope_id.isdigit():
+		return JsonResponse({'message': 'Invalid envelope.'}, status=400)
+	samples = _repeat_samples_for_worksheet(sample_type, worksheet_type).filter(
+		envelope_id=int(envelope_id),
+	).order_by('created_at', 'id').values('id', 'barcode', 'form_number')
+	return JsonResponse({'samples': list(samples)})
+
+
 @permission_required('results.add_result', login_url='/login/')
+@transaction.atomic
 def manage_repeats(request):
 
 	if request.method == 'POST':
-		
 		sample_id = request.POST.get('s_pk')
 		barcode = request.POST.get('barcode')
 		worksheet_id = request.POST.get('worksheet_id')
-		index_val = int(request.POST.get('index_val'))
-		max_samples = int(request.POST.get('max_samples'))
 		worksheet_type = request.POST.get('worksheet_type')
-		index_val = index_val +1
-
-		sample_run = (WorksheetSample.objects.filter(sample_id = sample_id).count())+1
-		
-		#save the worksheet sample
-		worksheet_id = request.POST.get('worksheet_id')
-		s = Sample.objects.get(pk=sample_id)
+		if not sample_id or not str(sample_id).isdigit() or not str(worksheet_id or '').isdigit():
+			return JsonResponse({'message': 'Sample or worksheet information is invalid.'}, status=400)
+		if not barcode:
+			return JsonResponse({'message': 'Sample, worksheet, barcode, or envelope information is missing.'}, status=400)
+		sample = Sample.objects.filter(pk=int(sample_id)).first()
+		worksheet = Worksheet.objects.filter(pk=int(worksheet_id)).first()
+		if not sample or not worksheet:
+			return JsonResponse({'message': 'The selected sample or worksheet could not be found.'}, status=404)
+		if sample.sample_type != worksheet.sample_type:
+			return JsonResponse({'message': 'The selected sample does not match this worksheet type.'}, status=400)
+		if not _repeat_samples_for_worksheet(worksheet.sample_type, worksheet_type).filter(pk=sample.pk).exists():
+			return JsonResponse({'message': 'This sample is no longer eligible for repeat worksheet creation. Refresh the envelope list and select an eligible sample.'}, status=409)
+		if not sample.envelope_id:
+			return JsonResponse({'message': 'The selected sample is not assigned to an envelope.'}, status=400)
+		sample_run = WorksheetSample.objects.filter(sample_id=sample.pk).count() + 1
+		if WorksheetSample.objects.filter(instrument_id=barcode, stage=1).exists():
+			return JsonResponse({'message': 'Instrument ID %s already has a worksheet sample at stage 1.' % barcode}, status=400)
 		if worksheet_type == 'fell_off':
-			#mark existing barcode as not used  - stage 8
-			with connections['default'].cursor() as cursor:
-				cursor.execute("UPDATE vl_worksheet_samples SET stage=%s WHERE sample_id=%s and (stage=1 or stage=2)",[8,s.id])
-		#check that the barcode is not already used at this level
-		ws = WorksheetSample.objects.filter(instrument_id = barcode).first()
-		ret = {}
-		if ws is None:
-			ws = WorksheetSample.objects.create(worksheet_id=worksheet_id,sample_run=sample_run, instrument_id=barcode,stage=1,sample_id=s.id)
-			#mark the sample identifier as waiting for results for repeats  - stage 6
-			s.stage = 6 
-			s.save()
-			ret = {'message':'Saved','identifier_id':sample_id,'index_val':index_val,'max_samples':max_samples,'worksheet_id':worksheet_id}
-		#add envelope to worksheet
-		worksheet_utils.create_worksheet_envelope(ws.sample.envelope.id,worksheet_id,request.user.id)
-		#push the worksheet sample to stage 3
-		if index_val == max_samples:
-			return redirect('/worksheets/show/%d' %int(worksheet_id))
-		else:
-			return HttpResponse(json.dumps(ret))
+			WorksheetSample.objects.filter(sample_id=sample.id, stage__in=(1, 2)).update(stage=8)
+		try:
+			WorksheetSample.objects.create(worksheet=worksheet, sample_run=sample_run, instrument_id=barcode, stage=1, sample=sample)
+		except ValidationError as error:
+			transaction.set_rollback(True)
+			return JsonResponse({'message': error.messages[0]}, status=400)
+		Worksheet.objects.filter(pk=worksheet.pk).update(loaded_at=utils.timestamp(), loaded_by_id=request.user.id)
+		worksheet_utils.create_worksheet_envelope(sample.envelope_id, worksheet.pk, request.user.id)
+		return JsonResponse({'message': 'Saved', 'identifier_id': sample_id})
 	else:
+		if request.GET.get('action') == 'envelopes':
+			return _repeat_worksheet_envelopes(request)
+		if request.GET.get('action') == 'envelope_samples':
+			return _repeat_worksheet_envelope_samples(request)
+		sample_type = request.GET.get('sample_type', 'D')
+		if sample_type not in ('D', 'P'):
+			return HttpResponse('Invalid sample type.', status=400)
 		worksheet = Worksheet()
 		worksheet.generated_by=request.user
-		worksheet.sample_type=request.GET.get('sample_type')		
+		worksheet.sample_type=sample_type
 		worksheet.stage = 12
 		worksheet.is_repeat = 1
 		worksheet.worksheet_medical_lab=utils.user_lab(request)
 		worksheet.worksheet_reference_number =utils.timestamp()
 		worksheet.save()
-		worksheet.worksheet_reference_number = worksheet_utils.create_worksheet_ref_number(request.GET.get('sample_type'),worksheet.id)+'R'
+		worksheet.worksheet_reference_number = worksheet_utils.create_worksheet_ref_number(sample_type,worksheet.id)+'R'
 		worksheet.save()
-		#get the correspnding samples
-		if request.GET.get('worksheet_type') == 'fell_off':
-			time_threshold = timezone.now() - timedelta(days=7)
-			samples = programs.filter_queryset_by_program(request, Sample.objects.filter(Q(stage=6) | Q(stage=1),sample_type='D',updated_at__lte=time_threshold), 'envelope__program_code').order_by('barcode')
-		else:
-			samples = programs.filter_queryset_by_program(request, Sample.objects.filter(stage=4,sample_type='D'), 'envelope__program_code').order_by('barcode')
-		context = {'samples': samples,'worksheet_id':worksheet.id}
+		context = {'worksheet_id': worksheet.id, 'sample_type': sample_type,
+			'worksheet_type': request.GET.get('worksheet_type', 'normal')}
 		return render(request, 'worksheets/create_repeats.html', context)
 
 def manage_plasma_repeats(request):
@@ -323,8 +363,6 @@ def manage_plasma_repeats(request):
 				if s.facility_reference is not None:
 					inst_id = s.facility_reference
 				ws = WorksheetSample.objects.create(worksheet_id=worksheet.id, sample_id = s.id,sample_run=sample_run, instrument_id=inst_id,stage=1)
-				s.stage = 6
-				s.save()
 				worksheet_utils.create_worksheet_envelope(s.envelope.id,worksheet.id,request.user.id)	
 			return redirect('/worksheets/show/%d' %worksheet.pk)
 		else:

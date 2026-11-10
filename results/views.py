@@ -3,7 +3,7 @@ import openpyxl
 #from datetime import *
 from datetime import datetime as dt, timedelta,date
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db import transaction
 from django.db import models
@@ -434,9 +434,14 @@ def update_run_with_contamination_info(result_run, db_alias='default'):
 def save_upload_result(result, multiplier,machine_type,instrument_id,user, active_program_code=None, db_alias='default'):
 	sample = Sample.objects.using(db_alias).filter(barcode=instrument_id).first()
 	if sample and sample.is_data_entered ==1:
+		existing_result = Result.objects.using(db_alias).filter(sample_id=sample.id).first()
+		if existing_result and not WorksheetSample.objects.using(db_alias).filter(
+			sample_id=sample.id, stage__in=(1, 4),
+		).exists():
+			return None
 		result_dict = result_utils.get_result(result, multiplier,machine_type,0,sample.sample_type,active_program_code=active_program_code)
 		the_test_date = timezone.now()
-		result = Result()
+		result = existing_result or Result()
 		result.repeat_test = 2
 		result.authorised = 1
 		result_columns = result_utils.get_result_column_fields(
@@ -1091,10 +1096,8 @@ def _dr_results_queryset(request):
 		'result',
 		'result__sample',
 		'result__sample__patient',
-		'result__sample__facility',
 		'result__sample__current_regimen',
 		'result__sample__source_system',
-		'result__sample__viral_load_testing',
 		'result__sample__envelope',
 	).filter(
 		released=True,
@@ -1105,10 +1108,27 @@ def _dr_results_queryset(request):
 	)
 
 
+def _dr_related_label(instance, related_name, label_name):
+	try:
+		related = getattr(instance, related_name)
+	except ObjectDoesNotExist:
+		return ''
+	return getattr(related, label_name, '') if related else ''
+
+
 def dr_results_json(request):
 	r = request.GET
-	start = int(r.get('start', 0))
-	length = int(r.get('length', 10))
+	try:
+		start = int(r.get('start', 0))
+	except (TypeError, ValueError):
+		start = 0
+	try:
+		length = int(r.get('length', 10))
+	except (TypeError, ValueError):
+		length = 10
+	start = max(start, 0)
+	if length == 0 or length < -1:
+		length = 10
 	envelope_number = (r.get('envelope_number') or '').strip()
 	barcode = (r.get('barcode') or '').strip()
 	facility_id = (r.get('facility_id') or '').strip()
@@ -1124,6 +1144,12 @@ def dr_results_json(request):
 		qs = qs.filter(result__sample__facility_id=facility_id)
 
 	records_filtered = qs.count()
+	if length == -1:
+		start = 0
+	elif records_filtered and start >= records_filtered:
+		start = ((records_filtered - 1) // length) * length
+	elif not records_filtered:
+		start = 0
 
 	order_columns = {
 		0: 'result__sample__barcode',
@@ -1136,7 +1162,10 @@ def dr_results_json(request):
 		8: 'result__sample__current_regimen__appendix',
 		9: 'result__sample__source_system__appendix',
 	}
-	order_column = int(r.get('order[0][column]', 0))
+	try:
+		order_column = int(r.get('order[0][column]', 0))
+	except (TypeError, ValueError):
+		order_column = 0
 	order_dir = r.get('order[0][dir]', 'asc')
 	order_field = order_columns.get(order_column, 'result__sample__barcode')
 	if order_dir == 'desc':
@@ -1153,11 +1182,11 @@ def dr_results_json(request):
 		sample = item.result.sample
 		patient = sample.patient
 		form_number = sample.form_number or ''
-		facility = sample.facility.facility if sample.facility else ''
+		facility = _dr_related_label(sample, 'facility', 'facility')
 		hep_number = patient.hep_number if patient else ''
 		dob = patient.dob.strftime("%Y-%m-%d") if patient and patient.dob else ''
 		age = patient.get_age() if patient else ''
-		testing = sample.viral_load_testing.appendix if sample.viral_load_testing else ''
+		testing = _dr_related_label(sample, 'viral_load_testing', 'appendix')
 		regimen = sample.current_regimen.appendix if sample.current_regimen else ''
 		source_system = sample.source_system.appendix if sample.source_system else ''
 		data.append([
@@ -1174,12 +1203,17 @@ def dr_results_json(request):
 			"<a href='#' class='approve_for_dr' result-pk='{0}'>Mark as reviewed</a>".format(item.result.pk),
 		])
 
-	return HttpResponse(json.dumps({
-		"draw": r.get('draw'),
+	try:
+		draw = int(r.get('draw', 0))
+	except (TypeError, ValueError):
+		draw = 0
+
+	return JsonResponse({
+		"draw": draw,
 		"recordsTotal": records_total,
 		"recordsFiltered": records_filtered,
 		"data": data,
-	}))
+	})
 
 
 def reschedule(request, result_pk):

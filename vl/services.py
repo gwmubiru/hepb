@@ -1204,6 +1204,11 @@ def update_run_with_contamination_info(result_run):
 def save_upload_result(result, multiplier, machine_type, instrument_id, user, active_program_code='3'):
 	sample = VLSample.objects.using('vl_lims').filter(barcode=instrument_id).first()
 	if sample and sample.is_data_entered == 1:
+		existing_result = VLResult.objects.using('vl_lims').filter(sample_id=sample.id).first()
+		if existing_result and not VLWorksheetSample.objects.using('vl_lims').filter(
+			sample_id=sample.id, stage__in=(1, 4),
+		).exists():
+			return None
 		result_dict = result_utils.get_result(result, multiplier, machine_type, 0, sample.sample_type, '', active_program_code)
 		result_columns = result_utils.get_result_column_fields(
 			result_dict.get('alphanumeric_result'),
@@ -1211,32 +1216,35 @@ def save_upload_result(result, multiplier, machine_type, instrument_id, user, ac
 		)
 		panel_extra_fields = result_utils.get_panel_result_extra_fields(result_dict.get('alphanumeric_result'))
 		the_test_date = timezone.now()
-		final_result = VLResult(
-			repeat_test=2,
-			authorised=True,
-			result1=result_columns.get('result1') or '',
-			result2=result_columns.get('result2') or '',
-			result3=result_columns.get('result3') or '',
-			hepb_result=panel_extra_fields.get('hepb_result'),
-			hiv_result=panel_extra_fields.get('hiv_result'),
-			result_numeric=result_dict.get('numeric_result'),
-			failure_reason='',
-			method=machine_type,
-			test_date=the_test_date,
-			authorised_at=the_test_date,
-			authorised_by_id=get_vl_user_id(user),
-			test_by_id=get_vl_user_id(user),
-			sample_id=sample.id,
-			suppressed=result_utils.get_suppressed_for_result(
+		result_values = {
+			'repeat_test': 2,
+			'authorised': True,
+			'result1': result_columns.get('result1') or '',
+			'result2': result_columns.get('result2') or '',
+			'result3': result_columns.get('result3') or '',
+			'hepb_result': panel_extra_fields.get('hepb_result'),
+			'hiv_result': panel_extra_fields.get('hiv_result'),
+			'result_numeric': result_dict.get('numeric_result'),
+			'failure_reason': '',
+			'method': machine_type,
+			'test_date': the_test_date,
+			'authorised_at': the_test_date,
+			'authorised_by_id': get_vl_user_id(user),
+			'test_by_id': get_vl_user_id(user),
+			'sample_id': sample.id,
+			'suppressed': result_utils.get_suppressed_for_result(
 				result_dict.get('alphanumeric_result'),
 				result_dict.get('suppressed') or 0
 			),
-			supression_cut_off_id=result_dict.get('supression_cut_off'),
-			has_low_level_viramia=result_dict.get('has_low_level_viramia'),
-			result_alphanumeric=result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result')),
-			result_type=result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE),
-			result_upload_date=the_test_date,
-		)
+			'supression_cut_off_id': result_dict.get('supression_cut_off'),
+			'has_low_level_viramia': result_dict.get('has_low_level_viramia'),
+			'result_alphanumeric': result_utils.get_final_result_alphanumeric(result_dict.get('alphanumeric_result')),
+			'result_type': result_dict.get('result_type', result_utils.RESULT_TYPE_QUANTITATIVE),
+			'result_upload_date': the_test_date,
+		}
+		final_result = existing_result or VLResult()
+		for field, value in result_values.items():
+			setattr(final_result, field, value)
 		final_result.save(using='vl_lims')
 		qc = VLResultsQC.objects.using('vl_lims').filter(result_id=final_result.id).first()
 		if qc is None:

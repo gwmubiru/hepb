@@ -307,32 +307,7 @@ def _find_existing_sample_for_reception(facility_reference, facility_id=None, db
 
 
 def _get_or_create_tracking_code(code, user_id, facility_id=None, db_alias='default'):
-	code = (code or '').strip()
-	if code == '' or _is_placeholder_tracking_code_value(code):
-		return None
-
-	tracking_code = TrackingCode.objects.using(db_alias).filter(code=code).first()
-	if tracking_code is None:
-		tracking_code = TrackingCode(code=code, creation_by_id=user_id)
-		if facility_id:
-			tracking_code.facility_id = facility_id
-		tracking_code.save(using=db_alias)
-		data = {
-			"barcode": code,
-			"user_id": 1,
-			"numberofsamples": 1,
-			"is_tracked_from_facility": 0,
-			"transfer_to": settings.REF_LAB_ID,
-			"ref_lab_id": settings.REF_LAB_ID,
-			"is_to_be_transfered": 0,
-			"receipt_date": "",
-			"name_of_receiver": "Kakembo John"
-		}
-		#requests.request("POST", settings.SAMPLE_TRACKING_URL, data=data)
-	elif facility_id and not tracking_code.facility_id:
-		tracking_code.facility_id = facility_id
-		tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
-	return tracking_code
+	return SampleService.get_or_create_tracking_code(code, user_id, facility_id, db_alias)
 
 
 def _is_placeholder_tracking_code_value(value):
@@ -356,32 +331,11 @@ def _should_block_tracking_code_facility_mismatch(sample, tracking_code, facilit
 
 
 def _resolve_tracking_code(tracking_code_id, code, user_id, facility_id=None, db_alias='default'):
-	code = (code or '').strip()
-	tracking_code = None
-	if tracking_code_id:
-		candidate = TrackingCode.objects.using(db_alias).filter(pk=tracking_code_id).first()
-		if _is_valid_tracking_code(candidate) and (code == '' or (candidate.code or '').strip() == code):
-			tracking_code = candidate
-	if tracking_code is None and code and not _is_placeholder_tracking_code_value(code):
-		tracking_code = _get_or_create_tracking_code(code, user_id, facility_id, db_alias=db_alias)
-	elif tracking_code and facility_id and not tracking_code.facility_id:
-		tracking_code.facility_id = facility_id
-		tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
-	return tracking_code
+	return SampleService.resolve_tracking_code(tracking_code_id, code, user_id, facility_id, db_alias)
 
 
 def _resolve_tracking_code_for_sample(sample, tracking_code_id, code, user_id, facility_id=None, db_alias='default'):
-	sample_tracking_code_id = getattr(sample, 'tracking_code_id', None)
-	if sample_tracking_code_id:
-		tracking_code = _get_tracking_code_by_id(sample_tracking_code_id, db_alias=db_alias)
-		if _is_valid_tracking_code(tracking_code):
-			if facility_id and not tracking_code.facility_id:
-				tracking_code.facility_id = facility_id
-				tracking_code.save(using=db_alias, update_fields=['facility', 'updated_at'])
-			return tracking_code
-		if str(tracking_code_id or '') == str(sample_tracking_code_id):
-			tracking_code_id = None
-	return _resolve_tracking_code(tracking_code_id, code, user_id, facility_id, db_alias=db_alias)
+	return SampleService.resolve_tracking_code_for_sample(sample, tracking_code_id, code, user_id, facility_id, db_alias)
 
 
 def _get_tracking_code_by_id(tracking_code_id, db_alias='default'):
